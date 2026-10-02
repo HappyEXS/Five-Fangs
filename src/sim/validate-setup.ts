@@ -16,7 +16,8 @@ const INTEGER_FIELDS = [
   'healInterval',
 ] as const;
 
-function unitProblems(label: string, spec: UnitSpec): string[] {
+/** Problemy pojedynczej specyfikacji jednostki, niezależne od składu i areny. */
+export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
   const problems: string[] = [];
   for (const field of INTEGER_FIELDS) {
     const value = spec[field];
@@ -83,12 +84,12 @@ export function validateSetup(setup: BattleSetup): string[] {
   setup.player.forEach((spec, slot) => {
     if (spec === null) return;
     units.push(spec);
-    problems.push(...unitProblems(`gracz, slot ${slot}`, spec));
+    problems.push(...validateUnitSpec(`gracz, slot ${slot}`, spec));
   });
   setup.enemy.forEach((spec, slot) => {
     if (spec === null) return;
     units.push(spec);
-    problems.push(...unitProblems(`przeciwnik, slot ${slot}`, spec));
+    problems.push(...validateUnitSpec(`przeciwnik, slot ${slot}`, spec));
   });
   if (problems.length > 0 || units.length === 0) return problems;
 
@@ -102,17 +103,20 @@ export function validateSetup(setup: BattleSetup): string[] {
     );
   }
 
-  // Każdy strzelec ma w locie najwyżej tyle pocisków, ile zdąży wystrzelić, zanim pierwszy opuści pole.
-  let projectileBound = 0;
-  for (const u of units) {
-    if (u.projectileStep === 0) continue;
-    const flightTicks = Math.ceil(arena.width / u.projectileStep);
-    projectileBound += Math.ceil(flightTicks / u.attackInterval) + 1;
-  }
-  if (projectileBound > MAX_PROJECTILES) {
-    problems.push(
-      `możliwa liczba pocisków w locie (${projectileBound}) przekracza pulę ${MAX_PROJECTILES}`,
-    );
+  let bound = 0;
+  for (const unit of units) bound += projectileBound(unit, arena.width);
+  if (bound > MAX_PROJECTILES) {
+    problems.push(`możliwa liczba pocisków w locie (${bound}) przekracza pulę ${MAX_PROJECTILES}`);
   }
   return problems;
+}
+
+/**
+ * Górne ograniczenie liczby pocisków jednej jednostki w locie: tyle, ile zdąży wystrzelić,
+ * zanim pierwszy opuści pole. Zero dla ataku wręcz.
+ */
+export function projectileBound(spec: UnitSpec, arenaWidth: number): number {
+  if (spec.projectileStep === 0) return 0;
+  const flightTicks = Math.ceil(arenaWidth / spec.projectileStep);
+  return Math.ceil(flightTicks / spec.attackInterval) + 1;
 }

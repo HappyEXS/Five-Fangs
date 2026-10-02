@@ -1,0 +1,15 @@
+[
+  {
+    "id": "slash",
+    "swingDuration": 0.4,
+    "hitFraction": 0.5,
+    "clip": "slash"
+  },
+  {
+    "id": "shoot",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "shoot",
+    "projectile": { "speed": 400, "sprite": "arrow" }
+  }
+]

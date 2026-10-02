@@ -1,0 +1,64 @@
+// Reguły treści wynikające z niezmienników symulacji (docs/ARCHITECTURE.md §4.4).
+// Leżą w scripts/, bo moduł `content` nie może importować kodu z `sim`.
+import type { CompiledUnit } from '../../src/content/compile.ts';
+import type { ContentIssue } from '../../src/content/issues.ts';
+import type { GameContent } from '../../src/content/load.ts';
+import { MAX_PROJECTILES, TEAM_SIZE } from '../../src/sim/types.ts';
+import { projectileBound, validateSetup, validateUnitSpec } from '../../src/sim/validate-setup.ts';
+
+const EMPTY_TEAM = [null, null, null, null, null] as const;
+
+/** Suma największych ograniczeń pocisków w jednej drużynie złożonej z tych jednostek. */
+function worstTeamBound(units: Iterable<CompiledUnit>, width: number): number {
+  return [...units]
+    .map((unit) => projectileBound(unit.base, width))
+    .sort((a, b) => b - a)
+    .slice(0, TEAM_SIZE)
+    .reduce((sum, bound) => sum + bound, 0);
+}
+
+export function contentSimIssues(content: GameContent): ContentIssue[] {
+  const issues: ContentIssue[] = [];
+
+  for (const message of validateSetup({
+    arena: content.arena,
+    player: EMPTY_TEAM,
+    enemy: EMPTY_TEAM,
+  })) {
+    issues.push({ source: 'arena.json', message });
+  }
+
+  const groups = [
+    ['units/heroes.json', content.heroes],
+    ['units/enemies.json', content.enemies],
+  ] as const;
+  const all: CompiledUnit[] = [];
+  for (const [source, units] of groups) {
+    for (const unit of units.values()) {
+      all.push(unit);
+      for (const message of validateUnitSpec(unit.id, unit.base)) issues.push({ source, message });
+    }
+  }
+  if (issues.length > 0 || all.length === 0) return issues;
+
+  // Dowolne dwie jednostki mogą spotkać się w walce, więc reguła obejmuje całą treść.
+  const fastest = all.reduce((a, b) => (b.base.moveStep > a.base.moveStep ? b : a));
+  const shortest = all.reduce((a, b) => (b.base.range < a.base.range ? b : a));
+  if (fastest.base.moveStep > shortest.base.range) {
+    issues.push({
+      source: 'units',
+      message: `krok ruchu "${fastest.id}" (${fastest.base.moveStep} podjednostek na tick) przekracza zasięg "${shortest.id}" (${shortest.base.range}); jednostki mogłyby się minąć`,
+    });
+  }
+
+  const bound =
+    worstTeamBound(content.heroes.values(), content.arena.width) +
+    worstTeamBound(content.enemies.values(), content.arena.width);
+  if (bound > MAX_PROJECTILES) {
+    issues.push({
+      source: 'units',
+      message: `najgorszy skład może mieć ${bound} pocisków w locie, a pula mieści ${MAX_PROJECTILES}`,
+    });
+  }
+  return issues;
+}

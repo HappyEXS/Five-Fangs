@@ -1,0 +1,24 @@
+[
+  {
+    "id": "swordsman",
+    "kind": "melee",
+    "maxHp": 600,
+    "attack": 40,
+    "moveSpeed": 60,
+    "attackSpeed": 1.0,
+    "range": 30,
+    "knockback": 15,
+    "attackType": "slash"
+  },
+  {
+    "id": "archer",
+    "kind": "ranged",
+    "maxHp": 350,
+    "attack": 30,
+    "moveSpeed": 50,
+    "attackSpeed": 0.8,
+    "range": 220,
+    "knockback": 0,
+    "attackType": "shoot"
+  }
+]

@@ -8,5 +8,8 @@
   "update.available": "A new version of the game is available.",
   "update.reload": "Reload",
   "load.failed": "Could not load game data. Check your internet connection.",
-  "load.retry": "Try again"
+  "load.retry": "Try again",
+  "unit.swordsman.name": "Swordsman",
+  "unit.archer.name": "Archer",
+  "unit.brute.name": "Brute"
 }

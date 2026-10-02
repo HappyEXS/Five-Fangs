@@ -8,5 +8,8 @@
   "update.available": "Dostępna jest nowa wersja gry.",
   "update.reload": "Odśwież",
   "load.failed": "Nie udało się wczytać danych gry. Sprawdź połączenie z internetem.",
-  "load.retry": "Spróbuj ponownie"
+  "load.retry": "Spróbuj ponownie",
+  "unit.swordsman.name": "Miecznik",
+  "unit.archer.name": "Łucznik",
+  "unit.brute.name": "Osiłek"
 }

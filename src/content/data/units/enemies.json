@@ -1,0 +1,13 @@
+[
+  {
+    "id": "brute",
+    "kind": "melee",
+    "maxHp": 800,
+    "attack": 35,
+    "moveSpeed": 45,
+    "attackSpeed": 0.7,
+    "range": 30,
+    "knockback": 25,
+    "attackType": "slash"
+  }
+]

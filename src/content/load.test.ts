@@ -1,0 +1,97 @@
+import { describe, expect, it } from 'vitest';
+import { loadContent, type RawContent, rawContent, requireContent } from './load.ts';
+import { validateContent } from './validate.ts';
+
+const unit = {
+  id: 'swordsman',
+  kind: 'melee',
+  maxHp: 600,
+  attack: 40,
+  moveSpeed: 60,
+  attackSpeed: 1,
+  range: 30,
+  knockback: 15,
+  attackType: 'slash',
+};
+
+function withHeroes(heroes: unknown): RawContent {
+  return { ...rawContent, 'units/heroes.json': heroes, 'units/enemies.json': [] };
+}
+
+const messages = (raw: RawContent) =>
+  loadContent(raw).issues.map((i) => `${i.source}: ${i.message}`);
+
+describe('loadContent', () => {
+  it('wczytuje treść gry bez problemów', () => {
+    const { content, issues } = loadContent();
+    expect(issues).toEqual([]);
+    expect(content?.heroes.get('swordsman')?.base.maxHp).toBe(600);
+    expect(content?.heroes.get('archer')?.base.projectileStep).toBeGreaterThan(0);
+    expect(content?.enemies.has('brute')).toBe(true);
+    expect(content?.arena.timeLimitTicks).toBe(2700);
+  });
+
+  it('odrzuca odwołanie do nieistniejącego typu ataku', () => {
+    expect(messages(withHeroes([{ ...unit, attackType: 'stab' }]))).toEqual([
+      'units/heroes.json: swordsman: nieznany typ ataku "stab"',
+    ]);
+  });
+
+  it('odrzuca powtórzone id, także między bohaterami a wrogami', () => {
+    expect(messages(withHeroes([unit, unit]))).toEqual([
+      'units/heroes.json: powtórzone id "swordsman"',
+    ]);
+    const raw: RawContent = {
+      ...rawContent,
+      'units/heroes.json': [unit],
+      'units/enemies.json': [unit],
+    };
+    expect(messages(raw)).toEqual(['units/enemies.json: powtórzone id "swordsman"']);
+  });
+
+  it('odrzuca niezgodność kind z typem ataku', () => {
+    expect(messages(withHeroes([{ ...unit, kind: 'ranged' }]))[0]).toContain('nie pasuje');
+    expect(messages(withHeroes([{ ...unit, attackType: 'shoot' }]))[0]).toContain('nie pasuje');
+  });
+
+  it('zgłasza błąd schematu ze ścieżką do pola i nie kompiluje treści', () => {
+    const result = loadContent(withHeroes([{ ...unit, maxHp: -5, extra: true }]));
+    expect(result.content).toBeNull();
+    const text = result.issues.map((i) => `${i.source}: ${i.message}`).join('\n');
+    expect(text).toContain('units/heroes.json: 0.maxHp');
+    expect(text).toContain('extra');
+  });
+
+  it('wymaga ułamka trafienia wewnątrz zamachu', () => {
+    const raw: RawContent = {
+      ...rawContent,
+      'attacks.json': [{ id: 'slash', swingDuration: 0.4, hitFraction: 1, clip: 'slash' }],
+    };
+    expect(loadContent(raw).content).toBeNull();
+  });
+});
+
+describe('requireContent', () => {
+  it('zwraca treść albo rzuca błąd z listą problemów', () => {
+    expect(requireContent().heroes.size).toBeGreaterThan(0);
+    expect(() => requireContent(withHeroes([{ ...unit, attackType: 'stab' }]))).toThrow(
+      /nieznany typ ataku/,
+    );
+  });
+});
+
+describe('validateContent', () => {
+  it('treść gry jest poprawna', () => {
+    expect(validateContent()).toEqual([]);
+  });
+
+  it('wymaga nazwy każdej jednostki w słowniku', () => {
+    const issues = validateContent(withHeroes([{ ...unit, id: 'nameless' }]));
+    expect(issues).toEqual([
+      {
+        source: 'units/heroes.json',
+        message: 'nameless: brak tekstu "unit.nameless.name" w słowniku',
+      },
+    ]);
+  });
+});
