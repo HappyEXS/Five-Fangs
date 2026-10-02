@@ -15,9 +15,9 @@ import { computeBoneMatrices, rootMatrix } from './rig.ts';
 import { FEET_Y, type Scene, UPPER_BODY, unitFacing } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
-const HP_BACK = '#11151c';
-const HP_PLAYER = '#7fd36b';
-const HP_ENEMY = '#e0705c';
+const HP_BACK = '#241f3d';
+const HP_PLAYER = '#8db35a';
+const HP_ENEMY = '#c9463d';
 const HP_BAR_WIDTH = 46;
 const HP_BAR_HEIGHT = 5;
 const HALF_PI = Math.PI / 2;

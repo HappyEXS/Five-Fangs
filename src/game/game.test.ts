@@ -29,9 +29,9 @@ const WIN = { outcome: 'win', reason: 'eliminated', ticks: 400 } as const;
 const LOSS = { outcome: 'loss', reason: 'timeout', ticks: 2700 } as const;
 
 describe('start gry', () => {
-  it('bez zapisu zaczyna nową grę w panelu głównym, w języku przeglądarki', () => {
+  it('bez zapisu zaczyna nową grę na mapie z pierwszym poziomem, w języku przeglądarki', () => {
     const game = start();
-    expect(game.scene.value).toEqual({ name: 'hub' });
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
     expect(game.save.value.settings.lang).toBe('en');
     expect(language.value).toBe('en');
     expect(game.storage.value).toBe('ok');
@@ -105,34 +105,33 @@ describe('start gry', () => {
 });
 
 describe('sceny', () => {
-  it('przechodzi panel główny → mapa → walka → wynik → mapa', () => {
+  it('przechodzi mapa → walka → wynik → mapa z następnym poziomem', () => {
     const game = start();
-    game.openMap();
-    expect(game.scene.value).toEqual({ name: 'map', selected: null });
-    game.openMap('w1_l1');
-    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
     expect(game.startBattle('w1_l1')).toBe(true);
     expect(game.scene.value).toEqual({ name: 'battle', level: 'w1_l1' });
     game.finishBattle('w1_l1', WIN);
     expect(game.scene.value.name).toBe('result');
-    game.openMap('w1_l2');
+    // Bez wskazania poziomu mapa wybiera pierwszy jeszcze nieprzeszły.
+    game.openMap();
     expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l2' });
+    game.openMap('w1_l1');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
   });
 
-  it('z panelu głównego prowadzą wejścia do składu i sklepu', () => {
+  it('z mapy prowadzą wejścia do składu i sklepu, a z nich powrót na mapę', () => {
     const game = start();
     game.go({ name: 'squad' });
     expect(game.scene.value).toEqual({ name: 'squad' });
     game.go({ name: 'shop' });
     expect(game.scene.value).toEqual({ name: 'shop' });
-    game.go({ name: 'hub' });
-    expect(game.scene.value).toEqual({ name: 'hub' });
+    game.openMap();
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
   });
 
   it('zablokowanego poziomu nie da się wybrać na mapie ani uruchomić', () => {
     const game = start();
     game.openMap('w1_l2');
-    expect(game.scene.value).toEqual({ name: 'map', selected: null });
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
     expect(game.startBattle('w1_l2')).toBe(false);
     expect(game.scene.value.name).toBe('map');
   });
@@ -235,10 +234,11 @@ describe('eksport, import i reset', () => {
     const text = source.exportSave();
 
     const target = start();
-    target.openMap();
+    target.go({ name: 'shop' });
     expect(target.importSave(text)).toBe('ok');
     expect(target.save.value.gold).toBe(100);
-    expect(target.scene.value).toEqual({ name: 'hub' });
+    // Po imporcie gra wraca na mapę z poziomem wynikającym z wczytanego postępu.
+    expect(target.scene.value).toEqual({ name: 'map', selected: 'w1_l2' });
   });
 
   it('odrzuca uszkodzony plik i plik z nowszej wersji, nie zmieniając gry', () => {

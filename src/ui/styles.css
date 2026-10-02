@@ -1,16 +1,84 @@
-/* Scena ma stałe proporcje 16:9; jej położenie i rozmiar ustawia game/stage.ts.
-   Rozmiar czcionki #stage rośnie razem ze sceną, więc UI wymiarujemy w em. */
+/* Teatrzyk z wycinanek: jedna scena ze stałą linią podłogi, a interfejs to papierowe rekwizyty
+   z grubym konturem i twardym cieniem. Bez gradientów i półprzezroczystych paneli.
+   Scena ma proporcje 16:9; jej położenie i rozmiar ustawia game/stage.ts. Rozmiar czcionki
+   #stage rośnie razem ze sceną, więc rozmiary podajemy w em, a położenie na scenie w procentach. */
+
+@font-face {
+  font-family: "Protest Strike";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/protest-strike-latin-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Protest Strike";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/protest-strike-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Sofia Sans Condensed";
+  font-style: normal;
+  font-weight: 1 1000;
+  font-display: swap;
+  src: url("../assets/fonts/sofia-sans-condensed-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Sofia Sans Condensed";
+  font-style: normal;
+  font-weight: 1 1000;
+  font-display: swap;
+  src: url("../assets/fonts/sofia-sans-condensed-latin-ext-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
 
 :root {
   color-scheme: dark;
-  --bg: #0b0d12;
-  --text: #eef1f6;
-  --text-dim: #aab3c2;
-  --panel: rgb(11 13 18 / 78%);
-  --line: rgb(255 255 255 / 22%);
-  --accent: #e3b34b;
-  --good: #8fdc7a;
-  --bad: #ff8f7d;
+
+  /* Paleta. Kolory sceny (niebo, ziemia, linia podłogi) powtarza render/background.ts. */
+  --ink: #241f3d;
+  --dusk: #3f4c80;
+  --pine: #2c5446;
+  --paper: #efe6cf;
+  --marigold: #f0b429;
+  --madder: #c9463d;
+
+  /* Odcienie pochodne. */
+  --paper-light: #fbf5e4;
+  --paper-shade: #d9cdae;
+  --ink-soft: #6a6579;
+  --marigold-light: #ffc94f;
+  --moss: #8db35a;
+  --moss-deep: #3f6a2a;
+
+  --display: "Protest Strike", "Arial Narrow", "Segoe UI", sans-serif;
+  --text: "Sofia Sans Condensed", "Arial Narrow", "Segoe UI", system-ui, sans-serif;
+
+  /* Grubość konturu i przesunięcie twardego cienia. */
+  --line: 0.13em;
+  --drop: 0.2em;
+
+  /* Linia podłogi sceny: GROUND_Y / LOGICAL_HEIGHT z render/camera.ts. */
+  --floor: 77.78%;
 }
 
 * {
@@ -22,9 +90,9 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--text);
 }
 
 #stage {
@@ -41,6 +109,10 @@ body {
 #ui {
   position: absolute;
   inset: 0;
+  font-size: 1.125em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
 }
 
 h1,
@@ -54,6 +126,8 @@ dl,
 dd {
   margin: 0;
   padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 ul,
@@ -61,382 +135,563 @@ ol {
   list-style: none;
 }
 
-.dim {
-  color: var(--text-dim);
-}
-
-/* Ekran sceny wypełnia całą scenę; jego elementy pozycjonują się względem niego. */
-.screen {
+.visually-hidden {
   position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1em;
-  padding: 1em 1.25em;
-}
-
-.panel {
-  padding: 0.9em 1.1em;
-  border: 1px solid var(--line);
-  border-radius: 0.5em;
-  background: var(--panel);
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.45em 1.1em;
-  border: 1px solid var(--line);
-  border-radius: 0.4em;
-  background: rgb(27 34 51 / 90%);
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.button:hover:not(:disabled) {
-  border-color: var(--text-dim);
-}
-
-.button[aria-pressed="true"] {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.button:focus-visible,
-.level:focus-visible,
-.hero-chip:focus-visible,
-.slot-label:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.button-primary {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #1a1407;
-  font-weight: 600;
-}
-
-.button-danger {
-  border-color: var(--bad);
-  color: var(--bad);
-}
-
-/* Pasek górny */
-
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-  width: 100%;
-  padding: 0.5em 0.75em;
-  border: 1px solid var(--line);
-  border-radius: 0.5em;
-  background: var(--panel);
-}
-
-.topbar-title {
-  font-size: 1.15em;
-  font-weight: 600;
-}
-
-.topbar-spacer {
-  flex: 1;
-}
-
-.gold {
-  color: var(--accent);
-  font-weight: 600;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
-/* Komunikaty */
+:focus-visible {
+  outline: 0.17em solid var(--marigold);
+  outline-offset: 0.17em;
+}
 
-.banner {
+/* Na papierze nagietek ginie; tam obwódka fokusu jest atramentowa. */
+.sheet :focus-visible,
+.banner :focus-visible {
+  outline-color: var(--ink);
+}
+
+/* Ekran sceny wypełnia całą scenę; jego elementy stoją w stałych miejscach sceny. */
+.screen {
   position: absolute;
-  top: 1em;
-  left: 50%;
-  z-index: 10;
-  display: flex;
+  inset: 0;
+}
+
+/* Znaki */
+
+.icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  fill: currentcolor;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.icon-hole {
+  fill: var(--paper);
+}
+
+/* Moneta ma atramentowy kontur także na niebie, gdzie tekst jest jasny. */
+.icon-coin {
+  stroke: var(--ink);
+}
+
+.icon-coin circle {
+  fill: var(--marigold);
+}
+
+.icon-coin path {
+  fill: none;
+}
+
+.icon-stamp {
+  fill: var(--moss);
+  stroke-width: 3.5;
+}
+
+.fang-mark {
+  flex: none;
+  width: 4.1em;
+  height: 1.12em;
+  overflow: visible;
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 0.11em;
+}
+
+.fang-mark path {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Przyciski: papierowy kartonik, który po naciśnięciu siada na swoim cieniu. */
+
+.btn {
+  display: inline-flex;
   align-items: center;
-  gap: 1em;
-  padding: 0.75em 1em;
-  border: 1px solid var(--accent);
-  border-radius: 0.5em;
-  background: var(--panel);
-  transform: translateX(-50%);
-}
-
-.banner-bottom {
-  top: auto;
-  bottom: 2.5em;
-}
-
-.banner-action {
-  padding: 0.4em 1em;
-  border: 0;
-  border-radius: 0.4em;
-  background: var(--accent);
-  color: #1a1407;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.notice-blocking {
-  display: grid;
-  gap: 0.9em;
-  max-width: 34em;
-  margin: auto;
-  text-align: center;
-  justify-items: center;
-}
-
-/* Panel główny */
-
-.hub {
   justify-content: center;
-}
-
-.title {
-  font-size: 4em;
-  letter-spacing: 0.04em;
-}
-
-.hub-gold {
-  font-size: 1.2em;
-}
-
-.hub-tiles {
-  display: grid;
-  grid-template-columns: repeat(3, 15em);
-  gap: 1em;
-}
-
-.tile {
-  display: grid;
-  gap: 0.5em;
-  min-height: 9em;
-  padding: 1.2em;
-  border: 1px solid var(--line);
-  border-radius: 0.6em;
-  background: var(--panel);
-  color: inherit;
+  gap: 0.4em;
+  padding: 0.22em 0.8em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper);
+  box-shadow: var(--drop) var(--drop) 0 var(--ink);
+  color: var(--ink);
   font: inherit;
-  text-align: left;
-  cursor: pointer;
-  align-content: center;
-}
-
-.tile:hover,
-.tile:focus-visible {
-  border-color: var(--accent);
-  outline: none;
-}
-
-.tile-title {
-  color: var(--accent);
-  font-size: 1.8em;
   font-weight: 700;
-}
-
-.tile-note {
-  color: var(--text-dim);
-}
-
-.settings {
-  display: grid;
-  gap: 0.8em;
-  min-width: 30em;
-  max-width: 44em;
-}
-
-.settings-group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5em;
-  margin: 0;
-  padding: 0.6em 0.8em;
-  border: 1px solid var(--line);
-  border-radius: 0.4em;
-}
-
-.settings-group legend {
-  padding: 0 0.4em;
-  color: var(--text-dim);
-}
-
-.settings-message {
-  color: var(--accent);
-}
-
-.report {
-  width: 100%;
-  height: 8em;
-  border: 1px solid var(--line);
-  border-radius: 0.3em;
-  background: #10141d;
-  color: var(--text);
-  font:
-    0.8em ui-monospace,
-    Consolas,
-    monospace;
-}
-
-.version {
-  position: absolute;
-  right: 1em;
-  bottom: 0.75em;
-  color: var(--text-dim);
-  font-size: 0.85em;
-}
-
-/* Mapa */
-
-.map-body {
-  display: grid;
-  grid-template-columns: 1fr 19em;
-  gap: 0.8em;
-  width: 100%;
-  min-height: 0;
-  align-items: start;
-}
-
-.worlds {
-  display: grid;
-  gap: 0.8em;
-  overflow: auto;
-}
-
-.world h3 {
-  margin-bottom: 0.6em;
-}
-
-.levels {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.5em;
-}
-
-.level-details {
-  display: grid;
-  gap: 0.5em;
-  align-content: start;
-}
-
-.level-details ul {
-  display: grid;
-  gap: 0.2em;
-}
-
-.level-details h4 {
-  color: var(--text-dim);
-  font-weight: 400;
-}
-
-.level[aria-pressed="true"] {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-
-.level {
-  display: grid;
-  gap: 0.25em;
-  width: 100%;
-  min-height: 7.5em;
-  padding: 0.6em;
-  border: 1px solid var(--line);
-  border-radius: 0.4em;
-  background: rgb(27 34 51 / 90%);
-  color: inherit;
-  font: inherit;
-  text-align: left;
+  white-space: nowrap;
   cursor: pointer;
-  align-content: start;
 }
 
-.level:hover:not(:disabled) {
-  border-color: var(--accent);
+.btn:hover:not(:disabled) {
+  background: var(--paper-light);
 }
 
-.level:disabled {
-  opacity: 0.45;
+.btn:active:not(:disabled) {
+  box-shadow: none;
+  translate: var(--drop) var(--drop);
+}
+
+.btn[aria-pressed="true"] {
+  background: var(--marigold);
+}
+
+.btn:disabled {
+  background: var(--paper-shade);
+  box-shadow: none;
+  color: var(--ink-soft);
   cursor: default;
 }
 
-.level-cleared {
-  border-color: var(--good);
+.btn-primary {
+  background: var(--marigold);
 }
 
-.level-number {
-  color: var(--accent);
-  font-size: 1.5em;
+.btn-primary:hover:not(:disabled) {
+  background: var(--marigold-light);
+}
+
+.btn-danger {
+  background: var(--madder);
+  color: var(--paper);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--madder);
+}
+
+.btn-small {
+  padding: 0.05em 0.55em;
+}
+
+.btn-big {
+  padding: 0.2em 1.5em 0.26em;
+  font: 400 1.7em / 1.1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+/* Obwódka fokusu liczy się od czcionki przycisku; przy dużej czcionce byłaby za gruba. */
+.btn-big:focus-visible {
+  outline-width: 0.1em;
+  outline-offset: 0.1em;
+}
+
+/* Arkusz: prostokąt papieru leżący na scenie. */
+
+.sheet {
+  padding: 0.8em 1em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0.32em 0.32em 0 var(--ink);
+  color: var(--ink);
+}
+
+.sheet-title {
+  font-weight: 800;
+}
+
+.note {
+  color: var(--ink-soft);
+  font-size: 0.92em;
+}
+
+/* Złoto */
+
+.purse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 1.3em;
+  font-weight: 800;
+}
+
+.gold-amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rune-tag {
+  display: inline-block;
+  padding: 0 0.5em;
+  border-radius: 0.22em;
+  background: var(--dusk);
+  color: var(--paper);
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.level-state,
-.level-rune {
-  color: var(--text-dim);
-  font-size: 0.85em;
+/* Rogi ekranu głównego */
+
+.corner-mark {
+  position: absolute;
+  top: 2.4%;
+  left: 1.6%;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 
-.level-cleared .level-state {
-  color: var(--good);
+.wordmark {
+  font: 400 1.3em / 1 var(--display);
+  letter-spacing: 0.04em;
+}
+
+.corner-purse {
+  position: absolute;
+  top: 2.2%;
+  right: 1.6%;
+}
+
+.rail {
+  position: absolute;
+  top: 12.5%;
+  left: 1.6%;
+  display: grid;
+  gap: 0.65em;
+}
+
+.rail-btn {
+  justify-content: flex-start;
+  width: 7.4em;
+  padding-left: 0.55em;
+  font-size: 0.95em;
+}
+
+/* Mapa: szlak z nieregularnych kafli */
+
+.world-head {
+  position: absolute;
+  top: 1.8%;
+  left: 56%;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  translate: -50% 0;
+}
+
+.world-name {
+  font: 400 1.7em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.trail {
+  position: absolute;
+  top: 8.5%;
+  right: 3%;
+  left: 15%;
+  height: 35%;
+}
+
+.trail-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.trail-line polyline {
+  fill: none;
+  stroke: var(--paper);
+  stroke-dasharray: 0.12em 0.62em;
+  stroke-linecap: round;
+  stroke-width: 0.24em;
+  vector-effect: non-scaling-stroke;
+}
+
+.trail-tiles {
+  position: absolute;
+  inset: 0;
+}
+
+/* Punkt zaczepienia kafla: sam nie ma rozmiaru, kafel jest na nim wyśrodkowany. */
+.tile-spot {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.tile {
+  position: absolute;
+  top: -3.1em;
+  left: -4em;
+  display: grid;
+  width: 8em;
+  height: 6.2em;
+  padding: 0.5em 0.7em 0.7em;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    translate 90ms ease-out,
+    scale 90ms ease-out;
+  align-content: center;
+  isolation: isolate;
+  justify-items: center;
+}
+
+.tile-shape {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tile-face,
+.tile-shadow {
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 0.15em;
+  vector-effect: non-scaling-stroke;
+}
+
+.tile-face {
+  fill: var(--paper);
+}
+
+.tile-shadow {
+  fill: var(--ink);
+  transform: translate(3.5px, 4.5px);
+}
+
+.tile-number {
+  font: 400 2.1em / 0.95 var(--display);
+}
+
+.tile-name {
+  max-width: 7.4em;
+  font-size: 0.84em;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.tile .icon {
+  position: absolute;
+  top: 0.55em;
+  right: 0.7em;
+}
+
+.tile .icon-stamp {
+  top: -0.35em;
+  right: 0.35em;
+  width: 1.25em;
+  height: 1.62em;
+  rotate: 14deg;
+}
+
+.tile-boss {
+  padding-top: 1.5em;
+}
+
+.tile-boss .tile-number {
+  color: var(--madder);
+}
+
+.tile-boss .icon {
+  top: 1.7em;
+}
+
+.tile:hover:not(:disabled) {
+  translate: 0 -0.18em;
+}
+
+.tile[aria-pressed="true"] {
+  scale: 1.1;
+}
+
+/* Zablokowany kafel leży płasko: bez cienia, na przygaszonym papierze. */
+.tile-locked {
+  color: var(--ink-soft);
+  cursor: default;
+}
+
+.tile-locked .tile-face {
+  fill: var(--paper-shade);
+}
+
+.tile-locked .tile-shadow {
+  display: none;
+}
+
+.tile-locked .tile-number {
+  color: var(--ink-soft);
+}
+
+.tile[aria-pressed="true"] .tile-face {
+  fill: var(--marigold);
+}
+
+/* Tabliczka wybranego poziomu */
+
+.plaque {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  display: grid;
+  gap: 0.1em;
+  min-width: 15em;
+  padding: 0.4em 1.5em 0.45em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0.32em 0.32em 0 var(--ink);
+  color: var(--ink);
+  text-align: center;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.plaque-name {
+  font: 400 1.55em / 1.05 var(--display);
+  letter-spacing: 0.02em;
+}
+
+.plaque-reward {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  font-weight: 600;
+}
+
+.plaque-best {
+  margin-left: 0.5em;
+  color: var(--ink-soft);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Pod linią podłogi: kły składu, podpisy przeciwników, start walki */
+
+.fang {
+  position: absolute;
+  top: calc(var(--floor) + 0.28em);
+  width: 2.6em;
+  height: 3.4em;
+  overflow: visible;
+  translate: -50% 0;
+}
+
+.fang path {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+
+.fang-empty path {
+  fill: none;
+  stroke: var(--paper);
+  stroke-dasharray: 3 5;
+  stroke-width: 2;
+  opacity: 0.65;
+}
+
+.enemy-tag {
+  position: absolute;
+  top: calc(var(--floor) + 0.75em);
+  display: grid;
+  gap: 0.2em;
+  width: 5.9%;
+  font-size: 0.8em;
+  line-height: 1.05;
+  text-align: center;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.enemy-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.enemy-level {
+  padding: 0.05em 0.4em;
+  border-radius: 0.22em;
+  background: var(--madder);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fight {
+  position: absolute;
+  top: 81.5%;
+  left: 50%;
+  display: grid;
+  gap: 0.55em;
+  width: 16em;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.fight-note {
+  font-size: 0.92em;
+  text-align: center;
+}
+
+/* Nagłówek ekranu składu i sklepu */
+
+.screen-head {
+  position: absolute;
+  top: 2.2%;
+  right: 1.6%;
+  left: 1.6%;
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+}
+
+.screen-title {
+  font: 400 1.7em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.spacer {
+  flex: 1;
 }
 
 /* Skład */
 
-.squad-bench,
-.squad-details {
+.reserve {
   position: absolute;
-  top: 5.6em;
+  top: 11%;
+  left: 1.6%;
   display: grid;
   gap: 0.5em;
-  overflow: auto;
-  font-size: 0.9em;
-  align-content: start;
-}
-
-/* Ławka kończy się nad głowami bohaterów stojących na canvasie. */
-.squad-bench {
-  left: 1.4em;
-  width: 26em;
+  width: 21em;
   max-height: 42%;
-}
-
-.squad-details {
-  right: 1.4em;
-  bottom: 1.4em;
-  width: 24em;
-}
-
-.hero-details {
-  display: grid;
-  gap: 0.55em;
+  overflow: auto;
+  align-content: start;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4em;
+  gap: 0.5em;
 }
 
 .hero-chip {
-  padding: 0.3em 0.7em;
-  border: 1px solid var(--line);
-  border-radius: 1em;
-  background: #263049;
-  color: inherit;
+  padding: 0.1em 0.6em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper);
+  box-shadow: 0.14em 0.14em 0 var(--ink);
+  color: var(--ink);
   font: inherit;
+  font-weight: 700;
   white-space: nowrap;
   cursor: grab;
   /* Przeciąganie obsługujemy sami; bez tego dotyk przewijałby stronę. */
@@ -445,182 +700,546 @@ ol {
 }
 
 .hero-chip[aria-pressed="true"] {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--marigold);
 }
 
 .drag-ghost {
   position: fixed;
   z-index: 20;
-  border-color: var(--accent);
-  transform: translate(-50%, -120%);
+  background: var(--marigold);
+  rotate: -4deg;
+  translate: -50% -120%;
   pointer-events: none;
 }
 
-/* Sloty leżą w jednym rzędzie, tuż pod linią podłogi, każdy pod swoim bohaterem na canvasie.
-   Pozycje startowe dzieli 6% szerokości sceny, więc nazwa bohatera łamie się w wąskim polu. */
+.hero-sheet {
+  position: absolute;
+  top: 11%;
+  right: 1.6%;
+  width: 23em;
+  max-height: 85%;
+  overflow: auto;
+}
+
+/* Slot sięga od głowy bohatera na scenie po dół ekranu, żeby dało się upuścić bohatera także
+   na postać. Kieł wisi pod linią podłogi: dopełnienie górne to odległość od góry slotu do tej
+   linii (procent dopełnienia liczy się od szerokości sceny, a scena ma zawsze 16:9). */
 .slot {
   position: absolute;
-  top: 79.5%;
+  top: 55%;
+  bottom: 3%;
   display: grid;
-  gap: 0.2em;
-  width: 5.8%;
-  min-height: 5.6em;
-  padding: 0.2em 0.1em;
-  border: 1px dashed var(--line);
-  border-radius: 0.4em;
-  background: rgb(11 13 18 / 55%);
-  font-size: 0.72em;
-  transform: translateX(-50%);
+  gap: 0.3em;
+  width: 5.9%;
+  padding-top: calc(12.82% + 0.25em);
+  translate: -50% 0;
   align-content: start;
   justify-items: center;
 }
 
-.slot .hero-chip {
-  width: 100%;
-  padding: 0.25em 0.1em;
-  border-radius: 0.5em;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-height: 1.15;
-}
-
-.slot-label {
-  padding: 0 0.5em;
+.slot-fang {
+  position: relative;
+  display: grid;
+  width: 2.5em;
+  height: 3.25em;
+  padding: 0 0 1em;
   border: 0;
   background: none;
-  color: var(--text-dim);
+  color: var(--ink);
   font: inherit;
-  font-weight: 700;
   cursor: pointer;
+  isolation: isolate;
+  place-items: center;
 }
 
-.slot-label:disabled {
+.slot-fang svg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.slot-fang path {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+
+.slot-number {
+  font: 400 1.15em / 1 var(--display);
+}
+
+.slot-fang:disabled {
   cursor: default;
+}
+
+.slot-empty .slot-fang path {
+  fill: var(--paper-shade);
+}
+
+/* W trakcie przeciągania wszystkie kły podświetlają się jako miejsca upuszczenia. */
+.is-dragging .slot-fang path {
+  fill: var(--marigold);
+}
+
+.slot-fang:hover:not(:disabled) path {
+  fill: var(--marigold);
+}
+
+.slot .hero-chip {
+  width: 100%;
+  padding: 0.12em 0.1em;
+  font-size: 0.78em;
+  line-height: 1.1;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.squad-hint {
+  position: absolute;
+  bottom: 2.2%;
+  left: 1.6%;
+  max-width: 60%;
+  font-size: 0.92em;
+}
+
+/* Karta bohatera */
+
+.hero-details {
+  display: grid;
+  gap: 0.75em;
+}
+
+.hero-name {
+  font: 400 1.75em / 1 var(--display);
+  letter-spacing: 0.02em;
+}
+
+.hero-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3em 0.9em;
+  margin-top: -0.4em;
+}
+
+.upgrades {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.pips {
+  display: inline-flex;
+  gap: 0.18em;
+}
+
+.pip {
+  width: 0.72em;
+  height: 0.94em;
+  overflow: visible;
+  fill: none;
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.pip-on {
+  fill: var(--marigold);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6em 0.8em;
+}
+
+.runes {
+  display: grid;
+  gap: 0.45em;
+}
+
+.rune-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+
+select {
+  padding: 0.15em 0.5em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper-light);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+}
+
+select:disabled {
+  background: var(--paper-shade);
+  color: var(--ink-soft);
 }
 
 /* Statystyki */
 
 .stats dl {
   display: grid;
-  gap: 0.15em;
 }
 
 .stat {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 1em;
+  padding: 0.14em 0;
+  border-bottom: 0.07em dashed var(--ink-soft);
 }
 
-.stat dt {
-  color: var(--text-dim);
+.stat:last-child {
+  border-bottom: 0;
 }
 
+.stat dd {
+  font-weight: 800;
+}
+
+/* Wartość po zakupie: trójkąt rysowany obramowaniem zamiast znaku strzałki. */
 .stat-next {
-  color: var(--good);
+  margin-left: 0.4em;
+  color: var(--moss-deep);
+}
+
+.stat-next::before {
+  display: inline-block;
+  margin-right: 0.35em;
+  border: 0.3em solid transparent;
+  border-right-width: 0;
+  border-left: 0.42em solid currentcolor;
+  content: "";
+}
+
+.stat-less {
+  color: var(--madder);
 }
 
 .trait {
-  margin-top: 0.4em;
-  color: var(--accent);
-  font-size: 0.9em;
+  margin-top: 0.5em;
+  font-size: 0.95em;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-/* Sklep */
+/* Sklep: bohaterowie stoją na scenie, metki wiszą pod nimi */
 
-.shop-hint {
-  width: 100%;
-}
-
-.shop-cards {
+.shop-sheet {
+  position: absolute;
+  top: 15%;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.8em;
-  width: 100%;
-  overflow: auto;
-  align-content: start;
+  gap: 0.45em;
+  width: 25em;
+  translate: -50% 0;
 }
 
-.shop-card {
-  display: grid;
-  gap: 0.55em;
-  align-content: start;
-  font-size: 0.92em;
+/* Karta musi zmieścić się nad głowami postaci, więc statystyki idą w dwóch kolumnach. */
+.shop-sheet .stats dl {
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1.4em;
 }
 
-/* Akcje bohatera i runy */
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5em;
+.shop-sheet .stat:nth-last-child(2):nth-child(odd) {
+  border-bottom: 0;
 }
 
-.runes {
+.shop-tag {
+  position: absolute;
+  top: calc(var(--floor) + 1.2em);
   display: grid;
   gap: 0.35em;
-}
-
-.rune-slot {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.rune-slot select {
-  padding: 0.3em 0.5em;
-  border: 1px solid var(--line);
-  border-radius: 0.3em;
-  background: #1b2233;
-  color: inherit;
-  font: inherit;
-}
-
-.rune {
-  color: var(--accent);
-}
-
-/* Walka i wynik */
-
-.hud-time {
-  color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
-}
-
-.result {
-  justify-content: center;
-}
-
-.result-panel {
-  display: grid;
-  gap: 0.7em;
-  min-width: 26em;
+  padding: 0.4em 0.5em 0.5em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0.26em 0.26em 0 var(--ink);
+  color: var(--ink);
   text-align: center;
+  translate: -50% 0;
   justify-items: center;
 }
 
-.result-win {
-  color: var(--good);
-  font-size: 2.4em;
+/* Sznurek, na którym metka wisi pod linią podłogi. */
+.shop-tag::before {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 0.12em;
+  height: 1.05em;
+  background: var(--paper);
+  content: "";
 }
 
-.result-loss {
-  color: var(--bad);
-  font-size: 2.4em;
+.tag-name {
+  padding: 0 0.3em;
+  border: 0;
+  border-radius: 0.2em;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.tag-name[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.tag-owned {
+  color: var(--ink-soft);
+  font-size: 0.88em;
+}
+
+.shop-hint {
+  position: absolute;
+  top: 9.6%;
+  right: 1.6%;
+  left: 1.6%;
+  font-size: 0.92em;
+}
+
+/* Walka */
+
+.hud-level {
+  position: absolute;
+  top: 2.2%;
+  left: 1.6%;
+  display: grid;
+  gap: 0.15em;
+}
+
+.hud-name {
+  font: 400 1.55em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.hud-time {
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.hud-controls {
+  position: absolute;
+  top: 2.2%;
+  right: 1.6%;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+.hud-speed {
+  display: flex;
+  gap: 0.45em;
+  margin: 0 0.5em;
+}
+
+/* Wynik: arkusz opuszczany na scenę, na której zostało pole zakończonej walki. */
+
+.result-sheet {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  display: grid;
+  gap: 0.55em;
+  width: 23em;
+  padding: 1.1em 1.6em 1.4em;
+  text-align: center;
+  translate: -50% 0;
+  animation: sheet-drop 420ms cubic-bezier(0.2, 1.25, 0.4, 1) both;
+  justify-items: center;
+}
+
+.result-sheet .fang-mark {
+  width: 8em;
+  height: 2.2em;
+  fill: var(--marigold);
+}
+
+.result-sheet[data-outcome="loss"] .fang-mark {
+  fill: var(--paper-shade);
+}
+
+.result-title {
+  font: 400 3.3em / 0.95 var(--display);
+  letter-spacing: 0.02em;
+}
+
+.result-sheet[data-outcome="loss"] .result-title {
+  color: var(--madder);
+}
+
+.result-level {
+  font-weight: 600;
+}
+
+.result-sheet p {
+  text-wrap: balance;
 }
 
 .rewards {
   display: grid;
-  gap: 0.25em;
-  color: var(--accent);
-  font-size: 1.15em;
+  gap: 0.3em;
+  margin: 0.2em 0;
+  font-size: 1.3em;
+  font-weight: 800;
+  justify-items: center;
 }
 
-.result-actions {
+.reward {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.result-sheet .btn-big {
+  margin-top: 0.3em;
+}
+
+@keyframes sheet-drop {
+  from {
+    rotate: -5deg;
+    translate: -50% -135%;
+  }
+
+  to {
+    rotate: 0deg;
+    translate: -50% 0;
+  }
+}
+
+/* Ustawienia */
+
+/* Okno modalne <dialog>: przeglądarka sama je środkuje i kładzie nad resztą strony. */
+.settings {
+  display: grid;
+  gap: 0.95em;
+  width: 31em;
+  max-height: 94vh;
+  overflow: auto;
+}
+
+/* Zasłona za oknem jest funkcjonalna: odcina mapę, na której nic teraz nie da się kliknąć. */
+.settings::backdrop {
+  background: rgb(36 31 61 / 74%);
+}
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.settings-title {
+  font: 400 1.7em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.settings-group {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5em;
-  margin-top: 0.4em;
+  align-items: center;
+  gap: 0.6em 0.8em;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.settings-group legend {
+  margin-bottom: 0.35em;
+  padding: 0;
+  font-weight: 800;
+}
+
+.settings-message {
+  font-weight: 700;
+}
+
+.report {
+  width: 100%;
+  height: 7em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper-light);
+  color: var(--ink);
+  font:
+    0.75em ui-monospace,
+    Consolas,
+    monospace;
+}
+
+/* Komunikaty */
+
+.banner {
+  position: absolute;
+  top: 2.2%;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  max-width: 70%;
+  padding: 0.45em 0.9em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0.26em 0.26em 0 var(--ink);
+  color: var(--ink);
+  font-weight: 600;
+  translate: -50% 0;
+}
+
+.banner-bottom {
+  top: auto;
+  bottom: 2.5%;
+}
+
+/* Stała informacja w rogu mapy: nie zasłania szlaku ani przycisku walki. */
+.banner-corner {
+  top: auto;
+  right: 1.6%;
+  bottom: 2.5%;
+  left: auto;
+  max-width: 34%;
+  font-size: 0.9em;
+  translate: none;
+}
+
+.notice-blocking {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  display: grid;
+  gap: 0.8em;
+  width: 30em;
+  padding: 1.2em 1.6em 1.4em;
+  text-align: center;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.notice-title {
+  font: 400 1.7em / 1.05 var(--display);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-sheet {
+    animation: none;
+  }
+
+  .tile {
+    transition: none;
+  }
 }

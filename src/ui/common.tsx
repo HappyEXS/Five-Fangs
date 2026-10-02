@@ -1,10 +1,11 @@
-// Elementy wspólne ekranów: pasek górny, tabela statystyk, nazwy z treści gry.
+// Elementy wspólne ekranów: nagłówek ekranu, sakiewka, tabela statystyk, nazwy z treści gry.
 import type { ComponentChildren } from 'preact';
 import { unitNameKey } from '../content/i18n/keys.ts';
 import type { Rune } from '../content/schema-progression.ts';
 import type { Game } from '../game/game.ts';
 import { t, tName } from '../game/i18n.ts';
 import { displayStats, traitsOf, type UnitSpec } from '../game/stats.ts';
+import { Coin } from './icons.tsx';
 
 export function unitName(unitId: string): string {
   return tName(unitNameKey(unitId));
@@ -14,22 +15,43 @@ export function runeLabel(rune: Rune): string {
   return t(rune.stat === 'attack' ? 'rune.attack' : 'rune.maxHp', { value: rune.value });
 }
 
-/** Pasek górny ekranu: powrót, tytuł, złoto i dodatkowe przyciski. */
-export function TopBar(props: {
-  game: Game;
-  title: string;
-  onBack: () => void;
-  children?: ComponentChildren;
-}) {
+/** Liczba z odstępem co trzy cyfry: „12 500” czyta się szybciej niż „12500”. */
+export function formatNumber(value: number): string {
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+/** Złoto gracza: moneta i liczba. */
+export function Purse(props: { game: Game }) {
+  const { gold } = props.game.save.value;
   return (
-    <header class="topbar">
-      <button type="button" class="button" onClick={props.onBack}>
-        {t('common.back')}
+    <span class="purse" title={t('common.gold', { gold })} data-gold={gold}>
+      <Coin />
+      <span class="purse-amount">{formatNumber(gold)}</span>
+    </span>
+  );
+}
+
+/** Kwota w złocie wewnątrz tekstu albo przycisku. */
+export function Gold(props: { amount: number }) {
+  return (
+    <span class="gold-amount">
+      <Coin />
+      {formatNumber(props.amount)}
+    </span>
+  );
+}
+
+/** Nagłówek ekranu składu i sklepu: powrót na mapę, tytuł, dodatkowe przyciski i sakiewka. */
+export function ScreenHead(props: { game: Game; title: string; children?: ComponentChildren }) {
+  return (
+    <header class="screen-head">
+      <button type="button" class="btn" data-nav="map" onClick={() => props.game.openMap()}>
+        {t('nav.map')}
       </button>
-      <h2 class="topbar-title">{props.title}</h2>
-      <span class="topbar-spacer" />
+      <h2 class="screen-title">{props.title}</h2>
+      <span class="spacer" />
       {props.children}
-      <span class="gold">{t('common.gold', { gold: props.game.save.value.gold })}</span>
+      <Purse game={props.game} />
     </header>
   );
 }
@@ -63,7 +85,9 @@ export function StatTable(props: { spec: UnitSpec; next?: UnitSpec | null }) {
             <dd>
               {one(value)}
               {after !== undefined && one(after) !== one(value) && (
-                <span class="stat-next"> → {one(after)}</span>
+                <span class={after > value ? 'stat-next' : 'stat-next stat-less'}>
+                  {one(after)}
+                </span>
               )}
             </dd>
           </div>

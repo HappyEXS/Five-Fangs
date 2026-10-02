@@ -4,7 +4,6 @@ import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
 import { reloadGame } from '../game/update.ts';
 import { BattleHud, ResultScreen } from './BattleScreens.tsx';
-import { Hub } from './Hub.tsx';
 import { LoadFailureBanner } from './LoadFailureBanner.tsx';
 import { MapScreen } from './MapScreen.tsx';
 import { ShopScreen } from './ShopScreen.tsx';
@@ -19,8 +18,6 @@ function SceneView(props: AppProps) {
   const { game, stage } = props;
   const scene = game.scene.value;
   switch (scene.name) {
-    case 'hub':
-      return <Hub game={game} />;
     case 'map':
       return <MapScreen game={game} selected={scene.selected} />;
     case 'squad':
@@ -49,10 +46,10 @@ export function App(props: AppProps) {
   if (storage === 'blocked') {
     return (
       <div class="screen">
-        <section class="panel notice-blocking" role="alert">
-          <h2>{t('notice.blocked.title')}</h2>
+        <section class="sheet notice-blocking" role="alert">
+          <h2 class="notice-title">{t('notice.blocked.title')}</h2>
           <p>{t('notice.blocked.text')}</p>
-          <button type="button" class="button button-primary" onClick={() => reloadGame()}>
+          <button type="button" class="btn btn-primary" onClick={() => reloadGame()}>
             {t('update.reload')}
           </button>
         </section>
@@ -60,16 +57,17 @@ export function App(props: AppProps) {
     );
   }
 
+  const recovered = game.recovered.value;
   return (
     <>
       <SceneView {...props} />
       <LoadFailureBanner />
-      {game.recovered.value && (
+      {recovered && (
         <div class="banner banner-bottom" role="alert">
           <span>{t('notice.recovered')}</span>
           <button
             type="button"
-            class="banner-action"
+            class="btn btn-primary btn-small"
             onClick={() => {
               game.recovered.value = false;
             }}
@@ -78,8 +76,8 @@ export function App(props: AppProps) {
           </button>
         </div>
       )}
-      {storage === 'memory' && game.scene.value.name === 'hub' && (
-        <div class="banner banner-bottom" role="status">
+      {storage === 'memory' && !recovered && game.scene.value.name === 'map' && (
+        <div class="banner banner-corner" role="status">
           <span>{t('notice.memory')}</span>
         </div>
       )}

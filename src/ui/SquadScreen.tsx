@@ -1,15 +1,16 @@
 // Zarządzanie składem: ustawianie bohaterów na slotach oraz ulepszenia, ewolucja i runy
-// wybranego bohatera. Pod interfejsem canvas pokazuje skład stojący na swoich slotach;
-// strefy slotów leżą w jednym rzędzie pod bohaterami.
+// wybranego bohatera. Canvas pokazuje skład stojący na linii podłogi; pod każdym bohaterem
+// wisi kieł jego slotu.
 import { useSignal } from '@preact/signals';
 import { useMemo } from 'preact/hooks';
 import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
 import { heroView, isSquadEmpty } from '../game/progress.ts';
 import { SQUAD_SLOTS } from '../game/save-schema.ts';
-import { TopBar } from './common.tsx';
+import { ScreenHead } from './common.tsx';
 import { createDrag } from './drag.ts';
 import { HeroDetails, heroLabel } from './HeroDetails.tsx';
+import { FANG_PATH, TagIcon } from './icons.tsx';
 
 const BENCH = 'bench';
 const SLOT_PREFIX = 'slot:';
@@ -71,29 +72,26 @@ export function SquadScreen(props: { game: Game }) {
   const draggedView = dragging === null ? null : heroView(content, save, Number(dragging.item));
 
   return (
-    <div class="screen squad">
-      <TopBar game={game} title={t('hub.squad')} onBack={() => game.go({ name: 'hub' })}>
-        <button type="button" class="button" onClick={() => game.go({ name: 'shop' })}>
-          {t('hub.shop')}
+    <div class={dragging === null ? 'screen squad' : 'screen squad is-dragging'}>
+      <ScreenHead game={game} title={t('nav.squad')}>
+        <button type="button" class="btn" data-nav="shop" onClick={() => game.go({ name: 'shop' })}>
+          <TagIcon />
+          {t('nav.shop')}
         </button>
-        <button type="button" class="button" onClick={() => game.openMap()}>
-          {t('hub.map')}
-        </button>
-      </TopBar>
+      </ScreenHead>
 
-      <section class="panel squad-bench" data-drop={BENCH}>
-        <h3>{t('squad.bench')}</h3>
+      <section class="sheet reserve" data-drop={BENCH}>
+        <h3 class="sheet-title">{t('squad.bench')}</h3>
         {bench.length === 0 ? (
-          <p class="dim">{t('squad.bench.empty')}</p>
+          <p class="note">{t('squad.bench.empty')}</p>
         ) : (
           <div class="chips">{bench.map((hero) => chip(hero.id))}</div>
         )}
-        <p class="dim">{t(isSquadEmpty(save) ? 'squad.empty' : 'squad.hint')}</p>
       </section>
 
-      <section class="panel squad-details">
+      <section class="sheet hero-sheet">
         {selectedView === null ? (
-          <p class="dim">{t('squad.details.none')}</p>
+          <p class="note">{t('squad.details.none')}</p>
         ) : (
           <HeroDetails game={game} view={selectedView} />
         )}
@@ -102,29 +100,36 @@ export function SquadScreen(props: { game: Game }) {
       {SLOTS.map((slot) => {
         const heroId = save.squad[slot] ?? null;
         const left = ((content.arena.playerSlots[slot] ?? 0) / content.arena.width) * 100;
+        const label = t(slot === 0 ? 'squad.slot.front' : 'squad.slot', { slot: slot + 1 });
         return (
           <div
             key={slot}
-            class="slot"
+            class={heroId === null ? 'slot slot-empty' : 'slot'}
             data-drop={`${SLOT_PREFIX}${slot}`}
             style={{ left: `${left}%` }}
           >
-            {/* Etykieta slotu jest przyciskiem: stawia wybranego bohatera bez przeciągania. */}
+            {/* Kieł slotu jest przyciskiem: stawia wybranego bohatera bez przeciągania. */}
             <button
               type="button"
-              class="slot-label"
-              title={t(slot === 0 ? 'squad.slot.front' : 'squad.slot', { slot: slot + 1 })}
+              class="slot-fang"
+              title={label}
+              aria-label={label}
               disabled={selectedId === null || selectedId === heroId}
               onClick={() => {
                 if (selectedId !== null) game.placeInSquad(selectedId, slot);
               }}
             >
-              {slot + 1}
+              <svg viewBox="0 0 40 52" aria-hidden="true">
+                <path d={FANG_PATH} />
+              </svg>
+              <span class="slot-number">{slot + 1}</span>
             </button>
             {heroId !== null && chip(heroId)}
           </div>
         );
       })}
+
+      <p class="squad-hint">{t(isSquadEmpty(save) ? 'squad.empty' : 'squad.hint')}</p>
 
       {dragging !== null && draggedView !== null && (
         <div

@@ -118,7 +118,17 @@ Cel: komplet mechanik grywalny na jednym świecie testowym. Autor gry zdecydowa�
 | M5b-1 | Płaska scena: bez perspektywy i ścieżek slotów, postacie na linii podłogi; sloty w jednym rzędzie | 0,5 | Wszystkie postacie stoją na jednej wysokości; sloty w UI w jednym rzędzie | gotowe |
 | M5b-2 | Bohaterowie jako egzemplarze: zapis v2 z migracją z v1, reguły progresji po id bohatera | 1,5 | Fixture v1 migruje do v2; w składzie może stać kilku bohaterów tej samej linii | gotowe |
 | M5b-3 | Sklep: zakup nowych linii i kolejnych egzemplarzy za złoto; dwie linie testowe do kupienia | 1 | Testy reguł zakupu; zakup widoczny w zapisie i składzie | gotowe |
-| M5b-4 | Panel główny z wejściami Mapa, Skład, Sklep; mapa bez zmiany składu; skład z ulepszeniami, ewolucją i runami | 1,5 | Test end-to-end przechodzi cały przepływ na buildzie produkcyjnym | gotowe |
+| M5b-4 | Panel główny z wejściami Mapa, Skład, Sklep; mapa bez zmiany składu; skład z ulepszeniami, ewolucją i runami | 1,5 | Test end-to-end przechodzi cały przepływ na buildzie produkcyjnym | gotowe; panel główny zastąpiła mapa (M5c-1) |
+
+## M5c – Szata graficzna i ergonomia interfejsu (2026-10-02)
+
+Zlecenie autora gry po akceptacji mechaniki. Decyzje w ADR 0015.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5c-1 | Mapa jako ekran główny: nazwa gry w rogu, małe przyciski Skład, Sklep, Ustawienia z boku, poziomy jako nieregularne kafle na szlaku | 1 | Gra startuje na mapie; test end-to-end przechodzi przepływ bez panelu głównego | gotowe |
+| M5c-2 | Wynik walki: nagrody i jeden przycisk OK wracający na mapę | 0,5 | Arkusz wyniku ma dokładnie jeden przycisk (test end-to-end) | gotowe |
+| M5c-3 | Nowa szata graficzna wszystkich ekranów: paleta, czcionki w paczce, kły slotów, sklep na scenie, kolory tła i pasków życia | 2 | Zrzuty wszystkich ekranów przejrzane; `check`, `check:size`, `check:dist` i testy end-to-end przechodzą | gotowe; ocena wyglądu należy do autora gry |
 
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 

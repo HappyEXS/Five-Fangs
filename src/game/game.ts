@@ -11,6 +11,7 @@ import {
   applyUpgrade,
   applyVictory,
   buyHero,
+  currentLevel,
   equipRune,
   isLevelUnlocked,
   isSquadEmpty,
@@ -30,13 +31,12 @@ export interface BattleOutcome {
 }
 
 /**
- * Scena to wartość sygnału, nie ścieżka URL (docs/ARCHITECTURE.md §6.1). Panel główny (`hub`)
- * prowadzi do mapy, składu i sklepu. Skład zmienia się tylko na ekranie składu: mapa pokazuje
- * poziomy i zaczyna walkę bieżącym składem.
+ * Scena to wartość sygnału, nie ścieżka URL (docs/ARCHITECTURE.md §6.1). Ekranem głównym jest
+ * mapa: z niej gracz idzie do składu i sklepu i na nią wraca po walce. Skład zmienia się tylko
+ * na ekranie składu: mapa pokazuje poziomy i zaczyna walkę bieżącym składem.
  */
 export type Scene =
-  | { readonly name: 'hub' }
-  /** `selected` to poziom, którego szczegóły pokazuje mapa. */
+  /** `selected` to poziom, którego przeciwników i nagrody pokazuje mapa; null, gdy gra nie ma poziomów. */
   | { readonly name: 'map'; readonly selected: string | null }
   | { readonly name: 'squad' }
   | { readonly name: 'shop' }
@@ -68,8 +68,11 @@ export interface Game {
   readonly lastBattle: Signal<BattleSetup | null>;
 
   go(scene: Scene): void;
-  /** Otwiera mapę, opcjonalnie z wybranym poziomem. */
-  openMap(selected?: string | null): void;
+  /**
+   * Otwiera mapę z wybranym poziomem. Bez argumentu albo dla poziomu zablokowanego wybiera
+   * pierwszy poziom, którego gracz jeszcze nie przeszedł.
+   */
+  openMap(selected?: string): void;
   /** Zaczyna walkę bieżącym składem. False, gdy skład jest pusty albo poziom zablokowany. */
   startBattle(level: string): boolean;
   /** Kończy walkę: przy wygranej nalicza nagrody, zapisuje grę i pokazuje wynik. */
@@ -108,7 +111,7 @@ export function createGame(options: GameOptions): Game {
       : newSave(content, gameVersion, options.preferredLanguage);
 
   const save = signal<Save>(initial);
-  const scene = signal<Scene>({ name: 'hub' });
+  const scene = signal<Scene>({ name: 'map', selected: currentLevel(content, initial) });
   const storage = signal<StorageStatus>(
     loaded.kind === 'newer' ? 'blocked' : loaded.kind === 'unavailable' ? 'memory' : 'ok',
   );
@@ -129,6 +132,14 @@ export function createGame(options: GameOptions): Game {
     return true;
   };
 
+  const openMap = (selected?: string): void => {
+    const valid = selected !== undefined && isLevelUnlocked(content, save.value, selected);
+    scene.value = {
+      name: 'map',
+      selected: valid ? selected : currentLevel(content, save.value),
+    };
+  };
+
   return {
     content,
     save,
@@ -140,10 +151,7 @@ export function createGame(options: GameOptions): Game {
     go(next) {
       scene.value = next;
     },
-    openMap(selected = null) {
-      const valid = selected !== null && isLevelUnlocked(content, save.value, selected);
-      scene.value = { name: 'map', selected: valid ? selected : null };
-    },
+    openMap,
     startBattle(level) {
       if (!isLevelUnlocked(content, save.value, level) || isSquadEmpty(save.value)) return false;
       scene.value = { name: 'battle', level };
@@ -187,12 +195,12 @@ export function createGame(options: GameOptions): Game {
       if (storage.value === 'blocked') storage.value = 'ok';
       commit(reconcileSave(content, decoded.save));
       language.value = save.value.settings.lang;
-      scene.value = { name: 'hub' };
+      openMap();
       return 'ok';
     },
     resetProgress() {
       commit(newSave(content, gameVersion, save.value.settings.lang));
-      scene.value = { name: 'hub' };
+      openMap();
     },
   };
 }

@@ -1,11 +1,12 @@
-// Ustawienia: język, zapis gry (eksport, import, reset), zgłoszenie problemu.
+// Okno ustawień: język, zapis gry (eksport, import, reset), zgłoszenie problemu.
 import { useSignal } from '@preact/signals';
+import { useLayoutEffect, useRef } from 'preact/hooks';
 import { LANGUAGES } from '../content/i18n/index.ts';
 import { recentErrors } from '../game/errors.ts';
 import type { Game } from '../game/game.ts';
 import { language, t } from '../game/i18n.ts';
 import { buildReport } from '../game/report.ts';
-import { gameVersion } from '../game/version.ts';
+import { gameVersion, versionLabel } from '../game/version.ts';
 
 function downloadText(name: string, text: string): void {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -17,10 +18,18 @@ function downloadText(name: string, text: string): void {
 }
 
 export function Settings(props: { game: Game; onClose: () => void }) {
-  const { game } = props;
+  const { game, onClose } = props;
   const message = useSignal<string | null>(null);
   const confirmReset = useSignal(false);
   const report = useSignal<string | null>(null);
+
+  // Okno modalne przeglądarki: samo przejmuje fokus, trzyma go w środku, zamyka się na Escape
+  // i wyłącza resztę strony. Otwieramy je przed pierwszym malowaniem, żeby nie mignęło jako
+  // zwykły element.
+  const dialog = useRef<HTMLDialogElement>(null);
+  useLayoutEffect(() => {
+    dialog.current?.showModal();
+  }, []);
 
   const onImport = (event: Event): void => {
     const input = event.currentTarget as HTMLInputElement;
@@ -65,14 +74,20 @@ export function Settings(props: { game: Game; onClose: () => void }) {
   };
 
   return (
-    <section class="panel settings" aria-label={t('menu.settings')}>
+    <dialog ref={dialog} class="sheet settings" aria-label={t('nav.settings')} onClose={onClose}>
+      <header class="settings-head">
+        <h2 class="settings-title">{t('nav.settings')}</h2>
+        <button type="button" class="btn" data-action="close" onClick={onClose}>
+          {t('common.close')}
+        </button>
+      </header>
       <fieldset class="settings-group">
         <legend>{t('settings.language')}</legend>
         {LANGUAGES.map((lang) => (
           <button
             key={lang}
             type="button"
-            class="button"
+            class="btn"
             aria-pressed={language.value === lang}
             onClick={() => game.setLanguage(lang)}
           >
@@ -84,12 +99,12 @@ export function Settings(props: { game: Game; onClose: () => void }) {
         <legend>{t('settings.save')}</legend>
         <button
           type="button"
-          class="button"
+          class="btn"
           onClick={() => downloadText('five-fangs-save.json', game.exportSave())}
         >
           {t('settings.export')}
         </button>
-        <label class="button">
+        <label class="btn">
           {t('settings.import')}
           <input type="file" accept="application/json,.json" hidden onChange={onImport} />
         </label>
@@ -98,7 +113,7 @@ export function Settings(props: { game: Game; onClose: () => void }) {
             <span>{t('settings.reset.confirm')}</span>
             <button
               type="button"
-              class="button button-danger"
+              class="btn btn-danger"
               onClick={() => {
                 game.resetProgress();
                 confirmReset.value = false;
@@ -108,7 +123,7 @@ export function Settings(props: { game: Game; onClose: () => void }) {
             </button>
             <button
               type="button"
-              class="button"
+              class="btn"
               onClick={() => {
                 confirmReset.value = false;
               }}
@@ -119,7 +134,7 @@ export function Settings(props: { game: Game; onClose: () => void }) {
         ) : (
           <button
             type="button"
-            class="button"
+            class="btn"
             onClick={() => {
               confirmReset.value = true;
             }}
@@ -130,15 +145,13 @@ export function Settings(props: { game: Game; onClose: () => void }) {
       </fieldset>
       <fieldset class="settings-group">
         <legend>{t('settings.report')}</legend>
-        <button type="button" class="button" onClick={onReport}>
+        <button type="button" class="btn" onClick={onReport}>
           {t('settings.report.copy')}
         </button>
       </fieldset>
       {message.value !== null && <p class="settings-message">{message.value}</p>}
       {report.value !== null && <textarea class="report" readOnly value={report.value} />}
-      <button type="button" class="button" onClick={props.onClose}>
-        {t('common.close')}
-      </button>
-    </section>
+      <p class="note">{t('app.version', { version: versionLabel(gameVersion) })}</p>
+    </dialog>
   );
 }

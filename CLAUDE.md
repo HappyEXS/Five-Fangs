@@ -53,7 +53,7 @@ src/sim      symulacja walki – czysta logika
 src/content  dane JSON + schematy Zod + kompilacja do struktur runtime
 src/render   Canvas 2D, rig, animacje, atlas, efekty, debug overlay
 src/game     sceny, progresja, zapis
-src/ui       Preact (panel główny, mapa, skład, sklep, HUD)
+src/ui       Preact (mapa jako ekran główny, skład, sklep, HUD, wynik)
 src/tools    narzędzia dev (edytor animacji, piaskownica walki) – osobne wejście tools.html, nie trafiają do builda prod
 scripts/     skrypty Node (balans, walidacja, atlas)
 ```

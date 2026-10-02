@@ -1,4 +1,6 @@
-// Canvas pod interfejsem: tło, podgląd pola walki na ekranie składu i sama walka.
+// Canvas pod interfejsem. Linia podłogi jest wspólna dla wszystkich ekranów; zmieniają się
+// aktorzy: na mapie skład gracza stoi naprzeciw przeciwników wybranego poziomu, na ekranie
+// składu sam skład, w sklepie bohaterowie na sprzedaż, a w scenie walki toczy się walka.
 // Reaguje na scenę z `Game`; UI steruje walką przez `StageControls`.
 import { effect, type Signal, signal } from '@preact/signals';
 import type { CompiledLevel } from '../content/load-progression.ts';
@@ -13,10 +15,11 @@ import { type BattleRunner, createBattleRunner } from './battle-runner.ts';
 import { createFrameLoop } from './frame-loop.ts';
 import type { Game, Scene } from './game.ts';
 import { squadMembers } from './progress.ts';
+import { shopScene, shopStands } from './shop-stage.ts';
 import { attachStage, get2dContext } from './stage.ts';
 import { guardedLoad } from './update.ts';
 
-/** Poziom bez przeciwników: podgląd samego składu gracza na ekranie składu. */
+/** Poziom bez przeciwników: podgląd samego składu gracza. */
 const NO_ENEMIES: CompiledLevel = {
   id: '',
   world: '',
@@ -71,7 +74,7 @@ export function startStage(
       () => {
         // Komunikat pokazuje baner z `guardedLoad`; gracz może spróbować ponownie.
         assets.value = 'failed';
-        // Bez grafik nie ma walki; ekran składu działa dalej, tylko bez podglądu.
+        // Bez grafik nie ma walki; pozostałe ekrany działają dalej, tylko bez postaci na scenie.
         if (game.scene.value.name === 'battle') game.openMap();
       },
     );
@@ -91,29 +94,47 @@ export function startStage(
     const save = game.save.value;
     const ready = assets.value === 'ready';
     // Podgląd odświeżamy po zmianie składu, ulepszeń i run; trwająca walka ich nie śledzi.
-    const squadKey = scene.name === 'squad' ? JSON.stringify([save.squad, save.heroes]) : '';
+    const showsSquad = scene.name === 'map' || scene.name === 'squad';
+    const squadKey = showsSquad ? JSON.stringify([save.squad, save.heroes]) : '';
     if (scene === shownScene && squadKey === shownSquad && (runner !== null || previewing)) return;
+
+    // Ekran wyniku zostawia za sobą pole zakończonej walki: ostatnie pozy i gasnące animacje.
+    if (scene.name === 'result' && runner !== null) {
+      shownScene = scene;
+      shownSquad = squadKey;
+      return;
+    }
 
     clear();
     shownScene = scene;
     shownSquad = squadKey;
-    // Ekran składu pokazuje samych bohaterów na ich slotach; walka bierze wrogów z poziomu.
-    const compiled =
-      scene.name === 'squad'
-        ? NO_ENEMIES
-        : scene.name === 'battle'
-          ? content.levels.get(scene.level)
-          : undefined;
-    if (compiled === undefined) return;
+    if (scene.name === 'result') return;
     if (!ready || renderer === null) {
       ensureRenderer();
       return;
     }
 
+    if (scene.name === 'shop') {
+      const shop = shopScene(content, shopStands(content));
+      renderer.beginBattle(createBattle(shop.setup), shop.visuals);
+      previewing = true;
+      return;
+    }
+
+    // Mapa pokazuje skład naprzeciw wrogów wybranego poziomu, ekran składu samych bohaterów.
+    const compiled =
+      scene.name === 'squad'
+        ? NO_ENEMIES
+        : scene.name === 'battle'
+          ? content.levels.get(scene.level)
+          : scene.selected === null
+            ? NO_ENEMIES
+            : content.levels.get(scene.selected);
+    if (compiled === undefined) return;
     const members = squadMembers(content, save);
     const setup = levelSetup(content, compiled, members);
     const visuals = levelVisuals(content, compiled, members);
-    if (scene.name === 'squad') {
+    if (scene.name !== 'battle') {
       renderer.beginBattle(createBattle(setup), visuals);
       previewing = true;
       return;

@@ -45,36 +45,37 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Five Fangs' })).toBeVisible();
 
-  // Panel główny prowadzi na mapę z wybranym następnym poziomem.
-  await page.locator('[data-tile="map"]').click();
+  // Ekranem głównym jest mapa z wybranym pierwszym poziomem; składu nie da się tu zmienić.
   await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
   await expect(page.locator('[data-level="w1_l2"]')).toBeDisabled();
-  const details = page.locator('.level-details');
-  await expect(details).toContainText('Skraj lasu');
-  await expect(details).toContainText('Osiłek');
+  await expect(page.locator('.plaque')).toContainText('Skraj lasu');
+  await expect(page.locator('.enemy-tag')).toContainText('Osiłek');
+  await expect(page.locator('.hero-chip')).toHaveCount(0);
 
-  await details.getByRole('button', { name: 'Walcz' }).click();
+  await page.getByRole('button', { name: 'Walcz' }).click();
   await page.getByRole('button', { name: 'x4' }).click();
-  const result = page.locator('.result-panel');
+  const result = page.locator('.result-sheet');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
   await expect(result).toContainText('Zwycięstwo');
   await expect(result.locator('.rewards')).toContainText('+100 złota');
+  // Po walce jest tylko informacja o nagrodach i jeden przycisk.
+  await expect(result.getByRole('button')).toHaveCount(1);
 
   const save = await readSave(page);
   expect(save.gold).toBe(100);
   expect(save.levels).toMatchObject({ w1_l1: { cleared: true } });
 
-  // „Następny poziom” otwiera mapę z jego przeciwnikami; składu nie da się tam zmienić.
-  await result.locator('[data-action="next"]').click();
-  await expect(page.locator('.level-details')).toContainText('Zasadzka');
-  await expect(page.locator('.hero-chip')).toHaveCount(0);
+  // OK wraca na mapę, która wybiera następny poziom.
+  await result.getByRole('button', { name: 'OK' }).click();
+  await expect(page.locator('.plaque')).toContainText('Zasadzka');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
 
   // Po przeładowaniu strony postęp zostaje.
   await page.reload();
-  await expect(page.locator('.hub .gold')).toHaveText('Złoto: 100');
-  await page.locator('[data-tile="map"]').click();
-  await expect(page.locator('[data-level="w1_l1"]')).toHaveClass(/level-cleared/);
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
+  await expect(page.locator('[data-level="w1_l1"]')).toHaveClass(/tile-cleared/);
   await expect(page.locator('[data-level="w1_l2"]')).toBeEnabled();
+  await expect(page.locator('.plaque')).toContainText('Zasadzka');
 
   expect(errors).toEqual([]);
 });
@@ -97,20 +98,20 @@ test('skład i sklep: ulepszenie, zakup bohatera, przeciąganie na slot, zmiana 
   await page.goto('/');
 
   // Skład: ulepszenie wybranego bohatera.
-  await page.locator('[data-tile="squad"]').click();
-  const details = page.locator('.squad-details');
-  await expect(details).toContainText('Miecznik');
-  await expect(details).toContainText('ulepszenia 0/4');
-  await details.locator('[data-action="upgrade"]').click();
-  await expect(details).toContainText('ulepszenia 1/4');
-  await expect(page.locator('.gold')).toHaveText('Złoto: 550');
+  await page.getByRole('button', { name: 'Skład' }).click();
+  const sheet = page.locator('.hero-sheet');
+  await expect(sheet).toContainText('Miecznik');
+  await expect(sheet).toContainText('Ulepszenia 0 z 4');
+  await sheet.locator('[data-action="upgrade"]').click();
+  await expect(sheet).toContainText('Ulepszenia 1 z 4');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '550');
 
   // Sklep: nowy typ bohatera i drugi egzemplarz posiadanego.
   await page.getByRole('button', { name: 'Sklep' }).click();
   await page.locator('[data-line="guard"] [data-action="buy"]').click();
   await page.locator('[data-line="swordsman"] [data-action="buy"]').click();
-  await expect(page.locator('.gold')).toHaveText('Złoto: 50');
-  await expect(page.locator('[data-line="swordsman"]')).toContainText('Posiadasz: 2');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '50');
+  await expect(page.locator('[data-line="swordsman"]')).toContainText('Masz: 2');
   await expect(page.locator('[data-line="cleric"] [data-action="buy"]')).toBeDisabled();
   let save = await readSave(page);
   expect(save.squad).toEqual([1, 2, 3, 4, null]);
@@ -123,7 +124,7 @@ test('skład i sklep: ulepszenie, zakup bohatera, przeciąganie na slot, zmiana 
   expect(save.squad).toEqual([3, 2, 1, 4, null]);
 
   // Język: zmiana od razu widoczna i zapisana.
-  await page.getByRole('button', { name: 'Wróć' }).click();
+  await page.getByRole('button', { name: 'Mapa' }).click();
   await page.getByRole('button', { name: 'Ustawienia' }).click();
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.getByRole('button', { name: 'Close' })).toBeVisible();
@@ -149,8 +150,8 @@ test('zapis w wersji 1 wczytuje się przez migrację', async ({ page }) => {
     settings: { lang: 'pl', battleSpeed: 2 },
   });
   await page.goto('/');
-  await expect(page.locator('.hub .gold')).toHaveText('Złoto: 135');
-  await page.locator('[data-tile="squad"]').click();
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '135');
+  await page.getByRole('button', { name: 'Skład' }).click();
   await expect(page.locator('[data-drop="slot:0"] .hero-chip')).toHaveText('Miecznik +3');
   await expect(page.locator('[data-drop="slot:1"] .hero-chip')).toHaveText('Strzelec wyborowy +1');
   expect(errors).toEqual([]);
@@ -161,8 +162,8 @@ test('uszkodzony zapis nie zatrzymuje gry', async ({ page }) => {
   await page.addInitScript((key) => localStorage.setItem(key, '{ zepsuty zapis'), SAVE_KEY);
   await page.goto('/');
   await expect(page.getByRole('alert')).toContainText('Zapis gry był uszkodzony');
-  await page.getByRole('button', { name: 'OK' }).click();
-  await page.locator('[data-tile="map"]').click();
+  await page.getByRole('alert').getByRole('button', { name: 'OK' }).click();
+  await expect(page.getByRole('alert')).toHaveCount(0);
   await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
   expect(errors).toEqual([]);
 });

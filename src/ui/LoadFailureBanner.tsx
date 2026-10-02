@@ -9,7 +9,7 @@ export function LoadFailureBanner() {
   return (
     <div class="banner" role="alert">
       <span>{t(isUpdate ? 'update.available' : 'load.failed')}</span>
-      <button type="button" class="banner-action" onClick={() => reloadGame()}>
+      <button type="button" class="btn btn-primary btn-small" onClick={() => reloadGame()}>
         {t(isUpdate ? 'update.reload' : 'load.retry')}
       </button>
     </div>
