@@ -74,6 +74,7 @@ describe('compileUnit', () => {
         healTeam: false,
         enrageHpPercent: 0,
         enrageAttackPercent: 0,
+        lifestealPercent: 0,
       },
       visual: {
         rig: 'humanoid',
@@ -169,6 +170,11 @@ describe('cechy pasywne', () => {
     };
     const { base } = compileUnit(berserker, slash);
     expect([base.enrageHpPercent, base.enrageAttackPercent]).toEqual([40, 75]);
+  });
+
+  it('kradzież życia zapisuje procent', () => {
+    const vampire: RawUnit = { ...swordsman, traits: [{ type: 'lifesteal', percent: 30 }] };
+    expect(compileUnit(vampire, slash).base.lifestealPercent).toBe(30);
   });
 
   it('pierce ustawia flagę i łączy się z leczeniem', () => {

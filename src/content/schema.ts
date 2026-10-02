@@ -52,6 +52,11 @@ export const traitSchema = z.discriminatedUnion('type', [
     hpBelow: z.number().int().min(1).max(99),
     attackBonus: z.number().int().positive(),
   }),
+  /** Kradzież życia: po każdym trafieniu jednostka leczy się o `percent` procent zadanych obrażeń. */
+  z.strictObject({
+    type: z.literal('lifesteal'),
+    percent: z.number().int().min(1).max(100),
+  }),
 ]);
 
 export const unitSchema = z.strictObject({

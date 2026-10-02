@@ -56,6 +56,8 @@ export interface UnitSpec {
   readonly enrageHpPercent: number;
   /** Szał: o ile procent `attack` rosną obrażenia poniżej progu (zaokrąglenie w dół). */
   readonly enrageAttackPercent: number;
+  /** Kradzież życia: procent zadanych obrażeń, o który jednostka się leczy; 0 oznacza brak cechy. */
+  readonly lifestealPercent: number;
 }
 
 export interface ArenaSpec {

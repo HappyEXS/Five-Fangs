@@ -1,6 +1,8 @@
 // Kolejka trafień. Ciosy wręcz i pociski dopisują tu swoje skutki; HP i pozycję odrzuconych
 // zmienia dopiero faza rozstrzygnięcia, dla wszystkich jednostek naraz.
+import { mulDivFloor } from '../core/int.ts';
 import type { Battle } from './battle.ts';
+import { isAlive } from './decide.ts';
 import { EVENT_DAMAGED, pushEvent } from './events.ts';
 
 /**
@@ -31,4 +33,14 @@ export function queueHit(
   if (push > 0) pending.knockback[target] = (pending.knockback[target] ?? 0) + push;
   state.damageDealt[source] = (state.damageDealt[source] ?? 0) + damage;
   pushEvent(battle.events, EVENT_DAMAGED, target, damage, source);
+
+  // Kradzież życia: leczenie trafia do tej samej kolejki, więc może uratować źródło przed
+  // śmiercią w tym samym ticku. Liczy się od obrażeń ciosu, nie od HP, które cel jeszcze miał.
+  // Martwy strzelec nie leczy się z pocisków, które jeszcze lecą: kolejka martwych jest pusta.
+  const steal = battle.specs.lifesteal[source] ?? 0;
+  if (steal > 0 && isAlive(state.status[source] ?? 0)) {
+    const heal = mulDivFloor(damage, steal, 100);
+    pending.heal[source] = (pending.heal[source] ?? 0) + heal;
+    state.healingDone[source] = (state.healingDone[source] ?? 0) + heal;
+  }
 }

@@ -134,6 +134,7 @@ const specSchema = z.strictObject({
   // z raportu starszej wersji gry dalej dawało się wczytać.
   enrageHpPercent: z.number().default(0),
   enrageAttackPercent: z.number().default(0),
+  lifestealPercent: z.number().default(0),
 });
 
 const setupSchema = z.strictObject({

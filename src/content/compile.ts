@@ -61,6 +61,7 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
   let healTeam = false;
   let enrageHpPercent = 0;
   let enrageAttackPercent = 0;
+  let lifestealPercent = 0;
   for (const trait of raw.traits) {
     switch (trait.type) {
       case 'pierce':
@@ -74,6 +75,9 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       case 'enrage':
         enrageHpPercent = trait.hpBelow;
         enrageAttackPercent = trait.attackBonus;
+        break;
+      case 'lifesteal':
+        lifestealPercent = trait.percent;
         break;
     }
   }
@@ -99,6 +103,7 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       healTeam,
       enrageHpPercent,
       enrageAttackPercent,
+      lifestealPercent,
     },
     visual: {
       rig: raw.rig,

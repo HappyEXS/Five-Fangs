@@ -99,6 +99,8 @@ export interface UnitSpecs {
   readonly enrageHp: Int32Array;
   /** Obrażenia ataku w szale; bez cechy równe `attack`. */
   readonly enragedAttack: Int32Array;
+  /** Kradzież życia w procentach zadanych obrażeń. */
+  readonly lifesteal: Int32Array;
 }
 
 export function createSpecs(): UnitSpecs {
@@ -119,6 +121,7 @@ export function createSpecs(): UnitSpecs {
     healTeam: units(),
     enrageHp: units(),
     enragedAttack: units(),
+    lifesteal: units(),
   };
 }
 

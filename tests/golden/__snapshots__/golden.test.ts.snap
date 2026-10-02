@@ -77,6 +77,17 @@ exports[`walki golden > knockback-brawl 1`] = `
 }
 `;
 
+exports[`walki golden > lifesteal 1`] = `
+{
+  "eventHash": "783c7619",
+  "finalHp": "0 -10 0 0 0 124 380 -10 0 0",
+  "outcome": "loss",
+  "reason": "eliminated",
+  "stateHash": "96434a28",
+  "ticks": 554,
+}
+`;
+
 exports[`walki golden > mutual-kill 1`] = `
 {
   "eventHash": "59553965",

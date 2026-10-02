@@ -62,6 +62,12 @@ export const GOLDEN_SETUPS: Readonly<Record<string, BattleSetup>> = {
     [brute(), ranged({ enrageHpPercent: 80, enrageAttackPercent: 100 })],
   ),
 
+  // Kradzież życia: wręcz u przeciwnika, z pocisków przebijających u gracza.
+  lifesteal: setupOf(
+    [swordsman(), ranged({ pierce: true, lifestealPercent: 50 })],
+    [melee({ lifestealPercent: 40, knockback: u(15) }), brute(), archer()],
+  ),
+
   // Pociski przebijające z odrzutem przeciw szeregowi wrogów.
   'pierce-line': setupOf(
     [swordsman(), ranged({ pierce: true, knockback: u(6) }), ranged({ pierce: true })],

@@ -16,6 +16,7 @@ const INTEGER_FIELDS = [
   'healInterval',
   'enrageHpPercent',
   'enrageAttackPercent',
+  'lifestealPercent',
 ] as const;
 
 /** Problemy pojedynczej specyfikacji jednostki, niezależne od składu i areny. */
@@ -51,6 +52,9 @@ export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
     problems.push(
       `${label}: enrageHpPercent i enrageAttackPercent muszą być oba zerowe albo oba dodatnie`,
     );
+  }
+  if (spec.lifestealPercent > 100) {
+    problems.push(`${label}: lifestealPercent musi być w przedziale 0..100`);
   }
   return problems;
 }
