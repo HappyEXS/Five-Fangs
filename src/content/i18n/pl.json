@@ -1,0 +1,8 @@
+{
+  "app.title": "Five Fangs",
+  "app.version": "Wersja {version}",
+  "scene.empty.message": "Fundamenty gotowe. Walki pojawią się w kolejnych wersjach.",
+  "settings.language": "Język",
+  "language.pl": "Polski",
+  "language.en": "English"
+}

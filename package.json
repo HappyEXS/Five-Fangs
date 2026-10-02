@@ -11,7 +11,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
-    "lint": "biome check",
+    "lint": "biome check --error-on-warnings",
     "format": "biome format --write",
     "test": "vitest run",
     "test:watch": "vitest",
