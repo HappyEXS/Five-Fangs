@@ -9,6 +9,10 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && git config --system --add safe.directory /app
 
+# Biblioteki systemowe przeglądarki dla testów end-to-end (pnpm test:e2e). Wersja musi być
+# zgodna z @playwright/test w package.json; pilnuje tego test scripts/lib/tooling.test.ts.
+RUN npx --yes playwright@1.63.0 install-deps chromium  && rm -rf /var/lib/apt/lists/* /root/.npm
+
 # Wersję pnpm wyznacza pole packageManager w package.json; Corepack pobiera ją przy pierwszym użyciu.
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable

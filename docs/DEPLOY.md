@@ -66,7 +66,7 @@ Nagłówki:
 
 ## 5. Pipeline
 
-1. **Push do `main` / PR → GitHub Actions (`ci.yml`)**: `typecheck`, `lint`, `test`, `test:golden`, `validate-content`, `deps:check`, `build`, `check:size`, `check:dist`.
+1. **Push do `main` / PR → GitHub Actions (`ci.yml`)**: `typecheck`, `lint`, `test`, `test:golden`, `validate-content`, `deps:check`, `build`, `check:size`, `check:dist`, `test:e2e` (Playwright na `vite preview`).
 2. **Deploy**: Render buduje `main` dopiero po zielonych checkach (`autoDeployTrigger: checksPass`).
 3. **Smoke check (`smoke.yml`, skrypt `scripts/smoke-check.ts`)**: po udanym CI na `main` czeka do 10 minut, aż `version.json` na stronie poda skrót wdrażanego commita. Potem sprawdza, że `/`, `/version.json` i pierwszy skrypt z `/assets/` mają dokładnie nagłówki z `render.yaml`, że skrypt jest skompresowany i że brakujący plik zwraca 404.
    - Adres strony: zmienna repozytorium `SITE_URL`. Bez niej workflow kończy się od razu bez błędu.

@@ -506,4 +506,5 @@ Wersję builda zapisuje wtyczka w `vite.config.ts` (logika w `scripts/lib/build-
 | Treść | `pnpm validate-content` | Sekcja 4.4 |
 | Granice | `pnpm deps:check` | Sekcja 1 |
 | Build | `pnpm check:size`, test czystości `dist/` | Budżety rozmiaru, brak narzędzi dev |
-| End-to-end | Playwright na `vite preview` (od M4) | Gra startuje, walka dochodzi do końca, konsola bez błędów |
+| Zapisy | `tests/saves/`, pliki w `tests/fixtures/saves/` | Przykładowy plik z każdej wersji zapisu wczytuje się w bieżącej wersji gry |
+| End-to-end | `tests/e2e/*.spec.ts`, `pnpm test:e2e` | Playwright na buildzie produkcyjnym z `vite preview` (te same nagłówki i CSP co na hostingu): nowa gra, walka do końca, nagroda w zapisie, postęp po przeładowaniu, ulepszenie, przeciąganie w składzie, zmiana języka, uszkodzony zapis; konsola bez błędów |

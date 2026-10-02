@@ -90,7 +90,7 @@ Cel: grywalna całość na treści testowej, od menu do nagrody, z zapisem.
 | M4-8 | Ulepszenia i ewolucja | 1,5 | Testy: koszt, blokada bez złota, ewolucja dopiero po 4 ulepszeniach | gotowe |
 | M4-9 | Runy: posiadane runy, 2 sloty, przekładanie | 1,5 | Statystyki w podglądzie zgodne z `resolveUnitSpec` | gotowe |
 | M4-10 | Wykrywanie nowej wersji przy zmianie sceny; ochrona zapisu z nowszej wersji | 0,5 | Test: nowszy `saveVersion` nie jest nadpisywany | gotowe |
-| M4-11 | Test Playwright na `vite preview` w CI | 1 | Gra startuje, walka dochodzi do końca, konsola bez błędów | — |
+| M4-11 | Test Playwright na `vite preview` w CI | 1 | Gra startuje, walka dochodzi do końca, konsola bez błędów | gotowe lokalnie (3 testy przechodzą w kontenerze); krok dodany do `ci.yml`, na GitHubie jeszcze nie uruchomiony |
 
 ## M5 – Treść (ok. 16 dni)
 

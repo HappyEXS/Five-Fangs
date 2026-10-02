@@ -18,6 +18,7 @@ pnpm format            # biome format --write
 pnpm test              # vitest run
 pnpm test:watch        # vitest
 pnpm test:golden       # testy deterministyczne walk (hash stanu); -u aktualizuje migawki
+pnpm test:e2e          # Playwright na buildzie z vite preview – po build; przeglądarkę pobiera raz pnpm e2e:install
 pnpm test:coverage     # testy z pomiarem pokrycia; próg > 90% linii dla src/sim
 pnpm bench             # walki/s, czas ticka i alokacje symulacji; --check kończy błędem poniżej budżetu
 pnpm battle a,b vs c   # walka w konsoli z logiem zdarzeń (jednostki z treści albo golden:<nazwa>)

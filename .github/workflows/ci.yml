@@ -15,7 +15,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
@@ -57,3 +57,10 @@ jobs:
 
       - name: Dist cleanliness
         run: pnpm check:dist
+
+      # Testy end-to-end na buildzie produkcyjnym serwowanym przez vite preview.
+      - name: Install browser for end-to-end tests
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: pnpm test:e2e
