@@ -75,7 +75,7 @@ interface UnitSpec {
   knockback: number;       // podjednostki; siła odrzutu i opór zarazem
   attackInterval: number;  // ticki między początkami ataków
   swingTicks: number;      // długość zamachu
-  hitTick: number;         // 1..swingTicks, tick trafienia lub wystrzału
+  hitTick: number;         // 1..swingTicks-1, tick trafienia lub wystrzału
   projectileStep: number;  // podjednostki / tick; 0 = melee
   pierce: boolean;
   healAmount: number;      // 0 = brak cechy
@@ -85,8 +85,8 @@ interface UnitSpec {
 
 interface ArenaSpec {
   width: number;                // podjednostki
-  playerSlots: Int32Array;      // pozycje startowe, indeks = slot
-  enemySlots: Int32Array;
+  playerSlots: readonly number[];   // pozycje startowe, indeks = slot
+  enemySlots: readonly number[];
   timeLimitTicks: number;
 }
 
@@ -99,40 +99,24 @@ interface BattleSetup {
 
 Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009).
 
+`createBattle` sprawdza niezmienniki setupu (`validateSetup`) i rzuca błąd, gdy są złamane: wartości całkowite, zależności pól ataku, sloty gracza na lewo od slotów przeciwnika, największy `moveStep` nie większy niż najmniejszy `range`, pula pocisków wystarczająca dla składu.
+
 ### 3.3 Stan
 
-`unitId` jest stałe: slot gracza `s` → `s`, slot przeciwnika `s` → `5 + s`. Pusty slot ma stan `Empty`. Struktura tablic, indeks = `unitId`:
+`unitId` jest stałe: slot gracza `s` → `s`, slot przeciwnika `s` → `5 + s`. Pusty slot ma stan `Empty`. Definicja: `src/sim/state.ts`. Wszystkie tablice to `Int32Array`; jeden typ tablic daje jednolity, szybki dostęp i prosty hash.
 
-```ts
-interface BattleState {
-  tick: number;
-  outcome: Outcome;             // InProgress | Win | Loss
-  // jednostki (10)
-  status: Uint8Array;           // Empty | Idle | Moving | Attacking | Dead
-  x: Int32Array;
-  prevX: Int32Array;            // pozycja z początku ticka
-  hp: Int32Array;
-  target: Int8Array;            // unitId lub -1
-  swingTick: Int16Array;        // tick zamachu; -1 poza atakiem
-  sinceAttack: Int32Array;      // ticki od początku ostatniego ataku
-  traitTimer: Int32Array;
-  // pociski (pula stałej wielkości)
-  projCount: number;
-  projX: Int32Array;
-  projPrevX: Int32Array;
-  projStep: Int32Array;         // ze znakiem kierunku
-  projOwner: Int8Array;
-  projDamage: Int32Array;
-  projKnockback: Int32Array;    // knockback strzelca z chwili wystrzału
-  projHitMask: Uint16Array;     // bity unitId już trafionych (pierce)
-  // statystyki do wyniku
-  damageDealt: Int32Array;
-  damageTaken: Int32Array;
-  healingDone: Int32Array;
-}
-```
+| Grupa | Pola | Uwagi |
+|---|---|---|
+| Walka | `tick`, `outcome`, `reason` | `tick` to liczba wykonanych ticków |
+| Jednostki (10) | `status`, `x`, `prevX`, `hp`, `target`, `swingTick`, `sinceAttack`, `traitTimer` | `status`: Empty, Idle, Moving, Attacking, Dead; `target` i `swingTick` mają -1 dla „brak” |
+| Pociski (pula 64) | `projCount`, `nextProjId`, `projId`, `projX`, `projPrevX`, `projStep`, `projOwner`, `projDamage`, `projKnockback`, `projPierce`, `projHitMask` | Aktywne zajmują indeksy `0..projCount-1` w kolejności wystrzelenia; `projId` rośnie przez całą walkę |
+| Statystyki | `damageDealt`, `damageTaken`, `healingDone` | Per `unitId` |
+
+Specyfikacje jednostek są rozłożone na takie same tablice (`UnitSpecs`) i nie zmieniają się w trakcie walki.
 
 `prevX` służy dwóm celom: testowi trafienia pocisku i interpolacji w rendererze.
+
+Konwencja odczytu w `sim`: `tablica[i] ?? 0`. Przy `noUncheckedIndexedAccess` każdy odczyt ma typ `number | undefined`; `?? 0` odpowiada temu, co tablica typowana i tak zapisałaby dla `undefined`. Pola czytamy do zmiennych lokalnych, liczymy i zapisujemy z powrotem.
 
 ### 3.4 Tick
 
@@ -155,46 +139,55 @@ Kolejka zmian to trzy tablice indeksowane `unitId`: `pendingDamage`, `pendingHea
 
 Pozycję zmieniają dwie fazy: ruch (2) i odrzut (6). Odrzut przesuwa jednostkę od przeciwnika, więc nie narusza gwarancji, że wrogie jednostki się nie mijają.
 
+Oś czasu ataku rozpoczętego w ticku `T` (ADR 0008): w `T` decyzja i `swingTick = 0`; w `T + hitTick` trafienie albo wystrzał; w `T + swingTicks` faza decyzji zwalnia jednostkę; w `T + attackInterval` może zacząć się następny atak. Trafienie musi wypaść przed końcem zamachu, stąd `hitTick ≤ swingTicks − 1`.
+
 ### 3.5 Zdarzenia
 
-Bufor o stałej pojemności w układzie struktury tablic (`type: Uint8Array`, `a`, `b`, `c: Int32Array`), czyszczony na początku `step()`. Bez alokacji.
+Bufor o stałej pojemności (1024, co mieści najgorszy możliwy tick) w układzie struktury tablic: `type`, `a`, `b`, `c` jako `Int32Array`. Czyszczony na początku każdego ticka. Bez alokacji; przepełnienie rzuca błąd.
 
-| Zdarzenie | Pola |
-|---|---|
-| `AttackStarted` | jednostka, cel |
-| `AttackHit` | jednostka, cel (melee) |
-| `ProjectileSpawned` | indeks pocisku, właściciel |
-| `ProjectileHit` | indeks pocisku, trafiony |
-| `ProjectileExpired` | indeks pocisku |
-| `Damaged` | jednostka, wartość, źródło |
-| `Healed` | jednostka, wartość, źródło |
-| `KnockedBack` | jednostka, przesunięcie |
-| `Died` | jednostka |
-| `BattleEnded` | wynik, powód |
+| Zdarzenie | `a` | `b` | `c` |
+|---|---|---|---|
+| `AttackStarted` | jednostka | cel | |
+| `AttackHit` | jednostka | cel | |
+| `ProjectileSpawned` | id pocisku | właściciel | pozycja |
+| `ProjectileHit` | id pocisku | trafiony | pozycja trafionego |
+| `ProjectileExpired` | id pocisku | | pozycja |
+| `Damaged` | jednostka | wartość | źródło |
+| `Healed` | jednostka | faktycznie przywrócone HP | |
+| `KnockedBack` | jednostka | faktyczne przesunięcie | |
+| `Died` | jednostka | | |
+| `BattleEnded` | wynik | powód | |
 
-Przy prędkości x4 w jednej klatce wykonuje się kilka ticków, więc konsument wywołuje `drainEvents(out)` po każdym `step()` i sam zbiera zdarzenia do swojej klatki.
+`Healed` powstaje w rozstrzygnięciu, po przycięciu do `maxHp`, więc zgłasza sumę leczenia jednostki w ticku, bez źródła. Przy prędkości x4 w jednej klatce wykonuje się kilka ticków, więc konsument wywołuje `drainEvents(battle, out)` po każdym `stepBattle` i sam zbiera zdarzenia do swojej klatki.
 
 ### 3.6 API
 
+Dane i czyste funkcje, bez klas. Publiczne API eksportuje `src/sim/index.ts`.
+
 ```ts
 function createBattle(setup: BattleSetup): Battle;
+function stepBattle(battle: Battle): void;                    // jeden tick; nic nie robi po zakończeniu walki
+function drainEvents(battle: Battle, out: EventBuffer): void; // dopisuje zdarzenia ostatniego ticka
+function battleResult(battle: Battle): BattleResult;          // rzuca błąd, gdy walka trwa
+function runBattleToEnd(battle: Battle): BattleResult;
 
 interface Battle {
-  readonly state: BattleState;           // tylko do odczytu dla renderera
-  step(): void;                          // jeden tick; nic nie robi po zakończeniu walki
-  drainEvents(out: EventBuffer): void;   // dopisuje zdarzenia ostatniego ticka
-  result(): BattleResult;                // po zakończeniu
+  readonly width: number;
+  readonly timeLimitTicks: number;
+  readonly specs: UnitSpecs;
+  readonly state: BattleState;    // tylko do odczytu dla renderera i UI
+  readonly events: EventBuffer;   // zdarzenia ostatniego ticka
+  eventHash: number;
 }
-
-function runBattleToEnd(battle: Battle): BattleResult;
 
 interface BattleResult {
   outcome: 'win' | 'loss';
   reason: 'eliminated' | 'mutual' | 'timeout';
   ticks: number;
-  damageDealt: Int32Array;
-  damageTaken: Int32Array;
-  healingDone: Int32Array;
+  damageDealt: readonly number[];   // per unitId
+  damageTaken: readonly number[];
+  healingDone: readonly number[];
+  finalHp: readonly number[];
   stateHash: number;
   eventHash: number;
 }
@@ -265,7 +258,7 @@ Jedyne miejsce konwersji jednostek czytelnych dla człowieka na runtime:
 | `knockback` | `knockback × 256` |
 | `attackInterval` | `round(30 / attackSpeed)` |
 | `swingTicks` | `max(2, round(swingDuration × 30))` |
-| `hitTick` | `clamp(round(hitFraction × swingTicks), 1, swingTicks)` |
+| `hitTick` | `clamp(round(hitFraction × swingTicks), 1, swingTicks − 1)` |
 | `projectileStep` | `round(projectile.speed × 256 / 30)` |
 | `healInterval` | `round(interval × 30)` |
 
