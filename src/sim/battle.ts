@@ -1,5 +1,6 @@
 // Walka: niezmienne wejście (arena, specyfikacje) i zmienny stan.
 import { createEventBuffer, type EventBuffer } from './events.ts';
+import { EVENT_HASH_SEED } from './hash.ts';
 import {
   type BattleState,
   createPending,
@@ -61,7 +62,7 @@ export function createBattle(setup: BattleSetup): Battle {
     state: createState(),
     events: createEventBuffer(),
     pending: createPending(),
-    eventHash: 0,
+    eventHash: EVENT_HASH_SEED,
   };
   for (let slot = 0; slot < TEAM_SIZE; slot++) {
     const player = setup.player[slot];

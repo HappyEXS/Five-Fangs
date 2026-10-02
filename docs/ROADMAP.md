@@ -35,7 +35,7 @@ Cel: pełna logika walki w Node, z treścią testową, testami golden i raportem
 |---|---|---|---|---|
 | M1-1 | Typy i stan sim: `UnitSpec`, `ArenaSpec`, `BattleSetup`, `BattleState`, `createBattle`, hash stanu | 1 | Jednostki stoją na slotach; hash stabilny między uruchomieniami | gotowe |
 | M1-2 | Treść: schematy i kompilacja areny, typów ataków i jednostek; `pnpm validate-content`; jednostki testowe (swordsman, archer) | 1,5 | Walidator odrzuca błędne odwołanie i `attackInterval < swingTicks`; testy wzorów kompilacji | gotowe |
-| M1-3 | Decyzje i ruch: wybór celu, blokada celu w zamachu, ruch niezależny od sojuszników | 1 | Testy: remis odległości, sojusznicy mijają się i nachodzą na siebie, brak mijania się wrogów | — |
+| M1-3 | Decyzje i ruch: wybór celu, blokada celu w zamachu, ruch niezależny od sojuszników | 1 | Testy: remis odległości, sojusznicy mijają się i nachodzą na siebie, brak mijania się wrogów | gotowe |
 | M1-4 | Ataki melee i rozstrzygnięcie: zamach i odstęp, kolejka zmian, śmierci, koniec walki, limit czasu | 1,5 | Testy: jednoczesna śmierć, cel ginie w trakcie zamachu, limit czasu = przegrana | — |
 | M1-5 | Pociski fizyczne: wystrzał, test trafienia względnego, pierwszy na drodze, wygaśnięcie | 1,5 | Testy: cel ginie w locie, wróg idący naprzeciw nie przeskakuje pocisku, remis pozycji | — |
 | M1-6 | Odrzut: statystyka `knockback`, kolejka odrzutu, przesunięcie w rozstrzygnięciu, odrzut z pocisków | 1 | Testy: różnica statystyk i brak ruchu przy równych, suma kilku trafień w ticku, przycięcie do krawędzi pola, zamach odrzuconego trwa i trafia, wzajemne trafienie w tym samym ticku | — |
