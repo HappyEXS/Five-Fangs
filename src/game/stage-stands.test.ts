@@ -3,7 +3,7 @@ import { type GameContent, requireContent } from '../content/load.ts';
 import type { CompiledLine } from '../content/load-progression.ts';
 import { createBattle, validateSetup } from '../sim/index.ts';
 import { SQUAD_SLOTS } from './save-schema.ts';
-import { shopScene, shopStands } from './shop-stage.ts';
+import { formStands, shopStands, standScene } from './stage-stands.ts';
 
 const content = requireContent();
 
@@ -47,10 +47,35 @@ describe('shopStands', () => {
   });
 });
 
-describe('shopScene', () => {
+describe('formStands', () => {
+  it('stawia formę bazową z lewej, a formę po ewolucji z prawej, obie zwrócone w prawo', () => {
+    const [base, evolved] = formStands(content, 'swordsman');
+    expect(base).toMatchObject({ unitId: 'swordsman_a', side: 0 });
+    expect(evolved).toMatchObject({ unitId: 'swordsman_b', side: 0 });
+    expect(base?.position).toBeLessThan(evolved?.position ?? 0);
+    expect(base?.slot).not.toBe(evolved?.slot);
+  });
+
+  it('dla nieznanej linii nie stawia nikogo', () => {
+    expect(formStands(content, 'nobody')).toEqual([]);
+  });
+
+  it('obie formy dają poprawne wejście symulacji', () => {
+    const stands = formStands(content, 'archer');
+    const scene = standScene(content, stands);
+    expect(validateSetup(scene.setup)).toEqual([]);
+    const battle = createBattle(scene.setup);
+    for (const stand of stands) {
+      expect(battle.state.x[stand.slot]).toBe(Math.round(stand.position * content.arena.width));
+      expect(scene.setup.player[stand.slot]).toBe(content.heroes.get(stand.unitId)?.base);
+    }
+  });
+});
+
+describe('standScene', () => {
   it('daje poprawne wejście symulacji z bohaterami na ich stanowiskach', () => {
     const stands = shopStands(content);
-    const scene = shopScene(content, stands);
+    const scene = standScene(content, stands);
     expect(validateSetup(scene.setup)).toEqual([]);
     const battle = createBattle(scene.setup);
     for (const stand of stands) {
@@ -66,7 +91,7 @@ describe('shopScene', () => {
   it('prawa strona sceny trafia do slotów przeciwnika', () => {
     const many = withLines(7);
     const stands = shopStands(many);
-    const scene = shopScene(many, stands);
+    const scene = standScene(many, stands);
     expect(validateSetup(scene.setup)).toEqual([]);
     expect(scene.setup.player.filter((unit) => unit !== null)).toHaveLength(4);
     expect(scene.setup.enemy.filter((unit) => unit !== null)).toHaveLength(3);

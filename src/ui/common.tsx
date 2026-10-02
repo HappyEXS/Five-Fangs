@@ -1,5 +1,4 @@
 // Elementy wspólne ekranów: nagłówek ekranu, sakiewka, tabela statystyk, nazwy z treści gry.
-import type { ComponentChildren } from 'preact';
 import { unitNameKey } from '../content/i18n/keys.ts';
 import type { Rune } from '../content/schema-progression.ts';
 import type { Game } from '../game/game.ts';
@@ -41,16 +40,18 @@ export function Gold(props: { amount: number }) {
   );
 }
 
-/** Nagłówek ekranu składu i sklepu: powrót na mapę, tytuł, dodatkowe przyciski i sakiewka. */
-export function ScreenHead(props: { game: Game; title: string; children?: ComponentChildren }) {
+/**
+ * Nagłówek ekranów otwieranych z mapy: „Wróć” zawsze prowadzi na mapę, obok tytuł i sakiewka.
+ * Między tymi ekranami nie ma przejść na skróty, więc gracz zawsze wie, dokąd wróci.
+ */
+export function ScreenHead(props: { game: Game; title: string }) {
   return (
     <header class="screen-head">
-      <button type="button" class="btn" data-nav="map" onClick={() => props.game.openMap()}>
-        {t('nav.map')}
+      <button type="button" class="btn" data-action="back" onClick={() => props.game.openMap()}>
+        {t('common.back')}
       </button>
       <h2 class="screen-title">{props.title}</h2>
       <span class="spacer" />
-      {props.children}
       <Purse game={props.game} />
     </header>
   );

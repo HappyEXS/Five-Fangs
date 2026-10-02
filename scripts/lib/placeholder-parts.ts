@@ -339,10 +339,14 @@ function glyph(rows: readonly string[], color: string, outline: string): Image {
   return image;
 }
 
-/** Zestawy znaków: `fx/<zestaw>_<znak>`. */
+/**
+ * Zestawy znaków: `fx/<zestaw>_<znak>`. Zestaw `hp` to liczba życia nad paskiem: same cyfry,
+ * w kolorach papieru i atramentu z palety interfejsu (ADR 0015).
+ */
 const GLYPH_SETS = [
-  { id: 'dmg', color: '#fff1c2', outline: '#3d1d10' },
-  { id: 'heal', color: '#a6f08f', outline: '#12381a' },
+  { id: 'dmg', color: '#fff1c2', outline: '#3d1d10', plus: true },
+  { id: 'heal', color: '#a6f08f', outline: '#12381a', plus: true },
+  { id: 'hp', color: '#efe6cf', outline: '#241f3d', plus: false },
 ] as const;
 
 export interface PlaceholderSprite {
@@ -388,6 +392,7 @@ export function placeholderSprites(): PlaceholderSprite[] {
   sprites.push({ name: 'fx/arrow', part: PARTS.arrow, image: arrow() });
   for (const set of GLYPH_SETS) {
     for (const [name, rows] of Object.entries(GLYPHS)) {
+      if (name === 'plus' && !set.plus) continue;
       sprites.push({
         name: `fx/${set.id}_${name}`,
         part: GLYPH,

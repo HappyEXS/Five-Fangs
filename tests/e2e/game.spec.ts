@@ -30,6 +30,13 @@ async function seedSave(page: Page, save: unknown): Promise<void> {
   );
 }
 
+/** Otwiera grę i przechodzi z ekranu startowego na mapę. */
+async function play(page: Page): Promise<void> {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Graj' }).click();
+  await expect(page.locator('.map')).toBeVisible();
+}
+
 const hero = (id: number, line: string) => ({
   id,
   line,
@@ -42,8 +49,11 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   page,
 }) => {
   const errors = collectErrors(page);
+  // Gra otwiera się ekranem startowym z jednym przyciskiem.
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Five Fangs' })).toBeVisible();
+  await expect(page.getByRole('button')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Graj' }).click();
 
   // Ekranem głównym jest mapa z wybranym pierwszym poziomem; składu nie da się tu zmienić.
   await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
@@ -72,6 +82,7 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
 
   // Po przeładowaniu strony postęp zostaje.
   await page.reload();
+  await page.getByRole('button', { name: 'Graj' }).click();
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
   await expect(page.locator('[data-level="w1_l1"]')).toHaveClass(/tile-cleared/);
   await expect(page.locator('[data-level="w1_l2"]')).toBeEnabled();
@@ -80,7 +91,7 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   expect(errors).toEqual([]);
 });
 
-test('skład i sklep: ulepszenie, zakup bohatera, przeciąganie na slot, zmiana języka', async ({
+test('skład, sklep i bohaterowie: ulepszenie, zakup, przeciąganie postaci, zmiana języka', async ({
   page,
 }) => {
   const errors = collectErrors(page);
@@ -95,7 +106,7 @@ test('skład i sklep: ulepszenie, zakup bohatera, przeciąganie na slot, zmiana 
     squad: [1, 2, null, null, null],
     settings: { lang: 'pl', battleSpeed: 1 },
   });
-  await page.goto('/');
+  await play(page);
 
   // Skład: ulepszenie wybranego bohatera.
   await page.getByRole('button', { name: 'Skład' }).click();
@@ -105,6 +116,21 @@ test('skład i sklep: ulepszenie, zakup bohatera, przeciąganie na slot, zmiana 
   await sheet.locator('[data-action="upgrade"]').click();
   await expect(sheet).toContainText('Ulepszenia 1 z 4');
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '550');
+
+  // Ze składu wychodzi się tylko na mapę: nie ma skrótu do sklepu.
+  await expect(page.getByRole('button', { name: 'Sklep' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Wróć' }).click();
+
+  // Bohaterowie: obie formy linii i koszt ewolucji; kupowania tu nie ma.
+  await page.getByRole('button', { name: 'Bohaterowie' }).click();
+  const info = page.locator('.heroes');
+  await expect(info).toContainText('Miecznik');
+  await expect(info).toContainText('Rycerz');
+  await expect(info.locator('[data-evolve-cost="250"]')).toContainText('Ewolucja');
+  await info.getByRole('button', { name: 'Akolita' }).click();
+  await expect(info).toContainText('Kapłan');
+  await expect(info.locator('[data-action="buy"]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Wróć' }).click();
 
   // Sklep: nowy typ bohatera i drugi egzemplarz posiadanego.
   await page.getByRole('button', { name: 'Sklep' }).click();
@@ -116,15 +142,17 @@ test('skład i sklep: ulepszenie, zakup bohatera, przeciąganie na slot, zmiana 
   let save = await readSave(page);
   expect(save.squad).toEqual([1, 2, 3, 4, null]);
 
-  // Skład: Tarczownik (id 3) na front przeciągnięciem; zamienia się miejscami z Miecznikiem.
+  // Skład: Tarczownik (id 3) złapany na scenie i przeniesiony na front; zamienia się miejscami
+  // z Miecznikiem.
+  await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Skład' }).click();
-  await page.locator('[data-hero="3"].hero-chip').dragTo(page.locator('[data-drop="slot:0"]'));
-  await expect(page.locator('[data-drop="slot:0"] .hero-chip')).toHaveText('Tarczownik');
+  await page.locator('.stage-hero[data-hero="3"]').dragTo(page.locator('[data-drop="slot:0"]'));
+  await expect(page.locator('[data-drop="slot:0"] .hero-tag')).toHaveText('Tarczownik');
   save = await readSave(page);
   expect(save.squad).toEqual([3, 2, 1, 4, null]);
 
   // Język: zmiana od razu widoczna i zapisana.
-  await page.getByRole('button', { name: 'Mapa' }).click();
+  await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Ustawienia' }).click();
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.getByRole('button', { name: 'Close' })).toBeVisible();
@@ -149,11 +177,11 @@ test('zapis w wersji 1 wczytuje się przez migrację', async ({ page }) => {
     squad: ['swordsman', 'archer', null, null, null],
     settings: { lang: 'pl', battleSpeed: 2 },
   });
-  await page.goto('/');
+  await play(page);
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '135');
   await page.getByRole('button', { name: 'Skład' }).click();
-  await expect(page.locator('[data-drop="slot:0"] .hero-chip')).toHaveText('Miecznik +3');
-  await expect(page.locator('[data-drop="slot:1"] .hero-chip')).toHaveText('Strzelec wyborowy +1');
+  await expect(page.locator('[data-drop="slot:0"] .hero-tag')).toHaveText('Miecznik +3');
+  await expect(page.locator('[data-drop="slot:1"] .hero-tag')).toHaveText('Strzelec wyborowy +1');
   expect(errors).toEqual([]);
 });
 
@@ -164,6 +192,7 @@ test('uszkodzony zapis nie zatrzymuje gry', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('Zapis gry był uszkodzony');
   await page.getByRole('alert').getByRole('button', { name: 'OK' }).click();
   await expect(page.getByRole('alert')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Graj' }).click();
   await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
   expect(errors).toEqual([]);
 });

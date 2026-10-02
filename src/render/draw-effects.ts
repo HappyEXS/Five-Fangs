@@ -57,7 +57,8 @@ export function spawnNumber(
   const look = scene.looks[unit];
   if (look === null || look === undefined) return;
   const x = (battle.state.x[unit] ?? 0) * scene.camera.scale;
-  const y = unitHeadY(look) - 20;
+  // Start nad liczbą życia, która stoi tuż nad paskiem (draw-units.ts).
+  const y = unitHeadY(look) - 42;
   spawnFloatText(scene.floatTexts, x + nextRange(scene.jitter, -10, 10), y, value, kind);
 }
 

@@ -130,6 +130,18 @@ Zlecenie autora gry po akceptacji mechaniki. Decyzje w ADR 0015.
 | M5c-2 | Wynik walki: nagrody i jeden przycisk OK wracający na mapę | 0,5 | Arkusz wyniku ma dokładnie jeden przycisk (test end-to-end) | gotowe |
 | M5c-3 | Nowa szata graficzna wszystkich ekranów: paleta, czcionki w paczce, kły slotów, sklep na scenie, kolory tła i pasków życia | 2 | Zrzuty wszystkich ekranów przejrzane; `check`, `check:size`, `check:dist` i testy end-to-end przechodzą | gotowe; ocena wyglądu należy do autora gry |
 
+## M5d – Poprawki interfejsu po ocenie autora (2026-10-03)
+
+Autor gry ocenił M5c („o wiele lepiej”) i zlecił pięć poprawek. Uzupełnienie w ADR 0015.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5d-1 | Ekran startowy z przyciskiem „Graj” | 0,25 | Gra otwiera się ekranem startowym; „Graj” prowadzi na mapę (test end-to-end) | gotowe |
+| M5d-2 | Skład: łapanie bohatera wprost na scenie, postać jedzie za wskaźnikiem, slot docelowy się podświetla, strzałki przestawiają z klawiatury | 1 | Przeciągnięcie postaci zamienia sloty (test end-to-end); wybrany bohater jest wyraźnie zaznaczony | gotowe |
+| M5d-3 | „Wróć” zamiast „Mapa”; bez przycisku sklepu w składzie i składu w sklepie | 0,25 | Ekrany otwierane z mapy mają tylko powrót (test end-to-end) | gotowe |
+| M5d-4 | Liczba życia nad paskiem HP | 0,5 | Liczba rysowana z atlasu; alokacje renderera bez zmian (279 B na klatkę) | gotowe |
+| M5d-5 | Zakładka „Bohaterowie” z formami linii i drogą ewolucji; sklep tylko do kupowania | 1 | Ekran pokazuje obie formy, koszty ulepszeń i ewolucji (test end-to-end) | gotowe |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

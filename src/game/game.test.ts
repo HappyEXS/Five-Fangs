@@ -29,8 +29,11 @@ const WIN = { outcome: 'win', reason: 'eliminated', ticks: 400 } as const;
 const LOSS = { outcome: 'loss', reason: 'timeout', ticks: 2700 } as const;
 
 describe('start gry', () => {
-  it('bez zapisu zaczyna nową grę na mapie z pierwszym poziomem, w języku przeglądarki', () => {
+  it('bez zapisu zaczyna nową grę na ekranie startowym, w języku przeglądarki', () => {
     const game = start();
+    expect(game.scene.value).toEqual({ name: 'title' });
+    // „Graj” otwiera mapę z pierwszym poziomem.
+    game.openMap();
     expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
     expect(game.save.value.settings.lang).toBe('en');
     expect(language.value).toBe('en');
@@ -126,6 +129,16 @@ describe('sceny', () => {
     expect(game.scene.value).toEqual({ name: 'shop' });
     game.openMap();
     expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
+  });
+
+  it('informacje o bohaterach otwierają się na wskazanej linii albo na pierwszej', () => {
+    const game = start();
+    game.openHeroes();
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman' });
+    game.openHeroes('cleric');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'cleric' });
+    game.openHeroes('nobody');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman' });
   });
 
   it('zablokowanego poziomu nie da się wybrać na mapie ani uruchomić', () => {

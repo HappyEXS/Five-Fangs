@@ -116,8 +116,11 @@ describe('atlas placeholder', () => {
     expect(names).toContain('fx/arrow');
     expect(names).toContain('fx/dmg_0');
     expect(names).toContain('fx/heal_plus');
-    // Części skórek, strzała i dwa zestawy po jedenaście znaków.
-    expect(names).toHaveLength(SKINS.length * 7 + 1 + 22);
+    expect(names).toContain('fx/hp_9');
+    // Liczba życia nad paskiem nie ma znaku plus.
+    expect(names).not.toContain('fx/hp_plus');
+    // Części skórek, strzała, dwa zestawy po jedenaście znaków i dziesięć cyfr życia.
+    expect(names).toHaveLength(SKINS.length * 7 + 1 + 22 + 10);
   });
 
   it('każdy sprite ma rozmiar części w pikselach atlasu i nie jest pusty', () => {

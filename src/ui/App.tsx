@@ -4,10 +4,12 @@ import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
 import { reloadGame } from '../game/update.ts';
 import { BattleHud, ResultScreen } from './BattleScreens.tsx';
+import { HeroesScreen } from './HeroesScreen.tsx';
 import { LoadFailureBanner } from './LoadFailureBanner.tsx';
 import { MapScreen } from './MapScreen.tsx';
 import { ShopScreen } from './ShopScreen.tsx';
 import { SquadScreen } from './SquadScreen.tsx';
+import { TitleScreen } from './TitleScreen.tsx';
 
 export interface AppProps {
   readonly game: Game;
@@ -18,10 +20,14 @@ function SceneView(props: AppProps) {
   const { game, stage } = props;
   const scene = game.scene.value;
   switch (scene.name) {
+    case 'title':
+      return <TitleScreen game={game} />;
     case 'map':
       return <MapScreen game={game} selected={scene.selected} />;
     case 'squad':
-      return <SquadScreen game={game} />;
+      return <SquadScreen game={game} stage={stage} />;
+    case 'heroes':
+      return <HeroesScreen game={game} line={scene.line} />;
     case 'shop':
       return <ShopScreen game={game} />;
     case 'battle':

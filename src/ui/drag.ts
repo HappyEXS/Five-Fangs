@@ -3,11 +3,13 @@
 import { type Signal, signal } from '@preact/signals';
 
 export interface DragState {
-  /** Przeciągana wartość, np. id linii bohatera. */
+  /** Przeciągana wartość, np. id bohatera. */
   readonly item: string;
   /** Pozycja wskaźnika w pikselach okna. */
   readonly x: number;
   readonly y: number;
+  /** Cel upuszczenia pod wskaźnikiem albo null, gdy wskaźnik jest poza celami. */
+  readonly over: string | null;
 }
 
 /** Ruch poniżej tej odległości to kliknięcie, nie przeciągnięcie. */
@@ -20,9 +22,19 @@ export interface DragController {
   start(event: PointerEvent, item: string): void;
 }
 
+/** Cel upuszczenia pod punktem okna. „Duch” ma pointer-events: none, więc go nie zasłania. */
+function dropTargetAt(x: number, y: number): string | null {
+  const target = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-drop]');
+  return target?.dataset.drop ?? null;
+}
+
 export function createDrag(options: {
   onDrop: (item: string, target: string) => void;
   onClick: (item: string) => void;
+  /** Wołane przy każdym ruchu wskaźnika po rozpoczęciu przeciągania. */
+  onMove?: (item: string, x: number, y: number) => void;
+  /** Wołane po zakończeniu przeciągania (także anulowanego), przed `onDrop`. */
+  onEnd?: (item: string) => void;
 }): DragController {
   const state = signal<DragState | null>(null);
 
@@ -39,7 +51,13 @@ export function createDrag(options: {
         const distance = Math.abs(move.clientX - startX) + Math.abs(move.clientY - startY);
         if (!dragging && distance < CLICK_DISTANCE) return;
         dragging = true;
-        state.value = { item, x: move.clientX, y: move.clientY };
+        state.value = {
+          item,
+          x: move.clientX,
+          y: move.clientY,
+          over: dropTargetAt(move.clientX, move.clientY),
+        };
+        options.onMove?.(item, move.clientX, move.clientY);
       };
       const finish = (up: PointerEvent): void => {
         if (up.pointerId !== event.pointerId) return;
@@ -47,17 +65,14 @@ export function createDrag(options: {
         window.removeEventListener('pointerup', finish);
         window.removeEventListener('pointercancel', finish);
         state.value = null;
+        if (dragging) options.onEnd?.(item);
         if (up.type === 'pointercancel') return;
         if (!dragging) {
           options.onClick(item);
           return;
         }
-        // „Duch” ma pointer-events: none, więc pod wskaźnikiem jest prawdziwy cel.
-        const target = document
-          .elementFromPoint(up.clientX, up.clientY)
-          ?.closest<HTMLElement>('[data-drop]');
-        const drop = target?.dataset.drop;
-        if (drop !== undefined) options.onDrop(item, drop);
+        const drop = dropTargetAt(up.clientX, up.clientY);
+        if (drop !== null) options.onDrop(item, drop);
       };
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', finish);

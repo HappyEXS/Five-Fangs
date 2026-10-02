@@ -17,6 +17,12 @@ export interface Renderer {
    * `frameMs` czas od poprzedniej klatki przeskalowany prędkością gry.
    */
   draw(viewport: Viewport, alpha: number, frameMs: number): void;
+  /**
+   * Wskazuje jednostkę rysowaną na wierzchu pozostałych; -1 przywraca zwykłą kolejność.
+   * Podgląd składu wyróżnia tak bohatera, którego gracz właśnie przeciąga. `beginBattle`
+   * zeruje to ustawienie.
+   */
+  setTopUnit(unit: number): void;
   /** Zwalnia odwołanie do walki. */
   endBattle(): void;
 }

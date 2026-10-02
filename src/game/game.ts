@@ -31,14 +31,18 @@ export interface BattleOutcome {
 }
 
 /**
- * Scena to wartość sygnału, nie ścieżka URL (docs/ARCHITECTURE.md §6.1). Ekranem głównym jest
- * mapa: z niej gracz idzie do składu i sklepu i na nią wraca po walce. Skład zmienia się tylko
- * na ekranie składu: mapa pokazuje poziomy i zaczyna walkę bieżącym składem.
+ * Scena to wartość sygnału, nie ścieżka URL (docs/ARCHITECTURE.md §6.1). Gra otwiera się
+ * ekranem startowym, z którego „Graj” prowadzi na mapę. Mapa jest ekranem głównym: z niej gracz
+ * idzie do składu, informacji o bohaterach i sklepu i na nią wraca po walce. Skład zmienia się
+ * tylko na ekranie składu: mapa pokazuje poziomy i zaczyna walkę bieżącym składem.
  */
 export type Scene =
+  | { readonly name: 'title' }
   /** `selected` to poziom, którego przeciwników i nagrody pokazuje mapa; null, gdy gra nie ma poziomów. */
   | { readonly name: 'map'; readonly selected: string | null }
   | { readonly name: 'squad' }
+  /** `line` to linia bohatera, której formy pokazuje ekran; null, gdy gra nie ma linii. */
+  | { readonly name: 'heroes'; readonly line: string | null }
   | { readonly name: 'shop' }
   | { readonly name: 'battle'; readonly level: string }
   | {
@@ -73,6 +77,8 @@ export interface Game {
    * pierwszy poziom, którego gracz jeszcze nie przeszedł.
    */
   openMap(selected?: string): void;
+  /** Otwiera informacje o bohaterach na wskazanej linii; bez argumentu albo dla nieznanej linii na pierwszej. */
+  openHeroes(line?: string): void;
   /** Zaczyna walkę bieżącym składem. False, gdy skład jest pusty albo poziom zablokowany. */
   startBattle(level: string): boolean;
   /** Kończy walkę: przy wygranej nalicza nagrody, zapisuje grę i pokazuje wynik. */
@@ -111,7 +117,7 @@ export function createGame(options: GameOptions): Game {
       : newSave(content, gameVersion, options.preferredLanguage);
 
   const save = signal<Save>(initial);
-  const scene = signal<Scene>({ name: 'map', selected: currentLevel(content, initial) });
+  const scene = signal<Scene>({ name: 'title' });
   const storage = signal<StorageStatus>(
     loaded.kind === 'newer' ? 'blocked' : loaded.kind === 'unavailable' ? 'memory' : 'ok',
   );
@@ -152,6 +158,11 @@ export function createGame(options: GameOptions): Game {
       scene.value = next;
     },
     openMap,
+    openHeroes(line) {
+      const known = line !== undefined && content.lines.has(line);
+      const [first] = content.lines.keys();
+      scene.value = { name: 'heroes', line: known ? line : (first ?? null) };
+    },
     startBattle(level) {
       if (!isLevelUnlocked(content, save.value, level) || isSquadEmpty(save.value)) return false;
       scene.value = { name: 'battle', level };

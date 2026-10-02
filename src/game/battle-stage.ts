@@ -1,8 +1,10 @@
 // Canvas pod interfejsem. Linia podłogi jest wspólna dla wszystkich ekranów; zmieniają się
-// aktorzy: na mapie skład gracza stoi naprzeciw przeciwników wybranego poziomu, na ekranie
-// składu sam skład, w sklepie bohaterowie na sprzedaż, a w scenie walki toczy się walka.
-// Reaguje na scenę z `Game`; UI steruje walką przez `StageControls`.
+// aktorzy: na ekranie startowym i mapie skład gracza stoi naprzeciw przeciwników poziomu,
+// na ekranie składu sam skład, w sklepie i informacjach o bohaterach bohaterowie na swoich
+// stanowiskach, a w scenie walki toczy się walka.
+// Reaguje na scenę z `Game`; UI steruje walką i podglądem przez `StageControls`.
 import { effect, type Signal, signal } from '@preact/signals';
+import type { UnitVisual } from '../content/compile.ts';
 import type { CompiledLevel } from '../content/load-progression.ts';
 import { levelSetup, levelVisuals } from '../content/resolve-spec.ts';
 import { TICKS_PER_SECOND } from '../core/units.ts';
@@ -10,13 +12,20 @@ import { loadUnitsAtlas } from '../render/atlas.ts';
 import { drawBackground } from '../render/background.ts';
 import { createCanvasRenderer } from '../render/canvas-renderer.ts';
 import type { Renderer } from '../render/renderer.ts';
-import { battleResult, createBattle, OUTCOME_IN_PROGRESS } from '../sim/index.ts';
+import {
+  type Battle,
+  type BattleSetup,
+  battleResult,
+  createBattle,
+  OUTCOME_IN_PROGRESS,
+  TEAM_SIZE,
+} from '../sim/index.ts';
 import { type BattleRunner, createBattleRunner } from './battle-runner.ts';
 import { createFrameLoop } from './frame-loop.ts';
 import type { Game, Scene } from './game.ts';
-import { squadMembers } from './progress.ts';
-import { shopScene, shopStands } from './shop-stage.ts';
+import { currentLevel, squadMembers } from './progress.ts';
 import { attachStage, get2dContext } from './stage.ts';
+import { formStands, shopStands, standScene } from './stage-stands.ts';
 import { guardedLoad } from './update.ts';
 
 /** Poziom bez przeciwników: podgląd samego składu gracza. */
@@ -39,6 +48,12 @@ export interface StageControls {
   /** Tick trwającej walki; sygnał zmienia się raz na sekundę gry, nie co klatkę. */
   readonly battleTick: Signal<number>;
   togglePause(): void;
+  /**
+   * Przesuwa postać ze slotu gracza w podglądzie (ekran składu: bohater jedzie za wskaźnikiem).
+   * `position` to ułamek szerokości sceny; null odstawia postać na jej slot. Poza podglądem
+   * nic nie robi.
+   */
+  movePreviewUnit(slot: number, position: number | null): void;
 }
 
 export function startStage(
@@ -56,8 +71,10 @@ export function startStage(
 
   let renderer: Renderer | null = null;
   let runner: BattleRunner | null = null;
-  /** Renderer pokazuje nieruchomą walkę: ustawienie obu stron przed startem. */
-  let previewing = false;
+  /** Nieruchoma walka w ticku 0, którą renderer pokazuje poza sceną walki. */
+  let preview: Battle | null = null;
+  /** Pozycje slotów gracza w podglądzie: tu wraca postać po przeciągnięciu. */
+  let previewSlots: readonly number[] = [];
   let endedMs = -1;
   /** Scena i skład, dla których zbudowano bieżącą zawartość canvasu. */
   let shownScene: Scene | null = null;
@@ -83,9 +100,19 @@ export function startStage(
   function clear(): void {
     runner?.dispose();
     runner = null;
-    if (previewing) renderer?.endBattle();
-    previewing = false;
+    if (preview !== null) renderer?.endBattle();
+    preview = null;
     endedMs = -1;
+  }
+
+  function showPreview(
+    target: Renderer,
+    setup: BattleSetup,
+    visuals: readonly (UnitVisual | null)[],
+  ): void {
+    preview = createBattle(setup);
+    previewSlots = setup.arena.playerSlots;
+    target.beginBattle(preview, visuals);
   }
 
   // Zawartość canvasu zależy od sceny, składu (podgląd) i tego, czy atlas jest już wczytany.
@@ -94,9 +121,11 @@ export function startStage(
     const save = game.save.value;
     const ready = assets.value === 'ready';
     // Podgląd odświeżamy po zmianie składu, ulepszeń i run; trwająca walka ich nie śledzi.
-    const showsSquad = scene.name === 'map' || scene.name === 'squad';
+    const showsSquad = scene.name === 'title' || scene.name === 'map' || scene.name === 'squad';
     const squadKey = showsSquad ? JSON.stringify([save.squad, save.heroes]) : '';
-    if (scene === shownScene && squadKey === shownSquad && (runner !== null || previewing)) return;
+    if (scene === shownScene && squadKey === shownSquad && (runner !== null || preview !== null)) {
+      return;
+    }
 
     // Ekran wyniku zostawia za sobą pole zakończonej walki: ostatnie pozy i gasnące animacje.
     if (scene.name === 'result' && runner !== null) {
@@ -114,29 +143,34 @@ export function startStage(
       return;
     }
 
-    if (scene.name === 'shop') {
-      const shop = shopScene(content, shopStands(content));
-      renderer.beginBattle(createBattle(shop.setup), shop.visuals);
-      previewing = true;
+    if (scene.name === 'shop' || scene.name === 'heroes') {
+      const stands =
+        scene.name === 'shop'
+          ? shopStands(content)
+          : scene.line === null
+            ? []
+            : formStands(content, scene.line);
+      const stand = standScene(content, stands);
+      showPreview(renderer, stand.setup, stand.visuals);
       return;
     }
 
-    // Mapa pokazuje skład naprzeciw wrogów wybranego poziomu, ekran składu samych bohaterów.
-    const compiled =
-      scene.name === 'squad'
-        ? NO_ENEMIES
-        : scene.name === 'battle'
-          ? content.levels.get(scene.level)
-          : scene.selected === null
-            ? NO_ENEMIES
-            : content.levels.get(scene.selected);
+    // Ekran startowy i mapa pokazują skład naprzeciw wrogów poziomu, ekran składu samych bohaterów.
+    const levelId =
+      scene.name === 'battle'
+        ? scene.level
+        : scene.name === 'map'
+          ? scene.selected
+          : scene.name === 'title'
+            ? currentLevel(content, save)
+            : null;
+    const compiled = levelId === null ? NO_ENEMIES : content.levels.get(levelId);
     if (compiled === undefined) return;
     const members = squadMembers(content, save);
     const setup = levelSetup(content, compiled, members);
     const visuals = levelVisuals(content, compiled, members);
     if (scene.name !== 'battle') {
-      renderer.beginBattle(createBattle(setup), visuals);
-      previewing = true;
+      showPreview(renderer, setup, visuals);
       return;
     }
     game.lastBattle.value = setup;
@@ -167,7 +201,7 @@ export function startStage(
           game.finishBattle(scene.level, battleResult(runner.battle));
         }
       }
-    } else if (previewing && renderer !== null) {
+    } else if (preview !== null && renderer !== null) {
       renderer.draw(viewport, 1, frameMs);
     } else {
       drawBackground(ctx, viewport);
@@ -180,6 +214,18 @@ export function startStage(
     battleTick,
     togglePause() {
       paused.value = !paused.value;
+    },
+    movePreviewUnit(slot, position) {
+      if (preview === null || !Number.isInteger(slot) || slot < 0 || slot >= TEAM_SIZE) return;
+      const home = previewSlots[slot] ?? 0;
+      const x =
+        position === null ? home : Math.round(Math.min(1, Math.max(0, position)) * preview.width);
+      // Podgląd nigdy nie jest krokowany, więc zapis pozycji wprost do stanu nie wpływa na żadną
+      // walkę: to tylko miejsce, w którym renderer narysuje postać.
+      preview.state.x[slot] = x;
+      preview.state.prevX[slot] = x;
+      // Przeciągana postać ma być widoczna także wtedy, gdy mija innych bohaterów.
+      renderer?.setTopUnit(position === null ? -1 : slot);
     },
   };
 }

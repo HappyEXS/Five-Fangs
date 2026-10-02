@@ -327,13 +327,14 @@ interface Renderer {
   beginBattle(battle: Battle, visuals: readonly (UnitVisual | null)[]): void;  // wygląd per unitId
   consume(events: EventBuffer): void;                                           // po każdym ticku
   draw(viewport: Viewport, alpha: number, frameMs: number): void;
+  setTopUnit(unit: number): void;                                               // -1: zwykła kolejność
   endBattle(): void;
 }
 
 function createCanvasRenderer(ctx: CanvasRenderingContext2D, assets: RenderAssets): Renderer;
 ```
 
-Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`).
+Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Jednostki rysowane są od najdalszego slotu do najbliższego; `setTopUnit` pozwala narysować jedną na wierzchu (ekran składu: bohater, którego gracz właśnie przeciąga). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`).
 
 ### 5.2 Pętla
 
@@ -373,6 +374,8 @@ Wyświetlana poza dąży wykładniczo do pozy z klipu (szybciej dla ataku), co w
 
 Scena nie ma perspektywy (decyzja autora gry z 2026-10-02). Symulacja jest jednowymiarowa i renderer pokazuje ją wprost: wszystkie postacie stoją stopami dokładnie na linii podłogi (`FEET_Y = GROUND_Y`), a ich pozycja X to pozycja z symulacji. Sojusznicy stojący w tym samym punkcie nakładają się na siebie; kolejność rysowania (od slotu 4 do 0) decyduje, kto jest na wierzchu. Wcześniejsze „ścieżki slotów”, które rozsuwały postacie w pionie, zostały usunięte.
 
+Nad głową każdej żywej postaci jest pasek życia, a nad nim bieżące życie jako liczba (`render/draw-units.ts`): pasek pokazuje ułamek, liczba skalę. Cyfry pochodzą z atlasu (zestaw `fx/hp_0..9`) i są wyliczane dzieleniem całkowitym, bez tworzenia napisów. Liczby obrażeń i leczenia startują nad liczbą życia.
+
 Tło (`render/background.ts`) to płaskie kolory palety interfejsu (ADR 0015): niebo, sylwetka linii drzew, ziemia i atramentowa linia podłogi. Linia drzew to jedna ścieżka `Path2D` zbudowana przy pierwszej klatce i potem tylko wypełniana. Tła poszczególnych światów dojdą w M6.
 
 ### 5.6 Atlasy
@@ -411,6 +414,8 @@ Pozostałe ok. 260–285 B na klatkę profiler przypisuje: `drawUnit` 124 B, pom
 
 Pomiar powtórzony 2026-10-02 po dodaniu linii drzew do tła (DPR 1): mediana klatki w pętli 0,30 ms i 279 B na klatkę z linią drzew wobec 0,30 ms i 280 B bez niej, czyli bez mierzalnej różnicy.
 
+Pomiar po dodaniu liczby życia nad paskiem (2026-10-03, DPR 1; w tej walce życie ma dziewięć cyfr, więc 257 zamiast 175 `drawImage` na klatkę): czas JS klatki przy odtwarzaniu 0,54 ms średnio, mediana klatki w pętli 0,40 ms, alokacje 279 B na klatkę. Pierwsza wersja przekazywała ułamkowe współrzędne liczby jako argumenty funkcji i alokowała 399 B na klatkę, czyli 12 B na jednostkę więcej; po przeniesieniu ich do `scene.local` narzut zniknął. To potwierdza przypuszczenie z poprzedniego akapitu dla tego jednego miejsca: ułamkowa liczba przekazana do funkcji, której silnik nie wbudował, trafia na stertę.
+
 Jak mierzyć alokacje: przyrost sterty po długiej serii klatek nic nie mówi, bo silnik po drodze sam opróżnia młodą generację (tak wyszło „zero” przy 2350 B na klatkę). Narzędzie liczy więc krótkie serie zaczynane tuż po wymuszonym odśmieceniu, co wymaga Chromium z flagami `--enable-precise-memory-info --js-flags=--expose-gc`. Źródło alokacji wskazuje „Allocation sampling” w DevTools (Memory) na `ffPerfFrames(3000)` wywołanym z konsoli.
 
 ## 6. Gra (`src/game`)
@@ -420,18 +425,19 @@ Jak mierzyć alokacje: przyrost sterty po długiej serii klatek nic nie mówi, b
 Stan gry to obiekt `Game` (`game/game.ts`) z sygnałami Preact: zapis (`save`), scena (`scene`), stan pamięci przeglądarki (`storage`). Scena to wartość sygnału, nie ścieżka URL:
 
 ```
-mapa (ekran główny) ─┬─ walka → wynik → mapa
-                     ├─ skład (sloty, ulepszenia, ewolucja, runy)
-                     └─ sklep
+ekran startowy → mapa (ekran główny) ─┬─ walka → wynik → mapa
+                                      ├─ skład (sloty, ulepszenia, ewolucja, runy)
+                                      ├─ bohaterowie (formy linii, droga ulepszeń i ewolucji)
+                                      └─ sklep (samo kupowanie)
 ```
 
-Gra startuje na mapie i na nią wraca; osobnego panelu głównego nie ma (ADR 0015). Skład zmienia się tylko na ekranie składu. Mapa pokazuje przeciwników i nagrody wybranego poziomu (`{ name: 'map', selected }`) i zaczyna walkę bieżącym składem. `openMap(poziom)` wybiera wskazany poziom, a bez argumentu albo dla poziomu zablokowanego pierwszy jeszcze nieprzeszły. Wynik walki ma jeden przycisk: po pierwszym przejściu poziomu mapa otwiera się z następnym, po porażce i powtórce z tym samym.
+Gra otwiera się ekranem startowym z jednym przyciskiem „Graj”. Dalej ekranem głównym jest mapa: gra na nią wraca po walce, a skład, bohaterowie i sklep mają tylko „Wróć” na mapę, bez przejść między sobą (ADR 0015). Scena bohaterów niesie wybraną linię (`{ name: 'heroes', line }`), żeby canvas wiedział, czyje formy pokazać; otwiera ją `openHeroes(linia)`. Skład zmienia się tylko na ekranie składu. Mapa pokazuje przeciwników i nagrody wybranego poziomu (`{ name: 'map', selected }`) i zaczyna walkę bieżącym składem. `openMap(poziom)` wybiera wskazany poziom, a bez argumentu albo dla poziomu zablokowanego pierwszy jeszcze nieprzeszły. Wynik walki ma jeden przycisk: po pierwszym przejściu poziomu mapa otwiera się z następnym, po porażce i powtórce z tym samym.
 
 - **Reguły** leżą w `game/progress.ts` jako czyste funkcje `(treść, zapis) → nowy zapis | null`: odblokowywanie poziomów, nagrody, zakup bohatera, ulepszenia, ewolucja, runy, skład, statystyki efektywne (`heroView` używa `resolveUnitSpec`, więc podgląd w UI równa się temu, co dostaje symulacja).
 - **Bohaterowie są egzemplarzami**: zapis trzyma listę `heroes` z id nadawanym kolejno; reguły i akcje adresują bohatera po id, a skład to id bohaterów per slot. Kilku bohaterów tej samej linii to osobne wpisy.
 - **Akcje** `Game` wołają reguły i po każdej zmianie zapisują grę. UI czyta sygnały i wywołuje akcje; komponenty nie zawierają reguł.
-- **Canvas** obsługuje `game/battle-stage.ts`. Linia podłogi jest wspólna dla wszystkich ekranów, zmieniają się aktorzy. Podgląd to walka w ticku 0 bez kroków symulacji: na mapie skład gracza naprzeciw przeciwników wybranego poziomu, na ekranie składu sam skład, w sklepie bohaterowie na sprzedaż. W scenie walki działa `BattleRunner`. Atlas ładuje się przy starcie gry, przez `guardedLoad`; po błędzie ekrany działają bez postaci na scenie, a z walki gracz wraca na mapę i widzi komunikat.
-- **Sklep na scenie** (`game/shop-stage.ts`): `shopStands` rozstawia linie bohaterów wzdłuż sceny (do pięciu w jednym rzędzie, do dziesięciu w dwóch grupach zwróconych do siebie), a `shopScene` buduje z nich wejście symulacji z własnymi pozycjami slotów. Z tych samych stanowisk UI wylicza położenie metek z ceną.
+- **Canvas** obsługuje `game/battle-stage.ts`. Linia podłogi jest wspólna dla wszystkich ekranów, zmieniają się aktorzy. Podgląd to walka w ticku 0 bez kroków symulacji: na ekranie startowym i mapie skład gracza naprzeciw przeciwników poziomu, na ekranie składu sam skład, w sklepie bohaterowie na sprzedaż, w informacjach o bohaterach obie formy wybranej linii. `StageControls.movePreviewUnit(slot, pozycja)` przesuwa postać podglądu za wskaźnikiem przy przeciąganiu na ekranie składu i każe rendererowi rysować ją na wierzchu; zapis pozycji idzie wprost do stanu podglądu, który nigdy nie jest krokowany, więc nie dotyka żadnej walki. W scenie walki działa `BattleRunner`. Atlas ładuje się przy starcie gry, przez `guardedLoad`; po błędzie ekrany działają bez postaci na scenie, a z walki gracz wraca na mapę i widzi komunikat.
+- **Stanowiska na scenie** (`game/stage-stands.ts`): `shopStands` rozstawia linie bohaterów wzdłuż sceny (do pięciu w jednym rzędzie, do dziesięciu w dwóch grupach zwróconych do siebie), `formStands` stawia obok siebie formę bazową i formę po ewolucji jednej linii, a `standScene` buduje ze stanowisk wejście symulacji z własnymi pozycjami slotów. Z tych samych stanowisk UI wylicza położenie metek i drogi ulepszeń.
 - **Koniec walki**: po rozstrzygnięciu renderer rysuje jeszcze 1,4 s (animacje śmierci), potem `finishBattle` nalicza nagrody, zapisuje grę i przełącza na wynik. Pod arkuszem wyniku zostaje pole zakończonej walki. Wyjście ze sceny wyniku albo walki zwalnia `BattleRunner` i odpina walkę od renderera; sam renderer z atlasem żyje do końca sesji.
 
 Pomiar z 2026-10-02 (Edge 154 headless): sterta JS po 5, 35 i 65 cyklach „wejdź do walki, wyjdź” to 9157, 9261 i 9310 KB, czyli ok. 1,6–3,5 KB na cykl przy ok. 20 KB zajmowanych przez jedną walkę. Walki nie wyciekają.
@@ -481,14 +487,18 @@ Preact jako nakładka DOM nad canvasem. Korzeń (`App.tsx`) pokazuje ekran bież
 
 | Ekran | Plik | Zawartość |
 |---|---|---|
-| Mapa (ekran główny) | `MapScreen.tsx`, `Settings.tsx` | Nazwa gry w rogu, złoto, z boku małe przyciski Skład, Sklep, Ustawienia. Poziomy świata jako nieregularne kafle na krętym szlaku (zablokowany kafel to nieaktywny przycisk, ukończony ma odcisk kła). Tabliczka wybranego poziomu: nazwa, nagroda, najlepszy czas. Pod linią podłogi: pięć kłów slotów składu, podpisy przeciwników, przycisk walki. Bez zmiany składu. Ustawienia to okno nad mapą: język, eksport i import zapisu, reset z potwierdzeniem, raport błędu, wersja gry |
-| Skład | `SquadScreen.tsx`, `HeroDetails.tsx` | Pod każdym slotem kieł z numerem (przycisk stawiający wybranego bohatera) i nazwa bohatera do przeciągania; arkusz bohaterów poza składem; karta wybranego bohatera: statystyki z podglądem następnego zakupu, ulepszenie, ewolucja, runy |
-| Sklep | `ShopScreen.tsx` | Bohaterowie na sprzedaż stoją na scenie; pod każdym metka z nazwą, ceną i liczbą posiadanych. Karta wybranego bohatera: statystyki formy bazowej i w co ewoluuje |
+| Ekran startowy | `TitleScreen.tsx` | Nazwa gry ze znakiem pięciu kłów, scena ze składem naprzeciw najbliższych przeciwników, przycisk „Graj” prowadzący na mapę, wersja gry |
+| Mapa (ekran główny) | `MapScreen.tsx`, `Settings.tsx` | Nazwa gry w rogu, złoto, z boku małe przyciski Skład, Bohaterowie, Sklep, Ustawienia. Poziomy świata jako nieregularne kafle na krętym szlaku (zablokowany kafel to nieaktywny przycisk, ukończony ma odcisk kła). Tabliczka wybranego poziomu: nazwa, nagroda, najlepszy czas. Pod linią podłogi: pięć kłów slotów składu, podpisy przeciwników, przycisk walki. Bez zmiany składu. Ustawienia to okno nad mapą: język, eksport i import zapisu, reset z potwierdzeniem, raport błędu, wersja gry |
+| Skład | `SquadScreen.tsx`, `HeroDetails.tsx` | Bohatera łapie się wprost na scenie: cała kolumna slotu (postać, kieł z numerem, podpis) jest uchwytem. Arkusz bohaterów poza składem; karta wybranego bohatera: statystyki z podglądem następnego zakupu, ulepszenie, ewolucja, runy |
+| Bohaterowie | `HeroesScreen.tsx` | Zakładki linii; obie formy wybranej linii stoją na scenie, obok każdej karta ze statystykami i cechami; pod linią podłogi droga ulepszeń i ewolucji z kosztami; cena w sklepie i liczba posiadanych. Bez kupowania |
+| Sklep | `ShopScreen.tsx` | Samo kupowanie: bohaterowie na sprzedaż stoją na scenie, pod każdym metka z nazwą, ceną i liczbą posiadanych |
 | Walka | `BattleScreens.tsx` | Nazwa poziomu i czas w lewym rogu; pauza, prędkość x1/x2/x4 i wyjście w prawym; nic więcej, bo gracz nie wpływa na walkę |
 | Wynik | `BattleScreens.tsx` | Arkusz nad polem zakończonej walki: wygrana albo powód przegranej, czas, nagrody, jeden przycisk OK wracający na mapę |
 
 - **Szata graficzna** (ADR 0015): papierowe rekwizyty na jednej scenie. Paleta, czcionki i wspólne klasy (`btn`, `sheet`, `banner`) są w `ui/styles.css`; znaki SVG, w tym kształt kła, w `ui/icons.tsx`. Czcionki leżą w `src/assets/fonts/` i przechodzą przez Vite; licencje w `public/licenses/`.
-- Przeciąganie (`drag.ts`) działa na Pointer Events, więc mysz i dotyk idą tym samym kodem. Cel upuszczenia to element z atrybutem `data-drop`; strefa slotu obejmuje też postać stojącą na scenie. Bez przeciągania: kliknięcie bohatera go wybiera, a kieł slotu stawia wybranego bohatera. Upuszczenie na arkusz „Poza składem” zdejmuje bohatera ze składu.
+- Przeciąganie (`drag.ts`) działa na Pointer Events, więc mysz i dotyk idą tym samym kodem. Cel upuszczenia to element z atrybutem `data-drop`; stan przeciągania niesie cel pod wskaźnikiem, więc slot docelowy się podświetla. Bohater ze składu jedzie po scenie za wskaźnikiem (`movePreviewUnit`), bohater spoza składu ma tylko etykietę przy wskaźniku. Upuszczenie na zajęty slot zamienia bohaterów miejscami, na arkusz „Poza składem” zdejmuje bohatera ze składu.
+- Bez przeciągania: kliknięcie postaci wybiera bohatera, kliknięcie pustego slotu stawia na nim wybranego, a strzałki w lewo i w prawo przestawiają bohatera z fokusem o jeden slot.
+- Ekrany otwierane z mapy mają wspólny nagłówek (`ScreenHead`) z przyciskiem „Wróć”, tytułem i złotem. Nie ma przejść między nimi na skróty.
 - Wszystkie teksty przez `t(key)`; nazwy jednostek, poziomów i światów przez `tName` z kluczem z `content/i18n/keys.ts`. Słowniki w `content/i18n`.
 - Rozmiary są w `em` względem czcionki sceny, a położenie elementów stojących na scenie w procentach jej szerokości i wysokości (linia podłogi to zmienna `--floor`), więc UI skaluje się razem z canvasem i trafia pod postacie.
 - Style w wierszu ustawia tylko Preact przez CSSOM, co dopuszcza CSP `style-src 'self'`.

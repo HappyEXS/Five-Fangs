@@ -18,7 +18,7 @@ Ograniczenia z CLAUDE.md: zero zapytań do zewnętrznych domen (czcionki lokalni
 
 **Motyw: teatrzyk z wycinanek.** Postacie są animowane techniką cutout, więc interfejs udaje papierowe rekwizyty na tej samej scenie.
 
-1. **Jedna scena, stała linia podłogi.** Każdy ekran pokazuje tę samą scenę z linią podłogi na 560 jednostkach logicznych. Zmieniają się aktorzy: na mapie skład gracza naprzeciw przeciwników wybranego poziomu, na ekranie składu sam skład, w sklepie bohaterowie na sprzedaż (`game/shop-stage.ts`), po walce pole zakończonej walki pod arkuszem wyniku.
+1. **Jedna scena, stała linia podłogi.** Każdy ekran pokazuje tę samą scenę z linią podłogi na 560 jednostkach logicznych. Zmieniają się aktorzy: na mapie skład gracza naprzeciw przeciwników wybranego poziomu, na ekranie składu sam skład, w sklepie bohaterowie na sprzedaż (`game/stage-stands.ts`), po walce pole zakończonej walki pod arkuszem wyniku.
 2. **Papier, nie szkło.** Płaskie wypełnienia, gruby atramentowy kontur, twardy cień bez rozmycia. Bez gradientów i półprzezroczystych paneli; jedynym wyjątkiem jest zasłona za oknem ustawień, która odcina mapę od kliknięć.
 3. **Kieł jest jedynym znakiem rozpoznawczym.** Pięć kłów wisi pod linią podłogi pod pięcioma slotami składu (pełny kieł = zajęty slot; na ekranie składu kły są przyciskami slotów). Ten sam kształt jest w znaku gry, w oznaczeniu ukończonego poziomu i w liczniku ulepszeń. Innych ozdobników nie dodajemy.
 4. **Paleta** (zmienne w `ui/styles.css`, kolory sceny powtórzone w `render/background.ts`):
@@ -48,3 +48,13 @@ Ograniczenia z CLAUDE.md: zero zapytań do zewnętrznych domen (czcionki lokalni
 - **Sklep** mieści na scenie do dziesięciu linii bohaterów (pięć po każdej stronie). Przy docelowym rosterze sześciu linii to wystarcza; większy sklep wymagałby przewijania albo stron.
 - Tła światów z M6 zastąpią płaskie niebo i linię drzew; paleta interfejsu ma wtedy pozostać czytelna na każdym tle albo dostać warianty per świat.
 - Ocena „czy to się podoba” należy do autora gry. Paleta i czcionki są w jednym miejscu (`ui/styles.css`), więc ich zmiana nie dotyka komponentów.
+
+## Uzupełnienie z 2026-10-03
+
+Autor gry przyjął kierunek („o wiele lepiej”) i zlecił poprawki ergonomii. Zmieniają one punkty 3 i 6 decyzji:
+
+- **Ekran startowy.** Gra otwiera się nazwą gry nad sceną i jednym przyciskiem „Graj”, który stoi w tym samym miejscu co „Walcz” na mapie. Mapa pozostaje ekranem głównym, na który gra wraca.
+- **Skład: bohatera łapie się za postać.** Kły slotów nie są już przyciskami. Uchwytem jest cała kolumna slotu: postać na scenie, kieł i podpis. Przeciągana postać jedzie po linii podłogi za wskaźnikiem i jest rysowana na wierzchu, slot pod nią się podświetla, a upuszczenie zamienia bohaterów miejscami. Kliknięcie wybiera bohatera; wybrany ma nagietkowy kieł i podpis. Poprzednia wersja kazała celować w mały podpis pod kłem, co autor uznał za nieintuicyjne.
+- **Tylko „Wróć”.** Skład, bohaterowie i sklep nie mają przejść między sobą; każdy wraca na mapę przyciskiem „Wróć”.
+- **Zakładka „Bohaterowie”.** Informacje o liniach (obie formy, statystyki, cechy, droga ulepszeń i ewolucji z kosztami) mają własny ekran. Sklep zostaje tylko do kupowania i nie pokazuje już karty ze statystykami.
+- **Liczba życia nad paskiem.** Renderer rysuje bieżące życie cyframi z atlasu w kolorach palety (papier z atramentowym konturem).

@@ -65,6 +65,16 @@ export function SquadIcon() {
   );
 }
 
+/** Otwarta księga: informacje o bohaterach. */
+export function BookIcon() {
+  return (
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 6.5C9.5 4.8 6 4.6 3 5.4v13c3-.8 6.5-.6 9 1.1 2.5-1.7 6-1.9 9-1.1v-13c-3-.8-6.5-.6-9 1.1z" />
+      <path d="M12 6.5v13" class="icon-hole" />
+    </svg>
+  );
+}
+
 /** Metka z ceną: sklep. */
 export function TagIcon() {
   return (

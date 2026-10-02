@@ -53,7 +53,7 @@ src/sim      symulacja walki – czysta logika
 src/content  dane JSON + schematy Zod + kompilacja do struktur runtime
 src/render   Canvas 2D, rig, animacje, atlas, efekty, debug overlay
 src/game     sceny, progresja, zapis
-src/ui       Preact (mapa jako ekran główny, skład, sklep, HUD, wynik)
+src/ui       Preact (ekran startowy, mapa jako ekran główny, skład, bohaterowie, sklep, HUD, wynik)
 src/tools    narzędzia dev (edytor animacji, piaskownica walki) – osobne wejście tools.html, nie trafiają do builda prod
 scripts/     skrypty Node (balans, walidacja, atlas)
 ```
@@ -80,6 +80,7 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 - **Zero alokacji w gorącej pętli** (step + render). Żadnych `new`, literałów obiektów/tablic, domknięć, `map/filter`, spread, `DOMMatrix`, template stringów co klatkę. Używaj pul i prealokowanych `Float32Array`.
 - Macierze kości: 6 floatów na kość w jednej tablicy, liczone ręcznie, `ctx.setTransform(a,b,c,d,e,f)`.
 - `drawImage` tylko przez `blit` (`render/scene.ts`) i tylko z argumentami całkowitymi: pivot i skala sprite'a wchodzą w transformację. Ułamkowe argumenty `drawImage` alokują w V8 (ARCHITECTURE.md §5.7).
+- Nowa funkcja rysująca w gorącej pętli dostaje ułamkowe współrzędne przez `scene.local`, nie przez argumenty: liczba ułamkowa przekazana do niewbudowanej funkcji alokuje 12 B (pomiar w ARCHITECTURE.md §5.7).
 - Rysowanie tylko z atlasu. Warianty części (zwykły, ciemny tył, biała sylwetka trafienia) generowane przy ładowaniu. Nie używaj `ctx.filter`.
 - Interpolacja pozycji między tickami (`alpha`). Faza chodu z przebytego dystansu.
 - DPR ograniczony do 2. Stała rozdzielczość logiczna, skalowanie z letterboxem.

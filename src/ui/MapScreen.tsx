@@ -8,7 +8,16 @@ import { isLevelCleared, isLevelUnlocked, isSquadEmpty, victoryRewards } from '.
 import { SQUAD_SLOTS } from '../game/save-schema.ts';
 import { formatBattleTime } from '../game/stats.ts';
 import { Gold, Purse, runeLabel, unitName } from './common.tsx';
-import { FANG_PATH, FangMark, FangStamp, Gear, Lock, SquadIcon, TagIcon } from './icons.tsx';
+import {
+  BookIcon,
+  FANG_PATH,
+  FangMark,
+  FangStamp,
+  Gear,
+  Lock,
+  SquadIcon,
+  TagIcon,
+} from './icons.tsx';
 import { Settings } from './Settings.tsx';
 
 const SLOTS = Array.from({ length: SQUAD_SLOTS }, (_, slot) => slot);
@@ -178,6 +187,15 @@ export function MapScreen(props: { game: Game; selected: string | null }) {
         >
           <SquadIcon />
           {t('nav.squad')}
+        </button>
+        <button
+          type="button"
+          class="btn rail-btn"
+          data-nav="heroes"
+          onClick={() => game.openHeroes()}
+        >
+          <BookIcon />
+          {t('nav.heroes')}
         </button>
         <button
           type="button"

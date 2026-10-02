@@ -642,7 +642,7 @@ ol {
   text-align: center;
 }
 
-/* Nagłówek ekranu składu i sklepu */
+/* Nagłówek ekranów otwieranych z mapy */
 
 .screen-head {
   position: absolute;
@@ -675,6 +675,12 @@ ol {
   max-height: 42%;
   overflow: auto;
   align-content: start;
+}
+
+.reserve.is-over {
+  background: var(--paper-light);
+  outline: 0.17em solid var(--marigold);
+  outline-offset: 0.17em;
 }
 
 .chips {
@@ -721,82 +727,106 @@ ol {
   overflow: auto;
 }
 
-/* Slot sięga od głowy bohatera na scenie po dół ekranu, żeby dało się upuścić bohatera także
-   na postać. Kieł wisi pod linią podłogi: dopełnienie górne to odległość od góry slotu do tej
-   linii (procent dopełnienia liczy się od szerokości sceny, a scena ma zawsze 16:9). */
+/* Slot sięga od głowy bohatera na scenie po dół ekranu: całą tę kolumnę zajmuje przycisk,
+   więc bohatera łapie się za postać, kieł albo podpis. Kieł wisi pod linią podłogi, która
+   leży na 54,24% wysokości slotu ((77,78 − 55) / 42). */
 .slot {
   position: absolute;
   top: 55%;
   bottom: 3%;
-  display: grid;
-  gap: 0.3em;
   width: 5.9%;
-  padding-top: calc(12.82% + 0.25em);
   translate: -50% 0;
-  align-content: start;
-  justify-items: center;
 }
 
 .slot-fang {
-  position: relative;
-  display: grid;
-  width: 2.5em;
-  height: 3.25em;
-  padding: 0 0 1em;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-  isolation: isolate;
-  place-items: center;
-}
-
-.slot-fang svg {
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
+  top: calc(54.24% + 0.28em);
+  left: 50%;
+  width: 2.6em;
+  height: 3.4em;
   overflow: visible;
-}
-
-.slot-fang path {
   fill: var(--paper);
   stroke: var(--ink);
   stroke-linejoin: round;
   stroke-width: 2.6;
+  transition: scale 90ms ease-out;
+  translate: -50% 0;
 }
 
 .slot-number {
+  position: absolute;
+  top: calc(54.24% + 0.72em);
+  right: 0;
+  left: 0;
+  color: var(--ink);
   font: 400 1.15em / 1 var(--display);
+  text-align: center;
 }
 
-.slot-fang:disabled {
-  cursor: default;
-}
-
-.slot-empty .slot-fang path {
+.slot-empty .slot-fang {
   fill: var(--paper-shade);
 }
 
-/* W trakcie przeciągania wszystkie kły podświetlają się jako miejsca upuszczenia. */
-.is-dragging .slot-fang path {
+.slot-selected .slot-fang {
   fill: var(--marigold);
 }
 
-.slot-fang:hover:not(:disabled) path {
-  fill: var(--marigold);
+/* Slot pod przeciąganym bohaterem: tu trafi po upuszczeniu. */
+.slot-over .slot-fang {
+  fill: var(--marigold-light);
+  scale: 1.18;
 }
 
-.slot .hero-chip {
+.stage-hero,
+.slot-place {
+  position: absolute;
+  inset: 0;
   width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+}
+
+.stage-hero {
+  cursor: grab;
+  /* Przeciąganie obsługujemy sami; bez tego dotyk przewijałby stronę. */
+  touch-action: none;
+  user-select: none;
+}
+
+.stage-hero:active {
+  cursor: grabbing;
+}
+
+.slot-place:not(:disabled) {
+  cursor: pointer;
+}
+
+.hero-tag {
+  position: absolute;
+  top: calc(54.24% + 4.9em);
+  right: 0;
+  left: 0;
   padding: 0.12em 0.1em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper);
+  box-shadow: 0.14em 0.14em 0 var(--ink);
   font-size: 0.78em;
+  font-weight: 700;
   line-height: 1.1;
   text-align: center;
-  white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.stage-hero:hover .hero-tag {
+  background: var(--paper-light);
+}
+
+.stage-hero[aria-pressed="true"] .hero-tag {
+  background: var(--marigold);
 }
 
 .squad-hint {
@@ -936,25 +966,6 @@ select:disabled {
 
 /* Sklep: bohaterowie stoją na scenie, metki wiszą pod nimi */
 
-.shop-sheet {
-  position: absolute;
-  top: 15%;
-  display: grid;
-  gap: 0.45em;
-  width: 25em;
-  translate: -50% 0;
-}
-
-/* Karta musi zmieścić się nad głowami postaci, więc statystyki idą w dwóch kolumnach. */
-.shop-sheet .stats dl {
-  grid-template-columns: 1fr 1fr;
-  column-gap: 1.4em;
-}
-
-.shop-sheet .stat:nth-last-child(2):nth-child(odd) {
-  border-bottom: 0;
-}
-
 .shop-tag {
   position: absolute;
   top: calc(var(--floor) + 1.2em);
@@ -982,20 +993,8 @@ select:disabled {
 }
 
 .tag-name {
-  padding: 0 0.3em;
-  border: 0;
-  border-radius: 0.2em;
-  background: none;
-  color: inherit;
-  font: inherit;
   font-weight: 800;
   line-height: 1.1;
-  cursor: pointer;
-}
-
-.tag-name[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--paper);
 }
 
 .tag-owned {
@@ -1009,6 +1008,124 @@ select:disabled {
   right: 1.6%;
   left: 1.6%;
   font-size: 0.92em;
+}
+
+/* Informacje o bohaterach: obie formy linii na scenie, karty po bokach, droga ulepszeń
+   pod linią podłogi */
+
+.line-tabs {
+  position: absolute;
+  top: 10.5%;
+  right: 1.6%;
+  left: 1.6%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+}
+
+.form-sheet {
+  position: absolute;
+  top: 18.5%;
+  left: 1.6%;
+  display: grid;
+  gap: 0.4em;
+  width: 20em;
+}
+
+.form-evolved {
+  right: 1.6%;
+  left: auto;
+}
+
+.evolve-info {
+  position: absolute;
+  top: 19%;
+  left: 50%;
+  display: grid;
+  gap: 0.55em;
+  width: 21em;
+  text-align: center;
+  text-wrap: balance;
+  translate: -50% 0;
+}
+
+.evolve-price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  font-weight: 700;
+}
+
+.path-steps {
+  position: absolute;
+  top: calc(var(--floor) + 1em);
+  display: flex;
+  gap: 0.9em;
+  translate: -50% 0;
+}
+
+.path-step {
+  display: grid;
+  gap: 0.3em;
+  justify-items: center;
+}
+
+.path-step .pip {
+  width: 1.15em;
+  height: 1.5em;
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+
+.path-step .icon-coin {
+  display: none;
+}
+
+.path-evolve {
+  position: absolute;
+  top: calc(var(--floor) + 0.9em);
+  left: 50%;
+  display: grid;
+  gap: 0.15em;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.path-evolve-name {
+  font: 400 1.25em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+/* Ekran startowy */
+
+.title-mark {
+  position: absolute;
+  top: 13%;
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 0.6em;
+  justify-items: center;
+}
+
+.title-mark .fang-mark {
+  width: 15em;
+  height: 4.1em;
+  stroke-width: 0.16em;
+}
+
+.title-name {
+  font: 400 6.4em / 0.95 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.title-version {
+  position: absolute;
+  right: 1.6%;
+  bottom: 2.2%;
+  font-size: 0.85em;
+  opacity: 0.8;
 }
 
 /* Walka */

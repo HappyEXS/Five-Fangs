@@ -30,6 +30,7 @@ function recordingRenderer() {
       calls.alphas.push(alpha);
       calls.frameMs.push(frameMs);
     },
+    setTopUnit: () => {},
     endBattle: () => {
       calls.end++;
     },

@@ -1,4 +1,5 @@
-// Rysowanie jednostki w walce: poza z animatora, macierze kości, postać (draw-rig.ts), pasek HP.
+// Rysowanie jednostki w walce: poza z animatora, macierze kości, postać (draw-rig.ts), pasek HP
+// z liczbą życia.
 // Gorąca ścieżka: bez alokacji.
 import {
   type Battle,
@@ -9,10 +10,12 @@ import {
   TEAM_SIZE,
 } from '../sim/index.ts';
 import { attackProgress, DEATH_MS, updateUnitPose } from './animation.ts';
+import { VARIANT_NORMAL } from './atlas.ts';
 import { debugOptions, debugRange } from './debug.ts';
 import { drawRigParts, drawString } from './draw-rig.ts';
+import { digitAt, digitCount } from './float-text.ts';
 import { computeBoneMatrices, rootMatrix } from './rig.ts';
-import { FEET_Y, type Scene, UPPER_BODY, unitFacing } from './scene.ts';
+import { blit, FEET_Y, type Scene, UPPER_BODY, unitFacing } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 const HP_BACK = '#241f3d';
@@ -20,6 +23,14 @@ const HP_PLAYER = '#8db35a';
 const HP_ENEMY = '#c9463d';
 const HP_BAR_WIDTH = 46;
 const HP_BAR_HEIGHT = 5;
+/** Odstęp górnej krawędzi paska od czubka głowy. */
+const HP_BAR_RISE = 12;
+/** Liczba życia nad paskiem: skala cyfr, odstęp między nimi i wysokość ich środka nad paskiem. */
+const HP_NUMBER_SCALE = 1.6;
+const HP_NUMBER_ADVANCE = 9.2;
+const HP_NUMBER_RISE = 10;
+/** Indeks pierwszej cyfry zestawu `hp` w `scene.digitSprites`. */
+const HP_DIGITS = 20;
 const HALF_PI = Math.PI / 2;
 
 function drawHpBar(scene: Scene, battle: Battle, unit: number, x: number, top: number): void {
@@ -31,6 +42,35 @@ function drawHpBar(scene: Scene, battle: Battle, unit: number, x: number, top: n
   ctx.fillRect(x - HP_BAR_WIDTH / 2 - 1, top - 1, HP_BAR_WIDTH + 2, HP_BAR_HEIGHT + 2);
   ctx.fillStyle = unit < TEAM_SIZE ? HP_PLAYER : HP_ENEMY;
   ctx.fillRect(x - HP_BAR_WIDTH / 2, top, HP_BAR_WIDTH * fraction, HP_BAR_HEIGHT);
+}
+
+/**
+ * Bieżące życie jako liczba nad paskiem: sam pasek pokazuje ułamek, liczba daje skalę.
+ * Cyfry z atlasu, wyliczane dzieleniem całkowitym, bez tworzenia napisu.
+ *
+ * Środek liczby przychodzi w `scene.local[4]` i `[5]`, nie w argumentach: ułamkową liczbę
+ * przekazaną do funkcji, której silnik nie wbudował, V8 pakuje w obiekt na stercie (pomiar:
+ * 12 B na jednostkę na klatkę; docs/ARCHITECTURE.md §5.7).
+ */
+function drawHpNumber(scene: Scene, battle: Battle, unit: number, viewport: Viewport): void {
+  const image = scene.atlas.images[VARIANT_NORMAL];
+  const hp = battle.state.hp[unit] ?? 0;
+  if (image === undefined || hp <= 0) return;
+  const { local } = scene;
+  local[0] = HP_NUMBER_SCALE;
+  local[1] = 0;
+  local[2] = 0;
+  local[3] = HP_NUMBER_SCALE;
+  const digits = digitCount(hp);
+  let at = (local[4] ?? 0) - ((digits - 1) * HP_NUMBER_ADVANCE) / 2;
+  for (let d = 0; d < digits; d++) {
+    const sprite = scene.digitSprites[HP_DIGITS + digitAt(hp, digits, d)];
+    if (sprite !== null && sprite !== undefined) {
+      local[4] = at;
+      blit(scene, image, sprite, local, 0, viewport);
+    }
+    at += HP_NUMBER_ADVANCE;
+  }
 }
 
 /** Aktualizuje animację jednostki i rysuje ją. `frameMs` to czas animacji od poprzedniej klatki. */
@@ -111,7 +151,11 @@ export function drawUnit(
   if (!isAlive(status)) return;
   const s = viewport.scale;
   ctx.setTransform(s, 0, 0, s, 0, 0);
-  drawHpBar(scene, battle, unit, x, feetY - (rig.hipHeight + UPPER_BODY) * scale - 12);
+  const barTop = feetY - (rig.hipHeight + UPPER_BODY) * scale - HP_BAR_RISE;
+  drawHpBar(scene, battle, unit, x, barTop);
+  scene.local[4] = x;
+  scene.local[5] = barTop - HP_NUMBER_RISE;
+  drawHpNumber(scene, battle, unit, viewport);
 
   if (import.meta.env.DEV && debugOptions.ranges) {
     const target = state.target[unit] ?? -1;

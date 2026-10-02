@@ -75,6 +75,7 @@ export function createCanvasRenderer(
   return {
     beginBattle(battle: Battle, visuals: readonly (UnitVisual | null)[]): void {
       scene.battle = battle;
+      scene.topUnit = -1;
       fitCamera(scene.camera, battle.width);
       resetAnimator(scene.animator);
       clearFloatTexts(scene.floatTexts);
@@ -122,14 +123,22 @@ export function createCanvasRenderer(
       if (battle === null) return;
       updateFloatTexts(scene.floatTexts, frameMs);
       // Od najdalszego slotu do najbliższego, żeby bliższe postacie zasłaniały dalsze.
+      const top = scene.topUnit;
       for (let slot = TEAM_SIZE - 1; slot >= 0; slot--) {
-        drawUnit(scene, battle, slot, viewport, alpha, frameMs);
-        drawUnit(scene, battle, TEAM_SIZE + slot, viewport, alpha, frameMs);
+        if (slot !== top) drawUnit(scene, battle, slot, viewport, alpha, frameMs);
+        if (TEAM_SIZE + slot !== top) {
+          drawUnit(scene, battle, TEAM_SIZE + slot, viewport, alpha, frameMs);
+        }
       }
+      if (top >= 0) drawUnit(scene, battle, top, viewport, alpha, frameMs);
       drawProjectiles(scene, battle, viewport, alpha);
       drawNumbers(scene, viewport);
       ctx.setTransform(viewport.scale, 0, 0, viewport.scale, 0, 0);
       if (import.meta.env.DEV && debugOptions.perf) debugOverlay(ctx);
+    },
+
+    setTopUnit(unit: number): void {
+      scene.topUnit = Number.isInteger(unit) && unit >= 0 && unit < MAX_UNITS ? unit : -1;
     },
 
     endBattle(): void {

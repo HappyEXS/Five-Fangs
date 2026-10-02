@@ -31,9 +31,11 @@ export interface Scene {
   readonly floatTexts: Pool<FloatText>;
   /** RNG wyłącznie dla efektów kosmetycznych. */
   readonly jitter: Rng;
-  /** Cyfry 0..9 zestawu obrażeń, potem 0..9 zestawu leczenia. */
+  /** Cyfry 0..9 zestawu obrażeń, potem leczenia, potem liczby życia nad paskiem. */
   readonly digitSprites: (Sprite | null)[];
   readonly plusSprite: Sprite | null;
+  /** Jednostka rysowana na wierzchu pozostałych albo -1. */
+  topUnit: number;
   battle: Battle | null;
 }
 
@@ -48,7 +50,7 @@ export function createScene(
   maxChannels: number,
 ): Scene {
   const digitSprites: (Sprite | null)[] = [];
-  for (const set of ['dmg', 'heal']) {
+  for (const set of ['dmg', 'heal', 'hp']) {
     for (let digit = 0; digit <= 9; digit++) {
       digitSprites.push(atlas.sprites.get(`fx/${set}_${digit}`) ?? null);
     }
@@ -69,6 +71,7 @@ export function createScene(
     jitter: createRng(1),
     digitSprites,
     plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
+    topUnit: -1,
     battle: null,
   };
 }

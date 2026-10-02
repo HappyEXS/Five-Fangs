@@ -1,15 +1,13 @@
-// Sklep na scenie: bohaterowie na sprzedaż stoją na linii podłogi jak w walce, a metki z ceną
-// wiszą pod nimi. Ten moduł ustala, gdzie kto stoi; korzysta z niego canvas (battle-stage.ts)
-// i ekran sklepu, żeby metki trafiały dokładnie pod postacie.
+// Bohaterowie wystawieni na scenie poza walką: w sklepie stoją linie na sprzedaż, na ekranie
+// informacji o bohaterach obie formy wybranej linii. Ten moduł ustala, gdzie kto stoi; korzysta
+// z niego canvas (battle-stage.ts) i ekrany UI, żeby metki trafiały dokładnie pod postacie.
 import type { UnitVisual } from '../content/compile.ts';
 import type { GameContent } from '../content/load.ts';
 import type { BattleSetup, UnitSpec } from '../sim/types.ts';
 import { SQUAD_SLOTS } from './save-schema.ts';
 
-export interface ShopStand {
-  /** Id linii bohatera. */
-  readonly line: string;
-  /** Id jednostki formy bazowej: ją kupuje gracz. */
+export interface Stand {
+  /** Id jednostki bohatera stojącej na stanowisku. */
   readonly unitId: string;
   /** Pozycja na scenie jako ułamek jej szerokości, 0..1. */
   readonly position: number;
@@ -18,10 +16,18 @@ export interface ShopStand {
   readonly slot: number;
 }
 
+export interface ShopStand extends Stand {
+  /** Id linii bohatera; `unitId` to jej forma bazowa, którą kupuje gracz. */
+  readonly line: string;
+}
+
 /** Margines sceny po bokach, żeby skrajne postacie i ich metki nie wychodziły poza ekran. */
 const EDGE = 0.12;
 /** Odstęp między lewą a prawą grupą, gdy linii jest więcej niż slotów jednej strony. */
 const MIDDLE_GAP = 0.04;
+/** Miejsca formy bazowej i formy po ewolucji na ekranie informacji o bohaterach. */
+const BASE_FORM_AT = 0.37;
+const EVOLVED_FORM_AT = 0.63;
 
 function spread(count: number, from: number, to: number): number[] {
   if (count === 1) return [(from + to) / 2];
@@ -59,18 +65,32 @@ export function shopStands(content: GameContent): ShopStand[] {
   ];
 }
 
-export interface ShopScene {
+/**
+ * Stanowiska obu form jednej linii: bazowa z lewej, po ewolucji z prawej, obie zwrócone w prawo,
+ * więc czyta się je jak drogę od jednej do drugiej. Pusta lista, gdy linii nie ma w treści.
+ */
+export function formStands(content: GameContent, lineId: string): Stand[] {
+  const line = content.lines.get(lineId);
+  if (line === undefined) return [];
+  // Slot 0 gracza leży najdalej w prawo, więc forma po ewolucji dostaje slot 0.
+  return [
+    { unitId: line.forms[0], position: BASE_FORM_AT, side: 0, slot: 1 },
+    { unitId: line.forms[1], position: EVOLVED_FORM_AT, side: 0, slot: 0 },
+  ];
+}
+
+export interface StandScene {
   readonly setup: BattleSetup;
   /** Wygląd jednostek pod ich `unitId`, jak w `levelVisuals`. */
   readonly visuals: (UnitVisual | null)[];
 }
 
 /**
- * Wejście symulacji, które ustawia bohaterów ze sklepu na ich stanowiskach. Nikt tu nie walczy:
- * renderer pokazuje tę „walkę” w ticku zerowym. Puste sloty lewej strony leżą na lewej krawędzi,
- * prawej na prawej, bo symulacja wymaga, by wszystkie sloty gracza były na lewo od przeciwnika.
+ * Wejście symulacji, które ustawia bohaterów na ich stanowiskach. Nikt tu nie walczy: renderer
+ * pokazuje tę „walkę” w ticku zerowym. Puste sloty lewej strony leżą na lewej krawędzi, prawej
+ * na prawej.
  */
-export function shopScene(content: GameContent, stands: readonly ShopStand[]): ShopScene {
+export function standScene(content: GameContent, stands: readonly Stand[]): StandScene {
   const { width } = content.arena;
   const playerSlots = new Array<number>(SQUAD_SLOTS).fill(0);
   const enemySlots = new Array<number>(SQUAD_SLOTS).fill(width);
