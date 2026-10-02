@@ -33,6 +33,25 @@ export interface CompiledRig {
   readonly clips: ReadonlyMap<string, CompiledClip>;
   /** Postawy: wartości kanałów, których klip nie animuje. */
   readonly stances: ReadonlyMap<string, Float32Array>;
+  /** Cięciwy per postawa. */
+  readonly strings: ReadonlyMap<string, CompiledString>;
+}
+
+/** Cięciwa: linia między dwoma punktami kości, naciągana do punktu innej kości w fazie klipu. */
+export interface CompiledString {
+  readonly bone: number;
+  /** Końce cięciwy względem pivota kości `bone`. */
+  readonly ax: number;
+  readonly ay: number;
+  readonly bx: number;
+  readonly by: number;
+  readonly pullBone: number;
+  readonly pullX: number;
+  readonly pullY: number;
+  /** Klip i przedział jego fazy, w którym cięciwa jest naciągnięta. */
+  readonly clip: CompiledClip | null;
+  readonly from: number;
+  readonly to: number;
 }
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -55,6 +74,22 @@ export function compileRig(raw: RawRig): CompiledRig {
     }
     stances.set(name, rest);
   }
+  const strings = new Map<string, CompiledString>();
+  for (const [stance, string] of Object.entries(raw.strings)) {
+    strings.set(stance, {
+      bone: boneIds.indexOf(string.bone),
+      ax: string.ends[0][0],
+      ay: string.ends[0][1],
+      bx: string.ends[1][0],
+      by: string.ends[1][1],
+      pullBone: boneIds.indexOf(string.pull.bone),
+      pullX: string.pull.at[0],
+      pullY: string.pull.at[1],
+      clip: clips.get(string.pull.clip) ?? null,
+      from: string.pull.from,
+      to: string.pull.to,
+    });
+  }
 
   return {
     id: raw.id,
@@ -72,6 +107,7 @@ export function compileRig(raw: RawRig): CompiledRig {
     strideLength: raw.strideLength,
     clips,
     stances,
+    strings,
   };
 }
 

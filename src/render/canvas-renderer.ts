@@ -8,12 +8,14 @@ import {
   isAlive,
   MAX_PROJECTILES,
   MAX_UNITS,
+  STATUS_ATTACKING,
   STATUS_DEAD,
   STATUS_EMPTY,
   TEAM_SIZE,
 } from '../sim/index.ts';
 import {
   animatorOnEvents,
+  attackProgress,
   createAnimator,
   DEATH_MS,
   resetAnimator,
@@ -26,6 +28,7 @@ import { type Camera, createCamera, fitCamera, GROUND_Y } from './camera.ts';
 import type { Renderer } from './renderer.ts';
 import {
   type CompiledRig,
+  type CompiledString,
   compileRig,
   computeBoneMatrices,
   MATRIX_SIZE,
@@ -33,6 +36,7 @@ import {
 } from './rig.ts';
 import type { Viewport } from './viewport.ts';
 
+const STRING_COLOR = '#e9e2cf';
 const HP_BACK = '#11151c';
 const HP_PLAYER = '#7fd36b';
 const HP_ENEMY = '#e0705c';
@@ -93,7 +97,79 @@ export function createCanvasRenderer(
     if (rest === undefined || idle === undefined || walk === undefined || attack === undefined) {
       throw new Error(`Rig "${visual.rig}" is missing clips or stance for skin "${visual.skin}"`);
     }
-    return { rig, rest, idle, walk, attack, scale: rig.scale * visual.scale };
+    // Cięciwa jest naciągana tylko w klipie, dla którego ją zdefiniowano.
+    const string = rig.strings.get(visual.stance) ?? null;
+    return { rig, rest, idle, walk, attack, scale: rig.scale * visual.scale, string };
+  }
+
+  /**
+   * Cięciwa i strzała na cięciwie: elementy rysowane wektorowo między punktami kości,
+   * z macierzy policzonych przed chwilą dla tej jednostki.
+   */
+  function drawString(
+    look: UnitLook,
+    string: CompiledString,
+    unit: number,
+    pulled: boolean,
+    s: number,
+  ): void {
+    const m = string.bone * MATRIX_SIZE;
+    const a = matrices[m] ?? 1;
+    const b = matrices[m + 1] ?? 0;
+    const c = matrices[m + 2] ?? 0;
+    const d = matrices[m + 3] ?? 1;
+    const e = matrices[m + 4] ?? 0;
+    const f = matrices[m + 5] ?? 0;
+    const x1 = a * string.ax + c * string.ay + e;
+    const y1 = b * string.ax + d * string.ay + f;
+    const x2 = a * string.bx + c * string.by + e;
+    const y2 = b * string.bx + d * string.by + f;
+
+    ctx.setTransform(s, 0, 0, s, 0, 0);
+    ctx.strokeStyle = STRING_COLOR;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    if (!pulled) {
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      return;
+    }
+    const p = string.pullBone * MATRIX_SIZE;
+    const handX =
+      (matrices[p] ?? 1) * string.pullX +
+      (matrices[p + 2] ?? 0) * string.pullY +
+      (matrices[p + 4] ?? 0);
+    const handY =
+      (matrices[p + 1] ?? 0) * string.pullX +
+      (matrices[p + 3] ?? 1) * string.pullY +
+      (matrices[p + 5] ?? 0);
+    ctx.lineTo(handX, handY);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // Strzała leży od dłoni w stronę majdanu łuku (pivot kości z cięciwą).
+    const sprite = projectileSprites[unit];
+    const image = atlas.images[VARIANT_NORMAL];
+    if (sprite === null || sprite === undefined || image === undefined) return;
+    const dirX = e - handX;
+    const dirY = f - handY;
+    const length = Math.hypot(dirX, dirY);
+    if (length === 0) return;
+    const ux = (dirX / length) * look.scale * s;
+    const uy = (dirY / length) * look.scale * s;
+    ctx.setTransform(ux, uy, -uy, ux, handX * s, handY * s);
+    ctx.drawImage(
+      image,
+      sprite.sx,
+      sprite.sy,
+      sprite.sw,
+      sprite.sh,
+      -1,
+      -sprite.pivotY,
+      sprite.width,
+      sprite.height,
+    );
   }
 
   function drawHpBar(current: Battle, unit: number, x: number, top: number): void {
@@ -196,6 +272,19 @@ export function createCanvasRenderer(
         sprite.width,
         sprite.height,
       );
+    }
+    const { string } = look;
+    if (string !== null) {
+      let pulled = false;
+      if (status === STATUS_ATTACKING && string.clip === look.attack) {
+        const progress = attackProgress(
+          state.swingTick[unit] ?? 0,
+          current.specs.swingTicks[unit] ?? 1,
+          alpha,
+        );
+        pulled = progress >= string.from && progress <= string.to;
+      }
+      drawString(look, string, unit, pulled, s);
     }
     ctx.globalAlpha = 1;
 

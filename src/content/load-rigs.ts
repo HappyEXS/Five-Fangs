@@ -35,6 +35,18 @@ function rigIssues(source: string, rig: RawRig): ContentIssue[] {
     }
   }
 
+  for (const [stance, string] of Object.entries(rig.strings)) {
+    const label = `cięciwa "${stance}"`;
+    if (rig.stances[stance] === undefined) report(`${label}: nieznana postawa`);
+    for (const bone of [string.bone, string.pull.bone]) {
+      if (!bones.has(bone)) report(`${label}: nieznana kość "${bone}"`);
+    }
+    if (rig.clips[string.pull.clip] === undefined) {
+      report(`${label}: nieznany klip "${string.pull.clip}"`);
+    }
+    if (string.pull.from >= string.pull.to) report(`${label}: "from" musi być mniejsze niż "to"`);
+  }
+
   for (const required of REQUIRED_CLIPS) {
     if (rig.clips[required] === undefined) report(`brak wymaganego klipu "${required}"`);
   }

@@ -227,3 +227,30 @@ describe('powiązanie ataków z animacją', () => {
     expect(issues).toContain('swordsman_a: nieznany rig "quadruped"');
   });
 });
+
+describe('walidacja cięciwy', () => {
+  const string = {
+    bone: 'body',
+    ends: [
+      [-3, 1],
+      [3, 1],
+    ],
+    pull: { bone: 'arm', at: [0, 2], clip: 'walk', from: 0.1, to: 0.6 },
+  };
+
+  it('poprawna cięciwa nie ma problemów', () => {
+    expect(problems({ strings: { sword: string } })).toEqual([]);
+  });
+
+  it('sprawdza postawę, kości, klip i przedział fazy', () => {
+    expect(problems({ strings: { spear: string } })).toEqual(['cięciwa "spear": nieznana postawa']);
+    expect(problems({ strings: { sword: { ...string, bone: 'tail' } } })).toEqual([
+      'cięciwa "sword": nieznana kość "tail"',
+    ]);
+    const badPull = { ...string, pull: { ...string.pull, clip: 'shoot', from: 0.6, to: 0.2 } };
+    expect(problems({ strings: { sword: badPull } })).toEqual([
+      'cięciwa "sword": nieznany klip "shoot"',
+      'cięciwa "sword": "from" musi być mniejsze niż "to"',
+    ]);
+  });
+});

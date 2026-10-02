@@ -4,6 +4,9 @@ import { z } from 'zod';
 
 const id = z.string().regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, 'id: litery, cyfry i podkreślenia');
 
+/** Punkt w jednostkach rigu. */
+const point = z.tuple([z.number(), z.number()]);
+
 /** Klatka kluczowa kanału: [czas 0..1, wartość]. */
 const key = z.tuple([z.number().min(0).max(1), z.number()]);
 
@@ -47,6 +50,29 @@ export const rigSchema = z.strictObject({
   drawOrder: z.array(id),
   /** Postawy: kąty kości (w stopniach) dla kanałów, których klip nie animuje. */
   stances: z.record(id, z.record(id, z.number())),
+  /**
+   * Cięciwy: linia rysowana wektorowo między dwoma punktami kości (końce łuku), w podanej
+   * fazie klipu naciągana do punktu innej kości (dłoń). Klucz to postawa, w której występuje.
+   */
+  strings: z
+    .record(
+      id,
+      z.strictObject({
+        /** Kość, na której leżą końce cięciwy, i ich położenie względem jej pivota. */
+        bone: id,
+        ends: z.tuple([point, point]),
+        pull: z.strictObject({
+          /** Kość i punkt, do którego cięciwa jest naciągana. */
+          bone: id,
+          at: point,
+          /** Klip i przedział jego fazy, w którym cięciwa jest naciągnięta. */
+          clip: id,
+          from: z.number().min(0).max(1),
+          to: z.number().min(0).max(1),
+        }),
+      }),
+    )
+    .default({}),
   clips: z.record(id, clipSchema),
 });
 

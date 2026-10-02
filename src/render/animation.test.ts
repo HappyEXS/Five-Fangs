@@ -31,7 +31,7 @@ function lookFor(stance: string, attack: string): UnitLook {
   const walk = rig.clips.get('walk');
   const clip = rig.clips.get(attack);
   if (!rest || !idle || !walk || !clip) throw new Error('rig is missing clips');
-  return { rig, rest, idle, walk, attack: clip, scale: rig.scale };
+  return { rig, rest, idle, walk, attack: clip, scale: rig.scale, string: null };
 }
 
 const swordsman = lookFor('sword', 'slash');

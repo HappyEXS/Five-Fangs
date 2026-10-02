@@ -4,17 +4,76 @@
   "scale": 1.4,
   "strideLength": 64,
   "bones": [
-    { "id": "torso", "parent": "root", "at": [0, 0], "sprite": "torso" },
-    { "id": "head", "parent": "torso", "at": [0, -23], "sprite": "head" },
-    { "id": "armB", "parent": "torso", "at": [-1, -20], "sprite": "upper", "back": true },
-    { "id": "foreB", "parent": "armB", "at": [0, 10], "sprite": "fore", "back": true },
-    { "id": "thighB", "parent": "root", "at": [-1, -1], "sprite": "thigh", "back": true },
-    { "id": "shinB", "parent": "thighB", "at": [0, 11], "sprite": "shin", "back": true },
-    { "id": "thighF", "parent": "root", "at": [1, -1], "sprite": "thigh" },
-    { "id": "shinF", "parent": "thighF", "at": [0, 11], "sprite": "shin" },
-    { "id": "armF", "parent": "torso", "at": [1, -20], "sprite": "upper" },
-    { "id": "foreF", "parent": "armF", "at": [0, 10], "sprite": "fore" },
-    { "id": "weapon", "parent": "foreF", "at": [0, 9], "sprite": "weapon" }
+    {
+      "id": "torso",
+      "parent": "root",
+      "at": [0, 0],
+      "sprite": "torso"
+    },
+    {
+      "id": "head",
+      "parent": "torso",
+      "at": [0, -23],
+      "sprite": "head"
+    },
+    {
+      "id": "armB",
+      "parent": "torso",
+      "at": [-1, -20],
+      "sprite": "upper",
+      "back": true
+    },
+    {
+      "id": "foreB",
+      "parent": "armB",
+      "at": [0, 10],
+      "sprite": "fore",
+      "back": true
+    },
+    {
+      "id": "thighB",
+      "parent": "root",
+      "at": [-1, -1],
+      "sprite": "thigh",
+      "back": true
+    },
+    {
+      "id": "shinB",
+      "parent": "thighB",
+      "at": [0, 11],
+      "sprite": "shin",
+      "back": true
+    },
+    {
+      "id": "thighF",
+      "parent": "root",
+      "at": [1, -1],
+      "sprite": "thigh"
+    },
+    {
+      "id": "shinF",
+      "parent": "thighF",
+      "at": [0, 11],
+      "sprite": "shin"
+    },
+    {
+      "id": "armF",
+      "parent": "torso",
+      "at": [1, -20],
+      "sprite": "upper"
+    },
+    {
+      "id": "foreF",
+      "parent": "armF",
+      "at": [0, 10],
+      "sprite": "fore"
+    },
+    {
+      "id": "weapon",
+      "parent": "foreF",
+      "at": [0, 9],
+      "sprite": "weapon"
+    }
   ],
   "drawOrder": [
     "armB",
@@ -30,8 +89,25 @@
     "foreF"
   ],
   "stances": {
-    "sword": { "weapon": -75 },
-    "bow": { "weapon": -30 }
+    "sword": {
+      "weapon": -75
+    },
+    "bow": {
+      "weapon": -30
+    }
+  },
+  "strings": {
+    "bow": {
+      "bone": "weapon",
+      "ends": [[-16.5, -7.5], [16.5, -7.5]],
+      "pull": {
+        "bone": "foreB",
+        "at": [0, 9],
+        "clip": "shoot",
+        "from": 0.15,
+        "to": 0.5
+      }
+    }
   },
   "clips": {
     "idle": {
@@ -68,7 +144,9 @@
     },
     "slash": {
       "loop": false,
-      "markers": { "hit": 0.5 },
+      "markers": {
+        "hit": 0.5
+      },
       "channels": {
         "torso": [[0, 4], [0.4, -8], [0.52, 16], [0.7, 12], [1, 4]],
         "head": [[0, 0], [0.52, -8], [1, 0]],
@@ -87,7 +165,9 @@
     },
     "shoot": {
       "loop": false,
-      "markers": { "hit": 0.5 },
+      "markers": {
+        "hit": 0.5
+      },
       "channels": {
         "torso": [[0, 2], [0.5, -2], [1, 2]],
         "head": [[0, -5]],

@@ -10,7 +10,7 @@ import {
   STATUS_MOVING,
 } from '../sim/index.ts';
 import { type CompiledClip, sampleClip } from './clips.ts';
-import type { CompiledRig } from './rig.ts';
+import type { CompiledRig, CompiledString } from './rig.ts';
 
 /** Cykle klipu idle na sekundę. */
 const IDLE_RATE = 0.7;
@@ -32,6 +32,8 @@ export interface UnitLook {
   readonly attack: CompiledClip;
   /** Jednostki logiczne sceny na jednostkę rigu. */
   readonly scale: number;
+  /** Cięciwa postawy tej jednostki albo null. */
+  readonly string: CompiledString | null;
 }
 
 export interface Animator {

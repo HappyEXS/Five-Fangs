@@ -18,6 +18,16 @@ const stick: RawRig = {
   ],
   drawOrder: ['arm', 'hand', 'body'],
   stances: { sword: { hand: -30 } },
+  strings: {
+    sword: {
+      bone: 'body',
+      ends: [
+        [-3, 1],
+        [3, 1],
+      ],
+      pull: { bone: 'hand', at: [0, 2], clip: 'slash', from: 0.1, to: 0.6 },
+    },
+  },
   clips: {
     idle: {
       loop: true,
@@ -178,5 +188,35 @@ describe('macierze kości', () => {
     // `+ 0` zamienia ujemne zero z mnożenia przez sinus na zwykłe zero.
     expect(Array.from(out.subarray(6, 12), (v) => v + 0)).toEqual([1, 0, 0, 1, 0, 0]);
     expect(Array.from(out.subarray(24))).toEqual([7, 7, 7, 7, 7, 7]);
+  });
+});
+
+describe('cięciwy', () => {
+  it('kompilują się do indeksów kości i odwołania do klipu', () => {
+    const string = rig.strings.get('sword');
+    expect(string).toMatchObject({
+      bone: 0,
+      ax: -3,
+      ay: 1,
+      bx: 3,
+      by: 1,
+      pullBone: 2,
+      pullX: 0,
+      pullY: 2,
+      from: 0.1,
+      to: 0.6,
+    });
+    expect(string?.clip).toBe(rig.clips.get('slash'));
+  });
+
+  it('rig humanoid ma cięciwę łuku naciąganą w klipie shoot', () => {
+    const raw = requireContent().rigs.get('humanoid');
+    if (raw === undefined) throw new Error('no humanoid rig');
+    const humanoid = compileRig(raw);
+    const string = humanoid.strings.get('bow');
+    expect(string?.bone).toBe(humanoid.boneIds.indexOf('weapon'));
+    expect(string?.pullBone).toBe(humanoid.boneIds.indexOf('foreB'));
+    expect(string?.clip).toBe(humanoid.clips.get('shoot'));
+    expect(humanoid.strings.has('sword')).toBe(false);
   });
 });
