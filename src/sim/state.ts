@@ -101,6 +101,8 @@ export interface UnitSpecs {
   readonly enragedAttack: Int32Array;
   /** Kradzież życia w procentach zadanych obrażeń. */
   readonly lifesteal: Int32Array;
+  /** Promień ciosu obszarowego w podjednostkach. */
+  readonly splashRadius: Int32Array;
 }
 
 export function createSpecs(): UnitSpecs {
@@ -122,6 +124,7 @@ export function createSpecs(): UnitSpecs {
     enrageHp: units(),
     enragedAttack: units(),
     lifesteal: units(),
+    splashRadius: units(),
   };
 }
 

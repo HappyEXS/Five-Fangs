@@ -89,6 +89,37 @@ describe('loadContent', () => {
     });
   });
 
+  it('kompiluje szał, kradzież życia i cios obszarowy', () => {
+    const traits = [
+      { type: 'enrage', hpBelow: 50, attackBonus: 40 },
+      { type: 'lifesteal', percent: 20 },
+      { type: 'splash', radius: 35 },
+    ];
+    const { content, issues } = loadContent(withHeroes([{ ...unit, traits }]));
+    expect(issues).toEqual([]);
+    expect(content?.heroes.get('swordsman')?.base).toMatchObject({
+      enrageHpPercent: 50,
+      enrageAttackPercent: 40,
+      lifestealPercent: 20,
+      splashRadius: 35 * 256,
+    });
+  });
+
+  it('odrzuca cios obszarowy u strzelca i wartości cech spoza zakresu', () => {
+    const archer = { ...unit, kind: 'ranged', attackType: 'shoot' };
+    expect(messages(withHeroes([{ ...archer, traits: [{ type: 'splash', radius: 30 }] }]))).toEqual(
+      ['units/heroes.json: swordsman: cecha "splash" wymaga ataku wręcz'],
+    );
+    for (const trait of [
+      { type: 'enrage', hpBelow: 100, attackBonus: 40 },
+      { type: 'enrage', hpBelow: 50, attackBonus: 0 },
+      { type: 'lifesteal', percent: 101 },
+      { type: 'splash', radius: 0 },
+    ]) {
+      expect(loadContent(withHeroes([{ ...unit, traits: [trait] }])).content).toBeNull();
+    }
+  });
+
   it('odrzuca pierce u jednostki bez pocisku i powtórzoną cechę', () => {
     expect(messages(withHeroes([{ ...unit, traits: [{ type: 'pierce' }] }]))).toEqual([
       'units/heroes.json: swordsman: cecha "pierce" wymaga ataku z pociskiem',

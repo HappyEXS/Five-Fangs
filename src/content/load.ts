@@ -125,6 +125,10 @@ function compileUnits(
       issues.push({ source, message: `${unit.id}: cecha "pierce" wymaga ataku z pociskiem` });
       continue;
     }
+    if (traitTypes.includes('splash') && hasProjectile) {
+      issues.push({ source, message: `${unit.id}: cecha "splash" wymaga ataku wręcz` });
+      continue;
+    }
     for (const message of animationIssues(unit, attack, rigs)) issues.push({ source, message });
     compiled.set(unit.id, compileUnit(unit, attack));
   }

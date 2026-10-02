@@ -135,6 +135,7 @@ const specSchema = z.strictObject({
   enrageHpPercent: z.number().default(0),
   enrageAttackPercent: z.number().default(0),
   lifestealPercent: z.number().default(0),
+  splashRadius: z.number().default(0),
 });
 
 const setupSchema = z.strictObject({

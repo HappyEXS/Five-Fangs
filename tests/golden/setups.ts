@@ -68,6 +68,21 @@ export const GOLDEN_SETUPS: Readonly<Record<string, BattleSetup>> = {
     [melee({ lifestealPercent: 40, knockback: u(15) }), brute(), archer()],
   ),
 
+  // Cios obszarowy po obu stronach, z odrzutem, szałem i kradzieżą życia.
+  splash: setupOf(
+    [
+      melee({ splashRadius: u(45), knockback: u(15) }),
+      melee({ splashRadius: u(30), lifestealPercent: 25 }),
+      archer(),
+    ],
+    [
+      brute(),
+      melee({ splashRadius: u(60), enrageHpPercent: 50, enrageAttackPercent: 60 }),
+      melee({ maxHp: 300 }),
+      archer(),
+    ],
+  ),
+
   // Pociski przebijające z odrzutem przeciw szeregowi wrogów.
   'pierce-line': setupOf(
     [swordsman(), ranged({ pierce: true, knockback: u(6) }), ranged({ pierce: true })],

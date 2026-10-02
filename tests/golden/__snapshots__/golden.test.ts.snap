@@ -110,6 +110,17 @@ exports[`walki golden > pierce-line 1`] = `
 }
 `;
 
+exports[`walki golden > splash 1`] = `
+{
+  "eventHash": "eeacf114",
+  "finalHp": "-4 54 350 0 0 -10 -30 -20 -10 0",
+  "outcome": "win",
+  "reason": "eliminated",
+  "stateHash": "d9994395",
+  "ticks": 585,
+}
+`;
+
 exports[`walki golden > stalemate 1`] = `
 {
   "eventHash": "b7b52654",

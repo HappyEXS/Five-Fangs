@@ -57,6 +57,11 @@ export const traitSchema = z.discriminatedUnion('type', [
     type: z.literal('lifesteal'),
     percent: z.number().int().min(1).max(100),
   }),
+  /**
+   * Cios obszarowy: cios wręcz zadaje pełne obrażenia także wrogom w promieniu `radius`
+   * (jednostki świata) od celu. Odrzut dostaje tylko cel. Tylko dla ataku wręcz.
+   */
+  z.strictObject({ type: z.literal('splash'), radius: z.number().positive() }),
 ]);
 
 export const unitSchema = z.strictObject({

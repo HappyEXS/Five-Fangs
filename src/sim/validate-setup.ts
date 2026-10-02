@@ -17,6 +17,7 @@ const INTEGER_FIELDS = [
   'enrageHpPercent',
   'enrageAttackPercent',
   'lifestealPercent',
+  'splashRadius',
 ] as const;
 
 /** Problemy pojedynczej specyfikacji jednostki, niezależne od składu i areny. */
@@ -52,6 +53,9 @@ export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
     problems.push(
       `${label}: enrageHpPercent i enrageAttackPercent muszą być oba zerowe albo oba dodatnie`,
     );
+  }
+  if (spec.splashRadius > 0 && spec.projectileStep > 0) {
+    problems.push(`${label}: splashRadius wymaga ataku wręcz`);
   }
   if (spec.lifestealPercent > 100) {
     problems.push(`${label}: lifestealPercent musi być w przedziale 0..100`);

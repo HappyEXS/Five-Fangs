@@ -58,6 +58,11 @@ export interface UnitSpec {
   readonly enrageAttackPercent: number;
   /** Kradzież życia: procent zadanych obrażeń, o który jednostka się leczy; 0 oznacza brak cechy. */
   readonly lifestealPercent: number;
+  /**
+   * Cios obszarowy: promień w podjednostkach wokół celu ciosu wręcz, w którym obrywają także
+   * pozostali wrogowie; 0 oznacza brak cechy. Tylko dla ataku wręcz.
+   */
+  readonly splashRadius: number;
 }
 
 export interface ArenaSpec {

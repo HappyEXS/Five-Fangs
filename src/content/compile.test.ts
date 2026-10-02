@@ -75,6 +75,7 @@ describe('compileUnit', () => {
         enrageHpPercent: 0,
         enrageAttackPercent: 0,
         lifestealPercent: 0,
+        splashRadius: 0,
       },
       visual: {
         rig: 'humanoid',
@@ -175,6 +176,11 @@ describe('cechy pasywne', () => {
   it('kradzież życia zapisuje procent', () => {
     const vampire: RawUnit = { ...swordsman, traits: [{ type: 'lifesteal', percent: 30 }] };
     expect(compileUnit(vampire, slash).base.lifestealPercent).toBe(30);
+  });
+
+  it('cios obszarowy przelicza promień na podjednostki', () => {
+    const cleaver: RawUnit = { ...swordsman, traits: [{ type: 'splash', radius: 40 }] };
+    expect(compileUnit(cleaver, slash).base.splashRadius).toBe(40 * 256);
   });
 
   it('pierce ustawia flagę i łączy się z leczeniem', () => {

@@ -76,6 +76,7 @@ export function melee(overrides: Partial<UnitSpec> = {}): UnitSpec {
     enrageHpPercent: 0,
     enrageAttackPercent: 0,
     lifestealPercent: 0,
+    splashRadius: 0,
     ...overrides,
   };
 }

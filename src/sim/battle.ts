@@ -53,6 +53,7 @@ function placeUnit(battle: Battle, unitId: number, spec: UnitSpec, x: number): v
   specs.enragedAttack[unitId] =
     spec.attack + mulDivFloor(spec.attack, spec.enrageAttackPercent, 100);
   specs.lifesteal[unitId] = spec.lifestealPercent;
+  specs.splashRadius[unitId] = spec.splashRadius;
 
   state.status[unitId] = STATUS_IDLE;
   state.x[unitId] = x;
