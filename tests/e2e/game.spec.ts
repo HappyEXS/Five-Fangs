@@ -40,10 +40,10 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   const result = page.locator('.result-panel');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
   await expect(result).toContainText('Zwycięstwo');
-  await expect(result.locator('.rewards')).toContainText('+260 złota');
+  await expect(result.locator('.rewards')).toContainText('+100 złota');
 
   const save = await readSave(page);
-  expect(save.gold).toBe(260);
+  expect(save.gold).toBe(100);
   expect(save.levels).toMatchObject({ w1_l1: { cleared: true } });
 
   // Po przeładowaniu strony postęp zostaje, a drugi poziom jest odblokowany.
@@ -51,7 +51,7 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await page.getByRole('button', { name: 'Graj' }).click();
   await expect(page.locator('[data-level="w1_l1"]')).toHaveClass(/level-cleared/);
   await expect(page.locator('[data-level="w1_l2"]')).toBeEnabled();
-  await expect(page.locator('.gold')).toHaveText('Złoto: 260');
+  await expect(page.locator('.gold')).toHaveText('Złoto: 100');
 
   expect(errors).toEqual([]);
 });

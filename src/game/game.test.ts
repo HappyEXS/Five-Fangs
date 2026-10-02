@@ -42,7 +42,7 @@ describe('start gry', () => {
     game.finishBattle('w1_l1', WIN);
 
     const again = start(first.storage);
-    expect(again.save.value.gold).toBe(260);
+    expect(again.save.value.gold).toBe(100);
     expect(again.save.value.gameVersion).toBe('9.9.9');
     expect(language.value).toBe('pl');
   });
@@ -71,7 +71,7 @@ describe('start gry', () => {
     const game = start(null);
     expect(game.storage.value).toBe('memory');
     game.finishBattle('w1_l1', WIN);
-    expect(game.save.value.gold).toBe(260);
+    expect(game.save.value.gold).toBe(100);
     expect(game.storage.value).toBe('memory');
   });
 });
@@ -115,7 +115,7 @@ describe('wynik walki', () => {
       name: 'result',
       level: 'w1_l1',
       battle: WIN,
-      rewards: { firstClear: true, gold: 260, rune: null, lines: [] },
+      rewards: { firstClear: true, gold: 100, rune: null, lines: [] },
     });
     const stored = decodeSave(items.get(SAVE_KEY) ?? '');
     expect(stored.kind === 'ok' && stored.save.levels.w1_l1).toEqual({
@@ -163,8 +163,8 @@ describe('akcje gracza', () => {
     game.finishBattle('w1_l1', WIN);
     game.finishBattle('w1_l2', WIN);
     expect(game.upgrade('swordsman')).toBe(true);
-    expect(game.save.value.gold).toBe(860 - 50);
-    expect(game.equipRune('swordsman', 0, 'rune_hp_200')).toBe(true);
+    expect(game.save.value.gold).toBe(500 - 50);
+    expect(game.equipRune('swordsman', 0, 'rune_hp_100')).toBe(true);
   });
 });
 
@@ -177,7 +177,7 @@ describe('eksport, import i reset', () => {
     const target = start();
     target.go({ name: 'map' });
     expect(target.importSave(text)).toBe('ok');
-    expect(target.save.value.gold).toBe(260);
+    expect(target.save.value.gold).toBe(100);
     expect(target.scene.value).toEqual({ name: 'menu' });
   });
 

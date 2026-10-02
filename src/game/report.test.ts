@@ -81,10 +81,25 @@ describe('statystyki dla gracza', () => {
     const sniper = content.heroes.get('archer_b');
     const sword = content.heroes.get('swordsman_a');
     if (sniper === undefined || sword === undefined) throw new Error('missing unit');
-    expect(traitsOf(sniper.base)).toEqual([{ type: 'pierce' }]);
+    expect(traitsOf(sniper.base)).toEqual([{ key: 'trait.pierce', params: {} }]);
     expect(traitsOf(sword.base)).toEqual([]);
     expect(traitsOf({ ...sword.base, healAmount: 20, healInterval: 45, healTeam: true })).toEqual([
-      { type: 'heal', team: true, amount: 20, seconds: 1.5 },
+      { key: 'trait.heal.team', params: { amount: 20, seconds: 1.5 } },
+    ]);
+  });
+
+  it('opisuje cios obszarowy, kradzież życia i szał jednostek z treści gry', () => {
+    const knight = content.heroes.get('swordsman_b');
+    const raider = content.enemies.get('raider');
+    const boss = content.enemies.get('chieftain');
+    if (knight === undefined || raider === undefined || boss === undefined) {
+      throw new Error('missing unit');
+    }
+    expect(traitsOf(knight.base)).toEqual([{ key: 'trait.splash', params: { radius: 45 } }]);
+    expect(traitsOf(raider.base)).toEqual([{ key: 'trait.lifesteal', params: { percent: 35 } }]);
+    expect(traitsOf(boss.base)).toEqual([
+      { key: 'trait.splash', params: { radius: 40 } },
+      { key: 'trait.enrage', params: { hp: 50, bonus: 60 } },
     ]);
   });
 

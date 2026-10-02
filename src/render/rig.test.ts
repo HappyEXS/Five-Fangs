@@ -91,7 +91,14 @@ describe('compileRig', () => {
     const humanoid = compileRig(raw);
     expect(humanoid.boneCount).toBe(11);
     expect(humanoid.channelCount).toBe(13);
-    expect([...humanoid.clips.keys()]).toEqual(['idle', 'walk', 'slash', 'shoot']);
+    expect([...humanoid.clips.keys()]).toEqual([
+      'idle',
+      'walk',
+      'slash',
+      'shoot',
+      'cleave',
+      'snipe',
+    ]);
     // Każda kość ma rodzica wymienionego wcześniej.
     humanoid.parent.forEach((p, bone) => {
       expect(p).toBeLessThan(bone);

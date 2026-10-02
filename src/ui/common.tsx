@@ -70,13 +70,8 @@ export function StatTable(props: { spec: UnitSpec; next?: UnitSpec | null }) {
         ))}
       </dl>
       {traitsOf(props.spec).map((trait) => (
-        <p class="trait" key={trait.type}>
-          {trait.type === 'pierce'
-            ? t('trait.pierce')
-            : t(trait.team ? 'trait.heal.team' : 'trait.heal.self', {
-                seconds: one(trait.seconds),
-                amount: trait.amount,
-              })}
+        <p class="trait" key={trait.key}>
+          {t(trait.key, trait.params)}
         </p>
       ))}
     </div>

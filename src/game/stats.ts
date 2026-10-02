@@ -1,6 +1,8 @@
 // Statystyki jednostki w postaci dla gracza. Liczone ze specyfikacji symulacji (ticki,
 // podjednostki), więc gracz widzi wartości efektywne po zaokrągleniu do ticków
 // (docs/GAME_DESIGN.md §3), a nie surowe liczby z danych.
+import type { MessageKey } from '../content/i18n/index.ts';
+import type { MessageParams } from '../core/i18n.ts';
 import { subunitsToUnits, TICKS_PER_SECOND } from '../core/units.ts';
 import type { UnitSpec } from '../sim/types.ts';
 
@@ -35,26 +37,36 @@ export function displayStats(spec: UnitSpec): DisplayStats {
   };
 }
 
-export type TraitView =
-  | { readonly type: 'pierce' }
-  | {
-      readonly type: 'heal';
-      readonly team: boolean;
-      readonly amount: number;
-      /** Odstęp leczenia w sekundach. */
-      readonly seconds: number;
-    };
+/** Opis cechy dla gracza: klucz tekstu i wartości do podstawienia. */
+export interface TraitView {
+  readonly key: MessageKey;
+  readonly params: MessageParams;
+}
 
-/** Cechy pasywne jednostki odczytane ze specyfikacji symulacji. */
+function tenths(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+/** Cechy pasywne jednostki odczytane ze specyfikacji symulacji, w stałej kolejności. */
 export function traitsOf(spec: UnitSpec): TraitView[] {
   const traits: TraitView[] = [];
-  if (spec.pierce) traits.push({ type: 'pierce' });
+  if (spec.pierce) traits.push({ key: 'trait.pierce', params: {} });
+  if (spec.splashRadius > 0) {
+    traits.push({ key: 'trait.splash', params: { radius: subunitsToUnits(spec.splashRadius) } });
+  }
   if (spec.healAmount > 0) {
     traits.push({
-      type: 'heal',
-      team: spec.healTeam,
-      amount: spec.healAmount,
-      seconds: spec.healInterval / TICKS_PER_SECOND,
+      key: spec.healTeam ? 'trait.heal.team' : 'trait.heal.self',
+      params: { amount: spec.healAmount, seconds: tenths(spec.healInterval / TICKS_PER_SECOND) },
+    });
+  }
+  if (spec.lifestealPercent > 0) {
+    traits.push({ key: 'trait.lifesteal', params: { percent: spec.lifestealPercent } });
+  }
+  if (spec.enrageHpPercent > 0) {
+    traits.push({
+      key: 'trait.enrage',
+      params: { hp: spec.enrageHpPercent, bonus: spec.enrageAttackPercent },
     });
   }
   return traits;

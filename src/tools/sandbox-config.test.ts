@@ -83,6 +83,9 @@ describe('buildBattle', () => {
       'archer_a',
       'archer_b',
       'brute',
+      'raider',
+      'shaman',
+      'chieftain',
     ]);
   });
 });

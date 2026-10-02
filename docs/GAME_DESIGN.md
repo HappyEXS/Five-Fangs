@@ -43,19 +43,31 @@ Typ ataku ma **stały czas zamachu** (`swingDuration`, np. 0,4 s) i `hitFraction
 
 Odstęp nie może być krótszy niż zamach; walidator treści odrzuca takie dane. Gracz widzi w UI wartości efektywne, po zaokrągleniu do ticków.
 
-### Wartości wyjściowe jednostek testowych (M1–M4)
+### Jednostki testowe
 
-Do czasu zaprojektowania rosteru (M5) gra zawiera jednostki testowe: dwie linie bohaterów po dwie formy i jednego wroga. Ich nazwy i liczby są tymczasowe.
+Do czasu, aż autor gry uzupełni roster, gra zawiera dwie linie bohaterów po dwie formy oraz jednostki specjalne świata „Las”. Nazwy i liczby są tymczasowe; balans pilnuje `pnpm balance`.
 
-| Jednostka | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Atak i cechy |
+| Jednostka | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|
-| swordsman_a (melee) | 600 | 40 | 60 | 1,0 | 30 | 15 | slash: zamach 0,4 s, trafienie 0,5 |
-| swordsman_b (melee) | 900 | 60 | 60 | 1,1 | 30 | 20 | slash |
-| archer_a (ranged) | 350 | 30 | 50 | 0,8 | 220 | 0 | shoot: zamach 0,6 s, wystrzał 0,5, pocisk 400 jedn./s |
-| archer_b (ranged) | 500 | 45 | 50 | 0,9 | 240 | 0 | shoot, `pierce` |
-| brute (wróg, melee) | 800 | 35 | 45 | 0,7 | 30 | 25 | slash |
+| Miecznik `swordsman_a` (melee) | 600 | 40 | 60 | 1,0 | 30 | 15 | `slash` |
+| Rycerz `swordsman_b` (melee) | 950 | 85 | 60 | 0,8 | 30 | 25 | `cleave`, `splash` 45 |
+| Łucznik `archer_a` (ranged) | 350 | 30 | 50 | 0,8 | 220 | 0 | `shoot` |
+| Strzelec wyborowy `archer_b` (ranged) | 480 | 75 | 50 | 0,6 | 300 | 0 | `snipe`, `pierce` |
+| Osiłek `brute` (specjalna, melee) | 800 | 35 | 45 | 0,7 | 30 | 25 | `slash` |
+| Łupieżca `raider` (specjalna, melee) | 520 | 30 | 75 | 1,3 | 30 | 5 | `slash`, `lifesteal` 35% |
+| Szaman `shaman` (specjalna, ranged) | 300 | 18 | 45 | 0,7 | 200 | 0 | `shoot`, `periodicHeal` drużyny: 18 co 2,5 s |
+| Herszt `chieftain` (boss, melee) | 2200 | 60 | 40 | 0,6 | 30 | 40 | `cleave`, `splash` 40, `enrage` poniżej 50%: +60% |
 
-Testowy świat ma 6 poziomów z osiłkami o rosnącym poziomie siły; szósty to boss (osiłek poziomu 12 z obstawą). Trudność rośnie tu przez cały zakres ulepszeń (rangi oczekiwane 0, 2, 4, 5, 7, 9 obu bohaterów), więc nagrody są ustawione tak, by pierwsze przejście poziomu opłacało rangę potrzebną na następnym: 260, 600, 500, 1400, 2600 i 500 złota.
+Typy ataku:
+
+| Typ | Zamach | Trafienie | Klip, postawa | Pocisk |
+|---|---|---|---|---|
+| `slash` | 0,4 s | 0,5 | `slash`, `sword` | brak |
+| `cleave` | 0,7 s | 0,6 | `cleave`, `sword` | brak |
+| `shoot` | 0,6 s | 0,5 | `shoot`, `bow` | 400 jedn./s |
+| `snipe` | 0,9 s | 0,7 | `snipe`, `longbow` | 700 jedn./s |
+
+Forma po ewolucji ma inny typ ataku niż forma bazowa: Rycerz bije wolniej, mocniej i obszarowo, Strzelec wyborowy celuje dłużej, a jego strzały lecą szybciej i przebijają.
 
 ## 4. Przebieg walki
 
@@ -163,7 +175,7 @@ Koszty (wyjściowe, do balansu w M5): ulepszenia formy A `50, 80, 120, 180`, ewo
 
 ### 5.3 Runy
 
-- Runa to żeton z płaską premią do jednej statystyki, np. `attack +25` albo `maxHp +200`. Na start runy dotyczą tylko `attack` i `maxHp`.
+- Runa to żeton z płaską premią do jednej statystyki. Runy dotyczą tylko `attack` i `maxHp` i mają trzy wielkości: atak +10, +25, +50; życie +100, +200, +400 (decyzja autora z 2026-10-02).
 - Każda linia ma **2 sloty na runy**; sloty zostają po ewolucji.
 - Runy są nagrodą za **pierwsze przejście** wybranych poziomów. Nie da się ich kupić. Wyjściowo runę daje co drugi poziom, czyli ok. 15 run w całej grze.
 - Runy można dowolnie wkładać, wyjmować i przekładać między bohaterami, bez kosztu.
@@ -184,13 +196,19 @@ Jednostka może mieć kilka cech różnych typów, najwyżej jedną danego typu.
 |---|---|---|
 | `periodicHeal` | `target`: `self` \| `team`; `amount`; `interval` (s) | Co `interval` leczy siebie albo wszystkich żywych sojuszników (wraz z sobą) o `amount`. Licznik biegnie od początku walki. |
 | `pierce` | brak | Pociski tej jednostki przebijają: trafiają każdego wroga na drodze. Tylko dla ranged. |
+| `splash` | `radius` (jednostki świata) | Cios wręcz zadaje pełne obrażenia także każdemu innemu żywemu wrogowi, który stoi nie dalej niż `radius` od celu. Odrzut dostaje tylko cel. Jeśli cel zginął w trakcie zamachu, cios chybia w całości. Tylko dla melee. |
+| `lifesteal` | `percent` (1–100) | Po każdym trafieniu, wręcz albo pociskiem, jednostka leczy się o `percent` procent obrażeń ciosu (zaokrąglenie w dół). Liczą się obrażenia ciosu, nie HP, które cel jeszcze miał. Leczenie wchodzi w rozstrzygnięcie tego samego ticka, więc może uratować przed śmiercią. Martwy strzelec nie leczy się z pocisków, które jeszcze lecą. |
+| `enrage` | `hpBelow` (1–99, procent życia), `attackBonus` (procent) | Gdy HP jednostki jest niższe niż `hpBelow` procent `maxHp`, jej ataki zadają o `attackBonus` procent więcej (zaokrąglenie w dół). Liczy się HP z chwili trafienia wręcz albo wystrzału; pocisk niesie obrażenia z chwili wystrzału. Uleczenie powyżej progu kończy szał. |
+
+Cechy się łączą: cios obszarowy jednostki w szale zadaje powiększone obrażenia wszystkim trafionym, a kradzież życia leczy za każdego z nich. Odległości ciosu obszarowego liczone są z pozycji z początku ticka.
 
 Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus kod w symulacji z testami. Dodanie nowej cechy to świadoma zmiana symulacji (nowe hashe golden), a nie konfiguracja. Wrogowie i bossowie korzystają z tych samych cech.
 
 ## 7. Poziomy i światy
 
-- **5 światów po 6 poziomów.** Każdy świat ma własne tło i własny zestaw wrogów.
+- **5 światów po 6 poziomów.** Każdy świat ma własne tło i własny zestaw wrogów. Na razie istnieje jeden świat testowy, „Las”; motywy pozostałych poda autor gry.
 - Szósty poziom świata to **boss**: większa jednostka z unikalną cechą lub kombinacją cech, zwykle z obstawą.
+- **Wrogami są zwykłe postacie z gry oraz jednostki specjalne.** Poziom może wystawić dowolną formę bohatera (np. Miecznika albo Rycerza) i jednostki, których gracz nie może zdobyć ani ewoluować (Osiłek, Łupieżca, Szaman, Herszt).
 - Poziomy odblokowują się kolejno. Przeszły poziom można powtarzać.
 - Poziom to skład wrogów na slotach, z poziomem siły każdej jednostki, oraz nagrody:
 
@@ -209,6 +227,19 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania. Nazwa poziomu to tekst `level.<id>.name` w słownikach, nazwa świata `world.<id>.name`.
 
 `level` wroga skaluje `maxHp` i `attack` tak samo jak ulepszenia bohatera: +10% wartości bazowej na poziom (wyjściowo, `upgradePercent` w `progression.json`), z zaokrągleniem w dół.
+
+### Świat 1: Las (testowy)
+
+| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Ranga oczekiwana | Złoto | Runa |
+|---|---|---|---|---|
+| Skraj lasu | 0: Osiłek 0 | A0 | 100 | |
+| Zasadzka | 0: Miecznik 0; 2: Łucznik 0 | A1 | 400 | życie +100 |
+| Obóz szamana | 0: Osiłek 4; 2: Szaman 4 | A3 | 860 | |
+| Łupieżcy | 0, 1: Łupieżca 3; 3: Łucznik 3 | B0 | 1400 | atak +10 |
+| Straż herszta | 0: Rycerz 1; 1: Osiłek 5; 3: Strzelec wyborowy 1 | B2 | 2600 | |
+| Herszt | 0: Herszt 3; 1: Łupieżca 5; 3: Szaman 4 | B4 | 1000 | życie +200 |
+
+Ranga oczekiwana to najniższa ranga obu bohaterów składu referencyjnego (Miecznik w slocie 1, Łucznik w slocie 2, bez run), przy której poziom da się wygrać; pilnuje jej raport `pnpm balance`. Złoto za pierwsze przejście poziomu wystarcza dokładnie na rangę oczekiwaną na następnym. Każda cecha pasywna występuje w tym świecie co najmniej raz.
 
 ## 8. Prezentacja
 

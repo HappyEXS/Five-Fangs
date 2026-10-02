@@ -80,10 +80,10 @@ describe('levelSetup', () => {
     expect(setup.player[2]?.maxHp).toBe(350);
     expect(setup.player[4]).toBeNull();
 
-    // Poziom w1_l3: osiłek poziomu 2 w slocie 0 i poziomu 1 w slocie 1.
-    expect(setup.enemy[0]?.maxHp).toBe(960);
-    expect(setup.enemy[1]?.maxHp).toBe(880);
-    expect(setup.enemy[2]).toBeNull();
+    // Poziom w1_l3: osiłek poziomu 4 w slocie 0 i szaman poziomu 4 w slocie 2.
+    expect(setup.enemy[0]?.maxHp).toBe(1120);
+    expect(setup.enemy[1]).toBeNull();
+    expect(setup.enemy[2]?.maxHp).toBe(420);
   });
 });
 
@@ -108,9 +108,9 @@ describe('levelVisuals', () => {
     expect(visuals[2]?.skin).toBe('archer_b');
     expect(visuals[2]?.projectileSprite).toBe('arrow');
     expect(visuals[3]).toBeNull();
-    // Poziom w1_l3 ma osiłków w slotach 0 i 1.
+    // Poziom w1_l3 ma osiłka w slocie 0 i szamana w slocie 2.
     expect(visuals[5]?.skin).toBe('brute');
-    expect(visuals[6]?.skin).toBe('brute');
-    expect(visuals[7]).toBeNull();
+    expect(visuals[6]).toBeNull();
+    expect(visuals[7]?.skin).toBe('shaman');
   });
 });

@@ -31,6 +31,14 @@ export function resolveUnitSpec(
   return { ...unit.base, maxHp, attack };
 }
 
+/**
+ * Jednostka o danym id: forma bohatera albo jednostka specjalna, której gracz nie może zdobyć.
+ * Obie grupy dzielą przestrzeń id, a poziomy mogą wystawiać przeciw graczowi każdą z nich.
+ */
+export function findUnit(content: GameContent, id: string): CompiledUnit | undefined {
+  return content.heroes.get(id) ?? content.enemies.get(id);
+}
+
 /** Bohater w składzie: forma, liczba ulepszeń tej formy i włożone runy. */
 export interface SquadMember {
   readonly unit: CompiledUnit;
@@ -56,8 +64,8 @@ export function levelSetup(
     enemy.push(null);
   }
   for (const entry of level.enemies) {
-    const unit = content.enemies.get(entry.unit);
-    if (unit === undefined) throw new Error(`Unknown enemy "${entry.unit}" in level ${level.id}`);
+    const unit = findUnit(content, entry.unit);
+    if (unit === undefined) throw new Error(`Unknown unit "${entry.unit}" in level ${level.id}`);
     enemy[entry.slot] = resolveUnitSpec(unit, entry.level, [], content.progression);
   }
   return { arena: content.arena, player, enemy };
@@ -76,7 +84,7 @@ export function levelVisuals(
   for (let slot = 0; slot < TEAM_SLOTS; slot++) visuals.push(squad[slot]?.unit.visual ?? null);
   for (let slot = 0; slot < TEAM_SLOTS; slot++) visuals.push(null);
   for (const entry of level.enemies) {
-    visuals[TEAM_SLOTS + entry.slot] = content.enemies.get(entry.unit)?.visual ?? null;
+    visuals[TEAM_SLOTS + entry.slot] = findUnit(content, entry.unit)?.visual ?? null;
   }
   return visuals;
 }

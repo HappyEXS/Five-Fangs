@@ -2,49 +2,49 @@
   {
     "id": "w1_l1",
     "enemies": [{ "slot": 0, "unit": "brute", "level": 0 }],
-    "rewards": { "gold": 260 }
+    "rewards": { "gold": 100 }
   },
   {
     "id": "w1_l2",
     "enemies": [
-      { "slot": 0, "unit": "brute", "level": 0 },
-      { "slot": 1, "unit": "brute", "level": 0 }
+      { "slot": 0, "unit": "swordsman_a", "level": 0 },
+      { "slot": 2, "unit": "archer_a", "level": 0 }
     ],
-    "rewards": { "gold": 600, "rune": "rune_hp_200" }
+    "rewards": { "gold": 400, "rune": "rune_hp_100" }
   },
   {
     "id": "w1_l3",
     "enemies": [
-      { "slot": 0, "unit": "brute", "level": 2 },
-      { "slot": 1, "unit": "brute", "level": 1 }
+      { "slot": 0, "unit": "brute", "level": 4 },
+      { "slot": 2, "unit": "shaman", "level": 4 }
     ],
-    "rewards": { "gold": 500 }
+    "rewards": { "gold": 860 }
   },
   {
     "id": "w1_l4",
     "enemies": [
-      { "slot": 0, "unit": "brute", "level": 3 },
-      { "slot": 1, "unit": "brute", "level": 3 },
-      { "slot": 2, "unit": "brute", "level": 1 }
+      { "slot": 0, "unit": "raider", "level": 3 },
+      { "slot": 1, "unit": "raider", "level": 3 },
+      { "slot": 3, "unit": "archer_a", "level": 3 }
     ],
-    "rewards": { "gold": 1400, "rune": "rune_attack_25" }
+    "rewards": { "gold": 1400, "rune": "rune_attack_10" }
   },
   {
     "id": "w1_l5",
     "enemies": [
-      { "slot": 0, "unit": "brute", "level": 5 },
-      { "slot": 1, "unit": "brute", "level": 4 },
-      { "slot": 2, "unit": "brute", "level": 4 }
+      { "slot": 0, "unit": "swordsman_b", "level": 1 },
+      { "slot": 1, "unit": "brute", "level": 5 },
+      { "slot": 3, "unit": "archer_b", "level": 1 }
     ],
     "rewards": { "gold": 2600 }
   },
   {
     "id": "w1_l6",
     "enemies": [
-      { "slot": 0, "unit": "brute", "level": 12 },
-      { "slot": 1, "unit": "brute", "level": 5 },
-      { "slot": 2, "unit": "brute", "level": 5 }
+      { "slot": 0, "unit": "chieftain", "level": 3 },
+      { "slot": 1, "unit": "raider", "level": 5 },
+      { "slot": 3, "unit": "shaman", "level": 4 }
     ],
-    "rewards": { "gold": 500, "rune": "rune_attack_25" }
+    "rewards": { "gold": 1000, "rune": "rune_hp_200" }
   }
 ]

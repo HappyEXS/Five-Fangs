@@ -69,7 +69,14 @@ describe('rig humanoid z treści gry', () => {
       'thighB',
       'shinB',
     ]);
-    expect(Object.keys(humanoid?.clips ?? {})).toEqual(['idle', 'walk', 'slash', 'shoot']);
+    expect(Object.keys(humanoid?.clips ?? {})).toEqual([
+      'idle',
+      'walk',
+      'slash',
+      'shoot',
+      'cleave',
+      'snipe',
+    ]);
     expect(humanoid?.clips.slash?.markers.hit).toBe(0.5);
     expect(humanoid?.stances.sword).toEqual({ weapon: -75 });
   });

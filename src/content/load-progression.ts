@@ -67,6 +67,7 @@ function loadLevels(
   raw: RawProgression,
   worldIds: readonly string[],
   progression: Progression,
+  heroes: ReadonlyMap<string, CompiledUnit>,
   enemies: ReadonlyMap<string, CompiledUnit>,
   runes: ReadonlyMap<string, Rune>,
   issues: ContentIssue[],
@@ -108,8 +109,9 @@ function loadLevels(
           issues.push({ source, message: `${level.id}: slot ${enemy.slot} użyty więcej niż raz` });
         }
         slots.add(enemy.slot);
-        if (!enemies.has(enemy.unit)) {
-          issues.push({ source, message: `${level.id}: nieznany wróg "${enemy.unit}"` });
+        // Wrogiem może być forma bohatera albo jednostka specjalna z units/enemies.json.
+        if (!enemies.has(enemy.unit) && !heroes.has(enemy.unit)) {
+          issues.push({ source, message: `${level.id}: nieznana jednostka "${enemy.unit}"` });
         }
       }
       const rune = level.rewards.rune ?? null;
@@ -148,7 +150,7 @@ export function loadProgression(
 
   const runes = indexById('runes.json', runeList, new Set(), issues);
   const worldIds = [...indexById('worlds.json', worldList, new Set(), issues).keys()];
-  const { worlds, levels } = loadLevels(raw, worldIds, progression, enemies, runes, issues);
+  const { worlds, levels } = loadLevels(raw, worldIds, progression, heroes, enemies, runes, issues);
 
   const lines = new Map<string, CompiledLine>();
   const usedForms = new Set<string>();

@@ -97,7 +97,7 @@ interface BattleSetup {
 }
 ```
 
-Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009).
+Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009). Poza polami z listingu specyfikacja ma: `enrageHpPercent` i `enrageAttackPercent` (szał), `lifestealPercent` (kradzież życia) oraz `splashRadius` w podjednostkach (cios obszarowy); zero oznacza brak cechy. Próg HP i obrażenia w szale symulacja liczy raz, przy tworzeniu walki, więc w tickach zostaje jedno porównanie. Wejście symulacji zapisane przez starszą wersję gry (bez tych pól) piaskownica wczytuje z wartościami zerowymi.
 
 `createBattle` sprawdza niezmienniki setupu (`validateSetup`) i rzuca błąd, gdy są złamane: wartości całkowite, zależności pól ataku, sloty gracza na lewo od slotów przeciwnika, największy `moveStep` nie większy niż najmniejszy `range`, pula pocisków wystarczająca dla składu.
 
@@ -256,8 +256,11 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
   "traits": [{ "type": "pierce" }] }
 // pola "rig" i "skin" dojdą razem z rendererem w M2
 
-// cecha okresowa
+// cechy: okresowa, szał, kradzież życia, cios obszarowy
 { "type": "periodicHeal", "target": "team", "amount": 20, "interval": 2.0 }
+{ "type": "enrage", "hpBelow": 50, "attackBonus": 60 }   // procenty
+{ "type": "lifesteal", "percent": 35 }
+{ "type": "splash", "radius": 45 }                        // jednostki świata
 
 // lines.json
 { "id": "archer", "forms": ["archer_a", "archer_b"],
@@ -306,7 +309,8 @@ function levelSetup(
 - znacznik `hit` w klipie równy `hitFraction` typu ataku;
 - `attackInterval ≥ swingTicks` dla każdej jednostki;
 - największy `moveStep` ≤ najmniejszy `range` (gwarancja, że wrogie jednostki się nie miną);
-- `pierce` tylko przy ataku z pociskiem;
+- `pierce` tylko przy ataku z pociskiem, `splash` tylko przy ataku wręcz;
+- wróg na poziomie to dowolna jednostka: forma bohatera albo jednostka specjalna z `units/enemies.json`;
 - górne ograniczenie liczby żywych pocisków mieści się w puli;
 - każda linia ma dokładnie 2 formy i komplet kosztów, forma należy do jednej linii, a każdy bohater do jakiejś linii;
 - każdy świat ma plik poziomów z wymaganą liczbą poziomów (`levelsPerWorld`); w poziomie sloty wrogów się nie powtarzają;

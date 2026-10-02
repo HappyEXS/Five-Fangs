@@ -26,6 +26,7 @@ describe('contentAssetIssues', () => {
     expect(contentAssetIssues(content, partial).map((i) => i.message)).toEqual([
       'archer_a: w atlasie brakuje sprite\'a pocisku "fx/arrow"',
       'archer_b: w atlasie brakuje sprite\'a pocisku "fx/arrow"',
+      'shaman: w atlasie brakuje sprite\'a pocisku "fx/arrow"',
     ]);
   });
 });

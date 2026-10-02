@@ -68,12 +68,13 @@ describe('dane progresji gry', () => {
       id: 'w1_l2',
       world: 'world_1',
       index: 1,
+      // Wrogami są tu zwykłe postacie gry: formy bohaterów.
       enemies: [
-        { slot: 0, unit: 'brute', level: 0 },
-        { slot: 1, unit: 'brute', level: 0 },
+        { slot: 0, unit: 'swordsman_a', level: 0 },
+        { slot: 2, unit: 'archer_a', level: 0 },
       ],
-      gold: 600,
-      rune: 'rune_hp_200',
+      gold: 400,
+      rune: 'rune_hp_100',
     });
     expect(content?.levels.get('w1_l1')?.rune).toBeNull();
     expect(content?.runes.get('rune_attack_25')).toEqual({
@@ -149,10 +150,13 @@ describe('walidacja światów i poziomów', () => {
     expect(withLevels(sixLevels({ enemies: twice }))).toEqual([
       'levels/world_1.json: t1: slot 2 użyty więcej niż raz',
     ]);
-    const unknown = [{ slot: 0, unit: 'swordsman_a', level: 0 }];
+    const unknown = [{ slot: 0, unit: 'nie_ma', level: 0 }];
     expect(withLevels(sixLevels({ enemies: unknown }))).toEqual([
-      'levels/world_1.json: t1: nieznany wróg "swordsman_a"',
+      'levels/world_1.json: t1: nieznana jednostka "nie_ma"',
     ]);
+    // Przeciwnikiem może być forma bohatera.
+    const hero = [{ slot: 0, unit: 'swordsman_a', level: 2 }];
+    expect(withLevels(sixLevels({ enemies: hero }))).toEqual([]);
   });
 
   it('sprawdza runę w nagrodzie', () => {

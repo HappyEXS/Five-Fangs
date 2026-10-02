@@ -45,7 +45,7 @@ export const levelSchema = z.strictObject({
     .array(
       z.strictObject({
         slot: z.number().int().min(0).max(4),
-        /** Id jednostki z units/enemies.json. */
+        /** Id jednostki: forma bohatera albo jednostka specjalna z units/enemies.json. */
         unit: id,
         /** Poziom siły: skaluje maxHp i attack jak ulepszenia bohatera. */
         level: z.number().int().nonnegative(),

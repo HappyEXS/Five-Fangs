@@ -99,17 +99,17 @@ Cel: komplet mechanik grywalny na jednym świecie testowym. Autor gry zdecydowa�
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
 | M5-1 | Decyzje projektowe z autorem gry: roster, cechy, światy, runy | 1 | GAME_DESIGN.md §9 zapisuje, co ustalone, a co czeka | gotowe |
-| M5-2a | Cecha `enrage`: schemat, symulacja, testy, golden | 1 | Jak M1-10 | — |
-| M5-2b | Cecha `lifesteal`: schemat, symulacja, testy, golden | 1 | Jak M1-10 | — |
-| M5-2c | Cecha `splash`: schemat, symulacja, testy, golden | 1,5 | Jak M1-10 | — |
-| M5-3 | Dwie linie testowe: forma B z innym typem ataku (nowe typy ataku, klipy, postawy) | 1,5 | Ewolucja zmienia animację, czas zamachu i zachowanie ataku; klipy przechodzą walidator | — |
+| M5-2a | Cecha `enrage`: schemat, symulacja, testy, golden | 1 | Jak M1-10 | gotowe |
+| M5-2b | Cecha `lifesteal`: schemat, symulacja, testy, golden | 1 | Jak M1-10 | gotowe |
+| M5-2c | Cecha `splash`: schemat, symulacja, testy, golden | 1,5 | Jak M1-10 | gotowe |
+| M5-3 | Dwie linie testowe: forma B z innym typem ataku (nowe typy ataku, klipy, postawy) | 1,5 | Ewolucja zmienia animację, czas zamachu i zachowanie ataku; klipy przechodzą walidator | gotowe: Rycerz ma typ ataku `cleave`, Strzelec wyborowy `snipe` (nowe klipy i postawa `longbow`) |
 | M5-3b | Pozostałe cztery linie bohaterów | — | Czeka na roster od autora gry | wstrzymane |
-| M5-4 | Wrogowie: jednostki bohaterów jako przeciwnicy oraz jednostki specjalne ze skórkami placeholder | 1,5 | Poziom może wskazać dowolną jednostkę; specjalnych nie ma w liniach gracza | — |
-| M5-5 | Świat testowy „Las”: 6 poziomów z bossem, każda cecha występuje co najmniej raz | 1 | Poziomy przechodzą walidację; skład referencyjny dla każdego | — |
+| M5-4 | Wrogowie: jednostki bohaterów jako przeciwnicy oraz jednostki specjalne ze skórkami placeholder | 1,5 | Poziom może wskazać dowolną jednostkę; specjalnych nie ma w liniach gracza | gotowe: Osiłek, Łupieżca, Szaman, Herszt |
+| M5-5 | Świat testowy „Las”: 6 poziomów z bossem, każda cecha występuje co najmniej raz | 1 | Poziomy przechodzą walidację; skład referencyjny dla każdego | gotowe |
 | M5-5b | Światy 2–5 | — | Czeka na motywy od autora gry | wstrzymane |
-| M5-6 | Runy w trzech wielkościach, koszty i nagrody świata „Las” | 1 | Raport balansu: każdy poziom wygrywalny przy zakładanej randze, niewygrywalny wyraźnie poniżej | — |
-| M5-7 | Iteracje balansu z `pnpm balance` | 1 | Raport do zatwierdzenia przez autora gry | — |
-| M5-8 | Komplet tekstów PL i EN | 0,5 | Walidator: brak brakujących kluczy w obu językach | — |
+| M5-6 | Runy w trzech wielkościach, koszty i nagrody świata „Las” | 1 | Raport balansu: każdy poziom wygrywalny przy zakładanej randze, niewygrywalny wyraźnie poniżej | gotowe: raport balansu zgodny na wszystkich sześciu poziomach |
+| M5-7 | Iteracje balansu z `pnpm balance` | 1 | Raport do zatwierdzenia przez autora gry | raport w `reports/balance.md` czeka na ocenę autora gry |
+| M5-8 | Komplet tekstów PL i EN | 0,5 | Walidator: brak brakujących kluczy w obu językach | gotowe dla obecnej treści |
 
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 

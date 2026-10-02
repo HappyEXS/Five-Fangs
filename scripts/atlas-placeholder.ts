@@ -30,7 +30,25 @@ for (const sprite of sprites) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, encodePng(sprite.image));
 }
-writeFileSync(manifestPath, `${JSON.stringify(placeholderManifest(sprites), null, 2)}\n`);
+// Układ zgodny z formatowaniem Biome (pivot w jednej linii), żeby wygenerowany plik
+// przechodził `pnpm lint` bez dodatkowego formatowania.
+const manifest = placeholderManifest(sprites);
+const pivotLines = Object.entries(manifest.pivots).map(
+  ([name, [x, y]]) => `    ${JSON.stringify(name)}: [${x}, ${y}]`,
+);
+writeFileSync(
+  manifestPath,
+  [
+    '{',
+    `  "generator": ${JSON.stringify(manifest.generator)},`,
+    `  "pixelsPerUnit": ${manifest.pixelsPerUnit},`,
+    '  "pivots": {',
+    pivotLines.join(',\n'),
+    '  }',
+    '}',
+    '',
+  ].join('\n'),
+);
 
 // Grafiki, których generator już nie tworzy, zaśmiecałyby atlas.
 let removed = 0;
