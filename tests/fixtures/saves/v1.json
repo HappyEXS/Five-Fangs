@@ -1,0 +1,18 @@
+{
+  "saveVersion": 1,
+  "gameVersion": "0.1.0",
+  "gold": 135,
+  "lines": {
+    "swordsman": { "form": 0, "upgrades": 3, "runes": ["rune_hp_200", null] },
+    "archer": { "form": 1, "upgrades": 1, "runes": [null, null] }
+  },
+  "runes": ["rune_hp_200", "rune_attack_25"],
+  "levels": {
+    "w1_l1": { "cleared": true, "bestTicks": 412 },
+    "w1_l2": { "cleared": true, "bestTicks": 655 },
+    "w1_l3": { "cleared": true, "bestTicks": 731 },
+    "w1_l4": { "cleared": true, "bestTicks": 1180 }
+  },
+  "squad": ["swordsman", "archer", null, null, null],
+  "settings": { "lang": "pl", "battleSpeed": 2 }
+}
