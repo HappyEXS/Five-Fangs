@@ -1,5 +1,6 @@
 // Grafiki placeholder części postaci (załącznik A briefu: rozmiary i pivoty w jednostkach rigu).
-// Proste kształty w kolorach skórki; docelowe grafiki zastąpią je w M6 przez `pnpm atlas`.
+// Proste kształty w kolorach skórki, zapisywane jako źródła atlasu w assets/src/units/;
+// docelowe grafiki zastąpią je w M6.
 import {
   below,
   capsule,
@@ -258,6 +259,15 @@ export interface PlaceholderSprite {
   readonly name: string;
   readonly part: PartSpec;
   readonly image: Image;
+}
+
+/** Manifest źródeł atlasu (assets/src/units/atlas.json) dla sprite'ów placeholder. */
+export function placeholderManifest(sprites: readonly PlaceholderSprite[]) {
+  const pivots: Record<string, [number, number]> = {};
+  for (const sprite of [...sprites].sort((a, b) => (a.name < b.name ? -1 : 1))) {
+    pivots[sprite.name] = [sprite.part.pivotX, sprite.part.pivotY];
+  }
+  return { generator: 'placeholder' as const, pixelsPerUnit: PIXELS_PER_UNIT, pivots };
 }
 
 /** Wszystkie sprite'y placeholder w stałej kolejności. */

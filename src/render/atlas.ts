@@ -1,8 +1,8 @@
-// Atlas części postaci. Obraz i metadane generuje potok atlasów (src/assets/generated),
-// a Vite nadaje plikowi hash treści w nazwie. Warianty kolorystyczne powstają raz,
-// przy ładowaniu; w trakcie rysowania nie używamy `ctx.filter`.
+// Atlas części postaci. Obraz i metadane generuje potok atlasów (`pnpm atlas`, wynik
+// w src/assets/generated), a Vite nadaje plikowi hash treści w nazwie. Warianty kolorystyczne
+// powstają raz, przy ładowaniu; w trakcie rysowania nie używamy `ctx.filter`.
 import unitsMeta from '../assets/generated/units.json' with { type: 'json' };
-import unitsUrl from '../assets/generated/units.png';
+import unitsUrl from '../assets/generated/units.webp';
 
 export interface Sprite {
   /** Prostokąt w atlasie, w pikselach. */

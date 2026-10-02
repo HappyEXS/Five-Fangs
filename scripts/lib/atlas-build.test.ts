@@ -1,7 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
-import { buildAtlas } from './atlas-build.ts';
+import { chooseAtlasWidth, composeAtlas } from './atlas-build.ts';
 import { packShelves } from './pack.ts';
 import { PARTS, PIXELS_PER_UNIT, placeholderSprites, SKINS } from './placeholder-parts.ts';
 import { circle, createImage, encodePng, fill, hex, roundBox } from './raster.ts';
@@ -102,7 +101,10 @@ describe('packShelves', () => {
 
 describe('atlas placeholder', () => {
   const sprites = placeholderSprites();
-  const built = buildAtlas(sprites, PIXELS_PER_UNIT);
+  const built = composeAtlas(
+    sprites.map((s) => ({ ...s, pivotX: s.part.pivotX, pivotY: s.part.pivotY })),
+    PIXELS_PER_UNIT,
+  );
 
   it('zawiera komplet części każdej skórki i strzałę', () => {
     const names = Object.keys(built.meta.sprites);
@@ -139,23 +141,35 @@ describe('atlas placeholder', () => {
   });
 
   it('piksele atlasu w miejscu sprite’a są pikselami sprite’a', () => {
-    const decoded = decodePng(built.png);
+    const decoded = built.image;
     const sprite = sprites.find((s) => s.name === 'brute/head');
     const rect = built.meta.sprites['brute/head'];
     if (sprite === undefined || rect === undefined) throw new Error('missing sprite');
     const [x = 0, y = 0, w = 0] = rect;
     const row = 30;
     const from = ((y + row) * decoded.width + x) * 4;
-    expect(Array.from(decoded.pixels.subarray(from, from + w * 4))).toEqual(
+    expect(Array.from(decoded.data.subarray(from, from + w * 4))).toEqual(
       Array.from(sprite.image.data.subarray(row * w * 4, (row + 1) * w * 4)),
     );
   });
 
-  it('pliki w src/assets/generated są aktualne względem generatora', () => {
-    const pngUrl = new URL('../../src/assets/generated/units.png', import.meta.url);
-    const jsonUrl = new URL('../../src/assets/generated/units.json', import.meta.url);
-    expect(existsSync(pngUrl), 'uruchom: pnpm atlas:placeholder').toBe(true);
-    expect(readFileSync(pngUrl).equals(built.png), 'uruchom: pnpm atlas:placeholder').toBe(true);
-    expect(JSON.parse(readFileSync(jsonUrl, 'utf8'))).toEqual(built.meta);
+  it('atlas placeholderów mieści się w szerokości 512', () => {
+    expect(built.meta.width).toBe(512);
+    expect(built.image.width).toBe(512);
+    expect(built.image.height).toBe(built.meta.height);
+  });
+});
+
+describe('chooseAtlasWidth', () => {
+  it('wybiera najmniejszą potęgę dwójki dającą mniej więcej kwadratowy atlas', () => {
+    const item = (width: number, height: number) => ({ name: 'x', width, height });
+    expect(chooseAtlasWidth([item(10, 10)])).toBe(256);
+    expect(chooseAtlasWidth(new Array(40).fill(item(60, 60)))).toBe(512);
+    expect(chooseAtlasWidth(new Array(400).fill(item(60, 60)))).toBe(2048);
+  });
+
+  it('mieści najszerszy sprite razem z marginesem', () => {
+    expect(chooseAtlasWidth([{ name: 'wide', width: 255, height: 4 }])).toBe(512);
+    expect(chooseAtlasWidth([{ name: 'wide', width: 252, height: 4 }])).toBe(256);
   });
 });

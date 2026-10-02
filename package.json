@@ -21,6 +21,7 @@
     "bench": "node --expose-gc scripts/bench-sim.ts",
     "battle": "node scripts/run-battle.ts",
     "balance": "node scripts/balance.ts",
+    "atlas": "node scripts/atlas.ts",
     "atlas:placeholder": "node scripts/atlas-placeholder.ts",
     "deps:check": "node scripts/check-deps.ts",
     "check:size": "node scripts/check-size.ts",
@@ -38,6 +39,7 @@
     "@biomejs/biome": "^2.5.15",
     "@types/node": "^24.19.0",
     "@vitest/coverage-v8": "^5.0.3",
+    "sharp": "^0.35.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
     "vitest": "^5.0.3"

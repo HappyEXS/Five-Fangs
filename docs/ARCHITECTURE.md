@@ -372,7 +372,10 @@ Symulacja jest jednowymiarowa i sojusznicy mogą stać w tym samym punkcie. Żeb
 ### 5.6 Atlasy
 
 - Części rysowane w ponad 2× rozdzielczości logicznej (3 piksele atlasu na jednostkę rigu przy skali postaci 1,4), wygładzanie włączone.
-- Do M3 atlas postaci to grafiki placeholder z generatora `pnpm atlas:placeholder` (PNG, `src/assets/generated/units.png` + `units.json`). W M3 `pnpm atlas` będzie pakował `assets/src/` do tego samego formatu metadanych, docelowo jako WebP. Vite nadaje nazwom hash treści.
+- **Źródła** leżą w `assets/src/<atlas>/`: pliki PNG (nazwa sprite'a to ścieżka względem katalogu atlasu, np. `swordsman_a/torso`) i manifest `atlas.json` z gęstością `pixelsPerUnit`, ustawieniami kodowania (`lossless`, `quality`) i pivotami w jednostkach rigu. Klucz pivota to nazwa sprite'a albo wzorzec `*/<część>` dla tej części we wszystkich skórkach; dokładna nazwa wygrywa.
+- **`pnpm atlas`** (`scripts/atlas.ts`) pakuje każdy katalog metodą półek do `src/assets/generated/<atlas>.webp` i `<atlas>.json` (prostokąty w pikselach, pivoty). Szerokość atlasu to najmniejsza potęga dwójki dająca mniej więcej kwadrat. Odrzuca sprite bez pivota, pivot bez pliku, nazwy spoza `[a-z0-9_/]` i atlas powyżej 1 MB. Obrazów nie przycina, więc przezroczyste marginesy w źródle trafiają do atlasu. Kodowanie WebP robi sharp (ADR 0014); wygenerowane pliki są w repozytorium, więc build ich nie odtwarza.
+- `pnpm atlas --check` i test w `scripts/lib/atlas-pipeline.test.ts` sprawdzają, że wygenerowane pliki odpowiadają źródłom (metadane bajt w bajt, obraz po zdekodowaniu).
+- Do M6 źródłami atlasu `units` są grafiki placeholder z generatora `pnpm atlas:placeholder`. Generator nadpisuje tylko katalog oznaczony w manifeście jako `"generator": "placeholder"`. Vite nadaje nazwom plików hash treści.
 - Docelowy podział: atlas bohaterów, atlas wrogów i tło per świat (ładowane leniwie przy wejściu do świata).
 - Warianty atlasu (przyciemniony dla tylnych kończyn, biała sylwetka) powstają raz przy ładowaniu na osobnych canvasach (`render/atlas.ts`). Bez `ctx.filter`.
 - `pnpm validate-content` sprawdza, że każda skórka ma komplet części swojego rigu, a każdy pocisk swój sprite.
@@ -462,7 +465,7 @@ Preact jako nakładka DOM nad canvasem. W walce tylko HUD (pauza, prędkość, w
 - `scripts/bench-sim.ts` (`pnpm bench`): pomiar budżetów symulacji.
 - `scripts/validate-content.ts`: walidacja treści, niezmienniki symulacji dla treści, składy referencyjne.
 - `scripts/check-deps.ts`, `scripts/check-size.ts`, `scripts/check-dist.ts`, `scripts/smoke-check.ts`: granice modułów, budżety rozmiaru, czystość builda, kontrola wdrożenia.
-- `scripts/atlas.ts`: pakowanie atlasów (M3).
+- `scripts/atlas.ts` (`pnpm atlas`), `scripts/atlas-placeholder.ts` (`pnpm atlas:placeholder`): potok atlasów, §5.6.
 
 Wersję builda zapisuje wtyczka w `vite.config.ts` (logika w `scripts/lib/build-version.ts`), nie osobny skrypt.
 

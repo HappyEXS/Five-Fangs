@@ -23,7 +23,8 @@ pnpm bench             # walki/s, czas ticka i alokacje symulacji; --check końc
 pnpm battle a,b vs c   # walka w konsoli z logiem zdarzeń (jednostki z treści albo golden:<nazwa>)
 pnpm validate-content  # walidacja wszystkich JSON-ów treści
 pnpm balance           # walki headless wszystkich poziomów, raport do reports/balance.md
-pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated
+pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated (--check: tylko sprawdza aktualność)
+pnpm atlas:placeholder # grafiki placeholder jako źródła atlasu w assets/src/units
 pnpm deps:check        # granice modułów, dozwolone pakiety, zakazane API w sim (ADR 0012)
 pnpm check:size        # budżety rozmiaru dist/ (gzip) – uruchamiać po build
 pnpm check:dist        # czystość dist/: brak narzędzi dev i kodu debug, adresy względne – po build

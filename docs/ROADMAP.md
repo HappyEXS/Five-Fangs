@@ -68,7 +68,7 @@ Cel: walka widoczna na ekranie, port prototypu na docelową architekturę, piask
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
-| M3-1 | `pnpm atlas`: pakowanie `assets/src/` do `src/assets/generated/` (WebP + JSON z pivotami), części w 2× | 1,5 | Atlas placeholderów przechodzi przez potok; `check:size` pilnuje budżetu atlasu | — |
+| M3-1 | `pnpm atlas`: pakowanie `assets/src/` do `src/assets/generated/` (WebP + JSON z pivotami), części w 2× | 1,5 | Atlas placeholderów przechodzi przez potok; `check:size` pilnuje budżetu atlasu | gotowe (bezstratny WebP, ADR 0014; limit 1 MB na atlas sprawdza też sam `pnpm atlas`) |
 | M3-2 | Edytor: podgląd postaci, wybór rigu, skórki i klipu, suwaki kątów | 1,5 | Zmiana suwaka widoczna natychmiast na postaci | — |
 | M3-3 | Edytor: oś czasu, dodawanie i usuwanie klatek kluczowych, odtwarzanie | 2 | Klip walk z prototypu daje się odtworzyć od zera w edytorze | — |
 | M3-4 | Edytor: znaczniki, eksport i import JSON klipu | 1 | Eksportowany klip przechodzi `validate-content` bez ręcznych poprawek | — |
