@@ -92,20 +92,24 @@ Cel: grywalna całość na treści testowej, od menu do nagrody, z zapisem.
 | M4-10 | Wykrywanie nowej wersji przy zmianie sceny; ochrona zapisu z nowszej wersji | 0,5 | Test: nowszy `saveVersion` nie jest nadpisywany | gotowe |
 | M4-11 | Test Playwright na `vite preview` w CI | 1 | Gra startuje, walka dochodzi do końca, konsola bez błędów | gotowe lokalnie (3 testy przechodzą w kontenerze); krok dodany do `ci.yml`, na GitHubie jeszcze nie uruchomiony |
 
-## M5 – Treść (ok. 16 dni)
+## M5 – Treść (zakres po decyzjach autora z 2026-10-02)
 
-Cel: pełna gra na grafikach placeholder. Zaczyna się od decyzji z [GAME_DESIGN.md §9](GAME_DESIGN.md).
+Cel: komplet mechanik grywalny na jednym świecie testowym. Autor gry zdecydował, że pozostałe cztery linie bohaterów i światy 2–5 uzupełni przy wykańczaniu gry; do tego czasu M5 obejmuje dwie linie testowe i świat „Las”. Zadania M5-3b i M5-5b czekają na jego dane.
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
-| M5-1 | Projekt rosteru z autorem gry: 6 linii × 2 formy, role, cechy; wrogowie i bossowie 5 światów | 1 | GAME_DESIGN.md uzupełniony; lista nowych cech zatwierdzona | czeka na decyzję autora; propozycja w `docs/proposals/M5-roster.md` |
-| M5-2 | Nowe cechy pasywne z M5-1 (każda osobno: schemat, sim, testy, golden) | 1–2 na cechę | Jak M1-10 | — |
-| M5-3 | Dane 12 form bohaterów i skórki placeholder | 2 | Wszystkie formy grywalne w piaskownicy | — |
-| M5-4 | Wrogowie i bossowie | 2 | Każdy boss ma unikalną cechę lub kombinację | — |
-| M5-5 | Poziomy światów 1–5 (jeden świat na zadanie) | 5 × 1 | 30 poziomów przechodzi walidację; składy referencyjne dla każdego | — |
-| M5-6 | Krzywa kosztów, nagród i run | 1,5 | Raport balansu: każdy poziom wygrywalny przy zakładanej randze, niewygrywalny wyraźnie poniżej | — |
-| M5-7 | Iteracje balansu z `pnpm balance` | 2 | Raport zatwierdzony przez autora gry | — |
-| M5-8 | Komplet tekstów PL i EN | 1 | Walidator: brak brakujących kluczy w obu językach | — |
+| M5-1 | Decyzje projektowe z autorem gry: roster, cechy, światy, runy | 1 | GAME_DESIGN.md §9 zapisuje, co ustalone, a co czeka | gotowe |
+| M5-2a | Cecha `enrage`: schemat, symulacja, testy, golden | 1 | Jak M1-10 | — |
+| M5-2b | Cecha `lifesteal`: schemat, symulacja, testy, golden | 1 | Jak M1-10 | — |
+| M5-2c | Cecha `splash`: schemat, symulacja, testy, golden | 1,5 | Jak M1-10 | — |
+| M5-3 | Dwie linie testowe: forma B z innym typem ataku (nowe typy ataku, klipy, postawy) | 1,5 | Ewolucja zmienia animację, czas zamachu i zachowanie ataku; klipy przechodzą walidator | — |
+| M5-3b | Pozostałe cztery linie bohaterów | — | Czeka na roster od autora gry | wstrzymane |
+| M5-4 | Wrogowie: jednostki bohaterów jako przeciwnicy oraz jednostki specjalne ze skórkami placeholder | 1,5 | Poziom może wskazać dowolną jednostkę; specjalnych nie ma w liniach gracza | — |
+| M5-5 | Świat testowy „Las”: 6 poziomów z bossem, każda cecha występuje co najmniej raz | 1 | Poziomy przechodzą walidację; skład referencyjny dla każdego | — |
+| M5-5b | Światy 2–5 | — | Czeka na motywy od autora gry | wstrzymane |
+| M5-6 | Runy w trzech wielkościach, koszty i nagrody świata „Las” | 1 | Raport balansu: każdy poziom wygrywalny przy zakładanej randze, niewygrywalny wyraźnie poniżej | — |
+| M5-7 | Iteracje balansu z `pnpm balance` | 1 | Raport do zatwierdzenia przez autora gry | — |
+| M5-8 | Komplet tekstów PL i EN | 0,5 | Walidator: brak brakujących kluczy w obu językach | — |
 
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 

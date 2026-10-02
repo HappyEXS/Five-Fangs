@@ -144,6 +144,7 @@ Pociski w locie w chwili końca walki nie mają znaczenia.
 - **6 linii bohaterów, każda z 2 formami** (bazowa i ewolucja): łącznie 12 jednostek gracza.
 - Forma po ewolucji to **inny bohater**: własne części graficzne, własne statystyki bazowe, może mieć inny typ ataku i inne cechy. Obie formy dzielą rig i klipy animacji.
 - Gracz zaczyna z 3 liniami. Linie 4, 5 i 6 odblokowują się po pokonaniu bossów światów 1, 2 i 3.
+- **Stan na teraz (decyzja autora z 2026-10-02):** gra ma dwie linie testowe, miecznika i łucznika; pozostałe linie autor uzupełni przy wykańczaniu gry. Forma po ewolucji obu linii ma inny typ ataku niż forma bazowa, żeby dało się przetestować wszystkie mechaniki.
 
 ### 5.2 Ulepszenia i ewolucja
 
@@ -220,16 +221,18 @@ Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania. Naz
 
 ## 9. Kwestie otwarte
 
-Do rozstrzygnięcia z autorem gry przed wskazanym milestone'em; do tego czasu nie zgadujemy.
+Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 
-Propozycja rosteru, nowych cech, światów i run do decyzji: [proposals/M5-roster.md](proposals/M5-roster.md).
-
-| Kwestia | Termin |
+| Kwestia | Stan |
 |---|---|
-| Roster: nazwy, role i cechy 6 linii oraz ich form | przed M5 |
-| Wrogowie i bossowie pięciu światów, motywy światów | przed M5 |
-| Kolejne cechy pasywne poza `periodicHeal` i `pierce` | przed M5 |
-| Ostateczne koszty ulepszeń, nagrody i ułamek za powtórki | M5, na podstawie raportu balansu |
-| Czy runy obejmą inne statystyki (`attackSpeed`, `moveSpeed`, `range`, `knockback`) | M5 |
-| Czy gra może być osadzana na innych stronach (`frame-ancestors`) | przed premierą |
-| Hosting publiczny | przed premierą (M6) |
+| Roster: pozostałe cztery linie bohaterów | Autor uzupełni przy wykańczaniu gry; do tego czasu grają dwie linie testowe |
+| Motywy, wrogowie i bossowie światów 2–5 | Autor poda później; do tego czasu istnieje jeden świat testowy „Las” |
+| Ostateczne koszty ulepszeń, nagrody i ułamek za powtórki | Po ustaleniu pełnego rosteru, na podstawie raportu balansu |
+| Czy gra może być osadzana na innych stronach (`frame-ancestors`) | Przed premierą |
+| Hosting publiczny | Przed premierą (M6) |
+
+Rozstrzygnięte 2026-10-02:
+
+- Nowe cechy pasywne: `splash`, `lifesteal`, `enrage` (sekcja 6).
+- Runy obejmują tylko `attack` i `maxHp`, w trzech wielkościach każdej statystyki.
+- Wrogami na poziomach mogą być zwykłe postacie z gry (formy bohaterów) oraz jednostki specjalne, których gracz nie może zdobyć ani ewoluować.
