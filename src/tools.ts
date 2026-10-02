@@ -4,7 +4,9 @@
 //   /tools.html              piaskownica walki
 //   /tools.html?view=atlas   podgląd atlasu postaci i jego wariantów
 //   /tools.html?view=perf    pomiar czasu klatki i alokacji renderera
+//   /tools.html?view=anim    edytor animacji
 import { DEV_TOOLS_MARKER } from './core/dev-markers.ts';
+import { startAnimEditor } from './tools/anim/editor.tsx';
 import { startAtlasPreview } from './tools/atlas-preview.ts';
 import { startPerf } from './tools/perf.ts';
 import { startSandbox } from './tools/sandbox.tsx';
@@ -25,6 +27,8 @@ document.documentElement.dataset.tools = DEV_TOOLS_MARKER;
 const view = new URLSearchParams(location.search).get('view');
 if (view === 'atlas') {
   void startAtlasPreview(stage, canvas);
+} else if (view === 'anim') {
+  void startAnimEditor(stage, canvas, ui);
 } else if (view === 'perf') {
   void startPerf(stage, canvas, ui);
 } else {

@@ -1,9 +1,8 @@
 // Renderer walki na Canvas 2D (ADR 0001). Gorąca ścieżka (`draw`) nie alokuje: żadnych
 // obiektów, tablic, domknięć ani napisów tworzonych co klatkę. Wszystkie bufory powstają raz,
-// w `createCanvasRenderer`; rysowanie jest w draw-units.ts i draw-effects.ts.
+// w `createScene`; rysowanie jest w draw-units.ts, draw-rig.ts i draw-effects.ts.
 import type { UnitVisual } from '../content/compile.ts';
 import type { RawRig } from '../content/schema-rig.ts';
-import { createRng } from '../core/rng.ts';
 import {
   type Battle,
   EVENT_DAMAGED,
@@ -12,23 +11,22 @@ import {
   MAX_UNITS,
   TEAM_SIZE,
 } from '../sim/index.ts';
-import { animatorOnEvents, createAnimator, resetAnimator, type UnitLook } from './animation.ts';
-import type { Atlas, Sprite } from './atlas.ts';
+import { animatorOnEvents, resetAnimator, type UnitLook } from './animation.ts';
+import type { Atlas } from './atlas.ts';
 import { drawBackground } from './background.ts';
-import { createCamera, fitCamera } from './camera.ts';
+import { fitCamera } from './camera.ts';
 import { debugOptions, debugOverlay, debugStats } from './debug.ts';
 import { drawNumbers, drawProjectiles, spawnNumber } from './draw-effects.ts';
 import { drawUnit } from './draw-units.ts';
 import {
   clearFloatTexts,
-  createFloatTexts,
   FLOAT_KIND_DAMAGE,
   FLOAT_KIND_HEAL,
   updateFloatTexts,
 } from './float-text.ts';
 import type { Renderer } from './renderer.ts';
-import { type CompiledRig, compileRig, MATRIX_SIZE } from './rig.ts';
-import type { Scene } from './scene.ts';
+import { type CompiledRig, compileRig } from './rig.ts';
+import { createScene } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 export interface RenderAssets {
@@ -51,31 +49,7 @@ export function createCanvasRenderer(
     maxChannels = Math.max(maxChannels, rig.channelCount);
   }
 
-  const digitSprites: (Sprite | null)[] = [];
-  for (const set of ['dmg', 'heal']) {
-    for (let digit = 0; digit <= 9; digit++) {
-      digitSprites.push(atlas.sprites.get(`fx/${set}_${digit}`) ?? null);
-    }
-  }
-
-  const scene: Scene = {
-    ctx,
-    atlas,
-    camera: createCamera(),
-    animator: createAnimator(maxChannels),
-    root: new Float32Array(MATRIX_SIZE),
-    matrices: new Float32Array(maxBones * MATRIX_SIZE),
-    local: new Float32Array(MATRIX_SIZE),
-    maxBones,
-    looks: new Array<UnitLook | null>(MAX_UNITS).fill(null),
-    boneSprites: new Array<Sprite | null>(MAX_UNITS * maxBones).fill(null),
-    projectileSprites: new Array<Sprite | null>(MAX_UNITS).fill(null),
-    floatTexts: createFloatTexts(),
-    jitter: createRng(1),
-    digitSprites,
-    plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
-    battle: null,
-  };
+  const scene = createScene(ctx, atlas, maxBones, maxChannels);
 
   function resolveLook(visual: UnitVisual): UnitLook {
     const rig = rigs.get(visual.rig);

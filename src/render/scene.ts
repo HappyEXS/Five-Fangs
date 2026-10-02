@@ -1,13 +1,14 @@
 // Wspólny stan renderera walki i rozmieszczenie jednostek na scenie. Wszystkie bufory
 // powstają raz, przy tworzeniu renderera; rysowanie tylko je wypełnia i czyta.
 import type { Pool } from '../core/pool.ts';
-import type { Rng } from '../core/rng.ts';
-import { type Battle, TEAM_SIZE } from '../sim/index.ts';
-import type { Animator, UnitLook } from './animation.ts';
+import { createRng, type Rng } from '../core/rng.ts';
+import { type Battle, MAX_UNITS, TEAM_SIZE } from '../sim/index.ts';
+import { type Animator, createAnimator, type UnitLook } from './animation.ts';
 import type { Atlas, Sprite } from './atlas.ts';
-import { type Camera, GROUND_Y } from './camera.ts';
+import { type Camera, createCamera, GROUND_Y } from './camera.ts';
 import { debugStats } from './debug.ts';
-import type { FloatText } from './float-text.ts';
+import { createFloatTexts, type FloatText } from './float-text.ts';
+import { MATRIX_SIZE } from './rig.ts';
 import type { Viewport } from './viewport.ts';
 
 export interface Scene {
@@ -34,6 +35,42 @@ export interface Scene {
   readonly digitSprites: (Sprite | null)[];
   readonly plusSprite: Sprite | null;
   battle: Battle | null;
+}
+
+/**
+ * Tworzy stan renderera z buforami na `maxBones` kości i `maxChannels` kanałów pozy
+ * na jednostkę. Jedyna alokacja buforów; rysowanie tylko je wypełnia.
+ */
+export function createScene(
+  ctx: CanvasRenderingContext2D,
+  atlas: Atlas,
+  maxBones: number,
+  maxChannels: number,
+): Scene {
+  const digitSprites: (Sprite | null)[] = [];
+  for (const set of ['dmg', 'heal']) {
+    for (let digit = 0; digit <= 9; digit++) {
+      digitSprites.push(atlas.sprites.get(`fx/${set}_${digit}`) ?? null);
+    }
+  }
+  return {
+    ctx,
+    atlas,
+    camera: createCamera(),
+    animator: createAnimator(maxChannels),
+    root: new Float32Array(MATRIX_SIZE),
+    matrices: new Float32Array(maxBones * MATRIX_SIZE),
+    local: new Float32Array(MATRIX_SIZE),
+    maxBones,
+    looks: new Array<UnitLook | null>(MAX_UNITS).fill(null),
+    boneSprites: new Array<Sprite | null>(MAX_UNITS * maxBones).fill(null),
+    projectileSprites: new Array<Sprite | null>(MAX_UNITS).fill(null),
+    floatTexts: createFloatTexts(),
+    jitter: createRng(1),
+    digitSprites,
+    plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
+    battle: null,
+  };
 }
 
 /**

@@ -459,7 +459,11 @@ Preact jako nakładka DOM nad canvasem. W walce tylko HUD (pauza, prędkość, w
 - Nakładki debug (`render/debug.ts`, klawisze P, G, O w piaskownicy): punkty obrotu i ramki części, zasięgi i cele, pomiary (FPS, czas symulacji i renderu, liczba wywołań rysowania). Cały kod debug jest w gałęziach `import.meta.env.DEV` i nie trafia do builda; `pnpm check:dist` szuka jego znacznika.
 - Podgląd atlasu (`/tools.html?view=atlas`): obraz atlasu w trzech wariantach.
 - Pomiar renderera (`/tools.html?view=perf`): czas klatki, alokacje i płynność odtwarzania na walce 5 na 5; metoda i wyniki w §5.7.
-- Edytor animacji: suwaki stawów, oś czasu, eksport klipu do JSON.
+- Edytor animacji (`/tools.html?view=anim`, `src/tools/anim/`): podgląd postaci tą samą ścieżką rysowania co w walce (`sampleClip` → macierze kości → `drawRigParts`), wybór rigu, skórki, postawy i klipu, suwak i pole liczbowe na każdy kanał, ścieżka klatek kluczowych per kanał (kliknięcie ustawia czas, przeciągnięcie przesuwa klatkę), znaczniki, odtwarzanie w pętli z zadanym czasem trwania.
+  - Suwak ustawia wartość w bieżącym czasie i tworzy tam klatkę, jeśli jej nie ma. Operacje na klipie (`clip-edit.ts`) utrzymują reguły walidatora: klatka w czasie 0, przy kilku klatkach także w czasie 1, rosnące czasy, równe końce w klipie zapętlonym. Klip po dowolnej edycji jest więc poprawny.
+  - Panel na bieżąco pokazuje wynik `validateContent` dla treści gry z podmienionym rigiem, w tym niezgodność znacznika `hit` z `hitFraction` ataków używających klipu.
+  - Eksport to wpis do obiektu `clips` w `rigs/<rig>.json`, w układzie tego pliku; import przyjmuje taki wpis albo sam obiekt klipu. Edytor nie zapisuje plików: klip wkleja się do pliku rigu ręcznie.
+  - Stan początkowy z adresu: `clip`, `skin`, `stance`, `t`, `pivots=1`.
 - `scripts/balance.ts` (`pnpm balance`): dla każdego poziomu jedna walka na każdą rangę składu referencyjnego; raport w `reports/balance.md` (wynik, czas, zapas HP, najniższa wygrywająca ranga i ocena względem rangi oczekiwanej). Rangi A0–A4 to ulepszenia formy bazowej, B0–B4 formy po ewolucji; wszyscy członkowie składu mają tę samą rangę, bez run. Składy i rangi oczekiwane leżą w `src/content/data/balance/reference-squads.json`. Raport nie zawiera daty, więc jego diff między commitami pokazuje tylko zmiany balansu.
 - `scripts/run-battle.ts` (`pnpm battle`): walka w konsoli z logiem zdarzeń.
 - `scripts/bench-sim.ts` (`pnpm bench`): pomiar budżetów symulacji.
