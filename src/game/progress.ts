@@ -304,3 +304,26 @@ export function squadMembers(content: GameContent, save: Save): (SquadMember | n
     return { unit, rank: view.state.upgrades, runes: view.runes };
   });
 }
+
+/** Statystyki po następnym ulepszeniu albo null, gdy forma ma już komplet. */
+export function previewUpgrade(content: GameContent, save: Save, lineId: string): UnitSpec | null {
+  const view = lineView(content, save, lineId);
+  const unit = view === null ? undefined : content.heroes.get(view.unitId);
+  if (view === null || unit === undefined) return null;
+  if (view.state.upgrades >= content.progression.maxUpgrades) return null;
+  return resolveUnitSpec(unit, view.state.upgrades + 1, view.runes, content.progression);
+}
+
+/** Forma po ewolucji z jej statystykami (bez ulepszeń, z tymi samymi runami) albo null. */
+export function previewEvolve(
+  content: GameContent,
+  save: Save,
+  lineId: string,
+): { unitId: string; spec: UnitSpec } | null {
+  const view = lineView(content, save, lineId);
+  if (view === null || view.state.form !== 0) return null;
+  const unitId = view.line.forms[1];
+  const unit = content.heroes.get(unitId);
+  if (unit === undefined) return null;
+  return { unitId, spec: resolveUnitSpec(unit, 0, view.runes, content.progression) };
+}

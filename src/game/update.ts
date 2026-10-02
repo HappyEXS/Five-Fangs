@@ -77,3 +77,25 @@ export function reloadGame(reload: () => void = () => location.reload()): void {
   }
   reload();
 }
+
+/** Najwyżej jedno zapytanie o wersję na ten czas; zmiany scen bywają częste. */
+export const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
+
+/**
+ * Zwraca funkcję, która sprawdza wersję na serwerze nie częściej niż co `intervalMs`
+ * i po wykryciu nowej pokazuje graczowi komunikat z przyciskiem odświeżenia.
+ */
+export function createUpdateChecker(
+  check: () => Promise<UpdateStatus> = checkForUpdate,
+  now: () => number = Date.now,
+  intervalMs: number = UPDATE_CHECK_INTERVAL_MS,
+): () => Promise<void> {
+  let last = Number.NEGATIVE_INFINITY;
+  return async () => {
+    if (now() - last < intervalMs) return;
+    last = now();
+    if ((await check()) === 'outdated' && loadFailure.value === 'none') {
+      loadFailure.value = 'update';
+    }
+  };
+}

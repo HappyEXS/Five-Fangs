@@ -1,31 +1,88 @@
-import { LANGUAGES } from '../content/i18n/index.ts';
-import { language, t } from '../game/i18n.ts';
-import { gameVersion, versionLabel } from '../game/version.ts';
+// Korzeń interfejsu: ekran bieżącej sceny i komunikaty niezależne od sceny.
+import type { StageControls } from '../game/battle-stage.ts';
+import type { Game } from '../game/game.ts';
+import { t } from '../game/i18n.ts';
+import { reloadGame } from '../game/update.ts';
+import { BattleHud, ResultScreen } from './BattleScreens.tsx';
+import { HeroesScreen } from './HeroesScreen.tsx';
 import { LoadFailureBanner } from './LoadFailureBanner.tsx';
+import { MapScreen } from './MapScreen.tsx';
+import { Menu } from './Menu.tsx';
+import { SquadScreen } from './SquadScreen.tsx';
 
-export function App() {
+export interface AppProps {
+  readonly game: Game;
+  readonly stage: StageControls;
+}
+
+function SceneView(props: AppProps) {
+  const { game, stage } = props;
+  const scene = game.scene.value;
+  switch (scene.name) {
+    case 'menu':
+      return <Menu game={game} />;
+    case 'map':
+      return <MapScreen game={game} />;
+    case 'heroes':
+      return <HeroesScreen game={game} back={scene.back} />;
+    case 'squad':
+      return <SquadScreen key={scene.level} game={game} level={scene.level} />;
+    case 'battle':
+      return <BattleHud game={game} stage={stage} level={scene.level} />;
+    case 'result':
+      return (
+        <ResultScreen
+          game={game}
+          level={scene.level}
+          battle={scene.battle}
+          rewards={scene.rewards}
+        />
+      );
+  }
+}
+
+export function App(props: AppProps) {
+  const { game } = props;
+  const storage = game.storage.value;
+
+  // Zapis z nowszej wersji gry: nie gramy na nim i go nie nadpisujemy (ADR 0005).
+  if (storage === 'blocked') {
+    return (
+      <div class="screen">
+        <section class="panel notice-blocking" role="alert">
+          <h2>{t('notice.blocked.title')}</h2>
+          <p>{t('notice.blocked.text')}</p>
+          <button type="button" class="button button-primary" onClick={() => reloadGame()}>
+            {t('update.reload')}
+          </button>
+        </section>
+      </div>
+    );
+  }
+
   return (
-    <div class="screen">
+    <>
+      <SceneView {...props} />
       <LoadFailureBanner />
-      <h1 class="title">{t('app.title')}</h1>
-      <p class="hint">{t('scene.empty.message')}</p>
-      <fieldset class="language">
-        <legend>{t('settings.language')}</legend>
-        {LANGUAGES.map((lang) => (
+      {game.recovered.value && (
+        <div class="banner banner-bottom" role="alert">
+          <span>{t('notice.recovered')}</span>
           <button
-            key={lang}
             type="button"
-            class="language-option"
-            aria-pressed={language.value === lang}
+            class="banner-action"
             onClick={() => {
-              language.value = lang;
+              game.recovered.value = false;
             }}
           >
-            {t(`language.${lang}`)}
+            {t('common.ok')}
           </button>
-        ))}
-      </fieldset>
-      <footer class="version">{t('app.version', { version: versionLabel(gameVersion) })}</footer>
-    </div>
+        </div>
+      )}
+      {storage === 'memory' && game.scene.value.name === 'menu' && (
+        <div class="banner banner-bottom" role="status">
+          <span>{t('notice.memory')}</span>
+        </div>
+      )}
+    </>
   );
 }

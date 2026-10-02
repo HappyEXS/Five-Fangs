@@ -14,3 +14,11 @@ export const language = signal<Language>(SOURCE_LANGUAGE);
 export function t(key: MessageKey, params?: MessageParams): string {
   return translate(dictionaries[language.value], dictionaries[SOURCE_LANGUAGE], key, params);
 }
+
+/**
+ * Tekst dla klucza składanego z id treści (nazwa jednostki, poziomu, świata; patrz
+ * content/i18n/keys.ts). Takich kluczy nie da się sprawdzić typem, pilnuje ich walidator treści.
+ */
+export function tName(key: string, params?: MessageParams): string {
+  return translate(dictionaries[language.value], dictionaries[SOURCE_LANGUAGE], key, params);
+}

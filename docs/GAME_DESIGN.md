@@ -55,7 +55,7 @@ Do czasu zaprojektowania rosteru (M5) gra zawiera jednostki testowe: dwie linie 
 | archer_b (ranged) | 500 | 45 | 50 | 0,9 | 240 | 0 | shoot, `pierce` |
 | brute (wróg, melee) | 800 | 35 | 45 | 0,7 | 30 | 25 | slash |
 
-Testowy świat ma 6 poziomów z osiłkami o rosnącym poziomie siły; szósty to boss (osiłek poziomu 12 z obstawą).
+Testowy świat ma 6 poziomów z osiłkami o rosnącym poziomie siły; szósty to boss (osiłek poziomu 12 z obstawą). Trudność rośnie tu przez cały zakres ulepszeń (rangi oczekiwane 0, 2, 4, 5, 7, 9 obu bohaterów), więc nagrody są ustawione tak, by pierwsze przejście poziomu opłacało rangę potrzebną na następnym: 260, 600, 500, 1400, 2600 i 500 złota.
 
 ## 4. Przebieg walki
 

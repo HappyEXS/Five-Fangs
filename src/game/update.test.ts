@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { clearErrors, recentErrors } from './errors.ts';
-import { checkForUpdate, guardedLoad, loadFailure, onBeforeReload, reloadGame } from './update.ts';
+import {
+  checkForUpdate,
+  createUpdateChecker,
+  guardedLoad,
+  loadFailure,
+  onBeforeReload,
+  reloadGame,
+} from './update.ts';
 import type { GameVersion } from './version.ts';
 
 const current: GameVersion = { version: '0.1.0', commit: 'aaaaaaa', builtAt: '' };
@@ -81,5 +88,65 @@ describe('reloadGame', () => {
     });
     expect(order).toEqual(['save', 'flush', 'reload']);
     expect(recentErrors()[0]).toMatchObject({ kind: 'error', context: 'beforeReload' });
+  });
+});
+
+describe('createUpdateChecker', () => {
+  beforeEach(() => {
+    loadFailure.value = 'none';
+  });
+
+  it('po wykryciu nowej wersji pokazuje komunikat', async () => {
+    const check = createUpdateChecker(
+      () => Promise.resolve('outdated'),
+      () => 0,
+      1000,
+    );
+    await check();
+    expect(loadFailure.value).toBe('update');
+  });
+
+  it('nie pokazuje nic przy bieżącej wersji ani przy braku odpowiedzi', async () => {
+    await createUpdateChecker(
+      () => Promise.resolve('current'),
+      () => 0,
+      1000,
+    )();
+    await createUpdateChecker(
+      () => Promise.resolve('unknown'),
+      () => 0,
+      1000,
+    )();
+    expect(loadFailure.value).toBe('none');
+  });
+
+  it('pyta serwer najwyżej raz na ustalony czas', async () => {
+    let now = 0;
+    let calls = 0;
+    const check = createUpdateChecker(
+      () => {
+        calls++;
+        return Promise.resolve('current');
+      },
+      () => now,
+      1000,
+    );
+    await check();
+    now = 999;
+    await check();
+    expect(calls).toBe(1);
+    now = 1000;
+    await check();
+    expect(calls).toBe(2);
+  });
+
+  it('nie zastępuje komunikatu o błędzie ładowania', async () => {
+    loadFailure.value = 'offline';
+    await createUpdateChecker(
+      () => Promise.resolve('outdated'),
+      () => 0,
+      1000,
+    )();
+    expect(loadFailure.value).toBe('offline');
   });
 });

@@ -88,12 +88,12 @@ describe('nagrody', () => {
     const before = cleared(['w1_l1']);
     expect(victoryRewards(content, before, 'w1_l2')).toEqual({
       firstClear: true,
-      gold: 60,
+      gold: 600,
       rune: 'rune_hp_200',
       lines: [],
     });
     const after = cleared(['w1_l2'], before);
-    expect(after.gold).toBe(40 + 60);
+    expect(after.gold).toBe(260 + 600);
     expect(after.runes).toEqual(['rune_hp_200']);
     expect(after.levels.w1_l2).toEqual({ cleared: true, bestTicks: 500 });
   });
@@ -102,12 +102,12 @@ describe('nagrody', () => {
     const save = cleared(['w1_l1', 'w1_l2']);
     expect(victoryRewards(content, save, 'w1_l2')).toEqual({
       firstClear: false,
-      gold: 15,
+      gold: 150,
       rune: null,
       lines: [],
     });
     const again = applyVictory(content, save, 'w1_l2', 450);
-    expect(again?.save.gold).toBe(100 + 15);
+    expect(again?.save.gold).toBe(860 + 150);
     expect(again?.save.runes).toEqual(['rune_hp_200']);
   });
 

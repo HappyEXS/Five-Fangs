@@ -10,5 +10,5 @@ if (stage === null || !(canvas instanceof HTMLCanvasElement) || ui === null) {
   throw new Error('index.html is missing #stage, #game or #ui');
 }
 
-startApp(stage, canvas);
-mountUi(ui);
+const app = startApp(stage, canvas);
+mountUi(ui, app);

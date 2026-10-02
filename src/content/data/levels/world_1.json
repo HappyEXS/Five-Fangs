@@ -2,7 +2,7 @@
   {
     "id": "w1_l1",
     "enemies": [{ "slot": 0, "unit": "brute", "level": 0 }],
-    "rewards": { "gold": 40 }
+    "rewards": { "gold": 260 }
   },
   {
     "id": "w1_l2",
@@ -10,7 +10,7 @@
       { "slot": 0, "unit": "brute", "level": 0 },
       { "slot": 1, "unit": "brute", "level": 0 }
     ],
-    "rewards": { "gold": 60, "rune": "rune_hp_200" }
+    "rewards": { "gold": 600, "rune": "rune_hp_200" }
   },
   {
     "id": "w1_l3",
@@ -18,7 +18,7 @@
       { "slot": 0, "unit": "brute", "level": 2 },
       { "slot": 1, "unit": "brute", "level": 1 }
     ],
-    "rewards": { "gold": 80 }
+    "rewards": { "gold": 500 }
   },
   {
     "id": "w1_l4",
@@ -27,7 +27,7 @@
       { "slot": 1, "unit": "brute", "level": 3 },
       { "slot": 2, "unit": "brute", "level": 1 }
     ],
-    "rewards": { "gold": 100, "rune": "rune_attack_25" }
+    "rewards": { "gold": 1400, "rune": "rune_attack_25" }
   },
   {
     "id": "w1_l5",
@@ -36,7 +36,7 @@
       { "slot": 1, "unit": "brute", "level": 4 },
       { "slot": 2, "unit": "brute", "level": 4 }
     ],
-    "rewards": { "gold": 130 }
+    "rewards": { "gold": 2600 }
   },
   {
     "id": "w1_l6",
@@ -45,6 +45,6 @@
       { "slot": 1, "unit": "brute", "level": 5 },
       { "slot": 2, "unit": "brute", "level": 5 }
     ],
-    "rewards": { "gold": 200, "rune": "rune_attack_25" }
+    "rewards": { "gold": 500, "rune": "rune_attack_25" }
   }
 ]

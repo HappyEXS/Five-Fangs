@@ -80,16 +80,16 @@ Cel: grywalna całość na treści testowej, od menu do nagrody, z zapisem.
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
-| M4-1 | Sceny i stan aplikacji w sygnałach | 1 | Przejście menu → mapa → skład → walka → wynik → mapa | — |
-| M4-2 | Zapis v1: schemat, wczytanie z walidacją, kopia zapasowa, szkielet migracji, eksport i import pliku | 1,5 | Testy: uszkodzony zapis nie wywraca gry; fixture v1 w `tests/fixtures/saves/` | — |
-| M4-3 | Menu główne i ustawienia: język, wersja, „Zgłoś problem” | 1 | Raport w schowku zawiera wersję, błędy i setup ostatniej walki | — |
-| M4-4 | Mapa poziomów: 5 światów po 6, odblokowywanie kolejno | 1,5 | Zablokowany poziom nie daje się uruchomić | — |
-| M4-5 | Budowanie składu: wybór bohaterów, przeciąganie na sloty, podgląd statystyk efektywnych | 2 | Działa myszą i dotykiem; skład zapisuje się automatycznie | — |
-| M4-6 | Scena walki i HUD: pauza, prędkość, wyjście; leniwe ładowanie atlasu świata z obsługą błędu | 1,5 | Wyjście z walki zwalnia sim i renderer (brak wycieku w profilerze) | — |
-| M4-7 | Wynik i nagrody: złoto, runa, odblokowanie linii; 25% złota za powtórkę | 1 | Testy logiki nagród w `game` | — |
-| M4-8 | Ulepszenia i ewolucja | 1,5 | Testy: koszt, blokada bez złota, ewolucja dopiero po 4 ulepszeniach | — |
-| M4-9 | Runy: posiadane runy, 2 sloty, przekładanie | 1,5 | Statystyki w podglądzie zgodne z `resolveUnitSpec` | — |
-| M4-10 | Wykrywanie nowej wersji przy zmianie sceny; ochrona zapisu z nowszej wersji | 0,5 | Test: nowszy `saveVersion` nie jest nadpisywany | — |
+| M4-1 | Sceny i stan aplikacji w sygnałach | 1 | Przejście menu → mapa → skład → walka → wynik → mapa | gotowe |
+| M4-2 | Zapis v1: schemat, wczytanie z walidacją, kopia zapasowa, szkielet migracji, eksport i import pliku | 1,5 | Testy: uszkodzony zapis nie wywraca gry; fixture v1 w `tests/fixtures/saves/` | gotowe |
+| M4-3 | Menu główne i ustawienia: język, wersja, „Zgłoś problem” | 1 | Raport w schowku zawiera wersję, błędy i setup ostatniej walki | gotowe |
+| M4-4 | Mapa poziomów: 5 światów po 6, odblokowywanie kolejno | 1,5 | Zablokowany poziom nie daje się uruchomić | gotowe (na razie jeden świat testowy w treści; mapa rysuje tyle światów, ile jest w danych) |
+| M4-5 | Budowanie składu: wybór bohaterów, przeciąganie na sloty, podgląd statystyk efektywnych | 2 | Działa myszą i dotykiem; skład zapisuje się automatycznie | gotowe (mysz sprawdzona w przeglądarce; dotyk tym samym kodem Pointer Events, bez testu na urządzeniu) |
+| M4-6 | Scena walki i HUD: pauza, prędkość, wyjście; leniwe ładowanie atlasu świata z obsługą błędu | 1,5 | Wyjście z walki zwalnia sim i renderer (brak wycieku w profilerze) | gotowe; sterta po 5/35/65 walkach: 9157/9261/9310 KB |
+| M4-7 | Wynik i nagrody: złoto, runa, odblokowanie linii; 25% złota za powtórkę | 1 | Testy logiki nagród w `game` | gotowe |
+| M4-8 | Ulepszenia i ewolucja | 1,5 | Testy: koszt, blokada bez złota, ewolucja dopiero po 4 ulepszeniach | gotowe |
+| M4-9 | Runy: posiadane runy, 2 sloty, przekładanie | 1,5 | Statystyki w podglądzie zgodne z `resolveUnitSpec` | gotowe |
+| M4-10 | Wykrywanie nowej wersji przy zmianie sceny; ochrona zapisu z nowszej wersji | 0,5 | Test: nowszy `saveVersion` nie jest nadpisywany | gotowe |
 | M4-11 | Test Playwright na `vite preview` w CI | 1 | Gra startuje, walka dochodzi do końca, konsola bez błędów | — |
 
 ## M5 – Treść (ok. 16 dni)

@@ -1,17 +1,41 @@
-// Start aplikacji: dopasowanie sceny do okna i pętla klatek.
+// Start aplikacji: stan gry z zapisu, canvas pod interfejsem i sprawdzanie nowej wersji.
+import { effect } from '@preact/signals';
 import { pickLanguage } from '../content/i18n/index.ts';
-import { drawBackground } from '../render/background.ts';
+import { requireContent } from '../content/load.ts';
+import { type StageControls, startStage } from './battle-stage.ts';
 import { installGlobalErrorHandlers } from './errors.ts';
-import { createFrameLoop } from './frame-loop.ts';
+import { createGame, type Game } from './game.ts';
 import { language } from './i18n.ts';
-import { attachStage, get2dContext } from './stage.ts';
+import { browserStorage } from './save.ts';
+import { createUpdateChecker } from './update.ts';
+import { gameVersion } from './version.ts';
 
-export function startApp(stage: HTMLElement, canvas: HTMLCanvasElement): void {
+export interface RunningApp {
+  readonly game: Game;
+  readonly stage: StageControls;
+}
+
+export function startApp(stage: HTMLElement, canvas: HTMLCanvasElement): RunningApp {
   installGlobalErrorHandlers(window);
-  language.value = pickLanguage(navigator.languages);
+  const game = createGame({
+    content: requireContent(),
+    storage: browserStorage(),
+    gameVersion: gameVersion.version,
+    preferredLanguage: pickLanguage(navigator.languages),
+  });
+  const controls = startStage(stage, canvas, game);
 
-  const ctx = get2dContext(canvas);
-  const viewport = attachStage(stage, canvas);
-  // Do czasu scen z M4 gra pokazuje samo tło.
-  createFrameLoop(() => drawBackground(ctx, viewport)).start();
+  // Atrybut lang dokumentu idzie za językiem gry: czytniki ekranu i dzielenie wyrazów.
+  effect(() => {
+    document.documentElement.lang = language.value;
+  });
+
+  // Nową wersję sprawdzamy przy zmianie sceny, ale nie w trakcie walki: komunikat nie może
+  // jej przerywać, a po deployu stare pliki i tak są potrzebne dopiero przy kolejnym ładowaniu.
+  const checkForNewVersion = createUpdateChecker();
+  effect(() => {
+    if (game.scene.value.name !== 'battle') void checkForNewVersion();
+  });
+
+  return { game, stage: controls };
 }

@@ -72,7 +72,7 @@ describe('dane progresji gry', () => {
         { slot: 0, unit: 'brute', level: 0 },
         { slot: 1, unit: 'brute', level: 0 },
       ],
-      gold: 60,
+      gold: 600,
       rune: 'rune_hp_200',
     });
     expect(content?.levels.get('w1_l1')?.rune).toBeNull();

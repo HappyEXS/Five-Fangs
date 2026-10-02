@@ -3,24 +3,12 @@
 // bo `content` może importować z `sim` tylko typy.
 import type { Dictionary } from '../core/i18n.ts';
 import { dictionaries, SOURCE_LANGUAGE } from './i18n/index.ts';
+import { levelNameKey, unitNameKey, worldNameKey } from './i18n/keys.ts';
 import { validateDictionaries } from './i18n/validate.ts';
 import type { ContentIssue } from './issues.ts';
 import { type GameContent, loadContent, type RawContent, rawContent } from './load.ts';
 
-/** Klucz i18n z nazwą jednostki. */
-export function unitNameKey(unitId: string): string {
-  return `unit.${unitId}.name`;
-}
-
-/** Klucz i18n z nazwą świata. */
-export function worldNameKey(worldId: string): string {
-  return `world.${worldId}.name`;
-}
-
-/** Klucz i18n z nazwą poziomu. */
-export function levelNameKey(levelId: string): string {
-  return `level.${levelId}.name`;
-}
+export { levelNameKey, unitNameKey, worldNameKey };
 
 function missingNames(content: GameContent, source: Dictionary): ContentIssue[] {
   const issues: ContentIssue[] = [];
