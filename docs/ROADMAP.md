@@ -42,7 +42,7 @@ Cel: pełna logika walki w Node, z treścią testową, testami golden i raportem
 | M1-7 | Zdarzenia i wynik: bufor zdarzeń, `drainEvents`, `BattleResult`, `runBattleToEnd` | 1 | Test: pełny log zdarzeń walki 1 na 1 zgodny z oczekiwanym | gotowe |
 | M1-8 | Testy golden: `tests/golden/`, `pnpm test:golden`, opis procedury aktualizacji | 1 | Co najmniej 6 ustalonych walk; zmiana jednej statystyki zmienia hash | gotowe |
 | M1-9 | Runner i pomiary: `scripts/run-battle.ts`, benchmark, próg pokrycia `sim` | 0,5 | > 2000 walk/s w Node, tick < 0,2 ms, pokrycie `sim` > 90% | gotowe: 2270–2380 walk/s, tick ok. 480 ns, 97% linii |
-| M1-10 | Cechy pasywne, część 1: pola cech w `UnitSpec`, schemat `traits`, `periodicHeal` (self i team), zdarzenie `Healed` | 1,5 | Testy: leczenie ratuje przed śmiercią w tym samym ticku, przycięcie do `maxHp`, martwy nie jest leczony; nowe hashe golden opisane w commicie | — |
+| M1-10 | Cechy pasywne, część 1: pola cech w `UnitSpec`, schemat `traits`, `periodicHeal` (self i team), zdarzenie `Healed` | 1,5 | Testy: leczenie ratuje przed śmiercią w tym samym ticku, przycięcie do `maxHp`, martwy nie jest leczony; nowe hashe golden opisane w commicie | gotowe |
 | M1-11 | Cechy pasywne, część 2: `pierce` | 1 | Testy: każdy wróg trafiony najwyżej raz i każdy odrzucony; walidator odrzuca `pierce` u melee | — |
 | M1-12 | Progresja w danych: schematy linii, run, światów i poziomów; `resolveUnitSpec` (ranga, runy) | 1 | Testy skalowania i premii z run; walidator sprawdza komplet form i kosztów | — |
 | M1-13 | Skrypt balansu: `pnpm balance`, składy referencyjne, raport `reports/balance.md` | 1 | Raport dla poziomów testowych: wynik, czas, zapas HP, najniższa wygrywająca ranga | — |

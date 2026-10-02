@@ -9,7 +9,7 @@ import {
   type Pending,
   type UnitSpecs,
 } from './state.ts';
-import { type BattleSetup, STATUS_IDLE, TEAM_SIZE, type UnitSpec } from './types.ts';
+import { type BattleSetup, MAX_UNITS, STATUS_IDLE, TEAM_SIZE, type UnitSpec } from './types.ts';
 import { validateSetup } from './validate-setup.ts';
 
 export interface Battle {
@@ -22,6 +22,11 @@ export interface Battle {
   /** Zdarzenia ostatniego ticka. */
   readonly events: EventBuffer;
   readonly pending: Pending;
+  /**
+   * `unitId` jednostek z leczeniem okresowym, rosnąco. Większość walk nie ma żadnej,
+   * a wtedy faza cech nie kosztuje nic.
+   */
+  readonly healers: readonly number[];
   /** Narastający hash wszystkich zdarzeń walki. */
   eventHash: number;
 }
@@ -55,6 +60,7 @@ export function createBattle(setup: BattleSetup): Battle {
   const problems = validateSetup(setup);
   if (problems.length > 0) throw new Error(`Invalid battle setup:\n${problems.join('\n')}`);
 
+  const healers: number[] = [];
   const battle: Battle = {
     width: setup.arena.width,
     timeLimitTicks: setup.arena.timeLimitTicks,
@@ -62,6 +68,7 @@ export function createBattle(setup: BattleSetup): Battle {
     state: createState(),
     events: createEventBuffer(),
     pending: createPending(),
+    healers,
     eventHash: EVENT_HASH_SEED,
   };
   for (let slot = 0; slot < TEAM_SIZE; slot++) {
@@ -71,6 +78,9 @@ export function createBattle(setup: BattleSetup): Battle {
     if (enemy != null) {
       placeUnit(battle, TEAM_SIZE + slot, enemy, setup.arena.enemySlots[slot] ?? 0);
     }
+  }
+  for (let unitId = 0; unitId < MAX_UNITS; unitId++) {
+    if ((battle.specs.healAmount[unitId] ?? 0) > 0) healers.push(unitId);
   }
   return battle;
 }

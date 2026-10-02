@@ -69,6 +69,35 @@ describe('loadContent', () => {
     };
     expect(loadContent(raw).content).toBeNull();
   });
+
+  it('kompiluje cechy pasywne jednostki', () => {
+    const heal = { type: 'periodicHeal', target: 'team', amount: 20, interval: 2 };
+    const { content, issues } = loadContent(withHeroes([{ ...unit, traits: [heal] }]));
+    expect(issues).toEqual([]);
+    expect(content?.heroes.get('swordsman')?.base).toMatchObject({
+      healAmount: 20,
+      healInterval: 60,
+      healTeam: true,
+    });
+  });
+
+  it('odrzuca pierce u jednostki bez pocisku i powtórzoną cechę', () => {
+    expect(messages(withHeroes([{ ...unit, traits: [{ type: 'pierce' }] }]))).toEqual([
+      'units/heroes.json: swordsman: cecha "pierce" wymaga ataku z pociskiem',
+    ]);
+    const heal = { type: 'periodicHeal', target: 'self', amount: 5, interval: 1 };
+    expect(messages(withHeroes([{ ...unit, traits: [heal, heal] }]))).toEqual([
+      'units/heroes.json: swordsman: cecha "periodicHeal" występuje więcej niż raz',
+    ]);
+  });
+
+  it('odrzuca nieznaną cechę i błędne parametry', () => {
+    expect(
+      loadContent(withHeroes([{ ...unit, traits: [{ type: 'lifesteal' }] }])).content,
+    ).toBeNull();
+    const badHeal = { type: 'periodicHeal', target: 'enemies', amount: 0, interval: -1 };
+    expect(loadContent(withHeroes([{ ...unit, traits: [badHeal] }])).content).toBeNull();
+  });
 });
 
 describe('requireContent', () => {

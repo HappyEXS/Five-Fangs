@@ -14,6 +14,7 @@ import { hashEvents } from './hash.ts';
 import { moveUnit } from './move.ts';
 import { moveProjectiles } from './projectiles.ts';
 import { resolveAndFinish } from './resolve.ts';
+import { applyPeriodicHeals } from './traits.ts';
 import {
   MAX_UNITS,
   OUTCOME_IN_PROGRESS,
@@ -46,6 +47,9 @@ export function stepBattle(battle: Battle): void {
 
   // Faza 4: pociski, także te wystrzelone przed chwilą.
   moveProjectiles(battle);
+
+  // Faza 5: cechy okresowe.
+  if (battle.healers.length > 0) applyPeriodicHeals(battle);
 
   // Fazy 6–7: jednoczesne rozstrzygnięcie, śmierci i warunek końca.
   resolveAndFinish(battle);

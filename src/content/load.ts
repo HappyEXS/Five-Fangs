@@ -100,6 +100,16 @@ function compileUnits(
       });
       continue;
     }
+    const traitTypes = unit.traits.map((trait) => trait.type);
+    const repeated = traitTypes.find((type, index) => traitTypes.indexOf(type) !== index);
+    if (repeated !== undefined) {
+      issues.push({ source, message: `${unit.id}: cecha "${repeated}" występuje więcej niż raz` });
+      continue;
+    }
+    if (traitTypes.includes('pierce') && !hasProjectile) {
+      issues.push({ source, message: `${unit.id}: cecha "pierce" wymaga ataku z pociskiem` });
+      continue;
+    }
     compiled.set(unit.id, compileUnit(unit, attack));
   }
   return compiled;

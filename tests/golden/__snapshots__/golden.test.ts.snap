@@ -44,6 +44,17 @@ exports[`walki golden > full-5v5 1`] = `
 }
 `;
 
+exports[`walki golden > healers 1`] = `
+{
+  "eventHash": "2b8290e5",
+  "finalHp": "-10 -27 -23 0 0 50 340 350 0 0",
+  "outcome": "loss",
+  "reason": "eliminated",
+  "stateHash": "c1df33f4",
+  "ticks": 615,
+}
+`;
+
 exports[`walki golden > knockback-brawl 1`] = `
 {
   "eventHash": "ef30e6df",

@@ -49,4 +49,10 @@ export const GOLDEN_SETUPS: Readonly<Record<string, BattleSetup>> = {
     [melee({ moveStep: 128 }), melee({ moveStep: u(6) }), melee({ moveStep: u(3) })],
     [brute(), archer(), melee({ moveStep: u(5), attackInterval: 20 })],
   ),
+
+  // Leczenie okresowe po obu stronach: drużynowe u gracza, własne u przeciwnika.
+  healers: setupOf(
+    [swordsman(), ranged({ healAmount: 12, healInterval: 45, healTeam: true }), archer()],
+    [brute(), melee({ healAmount: 20, healInterval: 60 }), archer()],
+  ),
 };

@@ -31,6 +31,20 @@ export const attackTypeSchema = z.strictObject({
     .optional(),
 });
 
+/** Cechy pasywne: zamknięty zestaw, każda ma kod w symulacji (ADR 0009). */
+export const traitSchema = z.discriminatedUnion('type', [
+  z.strictObject({
+    type: z.literal('periodicHeal'),
+    /** `self` leczy tylko siebie, `team` wszystkich żywych sojuszników wraz z sobą. */
+    target: z.enum(['self', 'team']),
+    amount: z.number().int().positive(),
+    /** Odstęp między leczeniami w sekundach, liczony od początku walki. */
+    interval: z.number().positive(),
+  }),
+  /** Pociski jednostki trafiają każdego wroga na drodze. Tylko dla ataku z pociskiem. */
+  z.strictObject({ type: z.literal('pierce') }),
+]);
+
 export const unitSchema = z.strictObject({
   id,
   kind: z.enum(['melee', 'ranged']),
@@ -45,6 +59,7 @@ export const unitSchema = z.strictObject({
   /** Jednostki świata. */
   knockback: z.number().nonnegative(),
   attackType: id,
+  traits: z.array(traitSchema).default([]),
 });
 
 export const attackTypesSchema = z.array(attackTypeSchema);
@@ -52,4 +67,5 @@ export const unitsSchema = z.array(unitSchema);
 
 export type RawArena = z.infer<typeof arenaSchema>;
 export type RawAttackType = z.infer<typeof attackTypeSchema>;
+export type RawTrait = z.infer<typeof traitSchema>;
 export type RawUnit = z.infer<typeof unitSchema>;

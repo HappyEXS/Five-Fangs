@@ -21,6 +21,7 @@ const swordsman: RawUnit = {
   range: 30,
   knockback: 15,
   attackType: 'slash',
+  traits: [],
 };
 
 describe('compileArena', () => {
@@ -97,6 +98,56 @@ describe('compileUnit', () => {
     for (const value of Object.values(compileUnit(odd, slash).base)) {
       if (typeof value === 'number') expect(Number.isInteger(value)).toBe(true);
     }
+  });
+});
+
+describe('cechy pasywne', () => {
+  it('leczenie okresowe trafia do pól specyfikacji, z interwałem w tickach', () => {
+    const healer: RawUnit = {
+      ...swordsman,
+      traits: [{ type: 'periodicHeal', target: 'team', amount: 20, interval: 2 }],
+    };
+    const { base } = compileUnit(healer, slash);
+    expect(base.healAmount).toBe(20);
+    expect(base.healInterval).toBe(60);
+    expect(base.healTeam).toBe(true);
+    expect(base.pierce).toBe(false);
+  });
+
+  it('leczenie siebie i bardzo krótki interwał', () => {
+    const healer: RawUnit = {
+      ...swordsman,
+      traits: [{ type: 'periodicHeal', target: 'self', amount: 5, interval: 0.001 }],
+    };
+    const { base } = compileUnit(healer, slash);
+    expect(base.healTeam).toBe(false);
+    expect(base.healInterval).toBe(1);
+  });
+
+  it('pierce ustawia flagę i łączy się z leczeniem', () => {
+    const piercer: RawUnit = {
+      ...swordsman,
+      kind: 'ranged',
+      attackType: 'shoot',
+      traits: [
+        { type: 'pierce' },
+        { type: 'periodicHeal', target: 'self', amount: 3, interval: 1 },
+      ],
+    };
+    const { base } = compileUnit(piercer, shoot);
+    expect(base.pierce).toBe(true);
+    expect(base.healAmount).toBe(3);
+    expect(base.healInterval).toBe(30);
+  });
+
+  it('jednostka bez cech ma wyzerowane pola cech', () => {
+    const { base } = compileUnit(swordsman, slash);
+    expect([base.pierce, base.healAmount, base.healInterval, base.healTeam]).toEqual([
+      false,
+      0,
+      0,
+      false,
+    ]);
   });
 });
 

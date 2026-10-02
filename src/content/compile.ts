@@ -39,6 +39,21 @@ export function hitTickOf(attack: RawAttackType): number {
 }
 
 export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
+  // Cechy są spłaszczane do pól specyfikacji; symulacja nie interpretuje list ani napisów.
+  let pierce = false;
+  let healAmount = 0;
+  let healInterval = 0;
+  let healTeam = false;
+  for (const trait of raw.traits) {
+    if (trait.type === 'pierce') {
+      pierce = true;
+    } else {
+      healAmount = trait.amount;
+      healInterval = Math.max(1, secondsToTicks(trait.interval));
+      healTeam = trait.target === 'team';
+    }
+  }
+
   return {
     id: raw.id,
     kind: raw.kind,
@@ -54,10 +69,10 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       hitTick: hitTickOf(attack),
       projectileStep:
         attack.projectile === undefined ? 0 : unitsPerSecondToStep(attack.projectile.speed),
-      pierce: false,
-      healAmount: 0,
-      healInterval: 0,
-      healTeam: false,
+      pierce,
+      healAmount,
+      healInterval,
+      healTeam,
     },
   };
 }
