@@ -431,7 +431,9 @@ Preact jako nakładka DOM nad canvasem. W walce tylko HUD (pauza, prędkość, w
 ## 8. Narzędzia (`src/tools`, `scripts/`)
 
 - `tools.html` + `src/tools.ts`: osobne wejście, serwowane tylko przez `pnpm dev`. Build produkcyjny ma jedno wejście (`index.html`), więc kod narzędzi nie trafia do `dist/`; CI dodatkowo sprawdza brak jego śladów (ADR 0010).
-- Piaskownica walki: dowolne składy, krokowanie, prędkość, overlay debug.
+- Piaskownica walki (`/tools.html`): dowolne jednostki z treści na dowolnych slotach obu stron, ranga per jednostka, pauza, prędkość, krokowanie tick po ticku. Stan jest w adresie strony: `player`, `enemy` (składy), `tick=N` (przewinięcie i zatrzymanie), `debug=pgo` (nakładki), `setup=<JSON>` (gotowe wejście symulacji, np. z raportu błędu albo z `pnpm battle golden:<nazwa> --link`).
+- Nakładki debug (`render/debug.ts`, klawisze P, G, O w piaskownicy): punkty obrotu i ramki części, zasięgi i cele, pomiary (FPS, czas symulacji i renderu, liczba wywołań rysowania). Cały kod debug jest w gałęziach `import.meta.env.DEV` i nie trafia do builda; `pnpm check:dist` szuka jego znacznika.
+- Podgląd atlasu (`/tools.html?view=atlas`): obraz atlasu w trzech wariantach.
 - Edytor animacji: suwaki stawów, oś czasu, eksport klipu do JSON.
 - `scripts/balance.ts` (`pnpm balance`): dla każdego poziomu jedna walka na każdą rangę składu referencyjnego; raport w `reports/balance.md` (wynik, czas, zapas HP, najniższa wygrywająca ranga i ocena względem rangi oczekiwanej). Rangi A0–A4 to ulepszenia formy bazowej, B0–B4 formy po ewolucji; wszyscy członkowie składu mają tę samą rangę, bez run. Składy i rangi oczekiwane leżą w `src/content/data/balance/reference-squads.json`. Raport nie zawiera daty, więc jego diff między commitami pokazuje tylko zmiany balansu.
 - `scripts/run-battle.ts` (`pnpm battle`): walka w konsoli z logiem zdarzeń.

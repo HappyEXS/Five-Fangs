@@ -7,6 +7,7 @@ import {
   fixedStepAlpha,
 } from '../core/fixed-step.ts';
 import { TICK_MS, TICKS_PER_SECOND } from '../core/units.ts';
+import { debugStats } from '../render/debug.ts';
 import type { Renderer } from '../render/renderer.ts';
 import type { Viewport } from '../render/viewport.ts';
 import {
@@ -52,13 +53,23 @@ export function createBattleRunner(
     battle,
     loop,
     frame(viewport: Viewport, frameMs: number): void {
+      // Pomiary dla nakładki debug; w buildzie produkcyjnym te gałęzie znikają.
+      const started = import.meta.env.DEV ? performance.now() : 0;
       const steps = advanceFixedStep(loop, frameMs);
       for (let i = 0; i < steps && battle.state.outcome === OUTCOME_IN_PROGRESS; i++) tick();
+      const simulated = import.meta.env.DEV ? performance.now() : 0;
+
       // Po zakończeniu walki i w pauzie rysujemy stan dokładnie z ostatniego ticka.
       const settled = battle.state.outcome !== OUTCOME_IN_PROGRESS || loop.paused;
       const animationMs = loop.paused ? steppedMs : frameMs * loop.speed;
       steppedMs = 0;
       renderer.draw(viewport, settled ? 1 : fixedStepAlpha(loop), animationMs);
+
+      if (import.meta.env.DEV) {
+        debugStats.simMs = simulated - started;
+        debugStats.renderMs = performance.now() - simulated;
+        debugStats.frameMs = frameMs;
+      }
     },
     stepOnce(): void {
       if (battle.state.outcome !== OUTCOME_IN_PROGRESS) return;

@@ -1,0 +1,68 @@
+/* Style narzędzi deweloperskich; ładowane tylko przez tools.html. */
+
+.sandbox-panel {
+  position: absolute;
+  right: 0.75em;
+  bottom: 0.5em;
+  left: 0.75em;
+  display: grid;
+  gap: 0.35em;
+  padding: 0.5em 0.75em;
+  border-radius: 0.4em;
+  background: var(--panel);
+  color: var(--text-dim);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8em;
+}
+
+.sandbox-team,
+.sandbox-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.sandbox-team-label {
+  width: 3.5em;
+}
+
+.sandbox-slot {
+  display: inline-flex;
+  gap: 0.2em;
+}
+
+.sandbox-panel select,
+.sandbox-panel input[type="number"],
+.sandbox-panel button {
+  padding: 0.15em 0.4em;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 0.3em;
+  background: #1b2233;
+  color: var(--text);
+  font: inherit;
+}
+
+.sandbox-panel input[type="number"] {
+  width: 3.6em;
+}
+
+.sandbox-panel button {
+  cursor: pointer;
+}
+
+.sandbox-panel button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sandbox-panel button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.sandbox-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}

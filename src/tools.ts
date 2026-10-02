@@ -5,8 +5,9 @@
 //   /tools.html?view=atlas   podgląd atlasu postaci i jego wariantów
 import { DEV_TOOLS_MARKER } from './core/dev-markers.ts';
 import { startAtlasPreview } from './tools/atlas-preview.ts';
-import { startSandbox } from './tools/sandbox.ts';
+import { startSandbox } from './tools/sandbox.tsx';
 import './ui/styles.css';
+import './tools/tools.css';
 
 const stage = document.getElementById('stage');
 const canvas = document.getElementById('game');

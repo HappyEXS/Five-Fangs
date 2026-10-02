@@ -3,6 +3,7 @@
 //   pnpm battle swordsman,archer vs brute,brute     jednostki z treści gry, kolejno od slotu 0
 //   pnpm battle swordsman,-,archer vs brute         "-" zostawia slot pusty
 //   pnpm battle golden:full-5v5                     ustalona walka z tests/golden/setups.ts
+//   pnpm battle golden:full-5v5 --link              adres piaskownicy odtwarzającej tę walkę
 
 import { requireContent } from '../src/content/load.ts';
 import { subunitsToUnits, TICKS_PER_SECOND } from '../src/core/units.ts';
@@ -81,7 +82,16 @@ function parseSetup(args: readonly string[]): BattleSetup {
   };
 }
 
-const setup = parseSetup(process.argv.slice(2));
+const args = process.argv.slice(2).filter((arg) => arg !== '--link');
+const setup = parseSetup(args);
+
+// --link: zamiast logu wypisz adres piaskownicy odtwarzającej dokładnie tę walkę.
+if (process.argv.includes('--link')) {
+  console.log(
+    `http://localhost:5173/tools.html?setup=${encodeURIComponent(JSON.stringify(setup))}`,
+  );
+  process.exit(0);
+}
 const battle = createBattle(setup);
 
 const unit = (id: number): string => {
