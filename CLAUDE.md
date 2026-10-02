@@ -77,6 +77,7 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 
 - **Zero alokacji w gorącej pętli** (step + render). Żadnych `new`, literałów obiektów/tablic, domknięć, `map/filter`, spread, `DOMMatrix`, template stringów co klatkę. Używaj pul i prealokowanych `Float32Array`.
 - Macierze kości: 6 floatów na kość w jednej tablicy, liczone ręcznie, `ctx.setTransform(a,b,c,d,e,f)`.
+- `drawImage` tylko przez `blit` (`render/scene.ts`) i tylko z argumentami całkowitymi: pivot i skala sprite'a wchodzą w transformację. Ułamkowe argumenty `drawImage` alokują w V8 (ARCHITECTURE.md §5.7).
 - Rysowanie tylko z atlasu. Warianty części (zwykły, ciemny tył, biała sylwetka trafienia) generowane przy ładowaniu. Nie używaj `ctx.filter`.
 - Interpolacja pozycji między tickami (`alpha`). Faza chodu z przebytego dystansu.
 - DPR ograniczony do 2. Stała rozdzielczość logiczna, skalowanie z letterboxem.
@@ -116,7 +117,7 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 
 60 FPS na telefonie średniej klasy · render klatki < 4 ms (desktop) / < 8 ms (telefon) · tick sim < 0,2 ms · > 2000 walk headless/s w Node · JS gzip < 150 KB · 0 alokacji w gorącej pętli.
 Desktop jest platformą główną; budżety dla telefonu to cele pomiarowe, które nie blokują milestone'ów.
-Przy zmianach w `render` lub `sim` sprawdź overlay wydajności w piaskownicy walki. Jeśli zmiana może wpłynąć na budżet, zmierz przed i po.
+Przy zmianach w `render` lub `sim` sprawdź overlay wydajności w piaskownicy walki. Jeśli zmiana może wpłynąć na budżet, zmierz przed i po: symulację przez `pnpm bench`, renderer przez `/tools.html?view=perf` (metoda i ostatnie wyniki w ARCHITECTURE.md §3.8 i §5.7; interpretacja budżetu alokacji renderera w ADR 0013, proponowanym).
 
 Transfer: pierwsze uruchomienie < 2 MB łącznie · atlas świata < 1 MB · powtórna wizyta bez nowej wersji < 20 KB. CI odrzuca build przekraczający budżety.
 

@@ -3,8 +3,10 @@
 //
 //   /tools.html              piaskownica walki
 //   /tools.html?view=atlas   podgląd atlasu postaci i jego wariantów
+//   /tools.html?view=perf    pomiar czasu klatki i alokacji renderera
 import { DEV_TOOLS_MARKER } from './core/dev-markers.ts';
 import { startAtlasPreview } from './tools/atlas-preview.ts';
+import { startPerf } from './tools/perf.ts';
 import { startSandbox } from './tools/sandbox.tsx';
 import './ui/styles.css';
 import './tools/tools.css';
@@ -20,8 +22,11 @@ if (stage === null || !(canvas instanceof HTMLCanvasElement) || ui === null) {
 // Znacznik, po którym `pnpm check:dist` wykryłby ten kod w buildzie produkcyjnym.
 document.documentElement.dataset.tools = DEV_TOOLS_MARKER;
 
-if (new URLSearchParams(location.search).get('view') === 'atlas') {
+const view = new URLSearchParams(location.search).get('view');
+if (view === 'atlas') {
   void startAtlasPreview(stage, canvas);
+} else if (view === 'perf') {
+  void startPerf(stage, canvas, ui);
 } else {
   void startSandbox(stage, canvas, ui);
 }

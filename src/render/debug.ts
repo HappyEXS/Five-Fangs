@@ -35,17 +35,24 @@ const FRAME_COLOR = 'rgba(255, 255, 255, 0.55)';
 const RANGE_COLOR = 'rgba(255, 221, 87, 0.8)';
 const TARGET_COLOR = 'rgba(255, 99, 99, 0.7)';
 
-/** Ramka części i krzyżyk w punkcie obrotu; rysowane w bieżącej transformacji kości. */
+/**
+ * Ramka części i krzyżyk w punkcie obrotu. Rysowane w transformacji zostawionej przez `blit`:
+ * początek w lewym górnym rogu sprite'a, jednostką jest piksel atlasu.
+ */
 export function debugBone(ctx: CanvasRenderingContext2D, sprite: Sprite): void {
-  ctx.lineWidth = 0.35;
+  const pixels = 1 / sprite.unitsPerPixel;
+  const pivotX = -sprite.offsetX * pixels;
+  const pivotY = -sprite.offsetY * pixels;
+  const arm = 1.5 * pixels;
+  ctx.lineWidth = 0.35 * pixels;
   ctx.strokeStyle = FRAME_COLOR;
-  ctx.strokeRect(-sprite.pivotX, -sprite.pivotY, sprite.width, sprite.height);
+  ctx.strokeRect(0, 0, sprite.sw, sprite.sh);
   ctx.strokeStyle = PIVOT_COLOR;
   ctx.beginPath();
-  ctx.moveTo(-1.5, 0);
-  ctx.lineTo(1.5, 0);
-  ctx.moveTo(0, -1.5);
-  ctx.lineTo(0, 1.5);
+  ctx.moveTo(pivotX - arm, pivotY);
+  ctx.lineTo(pivotX + arm, pivotY);
+  ctx.moveTo(pivotX, pivotY - arm);
+  ctx.lineTo(pivotX, pivotY + arm);
   ctx.stroke();
 }
 

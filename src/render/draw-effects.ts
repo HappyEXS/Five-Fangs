@@ -1,7 +1,7 @@
 // Rysowanie pocisków i liczb obrażeń oraz leczenia. Gorąca ścieżka: bez alokacji.
 import { nextRange } from '../core/rng.ts';
 import { type Battle, MAX_PROJECTILES } from '../sim/index.ts';
-import { type Sprite, VARIANT_NORMAL } from './atlas.ts';
+import { VARIANT_NORMAL } from './atlas.ts';
 import {
   digitAt,
   digitCount,
@@ -28,18 +28,21 @@ export function drawProjectiles(
   const { state } = battle;
   const image = scene.atlas.images[VARIANT_NORMAL];
   if (image === undefined) return;
-  const s = viewport.scale;
+  const { local } = scene;
+  local[1] = 0;
+  local[2] = 0;
   for (let p = 0; p < state.projCount && p < MAX_PROJECTILES; p++) {
     const owner = state.projOwner[p] ?? 0;
     const sprite = scene.projectileSprites[owner];
     const look = scene.looks[owner];
     if (sprite === null || sprite === undefined || look === null || look === undefined) continue;
     const prev = state.projPrevX[p] ?? 0;
-    const x = (prev + ((state.projX[p] ?? 0) - prev) * alpha) * scene.camera.scale;
-    const y = laneFeetY(unitSlot(owner)) - PROJECTILE_HEIGHT * look.scale;
     const direction = (state.projStep[p] ?? 1) > 0 ? 1 : -1;
-    scene.ctx.setTransform(direction * look.scale * s, 0, 0, look.scale * s, x * s, y * s);
-    blit(scene, image, sprite, -sprite.pivotX, -sprite.pivotY);
+    local[0] = direction * look.scale;
+    local[3] = look.scale;
+    local[4] = (prev + ((state.projX[p] ?? 0) - prev) * alpha) * scene.camera.scale;
+    local[5] = laneFeetY(unitSlot(owner)) - PROJECTILE_HEIGHT * look.scale;
+    blit(scene, image, sprite, local, 0, viewport);
   }
 }
 
@@ -58,43 +61,36 @@ export function spawnNumber(
   spawnFloatText(scene.floatTexts, x + nextRange(scene.jitter, -10, 10), y, value, kind);
 }
 
-function drawGlyph(
-  scene: Scene,
-  image: CanvasImageSource,
-  sprite: Sprite | null | undefined,
-  s: number,
-  x: number,
-  y: number,
-): void {
-  if (sprite === null || sprite === undefined) return;
-  const scale = NUMBER_SCALE * s;
-  scene.ctx.setTransform(scale, 0, 0, scale, x * s, y * s);
-  blit(scene, image, sprite, -sprite.pivotX, -sprite.pivotY);
-}
-
 export function drawNumbers(scene: Scene, viewport: Viewport): void {
-  const { ctx, floatTexts } = scene;
+  const { ctx, floatTexts, local } = scene;
   const image = scene.atlas.images[VARIANT_NORMAL];
   if (image === undefined) return;
+  local[0] = NUMBER_SCALE;
+  local[1] = 0;
+  local[2] = 0;
+  local[3] = NUMBER_SCALE;
   for (let i = 0; i < floatTexts.count; i++) {
     const text = floatTexts.items[i];
     if (text === undefined) continue;
     const progress = text.ageMs / FLOAT_LIFE_MS;
     // Szybki start, łagodne wyhamowanie; zanikanie dopiero pod koniec.
-    const y = text.y - FLOAT_RISE * (1 - (1 - progress) * (1 - progress));
+    local[5] = text.y - FLOAT_RISE * (1 - (1 - progress) * (1 - progress));
     ctx.globalAlpha = progress < 0.6 ? 1 : 1 - (progress - 0.6) / 0.4;
 
     const heal = text.kind === FLOAT_KIND_HEAL;
     const digits = digitCount(text.value);
-    const glyphs = heal ? digits + 1 : digits;
-    let x = text.x - ((glyphs - 1) * NUMBER_ADVANCE) / 2;
-    if (heal) {
-      drawGlyph(scene, image, scene.plusSprite, viewport.scale, x, y);
-      x += NUMBER_ADVANCE;
-    }
-    for (let d = 0; d < digits; d++) {
-      const sprite = scene.digitSprites[(heal ? 10 : 0) + digitAt(text.value, digits, d)];
-      drawGlyph(scene, image, sprite, viewport.scale, x, y);
+    // Leczenie ma przed cyframi znak plus (glif o indeksie -1).
+    const first = heal ? -1 : 0;
+    let x = text.x - ((digits - first - 1) * NUMBER_ADVANCE) / 2;
+    for (let d = first; d < digits; d++) {
+      const sprite =
+        d < 0
+          ? scene.plusSprite
+          : scene.digitSprites[(heal ? 10 : 0) + digitAt(text.value, digits, d)];
+      if (sprite !== null && sprite !== undefined) {
+        local[4] = x;
+        blit(scene, image, sprite, local, 0, viewport);
+      }
       x += NUMBER_ADVANCE;
     }
   }

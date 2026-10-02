@@ -65,6 +65,7 @@ export function createCanvasRenderer(
     animator: createAnimator(maxChannels),
     root: new Float32Array(MATRIX_SIZE),
     matrices: new Float32Array(maxBones * MATRIX_SIZE),
+    local: new Float32Array(MATRIX_SIZE),
     maxBones,
     looks: new Array<UnitLook | null>(MAX_UNITS).fill(null),
     boneSprites: new Array<Sprite | null>(MAX_UNITS * maxBones).fill(null),

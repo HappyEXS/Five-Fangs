@@ -8,6 +8,7 @@ import type { Atlas, Sprite } from './atlas.ts';
 import { type Camera, GROUND_Y } from './camera.ts';
 import { debugStats } from './debug.ts';
 import type { FloatText } from './float-text.ts';
+import type { Viewport } from './viewport.ts';
 
 export interface Scene {
   readonly ctx: CanvasRenderingContext2D;
@@ -17,6 +18,8 @@ export interface Scene {
   /** Macierz korzenia i macierze kości aktualnie rysowanej jednostki. */
   readonly root: Float32Array;
   readonly matrices: Float32Array;
+  /** Macierz robocza sprite'ów rysowanych bez kości: pociski, cyfry, strzała na cięciwie. */
+  readonly local: Float32Array;
   /** Największa liczba kości wśród rigów; rozmiar wiersza w `boneSprites`. */
   readonly maxBones: number;
   /** Stan przygotowany w beginBattle; indeks = unitId. */
@@ -70,26 +73,49 @@ export function unitHeadY(look: UnitLook, slot: number): number {
 }
 
 /**
- * Rysuje sprite w bieżącej transformacji, z lewym górnym rogiem w (dx, dy) w jednostkach rigu.
- * Jedyne miejsce wywołania drawImage w rendererze walki.
+ * Rysuje sprite z punktem obrotu w początku układu macierzy `matrix[m..m+5]` (jednostki
+ * logiczne sceny). Jedyne miejsce wywołania drawImage w rendererze walki.
+ *
+ * Przesunięcie o pivot i skala piksel → jednostka rigu są wliczone w transformację, a drawImage
+ * dostaje wyłącznie liczby całkowite. Ułamkowe argumenty drawImage silnik V8 pakuje w obiekty
+ * na stercie (12 B każdy), a setTransform przyjmuje je bez alokacji. Z tego samego powodu
+ * macierz i skala widoku przychodzą jako tablica i obiekt, nie jako liczby.
+ * Pomiar: docs/ARCHITECTURE.md §5.7.
  */
 export function blit(
   scene: Scene,
   image: CanvasImageSource,
   sprite: Sprite,
-  dx: number,
-  dy: number,
+  matrix: Float32Array,
+  m: number,
+  viewport: Viewport,
 ): void {
+  const s = viewport.scale;
+  const k = sprite.unitsPerPixel * s;
+  const a = matrix[m] ?? 1;
+  const b = matrix[m + 1] ?? 0;
+  const c = matrix[m + 2] ?? 0;
+  const d = matrix[m + 3] ?? 1;
+  const ox = sprite.offsetX;
+  const oy = sprite.offsetY;
+  scene.ctx.setTransform(
+    a * k,
+    b * k,
+    c * k,
+    d * k,
+    (a * ox + c * oy + (matrix[m + 4] ?? 0)) * s,
+    (b * ox + d * oy + (matrix[m + 5] ?? 0)) * s,
+  );
   scene.ctx.drawImage(
     image,
     sprite.sx,
     sprite.sy,
     sprite.sw,
     sprite.sh,
-    dx,
-    dy,
-    sprite.width,
-    sprite.height,
+    0,
+    0,
+    sprite.sw,
+    sprite.sh,
   );
   if (import.meta.env.DEV) debugStats.drawCalls++;
 }

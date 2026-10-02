@@ -55,14 +55,14 @@ Cel: walka widoczna na ekranie, port prototypu na docelową architekturę, piask
 |---|---|---|---|---|
 | M2-1 | Szkielet renderera: interfejs `Renderer`, integracja z pętlą, interpolacja, jednostki jako prostokąty | 1 | Walka z M1 odtwarza się płynnie przy x1/x2/x4 | gotowe |
 | M2-2 | Generator części placeholder i ładowanie atlasu; warianty ciemny i biała sylwetka | 1,5 | Atlas ładowany przez import Vite; warianty generowane raz przy ładowaniu | gotowe |
-| M2-3 | Rig: schemat, kompilacja kości, macierze w `Float32Array`, kolejność rysowania, odbicie dla przeciwnika, skórki | 1,5 | Postać w pozie spoczynkowej zgodna z prototypem; profiler nie pokazuje alokacji | gotowe; pomiar alokacji w M2-10 |
+| M2-3 | Rig: schemat, kompilacja kości, macierze w `Float32Array`, kolejność rysowania, odbicie dla przeciwnika, skórki | 1,5 | Postać w pozie spoczynkowej zgodna z prototypem; profiler nie pokazuje alokacji | gotowe; alokacje zmierzone w M2-10 |
 | M2-4 | Klipy: schemat, kompilacja, próbkowanie smoothstep, znaczniki; port idle, walk, slash, shoot | 1,5 | Walidator sprawdza zgodność znacznika `hit` z `hitFraction` | gotowe |
 | M2-5 | Sterowanie animacją ze stanu sim: mapowanie stanów, postęp ataku z sim, faza chodu z dystansu, blend pozy, śmierć | 1,5 | Trafienie w animacji wypada w ticku trafienia z sim przy każdej prędkości | gotowe |
 | M2-6 | Pociski i elementy dynamiczne: pula sprite'ów pocisków, cięciwa łuku | 1 | Strzała widoczna od wystrzału do trafienia lub krawędzi pola | gotowe |
-| M2-7 | Efekty: błysk trafienia, liczby obrażeń i leczenia z puli, płynne pokazanie odrzutu | 1 | Każde zdarzenie `Damaged`, `Healed` i `KnockedBack` ma efekt; brak alokacji | gotowe; pomiar alokacji w M2-10 |
+| M2-7 | Efekty: błysk trafienia, liczby obrażeń i leczenia z puli, płynne pokazanie odrzutu | 1 | Każde zdarzenie `Damaged`, `Healed` i `KnockedBack` ma efekt; brak alokacji | gotowe; alokacje zmierzone w M2-10 |
 | M2-8 | Debug: pivoty i ramki, zasięgi i cele, overlay wydajności, krokowanie | 1 | Przełączane klawiszami w dev; brak w `dist/` | gotowe |
 | M2-9 | Piaskownica walki: `tools.html`, dowolne składy, krokowanie, prędkość | 1,5 | Dowolna walka z testów golden daje się obejrzeć w piaskownicy | gotowe (`pnpm battle golden:<nazwa> --link`) |
-| M2-10 | Pomiar wydajności i zapis wyników | 0,5 | Render klatki < 4 ms na desktopie przy 10 jednostkach; 0 alokacji w stanie ustalonym; liczby zapisane w ARCHITECTURE.md | — |
+| M2-10 | Pomiar wydajności i zapis wyników | 0,5 | Render klatki < 4 ms na desktopie przy 10 jednostkach; 0 alokacji w stanie ustalonym; liczby zapisane w ARCHITECTURE.md | czas klatki: gotowe (0,39 ms JS); alokacje: 285 B na klatkę zamiast 0, do decyzji w ADR 0013 |
 
 ## M3 – Edytor animacji i potok atlasów (ok. 7 dni)
 

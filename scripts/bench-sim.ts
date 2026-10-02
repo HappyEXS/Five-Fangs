@@ -8,8 +8,10 @@ import { GOLDEN_SETUPS } from '../tests/golden/setups.ts';
 
 const BATTLES_PER_SECOND_BUDGET = 2000;
 const TICK_MS_BUDGET = 0.2;
-/** Szum pomiaru sterty; prawdziwa alokacja co tick dałaby megabajty. */
-const HEAP_NOISE_BYTES = 64 * 1024;
+const HEAP_ROUNDS = 41;
+const HEAP_ROUND_TICKS = 2000;
+/** Szum pomiaru sterty w bajtach na tick; jedna liczba na stercie co tick to 12 B. */
+const HEAP_NOISE_BYTES_PER_TICK = 2;
 
 const check = process.argv.includes('--check');
 const setup = GOLDEN_SETUPS['full-5v5'];
@@ -45,14 +47,20 @@ const endless = createBattle(
   ),
 );
 for (let i = 0; i < 20_000; i++) stepBattle(endless);
+// Krótkie serie zaczynane tuż po odśmieceniu: w długiej serii silnik sam opróżnia młodą
+// generację i przyrost sterty wychodzi bliski zera także wtedy, gdy kod alokuje co tick.
 const gc = (globalThis as { gc?: () => void }).gc;
-let heapDelta: number | null = null;
-const HEAP_TICKS = 500_000;
+let bytesPerTick: number | null = null;
 if (gc !== undefined) {
-  gc();
-  const before = process.memoryUsage().heapUsed;
-  for (let i = 0; i < HEAP_TICKS; i++) stepBattle(endless);
-  heapDelta = process.memoryUsage().heapUsed - before;
+  const perTick: number[] = [];
+  for (let round = 0; round < HEAP_ROUNDS; round++) {
+    gc();
+    const before = process.memoryUsage().heapUsed;
+    for (let i = 0; i < HEAP_ROUND_TICKS; i++) stepBattle(endless);
+    perTick.push((process.memoryUsage().heapUsed - before) / HEAP_ROUND_TICKS);
+  }
+  perTick.sort((a, b) => a - b);
+  bytesPerTick = perTick[Math.floor(perTick.length / 2)] ?? 0;
 }
 
 const fmt = (value: number, digits: number) => value.toFixed(digits);
@@ -61,11 +69,11 @@ console.log(
   `Pełne walki:   ${fmt(battlesPerSecond, 0)} / s   (budżet > ${BATTLES_PER_SECOND_BUDGET})`,
 );
 console.log(`Czas ticka:    ${fmt(tickMs * 1e6, 0)} ns   (budżet < ${TICK_MS_BUDGET * 1e6} ns)`);
-if (heapDelta === null) {
+if (bytesPerTick === null) {
   console.log('Alokacje:      pominięte (uruchom przez `pnpm bench`, potrzebna flaga --expose-gc)');
 } else {
   console.log(
-    `Alokacje:      ${fmt(heapDelta / 1024, 1)} KB przyrostu sterty na ${HEAP_TICKS} ticków (budżet: 0 na tick)`,
+    `Alokacje:      ${fmt(bytesPerTick, 2)} B na tick, mediana z ${HEAP_ROUNDS} serii po ${HEAP_ROUND_TICKS} ticków (budżet: 0)`,
   );
 }
 
@@ -73,7 +81,9 @@ if (check) {
   const failures: string[] = [];
   if (battlesPerSecond < BATTLES_PER_SECOND_BUDGET) failures.push('za mało walk na sekundę');
   if (tickMs > TICK_MS_BUDGET) failures.push('tick za wolny');
-  if (heapDelta !== null && heapDelta > HEAP_NOISE_BYTES) failures.push('alokacje w gorącej pętli');
+  if (bytesPerTick !== null && bytesPerTick > HEAP_NOISE_BYTES_PER_TICK) {
+    failures.push('alokacje w gorącej pętli');
+  }
   if (failures.length > 0) {
     console.error(`\nBudżet przekroczony: ${failures.join(', ')}`);
     process.exit(1);

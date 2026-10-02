@@ -3,7 +3,7 @@ import unitsMeta from '../assets/generated/units.json' with { type: 'json' };
 import { parseAtlasMeta } from './atlas.ts';
 
 describe('parseAtlasMeta', () => {
-  it('przelicza prostokąt z pikseli atlasu na jednostki rigu i zachowuje pivot', () => {
+  it('przelicza prostokąt z pikseli atlasu na jednostki rigu, a pivot na przesunięcie', () => {
     const sprites = parseAtlasMeta({
       pixelsPerUnit: 3,
       width: 64,
@@ -17,9 +17,21 @@ describe('parseAtlasMeta', () => {
       sh: 84,
       width: 20,
       height: 28,
-      pivotX: 10,
-      pivotY: 26,
+      offsetX: -10,
+      offsetY: -26,
+      unitsPerPixel: 1 / 3,
     });
+  });
+
+  it('pivot zerowy daje przesunięcie 0, nie -0', () => {
+    const sprites = parseAtlasMeta({
+      pixelsPerUnit: 2,
+      width: 8,
+      height: 8,
+      sprites: { 'a/dot': [0, 0, 4, 4, 0, 1.5] },
+    });
+    expect(Object.is(sprites.get('a/dot')?.offsetX, 0)).toBe(true);
+    expect(sprites.get('a/dot')?.offsetY).toBe(-1.5);
   });
 
   it('czyta metadane wygenerowanego atlasu', () => {

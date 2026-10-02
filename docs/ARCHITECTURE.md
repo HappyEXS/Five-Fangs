@@ -207,7 +207,7 @@ Pomiar `pnpm bench` z 2026-10-02 (Node 24, kontener deweloperski, walka golden `
 |---|---|---|
 | Pełne walki na sekundę | 2270–2380 | > 2000 |
 | Czas ticka | ok. 480 ns | < 0,2 ms |
-| Przyrost sterty na 500 000 ticków | 8,5 KB (szum pomiaru) | 0 alokacji na tick |
+| Alokacje na stercie, mediana z 41 serii po 2000 ticków | 0,07 B na tick (szum pomiaru) | 0 alokacji na tick |
 
 Zapas wobec budżetu walk na sekundę to ok. 15%, więc każda nowa faza ticka wymaga ponownego pomiaru. Co dało wynik:
 
@@ -345,7 +345,7 @@ Rig z klipami leży w jednym pliku treści (`rigs/humanoid.json`: dane z załąc
 - **Skórka** (`skin` jednostki) wyznacza sprite'y: `<skórka>/<część>` w atlasie. Formy bohaterów dzielą rig i klipy, a różnią się skórką.
 - **Poza** to `channelCount` liczb: kąt każdej kości w radianach, potem `bob` i `dx` korzenia w jednostkach rigu.
 - **Klip**: klatki kluczowe `[czas 0..1, wartość]` per kanał, w `Float32Array`; interpolacja smoothstep; znaczniki (`hit`). Kanały, których klip nie animuje, biorą wartość z **postawy** typu ataku (np. kąt chwytu miecza albo łuku w idle i chodzie).
-- **Macierze**: 6 wartości na kość, liczone ręcznie (`computeBoneMatrices`), przekazywane do `ctx.setTransform`. Dodatni kąt to obrót zgodny z ruchem wskazówek zegara. Macierz korzenia zawiera pozycję stóp, skalę (ujemna w osi X odbija przeciwnika) i obrót całej postaci przy śmierci.
+- **Macierze**: 6 wartości na kość, liczone ręcznie (`computeBoneMatrices`). `blit` składa macierz kości z przesunięciem o pivot sprite'a i przekazuje wynik do `ctx.setTransform` (powód w §5.7). Dodatni kąt to obrót zgodny z ruchem wskazówek zegara. Macierz korzenia zawiera pozycję stóp, skalę (ujemna w osi X odbija przeciwnika) i obrót całej postaci przy śmierci.
 - Elementy dynamiczne (cięciwa) rysowane wektorowo między punktami kości.
 
 Skala postaci na scenie to `scale` rigu (wyjściowo 1,4 jednostki logicznej na jednostkę rigu) razy `scale` jednostki z treści.
@@ -379,7 +379,28 @@ Symulacja jest jednowymiarowa i sojusznicy mogą stać w tym samym punkcie. Żeb
 
 ### 5.7 Wydajność
 
-Zero alokacji w `step()` i `draw()` w stanie ustalonym. Pule: pociski, liczby obrażeń (prerenderowane cyfry z atlasu), cząsteczki, zdarzenia. DPR ograniczony do 2, letterbox. Kod debug (pivoty, zasięgi, overlay wydajności, krokowanie) tylko pod `import.meta.env.DEV`.
+Kod `step()` i `draw()` nie tworzy w stanie ustalonym obiektów, tablic, domknięć ani napisów. Pule: pociski, liczby obrażeń (prerenderowane cyfry z atlasu), zdarzenia. DPR ograniczony do 2, letterbox. Kod debug (pivoty, zasięgi, overlay wydajności, krokowanie) tylko pod `import.meta.env.DEV`.
+
+**Pomiar** z 2026-10-02 narzędziem `/tools.html?view=perf` (`src/tools/perf.ts`): niekończąca się walka 5 na 5 ze wszystkimi efektami naraz (chód, zamachy, pociski zwykłe i przebijające, cięciwy, błyski, liczby obrażeń i leczenia, odrzut), 175 wywołań `drawImage` na klatkę. Edge 154 w trybie headless, Windows 11, Core i7-8700, RTX 5060 Ti; kod z serwera deweloperskiego (bez minifikacji, z licznikami debug).
+
+| Miara | DPR 1 (canvas 1116×628) | DPR 2 (canvas 2232×1256) | Budżet |
+|---|---|---|---|
+| Czas JS klatki przy odtwarzaniu (rAF): średnio / p99 / max | 0,39 / 0,9 / 1,4 ms | 0,38 / 0,8 / 1,0 ms | < 4 ms |
+| w tym symulacja, średnio na klatkę | ok. 0,002 ms | ok. 0,002 ms | tick < 0,2 ms |
+| Odstęp klatek (ekran 120 Hz): mediana / max, zgubione klatki | 8,3 / 9,0 ms, 0 z 600 | 8,3 / 8,6 ms, 0 z 600 | — |
+| Alokacje na stercie JS, mediana | 285 B na klatkę | 286 B na klatkę | 0 |
+
+Czego ten pomiar nie obejmuje:
+
+- Czas JS to symulacja i wywołania rysowania. Rasteryzację przeglądarka wykonuje poza wątkiem JS i nie da się jej zmierzyć z poziomu strony; pośrednim dowodem, że mieści się w czasie klatki, jest brak zgubionych klatek przy 120 Hz.
+- Tryb headless na komputerze stacjonarnym. Telefon i zwykłe okno przeglądarki nie były mierzone.
+- Kod deweloperski, nie paczka produkcyjna (narzędzia nie trafiają do `dist/`).
+
+**Alokacje.** Przed poprawką renderer alokował ok. 2350 B na klatkę, choć w kodzie nie było żadnego `new` ani literału. Przyczyna (potwierdzona wyłączaniem pojedynczych wywołań): V8 pakuje każdy ułamkowy argument `drawImage` w 12-bajtowy obiekt na stercie, a ułamkowe było przesunięcie o pivot. `setTransform` przyjmuje ułamki bez alokacji. Dlatego `blit` (`render/scene.ts`) wlicza przesunięcie o pivot i skalę piksel → jednostka rigu w transformację, a `drawImage` dostaje same liczby całkowite. `Math.hypot` (36 B na wywołanie) zastąpiło `Math.sqrt`.
+
+Pozostałe ok. 260–285 B na klatkę profiler przypisuje: `drawUnit` 124 B, pomiary czasu w `BattleRunner.frame` 50 B (tylko w dev), `updateUnitPose` 46 B, `hashInt32` 27 B, tworzenie liczb nad jednostkami 11 B. Najbardziej prawdopodobna przyczyna to pakowanie liczb zmiennoprzecinkowych (i całkowitych powyżej 2³⁰) przekazywanych między funkcjami, których silnik nie wbudował w miejscu wywołania; tego dla każdej pozycji z osobna nie sprawdzaliśmy. Przy 60 klatkach na sekundę to ok. 17 KB/s. Usunięcie reszty wymagałoby przekazywania pozycji i faz animacji przez tablice zamiast argumentów; decyzja w ADR 0013.
+
+Jak mierzyć alokacje: przyrost sterty po długiej serii klatek nic nie mówi, bo silnik po drodze sam opróżnia młodą generację (tak wyszło „zero” przy 2350 B na klatkę). Narzędzie liczy więc krótkie serie zaczynane tuż po wymuszonym odśmieceniu, co wymaga Chromium z flagami `--enable-precise-memory-info --js-flags=--expose-gc`. Źródło alokacji wskazuje „Allocation sampling” w DevTools (Memory) na `ffPerfFrames(3000)` wywołanym z konsoli.
 
 ## 6. Gra (`src/game`)
 
@@ -434,6 +455,7 @@ Preact jako nakładka DOM nad canvasem. W walce tylko HUD (pauza, prędkość, w
 - Piaskownica walki (`/tools.html`): dowolne jednostki z treści na dowolnych slotach obu stron, ranga per jednostka, pauza, prędkość, krokowanie tick po ticku. Stan jest w adresie strony: `player`, `enemy` (składy), `tick=N` (przewinięcie i zatrzymanie), `debug=pgo` (nakładki), `setup=<JSON>` (gotowe wejście symulacji, np. z raportu błędu albo z `pnpm battle golden:<nazwa> --link`).
 - Nakładki debug (`render/debug.ts`, klawisze P, G, O w piaskownicy): punkty obrotu i ramki części, zasięgi i cele, pomiary (FPS, czas symulacji i renderu, liczba wywołań rysowania). Cały kod debug jest w gałęziach `import.meta.env.DEV` i nie trafia do builda; `pnpm check:dist` szuka jego znacznika.
 - Podgląd atlasu (`/tools.html?view=atlas`): obraz atlasu w trzech wariantach.
+- Pomiar renderera (`/tools.html?view=perf`): czas klatki, alokacje i płynność odtwarzania na walce 5 na 5; metoda i wyniki w §5.7.
 - Edytor animacji: suwaki stawów, oś czasu, eksport klipu do JSON.
 - `scripts/balance.ts` (`pnpm balance`): dla każdego poziomu jedna walka na każdą rangę składu referencyjnego; raport w `reports/balance.md` (wynik, czas, zapas HP, najniższa wygrywająca ranga i ocena względem rangi oczekiwanej). Rangi A0–A4 to ulepszenia formy bazowej, B0–B4 formy po ewolucji; wszyscy członkowie składu mają tę samą rangę, bez run. Składy i rangi oczekiwane leżą w `src/content/data/balance/reference-squads.json`. Raport nie zawiera daty, więc jego diff między commitami pokazuje tylko zmiany balansu.
 - `scripts/run-battle.ts` (`pnpm battle`): walka w konsoli z logiem zdarzeń.

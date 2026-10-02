@@ -52,9 +52,10 @@ function drawString(
   string: CompiledString,
   unit: number,
   pulled: boolean,
-  s: number,
+  viewport: Viewport,
 ): void {
   const { ctx, matrices } = scene;
+  const s = viewport.scale;
   const m = string.bone * MATRIX_SIZE;
   const a = matrices[m] ?? 1;
   const b = matrices[m + 1] ?? 0;
@@ -96,12 +97,22 @@ function drawString(
   if (sprite === null || sprite === undefined || image === undefined) return;
   const dirX = e - handX;
   const dirY = f - handY;
-  const length = Math.hypot(dirX, dirY);
+  // sqrt zamiast Math.hypot: hypot jest zwykłym wywołaniem funkcji wbudowanej i pakuje
+  // argumenty oraz wynik w liczby na stercie (36 B na wywołanie).
+  const length = Math.sqrt(dirX * dirX + dirY * dirY);
   if (length === 0) return;
-  const ux = (dirX / length) * look.scale * s;
-  const uy = (dirY / length) * look.scale * s;
-  ctx.setTransform(ux, uy, -uy, ux, handX * s, handY * s);
-  blit(scene, image, sprite, -1, -sprite.pivotY);
+  const ux = (dirX / length) * look.scale;
+  const uy = (dirY / length) * look.scale;
+  // Koniec strzały (jednostka rigu za lewą krawędzią sprite'a) leży w dłoni, nie jej pivot.
+  const shift = -1 - sprite.offsetX;
+  const { local } = scene;
+  local[0] = ux;
+  local[1] = uy;
+  local[2] = -uy;
+  local[3] = ux;
+  local[4] = handX + ux * shift;
+  local[5] = handY + uy * shift;
+  blit(scene, image, sprite, local, 0, viewport);
 }
 
 /** Aktualizuje animację jednostki i rysuje ją. `frameMs` to czas animacji od poprzedniej klatki. */
@@ -176,16 +187,7 @@ export function drawUnit(
         : VARIANT_NORMAL;
     const image = atlas.images[variant];
     if (image === undefined) continue;
-    const m = bone * MATRIX_SIZE;
-    ctx.setTransform(
-      (matrices[m] ?? 1) * s,
-      (matrices[m + 1] ?? 0) * s,
-      (matrices[m + 2] ?? 0) * s,
-      (matrices[m + 3] ?? 1) * s,
-      (matrices[m + 4] ?? 0) * s,
-      (matrices[m + 5] ?? 0) * s,
-    );
-    blit(scene, image, sprite, -sprite.pivotX, -sprite.pivotY);
+    blit(scene, image, sprite, matrices, bone * MATRIX_SIZE, viewport);
     if (import.meta.env.DEV && debugOptions.pivots) debugBone(ctx, sprite);
   }
 
@@ -200,7 +202,7 @@ export function drawUnit(
       );
       pulled = progress >= string.from && progress <= string.to;
     }
-    drawString(scene, look, string, unit, pulled, s);
+    drawString(scene, look, string, unit, pulled, viewport);
   }
   ctx.globalAlpha = 1;
 

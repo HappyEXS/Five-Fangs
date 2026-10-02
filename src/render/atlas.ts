@@ -10,11 +10,14 @@ export interface Sprite {
   readonly sy: number;
   readonly sw: number;
   readonly sh: number;
-  /** Rozmiar i punkt obrotu w jednostkach rigu. */
+  /** Rozmiar w jednostkach rigu. */
   readonly width: number;
   readonly height: number;
-  readonly pivotX: number;
-  readonly pivotY: number;
+  /** Lewy górny róg względem punktu obrotu (pivot ze znakiem minus), w jednostkach rigu. */
+  readonly offsetX: number;
+  readonly offsetY: number;
+  /** Jednostki rigu na piksel atlasu. */
+  readonly unitsPerPixel: number;
 }
 
 export interface AtlasMeta {
@@ -51,8 +54,10 @@ export function parseAtlasMeta(meta: AtlasMeta): Map<string, Sprite> {
       sh,
       width: sw / meta.pixelsPerUnit,
       height: sh / meta.pixelsPerUnit,
-      pivotX,
-      pivotY,
+      // `0 - x` zamiast `-x`, żeby pivot 0 nie dawał -0.
+      offsetX: 0 - pivotX,
+      offsetY: 0 - pivotY,
+      unitsPerPixel: 1 / meta.pixelsPerUnit,
     });
   }
   return sprites;
