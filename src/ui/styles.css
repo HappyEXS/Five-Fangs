@@ -64,6 +64,14 @@ body {
   font-size: 1.25em;
 }
 
+.version {
+  position: absolute;
+  right: 1em;
+  bottom: 0.75em;
+  color: var(--text-dim);
+  font-size: 0.85em;
+}
+
 .language {
   display: flex;
   gap: 0.5em;

@@ -1,5 +1,6 @@
 import { LANGUAGES } from '../content/i18n/index.ts';
 import { language, t } from '../game/i18n.ts';
+import { gameVersion, versionLabel } from '../game/version.ts';
 
 export function App() {
   return (
@@ -22,6 +23,7 @@ export function App() {
           </button>
         ))}
       </fieldset>
+      <footer class="version">{t('app.version', { version: versionLabel(gameVersion) })}</footer>
     </div>
   );
 }
