@@ -197,7 +197,25 @@ interface BattleResult {
 
 ### 3.7 Hash
 
-FNV-1a 32-bit (`Math.imul`) po wszystkich tablicach stanu i liczniku ticków. `eventHash` narasta co tick po zawartości bufora zdarzeń. Testy golden w `tests/golden/` przechowują parę hashy dla każdego ustalonego `BattleSetup`.
+FNV-1a 32-bit (`Math.imul`) po wszystkich tablicach stanu i liczniku ticków. `eventHash` narasta w każdym ticku, w którym zaszły zdarzenia: obejmuje numer ticka i zawartość bufora, więc te same zdarzenia w innym momencie dają inny hash. Testy golden w `tests/golden/` przechowują parę hashy dla każdego ustalonego `BattleSetup`.
+
+### 3.8 Wydajność
+
+Pomiar `pnpm bench` z 2026-10-02 (Node 24, kontener deweloperski, walka golden `full-5v5`, średnio 888 ticków):
+
+| Miara | Wynik | Budżet |
+|---|---|---|
+| Pełne walki na sekundę | 2270–2380 | > 2000 |
+| Czas ticka | ok. 480 ns | < 0,2 ms |
+| Przyrost sterty na 500 000 ticków | 8,5 KB (szum pomiaru) | 0 alokacji na tick |
+
+Zapas wobec budżetu walk na sekundę to ok. 15%, więc każda nowa faza ticka wymaga ponownego pomiaru. Co dało wynik:
+
+- Decyzja, ruch i postęp ataku jednostki wykonują się w jednej pętli, a rozstrzygnięcie i śmierć w drugiej (`step.ts`). Wszystkie czytają tylko pozycje z początku ticka i własną kolejkę, więc wynik jest taki sam jak przy osobnych przejściach.
+- Najbliższy wróg jest wyznaczany raz na tick dla całej drużyny: wrogie jednostki się nie mijają, więc jest nim zawsze najbardziej wysunięta jednostka przeciwnika.
+- Kolejka zmian jest zerowana przy odczycie, bez osobnych `fill()`.
+
+Dalsze przyspieszenie wymagałoby jednej wspólnej tablicy na wszystkie pola jednostek kosztem czytelności. Przy zerowej losowości skrypt balansu rozgrywa setki, a nie setki tysięcy walk, więc na razie nie jest to potrzebne.
 
 ## 4. Treść (`src/content`)
 

@@ -36,8 +36,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # Z pomiarem pokrycia: próg dla src/sim jest w vite.config.ts.
       - name: Unit tests
-        run: pnpm test
+        run: pnpm test:coverage
 
       - name: Golden tests
         run: pnpm test:golden

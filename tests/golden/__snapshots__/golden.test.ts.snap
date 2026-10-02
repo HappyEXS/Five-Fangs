@@ -2,7 +2,7 @@
 
 exports[`walki golden > archer-vs-melee 1`] = `
 {
-  "eventHash": "a4404338",
+  "eventHash": "16d76926",
   "finalHp": "-10 0 0 0 0 30 0 0 0 0",
   "outcome": "loss",
   "reason": "eliminated",
@@ -13,7 +13,7 @@ exports[`walki golden > archer-vs-melee 1`] = `
 
 exports[`walki golden > archers-focus 1`] = `
 {
-  "eventHash": "54897b56",
+  "eventHash": "f6585fa2",
   "finalHp": "205 315 350 350 350 -10 -10 0 0 0",
   "outcome": "win",
   "reason": "eliminated",
@@ -24,7 +24,7 @@ exports[`walki golden > archers-focus 1`] = `
 
 exports[`walki golden > duel-melee 1`] = `
 {
-  "eventHash": "8abbf8e1",
+  "eventHash": "a7480d26",
   "finalHp": "120 0 0 0 0 -30 0 0 0 0",
   "outcome": "win",
   "reason": "eliminated",
@@ -35,7 +35,7 @@ exports[`walki golden > duel-melee 1`] = `
 
 exports[`walki golden > full-5v5 1`] = `
 {
-  "eventHash": "47c9136b",
+  "eventHash": "c8621f45",
   "finalHp": "0 -10 0 -30 0 -20 30 -20 350 350",
   "outcome": "loss",
   "reason": "eliminated",
@@ -46,7 +46,7 @@ exports[`walki golden > full-5v5 1`] = `
 
 exports[`walki golden > knockback-brawl 1`] = `
 {
-  "eventHash": "f21feac2",
+  "eventHash": "ef30e6df",
   "finalHp": "0 -5 20 0 0 -10 -30 -10 0 0",
   "outcome": "win",
   "reason": "eliminated",
@@ -57,7 +57,7 @@ exports[`walki golden > knockback-brawl 1`] = `
 
 exports[`walki golden > mutual-kill 1`] = `
 {
-  "eventHash": "1e6d0149",
+  "eventHash": "59553965",
   "finalHp": "0 0 0 0 0 0 0 0 0 0",
   "outcome": "loss",
   "reason": "mutual",
@@ -68,7 +68,7 @@ exports[`walki golden > mutual-kill 1`] = `
 
 exports[`walki golden > stalemate 1`] = `
 {
-  "eventHash": "c9d682ff",
+  "eventHash": "b7b52654",
   "finalHp": "600 0 0 0 0 600 0 0 0 0",
   "outcome": "loss",
   "reason": "timeout",
@@ -79,7 +79,7 @@ exports[`walki golden > stalemate 1`] = `
 
 exports[`walki golden > uneven-speeds 1`] = `
 {
-  "eventHash": "bb5f5e97",
+  "eventHash": "70968290",
   "finalHp": "-10 -10 -20 0 0 40 350 200 0 0",
   "outcome": "loss",
   "reason": "eliminated",

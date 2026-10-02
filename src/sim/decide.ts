@@ -1,63 +1,74 @@
 // Faza 1: decyzje. Każda żywa jednostka poza zamachem wybiera cel i akcję na ten tick.
-// Faza czyta pozycje z początku ticka (nikt się jeszcze nie ruszył), więc kolejność
-// jednostek nie wpływa na wynik.
+// Decyzja czyta wyłącznie pozycje z początku ticka (`prevX`), więc nie zależy od tego,
+// które jednostki zdążyły się już ruszyć.
 import type { Battle } from './battle.ts';
 import { EVENT_ATTACK_STARTED, pushEvent } from './events.ts';
 import type { BattleState } from './state.ts';
-import { MAX_UNITS, STATUS_ATTACKING, STATUS_IDLE, STATUS_MOVING, TEAM_SIZE } from './types.ts';
+import { STATUS_ATTACKING, STATUS_IDLE, STATUS_MOVING, TEAM_SIZE } from './types.ts';
 
 /** Jednostka żyje, gdy stoi, idzie albo atakuje. */
 export function isAlive(status: number): boolean {
   return status >= STATUS_IDLE && status <= STATUS_ATTACKING;
 }
 
-/** Najbliższy żywy wróg albo -1. Przy równej odległości wygrywa niższe `unitId`. */
-export function nearestEnemy(state: BattleState, unitId: number): number {
-  const first = unitId < TEAM_SIZE ? TEAM_SIZE : 0;
-  const myX = state.x[unitId] ?? 0;
-  let best = -1;
-  let bestDistance = 0;
-  for (let enemy = first; enemy < first + TEAM_SIZE; enemy++) {
-    if (!isAlive(state.status[enemy] ?? 0)) continue;
-    const distance = Math.abs((state.x[enemy] ?? 0) - myX);
-    if (best === -1 || distance < bestDistance) {
-      best = enemy;
-      bestDistance = distance;
+/**
+ * Żywa jednostka drużyny stojąca najbliżej przeciwnika, albo -1. `firstId` to 0 dla gracza
+ * (szukamy największego x) albo TEAM_SIZE dla przeciwnika (najmniejszego x).
+ * Przy równej pozycji wygrywa niższe `unitId`.
+ */
+export function frontUnit(state: BattleState, firstId: number): number {
+  const { status, x } = state;
+  const sign = firstId === 0 ? 1 : -1;
+  let front = -1;
+  let frontX = 0;
+  for (let i = firstId; i < firstId + TEAM_SIZE; i++) {
+    if (!isAlive(status[i] ?? 0)) continue;
+    const position = (x[i] ?? 0) * sign;
+    if (front === -1 || position > frontX) {
+      front = i;
+      frontX = position;
     }
   }
-  return best;
+  return front;
 }
 
-export function decide(battle: Battle): void {
-  const { state, specs, events } = battle;
-  for (let i = 0; i < MAX_UNITS; i++) {
-    const status = state.status[i] ?? 0;
-    if (!isAlive(status)) continue;
+/**
+ * Najbliższy żywy wróg jednostki albo -1; przy równej odległości niższe `unitId`.
+ *
+ * Wrogie jednostki nigdy się nie mijają (gwarantuje to walidacja setupu), więc wszyscy
+ * przeciwnicy stoją po tej samej stronie jednostki. Najbliższym jest zatem zawsze ten
+ * najbardziej wysunięty, ten sam dla całej drużyny, i wystarczy wyznaczyć go raz na tick.
+ */
+export function nearestEnemy(state: BattleState, unitId: number): number {
+  return frontUnit(state, unitId < TEAM_SIZE ? TEAM_SIZE : 0);
+}
 
-    if (status === STATUS_ATTACKING) {
-      // W trakcie zamachu jednostka nie zmienia celu ani się nie rusza.
-      if ((state.swingTick[i] ?? 0) < (specs.swingTicks[i] ?? 0)) continue;
-      state.swingTick[i] = -1;
-    }
+/**
+ * Decyzja żywej jednostki `i`; `enemy` to najbliższy żywy wróg z początku ticka albo -1.
+ * Zwraca status jednostki na ten tick.
+ */
+export function decideUnit(battle: Battle, i: number, enemy: number): number {
+  const { state, specs } = battle;
+  if (state.status[i] === STATUS_ATTACKING) {
+    // W trakcie zamachu jednostka nie zmienia celu ani się nie rusza.
+    if ((state.swingTick[i] ?? 0) < (specs.swingTicks[i] ?? 0)) return STATUS_ATTACKING;
+    state.swingTick[i] = -1;
+  }
 
-    const target = nearestEnemy(state, i);
-    state.target[i] = target;
-    if (target === -1) {
-      state.status[i] = STATUS_IDLE;
-      continue;
-    }
-
-    const distance = Math.abs((state.x[target] ?? 0) - (state.x[i] ?? 0));
+  state.target[i] = enemy;
+  let next = STATUS_IDLE;
+  if (enemy !== -1) {
+    const distance = Math.abs((state.prevX[enemy] ?? 0) - (state.prevX[i] ?? 0));
     if (distance > (specs.range[i] ?? 0)) {
-      state.status[i] = STATUS_MOVING;
+      next = STATUS_MOVING;
     } else if ((state.sinceAttack[i] ?? 0) >= (specs.attackInterval[i] ?? 0)) {
-      state.status[i] = STATUS_ATTACKING;
+      next = STATUS_ATTACKING;
       state.swingTick[i] = 0;
       state.sinceAttack[i] = 0;
-      pushEvent(events, EVENT_ATTACK_STARTED, i, target, 0);
-    } else {
-      // Cel w zasięgu, ale odstęp między atakami jeszcze trwa.
-      state.status[i] = STATUS_IDLE;
+      pushEvent(battle.events, EVENT_ATTACK_STARTED, i, enemy, 0);
     }
+    // W przeciwnym razie cel jest w zasięgu, ale odstęp między atakami jeszcze trwa.
   }
+  state.status[i] = next;
+  return next;
 }

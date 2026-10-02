@@ -1,31 +1,58 @@
-// Jeden tick symulacji. Fazy w stałej kolejności (docs/ARCHITECTURE.md §3.4).
-import { progressAttacks } from './attack.ts';
+// Jeden tick symulacji (docs/ARCHITECTURE.md §3.4).
+//
+// Logiczna kolejność faz: decyzje → ruch → ataki → pociski → cechy okresowe → rozstrzygnięcie
+// → śmierci. Decyzja, ruch i atak czytają wyłącznie pozycje z początku ticka i nie zmieniają
+// HP ani tego, kto żyje, więc dla jednej jednostki można je wykonać od razu po sobie, zanim
+// zdecyduje następna: wynik jest taki sam jak przy trzech osobnych przejściach, a tick ma
+// mniej pętli. To samo dotyczy rozstrzygnięcia i śmierci.
+import { hashInt32 } from '../core/hash.ts';
+import { progressAttack } from './attack.ts';
 import type { Battle } from './battle.ts';
-import { decide } from './decide.ts';
+import { decideUnit, frontUnit, isAlive } from './decide.ts';
 import { clearEvents } from './events.ts';
 import { hashEvents } from './hash.ts';
-import { move } from './move.ts';
+import { moveUnit } from './move.ts';
 import { moveProjectiles } from './projectiles.ts';
-import { finish, resolve } from './resolve.ts';
-import { OUTCOME_IN_PROGRESS } from './types.ts';
-
-/** Faza 0: zapamiętanie pozycji z początku ticka i wyczyszczenie zdarzeń. */
-function begin(battle: Battle): void {
-  const { state } = battle;
-  clearEvents(battle.events);
-  state.prevX.set(state.x);
-  for (let p = 0; p < state.projCount; p++) state.projPrevX[p] = state.projX[p] ?? 0;
-}
+import { resolveAndFinish } from './resolve.ts';
+import {
+  MAX_UNITS,
+  OUTCOME_IN_PROGRESS,
+  STATUS_ATTACKING,
+  STATUS_MOVING,
+  TEAM_SIZE,
+} from './types.ts';
 
 /** Wykonuje jeden tick. Po zakończeniu walki nic nie robi. */
 export function stepBattle(battle: Battle): void {
-  if (battle.state.outcome !== OUTCOME_IN_PROGRESS) return;
-  begin(battle);
-  decide(battle);
-  move(battle);
-  progressAttacks(battle);
+  const { state } = battle;
+  if (state.outcome !== OUTCOME_IN_PROGRESS) return;
+  const { status, x, prevX, projX, projPrevX } = state;
+
+  // Faza 0: zapamiętanie pozycji z początku ticka i wyczyszczenie zdarzeń.
+  // Pętle zamiast TypedArray.set(): przy 10 elementach wywołanie wbudowane kosztuje więcej.
+  clearEvents(battle.events);
+  for (let i = 0; i < MAX_UNITS; i++) prevX[i] = x[i] ?? 0;
+  for (let p = 0; p < state.projCount; p++) projPrevX[p] = projX[p] ?? 0;
+
+  // Fazy 1–3: decyzja, ruch i postęp ataku każdej żywej jednostki.
+  const frontPlayer = frontUnit(state, 0);
+  const frontEnemy = frontUnit(state, TEAM_SIZE);
+  for (let i = 0; i < MAX_UNITS; i++) {
+    if (!isAlive(status[i] ?? 0)) continue;
+    const action = decideUnit(battle, i, i < TEAM_SIZE ? frontEnemy : frontPlayer);
+    if (action === STATUS_MOVING) moveUnit(battle, i);
+    else if (action === STATUS_ATTACKING) progressAttack(battle, i);
+  }
+
+  // Faza 4: pociski, także te wystrzelone przed chwilą.
   moveProjectiles(battle);
-  resolve(battle);
-  finish(battle);
-  battle.eventHash = hashEvents(battle.eventHash, battle.events);
+
+  // Fazy 6–7: jednoczesne rozstrzygnięcie, śmierci i warunek końca.
+  resolveAndFinish(battle);
+
+  // Hash logu obejmuje numer ticka, więc różni się także wtedy, gdy te same zdarzenia
+  // zaszły w innym momencie. Ticki bez zdarzeń nie wnoszą nic i są pomijane.
+  if (battle.events.count > 0) {
+    battle.eventHash = hashEvents(hashInt32(battle.eventHash, state.tick), battle.events);
+  }
 }

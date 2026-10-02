@@ -10,7 +10,6 @@ import { isAlive } from './decide.ts';
 import { EVENT_ATTACK_HIT, pushEvent } from './events.ts';
 import { queueHit } from './hits.ts';
 import { spawnProjectile } from './projectiles.ts';
-import { MAX_UNITS, STATUS_ATTACKING } from './types.ts';
 
 function meleeHit(battle: Battle, unitId: number): void {
   const { state, specs } = battle;
@@ -21,16 +20,14 @@ function meleeHit(battle: Battle, unitId: number): void {
   queueHit(battle, unitId, target, specs.attack[unitId] ?? 0, specs.knockback[unitId] ?? 0);
 }
 
-export function progressAttacks(battle: Battle): void {
+/** Postęp zamachu jednostki `i`, która w tym ticku ma status Attacking. */
+export function progressAttack(battle: Battle, i: number): void {
   const { state, specs } = battle;
-  for (let i = 0; i < MAX_UNITS; i++) {
-    if (state.status[i] !== STATUS_ATTACKING) continue;
-    const swingTick = state.swingTick[i] ?? 0;
-    if (swingTick === (specs.hitTick[i] ?? 0)) {
-      // Strzelec wypuszcza pocisk także wtedy, gdy cel już nie żyje: pocisk i tak leci po linii.
-      if ((specs.projectileStep[i] ?? 0) === 0) meleeHit(battle, i);
-      else spawnProjectile(battle, i);
-    }
-    state.swingTick[i] = swingTick + 1;
+  const tick = state.swingTick[i] ?? 0;
+  if (tick === (specs.hitTick[i] ?? 0)) {
+    // Strzelec wypuszcza pocisk także wtedy, gdy cel już nie żyje: pocisk i tak leci po linii.
+    if ((specs.projectileStep[i] ?? 0) === 0) meleeHit(battle, i);
+    else spawnProjectile(battle, i);
   }
+  state.swingTick[i] = tick + 1;
 }

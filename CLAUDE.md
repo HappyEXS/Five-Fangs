@@ -17,7 +17,10 @@ pnpm lint              # biome check
 pnpm format            # biome format --write
 pnpm test              # vitest run
 pnpm test:watch        # vitest
-pnpm test:golden       # testy deterministyczne walk (hash stanu)
+pnpm test:golden       # testy deterministyczne walk (hash stanu); -u aktualizuje migawki
+pnpm test:coverage     # testy z pomiarem pokrycia; próg > 90% linii dla src/sim
+pnpm bench             # walki/s, czas ticka i alokacje symulacji; --check kończy błędem poniżej budżetu
+pnpm battle a,b vs c   # walka w konsoli z logiem zdarzeń (jednostki z treści albo golden:<nazwa>)
 pnpm validate-content  # walidacja wszystkich JSON-ów treści
 pnpm balance           # walki headless wszystkich poziomów, raport do reports/balance.md
 pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated

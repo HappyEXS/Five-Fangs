@@ -76,6 +76,7 @@ function hit(battle: Battle, p: number, target: number): void {
  */
 function advance(battle: Battle, p: number): boolean {
   const { state } = battle;
+  const { status, x, prevX } = state;
   const step = state.projStep[p] ?? 0;
   const direction = step > 0 ? 1 : -1;
   const from = state.projX[p] ?? 0;
@@ -86,9 +87,9 @@ function advance(battle: Battle, p: number): boolean {
   if ((state.projPierce[p] ?? 0) !== 0) {
     let mask = state.projHitMask[p] ?? 0;
     for (let enemy = firstEnemy; enemy < firstEnemy + TEAM_SIZE; enemy++) {
-      if (!isAlive(state.status[enemy] ?? 0) || (mask & (1 << enemy)) !== 0) continue;
-      const before = ((state.prevX[enemy] ?? 0) - from) * direction;
-      const after = ((state.x[enemy] ?? 0) - to) * direction;
+      if (!isAlive(status[enemy] ?? 0) || (mask & (1 << enemy)) !== 0) continue;
+      const before = ((prevX[enemy] ?? 0) - from) * direction;
+      const after = ((x[enemy] ?? 0) - to) * direction;
       if (before >= 0 && after <= 0) {
         mask |= 1 << enemy;
         hit(battle, p, enemy);
@@ -100,9 +101,9 @@ function advance(battle: Battle, p: number): boolean {
     let nearest = -1;
     let nearestBefore = 0;
     for (let enemy = firstEnemy; enemy < firstEnemy + TEAM_SIZE; enemy++) {
-      if (!isAlive(state.status[enemy] ?? 0)) continue;
-      const before = ((state.prevX[enemy] ?? 0) - from) * direction;
-      const after = ((state.x[enemy] ?? 0) - to) * direction;
+      if (!isAlive(status[enemy] ?? 0)) continue;
+      const before = ((prevX[enemy] ?? 0) - from) * direction;
+      const after = ((x[enemy] ?? 0) - to) * direction;
       if (before >= 0 && after <= 0 && (nearest === -1 || before < nearestBefore)) {
         nearest = enemy;
         nearestBefore = before;

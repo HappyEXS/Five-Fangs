@@ -83,5 +83,15 @@ export default defineConfig({
   },
   test: {
     include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'tests/**/*.test.ts'],
+    // Pokrycie mierzymy tylko dla symulacji, bo tylko ona ma twardy próg (CLAUDE.md).
+    coverage: {
+      provider: 'v8',
+      include: ['src/sim/**/*.ts'],
+      exclude: ['src/sim/**/*.test.ts', 'src/sim/fixtures.ts', 'src/sim/index.ts'],
+      reporter: ['text'],
+      // Bez progu dla gałęzi: każdy odczyt `tablica[i] ?? 0` liczy się jako gałąź, której
+      // druga strona z założenia nigdy się nie wykonuje, więc ta miara jest tu zaniżona.
+      thresholds: { lines: 90, functions: 90, statements: 90 },
+    },
   },
 });
