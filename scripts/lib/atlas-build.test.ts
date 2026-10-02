@@ -153,6 +153,31 @@ describe('atlas placeholder', () => {
     );
   });
 
+  it('forma po ewolucji ma te same części, ale inną sylwetkę, nie tylko kolory', () => {
+    const image = (name: string) => {
+      const sprite = sprites.find((s) => s.name === name);
+      if (sprite === undefined) throw new Error(`missing sprite ${name}`);
+      return sprite.image;
+    };
+    for (const [base, evolved] of [
+      ['swordsman_a', 'swordsman_b'],
+      ['archer_a', 'archer_b'],
+    ]) {
+      for (const slot of ['head', 'weapon']) {
+        const a = image(`${base}/${slot}`);
+        const b = image(`${evolved}/${slot}`);
+        // Wspólny rig: ten sam rozmiar części (pivot też, bo to ta sama specyfikacja części).
+        expect([b.width, b.height]).toEqual([a.width, a.height]);
+        let differentCoverage = 0;
+        for (let i = 3; i < a.data.length; i += 4) {
+          if ((a.data[i] ?? 0) > 128 !== (b.data[i] ?? 0) > 128) differentCoverage++;
+        }
+        // Sama zmiana palety dałaby zero: liczymy piksele, w których różni się pokrycie.
+        expect(differentCoverage, `${evolved}/${slot}`).toBeGreaterThan(20);
+      }
+    }
+  });
+
   it('atlas placeholderów mieści się w szerokości 512', () => {
     expect(built.meta.width).toBe(512);
     expect(built.image.width).toBe(512);

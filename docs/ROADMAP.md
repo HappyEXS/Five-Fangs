@@ -69,10 +69,10 @@ Cel: walka widoczna na ekranie, port prototypu na docelową architekturę, piask
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
 | M3-1 | `pnpm atlas`: pakowanie `assets/src/` do `src/assets/generated/` (WebP + JSON z pivotami), części w 2× | 1,5 | Atlas placeholderów przechodzi przez potok; `check:size` pilnuje budżetu atlasu | gotowe (bezstratny WebP, ADR 0014; limit 1 MB na atlas sprawdza też sam `pnpm atlas`) |
-| M3-2 | Edytor: podgląd postaci, wybór rigu, skórki i klipu, suwaki kątów | 1,5 | Zmiana suwaka widoczna natychmiast na postaci |gotowe (`/tools.html?view=anim`) |
-| M3-3 | Edytor: oś czasu, dodawanie i usuwanie klatek kluczowych, odtwarzanie | 2 | Klip walk z prototypu daje się odtworzyć od zera w edytorze |gotowe; test odtwarza każdy klip rigu od zera operacjami edytora |
-| M3-4 | Edytor: znaczniki, eksport i import JSON klipu | 1 | Eksportowany klip przechodzi `validate-content` bez ręcznych poprawek |gotowe; panel pokazuje wynik walidacji treści na żywo |
-| M3-5 | Druga skórka placeholder na tym samym rigu | 1 | Dwie formy jednej linii różnią się wyglądem, dzieląc klipy | — |
+| M3-2 | Edytor: podgląd postaci, wybór rigu, skórki i klipu, suwaki kątów | 1,5 | Zmiana suwaka widoczna natychmiast na postaci | gotowe (`/tools.html?view=anim`) |
+| M3-3 | Edytor: oś czasu, dodawanie i usuwanie klatek kluczowych, odtwarzanie | 2 | Klip walk z prototypu daje się odtworzyć od zera w edytorze | gotowe; test odtwarza każdy klip rigu od zera operacjami edytora |
+| M3-4 | Edytor: znaczniki, eksport i import JSON klipu | 1 | Eksportowany klip przechodzi `validate-content` bez ręcznych poprawek | gotowe; panel pokazuje wynik walidacji treści na żywo |
+| M3-5 | Druga skórka placeholder na tym samym rigu | 1 | Dwie formy jednej linii różnią się wyglądem, dzieląc klipy | gotowe; formy B mają inną sylwetkę (grzebień, pióro, broń), nie tylko kolory |
 
 ## M4 – Pętla gry (ok. 14 dni)
 

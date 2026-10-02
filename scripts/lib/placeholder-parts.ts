@@ -56,6 +56,11 @@ export interface Skin {
   readonly palette: Palette;
   readonly head: 'helm' | 'hood';
   readonly weapon: 'sword' | 'bow';
+  /**
+   * Forma po ewolucji: te same części i pivoty (wspólny rig i klipy), ale inna sylwetka,
+   * nie tylko kolory: pióropusz albo pióro, emblemat, zdobiona broń, mankiety na kończynach.
+   */
+  readonly evolved?: boolean;
 }
 
 export const SKINS: readonly Skin[] = [
@@ -69,6 +74,7 @@ export const SKINS: readonly Skin[] = [
     id: 'swordsman_b',
     head: 'helm',
     weapon: 'sword',
+    evolved: true,
     palette: { main: '#c2a04b', dark: '#55431a', accent: '#f6efd6' },
   },
   {
@@ -81,6 +87,7 @@ export const SKINS: readonly Skin[] = [
     id: 'archer_b',
     head: 'hood',
     weapon: 'bow',
+    evolved: true,
     palette: { main: '#3f8483', dark: '#193a3a', accent: '#e8c76e' },
   },
   {
@@ -127,7 +134,7 @@ function limb(part: PartSpec, palette: Palette, cuff: boolean): Image {
   return image;
 }
 
-function torso(palette: Palette): Image {
+function torso(palette: Palette, evolved: boolean): Image {
   const part = PARTS.torso;
   const image = blank(part);
   const shape = box(10, 14, 9.6, 13.6, 5);
@@ -137,10 +144,17 @@ function torso(palette: Palette): Image {
   fill(image, below(inset(shape, OUTLINE * P), 20.5 * P), hex(palette.dark, 0.85));
   fill(image, below(inset(shape, OUTLINE * P), 23.5 * P), hex(palette.main));
   fill(image, box(12.5, 22, 1.4, 1.4, 0.5), hex(palette.accent));
+  if (evolved) {
+    // Naramiennik i emblemat na piersi.
+    fill(image, line(5.5, 2.4, 14.5, 2.4, 1), hex(palette.accent));
+    fill(image, dot(11.5, 11, 3), hex(palette.dark));
+    fill(image, dot(11.5, 11, 2.2), hex(palette.accent));
+    fill(image, dot(11.5, 11, 1), hex(palette.main));
+  }
   return image;
 }
 
-function helm(palette: Palette): Image {
+function helm(palette: Palette, evolved: boolean): Image {
   const image = blank(PARTS.helm);
   outlined(image, box(11, 12, 9.6, 9.6, 8), STEEL, STEEL_DARK);
   // Wizjer po stronie, w którą postać patrzy (w prawo).
@@ -149,10 +163,18 @@ function helm(palette: Palette): Image {
   // Pióropusz w kolorze skórki.
   fill(image, line(7, 2.6, 15, 2.2, 1.6), hex(palette.dark));
   fill(image, line(7, 2.6, 15, 2.2, 1), hex(palette.main));
+  if (evolved) {
+    // Wysoki grzebień opadający na tył hełmu i opaska nad wizjerem.
+    fill(image, line(14, 1.8, 3, 3.4, 2.1), hex(palette.dark));
+    fill(image, line(3, 3.4, 1.9, 10, 1.7), hex(palette.dark));
+    fill(image, line(14, 1.8, 3, 3.4, 1.4), hex(palette.accent));
+    fill(image, line(3, 3.4, 1.9, 10, 1), hex(palette.accent));
+    fill(image, line(11, 9.2, 19.4, 9.2, 0.7), hex(palette.main));
+  }
   return image;
 }
 
-function hood(palette: Palette): Image {
+function hood(palette: Palette, evolved: boolean): Image {
   const image = blank(PARTS.hood);
   outlined(image, box(11, 12, 9.8, 9.8, 9), palette.main, palette.dark);
   // Twarz w wycięciu kaptura, zwrócona w prawo.
@@ -160,10 +182,16 @@ function hood(palette: Palette): Image {
   fill(image, dot(14.4, 13.2, 4.8), hex(SKIN_TONE));
   fill(image, dot(16.4, 12.4, 0.8), hex('#1b1f27'));
   fill(image, line(4, 6, 12, 3.4, 0.9), hex(palette.accent, 0.8));
+  if (evolved) {
+    // Pióro zatknięte z tyłu kaptura.
+    fill(image, line(7, 5.5, 1.6, 1.4, 1.5), hex(palette.dark));
+    fill(image, line(7, 5.5, 1.6, 1.4, 0.9), hex(palette.accent));
+    fill(image, line(7, 5.5, 2.4, 2, 0.25), hex(palette.dark));
+  }
   return image;
 }
 
-function sword(palette: Palette): Image {
+function sword(palette: Palette, evolved: boolean): Image {
   const image = blank(PARTS.sword);
   // Klinga biegnie w dół od jelca; pivot jest na rękojeści.
   fill(image, line(4, 10, 4, 34, 1.9), hex(STEEL_DARK));
@@ -174,10 +202,18 @@ function sword(palette: Palette): Image {
   fill(image, dot(4, 1.8, 1.5), hex(palette.accent));
   fill(image, line(0.9, 8.6, 7.1, 8.6, 1.1), hex(palette.dark));
   fill(image, line(1.2, 8.6, 6.8, 8.6, 0.55), hex(palette.accent));
+  if (evolved) {
+    // Szersza klinga ze zbroczem w kolorze skórki i masywny jelec.
+    fill(image, line(4, 11, 4, 31, 2.6), hex(STEEL_DARK));
+    fill(image, line(4, 11, 4, 30.6, 1.95), hex(STEEL));
+    fill(image, line(4, 12.5, 4, 27, 0.55), hex(palette.main));
+    fill(image, line(0.9, 8.6, 7.1, 8.6, 1.5), hex(palette.dark));
+    fill(image, line(1.2, 8.6, 6.8, 8.6, 0.9), hex(palette.accent));
+  }
   return image;
 }
 
-function bow(palette: Palette): Image {
+function bow(palette: Palette, evolved: boolean): Image {
   const image = blank(PARTS.bow);
   // Łęczysko: krzywa od końca (1,5; 1,5) przez brzusiec przy pivocie do (34,5; 1,5).
   // Końce odpowiadają punktom zaczepienia cięciwy z załącznika A.
@@ -202,6 +238,14 @@ function bow(palette: Palette): Image {
   // Owijka na majdanie.
   fill(image, line(16, 9, 20, 9, 1.3), hex(palette.dark));
   fill(image, line(16.4, 9, 19.6, 9, 0.7), hex(palette.accent));
+  if (evolved) {
+    // Okucia na końcach łęczyska i szersza owijka.
+    for (const x of [2.2, 33.8]) {
+      fill(image, dot(x, 2.1, 1.7), hex(palette.dark));
+      fill(image, dot(x, 2.1, 1.1), hex(palette.accent));
+    }
+    fill(image, line(13.5, 8.2, 22.5, 8.2, 0.6), hex(palette.accent));
+  }
   return image;
 }
 
@@ -277,16 +321,21 @@ export function placeholderSprites(): PlaceholderSprite[] {
     const add = (slot: string, part: PartSpec, image: Image): void => {
       sprites.push({ name: `${skin.id}/${slot}`, part, image });
     };
-    add('thigh', PARTS.thigh, limb(PARTS.thigh, skin.palette, false));
+    const evolved = skin.evolved === true;
+    add('thigh', PARTS.thigh, limb(PARTS.thigh, skin.palette, evolved));
     add('shin', PARTS.shin, limb(PARTS.shin, skin.palette, true));
-    add('torso', PARTS.torso, torso(skin.palette));
-    add('upper', PARTS.upper, limb(PARTS.upper, skin.palette, false));
+    add('torso', PARTS.torso, torso(skin.palette, evolved));
+    add('upper', PARTS.upper, limb(PARTS.upper, skin.palette, evolved));
     add('fore', PARTS.fore, limb(PARTS.fore, skin.palette, true));
-    add('head', PARTS[skin.head], skin.head === 'helm' ? helm(skin.palette) : hood(skin.palette));
+    add(
+      'head',
+      PARTS[skin.head],
+      skin.head === 'helm' ? helm(skin.palette, evolved) : hood(skin.palette, evolved),
+    );
     add(
       'weapon',
       PARTS[skin.weapon],
-      skin.weapon === 'sword' ? sword(skin.palette) : bow(skin.palette),
+      skin.weapon === 'sword' ? sword(skin.palette, evolved) : bow(skin.palette, evolved),
     );
   }
   sprites.push({ name: 'fx/arrow', part: PARTS.arrow, image: arrow() });
