@@ -258,6 +258,7 @@ Ranga oczekiwana to najniższa ranga obu bohaterów składu referencyjnego (Miec
 ## 8. Prezentacja
 
 - Widok z boku, animacja wycinankowa (cutout). Grafika gładka, rysowana w 2× rozdzielczości logicznej 1280×720.
+- **Scena jest płaska, bez perspektywy** (decyzja autora z 2026-10-02): wszystkie postacie stoją i chodzą dokładnie po linii podłogi, na jednej wysokości. Sloty w interfejsie leżą w jednym rzędzie.
 - Każda postać ma animacje: idle, chód, atak, błysk przy trafieniu, śmierć (obrót wokół stóp i zanikanie).
 - Liczby obrażeń i leczenia unoszą się nad postacią i zanikają.
 - Desktop jest platformą główną (mysz, duży ekran). Telefon w poziomie ma działać, bez gwarancji wygody.
