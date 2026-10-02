@@ -1,0 +1,89 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`walki golden > archer-vs-melee 1`] = `
+{
+  "eventHash": "a4404338",
+  "finalHp": "-10 0 0 0 0 30 0 0 0 0",
+  "outcome": "loss",
+  "reason": "eliminated",
+  "stateHash": "4961825e",
+  "ticks": 332,
+}
+`;
+
+exports[`walki golden > archers-focus 1`] = `
+{
+  "eventHash": "54897b56",
+  "finalHp": "205 315 350 350 350 -10 -10 0 0 0",
+  "outcome": "win",
+  "reason": "eliminated",
+  "stateHash": "0753fe31",
+  "ticks": 279,
+}
+`;
+
+exports[`walki golden > duel-melee 1`] = `
+{
+  "eventHash": "8abbf8e1",
+  "finalHp": "120 0 0 0 0 -30 0 0 0 0",
+  "outcome": "win",
+  "reason": "eliminated",
+  "stateHash": "5f4d6e5f",
+  "ticks": 380,
+}
+`;
+
+exports[`walki golden > full-5v5 1`] = `
+{
+  "eventHash": "47c9136b",
+  "finalHp": "0 -10 0 -30 0 -20 30 -20 350 350",
+  "outcome": "loss",
+  "reason": "eliminated",
+  "stateHash": "11ef2f5d",
+  "ticks": 888,
+}
+`;
+
+exports[`walki golden > knockback-brawl 1`] = `
+{
+  "eventHash": "f21feac2",
+  "finalHp": "0 -5 20 0 0 -10 -30 -10 0 0",
+  "outcome": "win",
+  "reason": "eliminated",
+  "stateHash": "4654673a",
+  "ticks": 1121,
+}
+`;
+
+exports[`walki golden > mutual-kill 1`] = `
+{
+  "eventHash": "1e6d0149",
+  "finalHp": "0 0 0 0 0 0 0 0 0 0",
+  "outcome": "loss",
+  "reason": "mutual",
+  "stateHash": "182e91cd",
+  "ticks": 37,
+}
+`;
+
+exports[`walki golden > stalemate 1`] = `
+{
+  "eventHash": "c9d682ff",
+  "finalHp": "600 0 0 0 0 600 0 0 0 0",
+  "outcome": "loss",
+  "reason": "timeout",
+  "stateHash": "2ce0465e",
+  "ticks": 300,
+}
+`;
+
+exports[`walki golden > uneven-speeds 1`] = `
+{
+  "eventHash": "bb5f5e97",
+  "finalHp": "-10 -10 -20 0 0 40 350 200 0 0",
+  "outcome": "loss",
+  "reason": "eliminated",
+  "stateHash": "b911dad3",
+  "ticks": 528,
+}
+`;

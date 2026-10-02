@@ -40,7 +40,7 @@ Cel: pełna logika walki w Node, z treścią testową, testami golden i raportem
 | M1-5 | Pociski fizyczne: wystrzał, test trafienia względnego, pierwszy na drodze, wygaśnięcie | 1,5 | Testy: cel ginie w locie, wróg idący naprzeciw nie przeskakuje pocisku, remis pozycji | gotowe |
 | M1-6 | Odrzut: statystyka `knockback`, kolejka odrzutu, przesunięcie w rozstrzygnięciu, odrzut z pocisków | 1 | Testy: różnica statystyk i brak ruchu przy równych, suma kilku trafień w ticku, przycięcie do krawędzi pola, zamach odrzuconego trwa i trafia, wzajemne trafienie w tym samym ticku | gotowe |
 | M1-7 | Zdarzenia i wynik: bufor zdarzeń, `drainEvents`, `BattleResult`, `runBattleToEnd` | 1 | Test: pełny log zdarzeń walki 1 na 1 zgodny z oczekiwanym | gotowe |
-| M1-8 | Testy golden: `tests/golden/`, `pnpm test:golden`, opis procedury aktualizacji | 1 | Co najmniej 6 ustalonych walk; zmiana jednej statystyki zmienia hash | — |
+| M1-8 | Testy golden: `tests/golden/`, `pnpm test:golden`, opis procedury aktualizacji | 1 | Co najmniej 6 ustalonych walk; zmiana jednej statystyki zmienia hash | gotowe |
 | M1-9 | Runner i pomiary: `scripts/run-battle.ts`, benchmark, próg pokrycia `sim` | 0,5 | > 2000 walk/s w Node, tick < 0,2 ms, pokrycie `sim` > 90% | — |
 | M1-10 | Cechy pasywne, część 1: pola cech w `UnitSpec`, schemat `traits`, `periodicHeal` (self i team), zdarzenie `Healed` | 1,5 | Testy: leczenie ratuje przed śmiercią w tym samym ticku, przycięcie do `maxHp`, martwy nie jest leczony; nowe hashe golden opisane w commicie | — |
 | M1-11 | Cechy pasywne, część 2: `pierce` | 1 | Testy: każdy wróg trafiony najwyżej raz i każdy odrzucony; walidator odrzuca `pierce` u melee | — |
