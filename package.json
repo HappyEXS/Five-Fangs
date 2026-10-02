@@ -1,0 +1,33 @@
+{
+  "name": "five-fangs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "packageManager": "pnpm@12.8.1+sha512.f64ba907507f5ceafe06c8d38e6052d0179444580ec1279ddd5bfc11cb48aa8a2644b66598e07e761da84872a9fc57d5f902b87fa49d024198d558612aabbe45",
+  "dependencies": {
+    "@preact/signals": "^2.11.3",
+    "preact": "^11.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^24.19.0",
+    "@vitest/coverage-v8": "^5.0.3",
+    "dependency-cruiser": "^18.5.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.3"
+  }
+}

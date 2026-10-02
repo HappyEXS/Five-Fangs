@@ -1,0 +1,16 @@
+# Lokalne środowisko deweloperskie (ADR 0011).
+# Build produkcyjny na Render i CI w GitHub Actions nie używają Dockera.
+FROM node:24-bookworm-slim
+
+# git: skrót commita do version.json. Repozytorium jest montowane z hosta,
+# więc bez safe.directory git odmawia pracy z powodu innego właściciela plików.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory /app
+
+# Wersję pnpm wyznacza pole packageManager w package.json; Corepack pobiera ją przy pierwszym użyciu.
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable
+
+WORKDIR /app

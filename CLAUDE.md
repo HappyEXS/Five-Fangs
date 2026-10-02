@@ -25,6 +25,16 @@ pnpm deps:check        # weryfikacja granic modułów
 pnpm check:size        # budżety rozmiaru dist/ (gzip/brotli) – uruchamiać po build
 ```
 
+Lokalnie wszystkie komendy działają w kontenerze Docker (ADR 0011); zależności nie instalujemy na hoście:
+
+```bash
+docker compose up -d dev                 # serwer deweloperski na http://localhost:5173
+docker compose exec dev pnpm <komenda>   # dowolna komenda z listy powyżej
+docker compose run --rm dev pnpm <komenda>   # to samo, gdy kontener nie działa
+```
+
+Git działa na hoście. CI i build na Render nie używają Dockera.
+
 Przed uznaniem zadania za skończone: `pnpm typecheck && pnpm lint && pnpm test && pnpm validate-content`.
 Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo `pnpm build && pnpm check:size`.
 

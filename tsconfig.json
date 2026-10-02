@@ -1,0 +1,35 @@
+{
+  // Kod przeglądarkowy: całe src/ oraz testy. Kod bez DOM sprawdza dodatkowo tsconfig.node.json.
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": ["vite/client"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedSideEffectImports": true,
+
+    // Skrypty uruchamia bezpośrednio Node, więc składnia musi dać się usunąć bez transpilacji,
+    // a importy względne mają jawne rozszerzenie .ts.
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "tests"]
+}
