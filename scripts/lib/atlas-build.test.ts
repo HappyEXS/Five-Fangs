@@ -112,7 +112,10 @@ describe('atlas placeholder', () => {
       }
     }
     expect(names).toContain('fx/arrow');
-    expect(names).toHaveLength(SKINS.length * 7 + 1);
+    expect(names).toContain('fx/dmg_0');
+    expect(names).toContain('fx/heal_plus');
+    // Części skórek, strzała i dwa zestawy po jedenaście znaków.
+    expect(names).toHaveLength(SKINS.length * 7 + 1 + 22);
   });
 
   it('każdy sprite ma rozmiar części w pikselach atlasu i nie jest pusty', () => {

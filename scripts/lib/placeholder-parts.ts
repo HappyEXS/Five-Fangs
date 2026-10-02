@@ -215,6 +215,44 @@ function arrow(): Image {
   return image;
 }
 
+/** Cyfry i plus dla liczb obrażeń i leczenia: font 5×7, wiersze od góry. */
+const GLYPHS: Readonly<Record<string, readonly string[]>> = {
+  '0': ['01110', '10001', '10011', '10101', '11001', '10001', '01110'],
+  '1': ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
+  '2': ['01110', '10001', '00001', '00010', '00100', '01000', '11111'],
+  '3': ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
+  '4': ['00010', '00110', '01010', '10010', '11111', '00010', '00010'],
+  '5': ['11111', '10000', '11110', '00001', '00001', '10001', '01110'],
+  '6': ['00110', '01000', '10000', '11110', '10001', '10001', '01110'],
+  '7': ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
+  '8': ['01110', '10001', '10001', '01110', '10001', '10001', '01110'],
+  '9': ['01110', '10001', '10001', '01111', '00001', '00010', '01100'],
+  plus: ['00000', '00100', '00100', '11111', '00100', '00100', '00000'],
+};
+
+/** Znak: komórka fontu to 1 jednostka rigu, plus margines 1 na obrys. */
+export const GLYPH: PartSpec = { width: 7, height: 9, pivotX: 3.5, pivotY: 4.5 };
+
+function glyph(rows: readonly string[], color: string, outline: string): Image {
+  const image = blank(GLYPH);
+  const cells: Shape[] = [];
+  rows.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      if (row[x] === '1') cells.push(box(1.5 + x, 1.5 + y, 0.5, 0.5, 0.12));
+    }
+  });
+  const shape = union(...cells);
+  fill(image, inset(shape, -0.75 * P), hex(outline));
+  fill(image, shape, hex(color));
+  return image;
+}
+
+/** Zestawy znaków: `fx/<zestaw>_<znak>`. */
+const GLYPH_SETS = [
+  { id: 'dmg', color: '#fff1c2', outline: '#3d1d10' },
+  { id: 'heal', color: '#a6f08f', outline: '#12381a' },
+] as const;
+
 export interface PlaceholderSprite {
   /** Nazwa w atlasie: `<skórka>/<kość lub slot>` albo `fx/<nazwa>`. */
   readonly name: string;
@@ -242,5 +280,14 @@ export function placeholderSprites(): PlaceholderSprite[] {
     );
   }
   sprites.push({ name: 'fx/arrow', part: PARTS.arrow, image: arrow() });
+  for (const set of GLYPH_SETS) {
+    for (const [name, rows] of Object.entries(GLYPHS)) {
+      sprites.push({
+        name: `fx/${set.id}_${name}`,
+        part: GLYPH,
+        image: glyph(rows, set.color, set.outline),
+      });
+    }
+  }
   return sprites;
 }

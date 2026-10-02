@@ -59,7 +59,7 @@ Cel: walka widoczna na ekranie, port prototypu na docelową architekturę, piask
 | M2-4 | Klipy: schemat, kompilacja, próbkowanie smoothstep, znaczniki; port idle, walk, slash, shoot | 1,5 | Walidator sprawdza zgodność znacznika `hit` z `hitFraction` | gotowe |
 | M2-5 | Sterowanie animacją ze stanu sim: mapowanie stanów, postęp ataku z sim, faza chodu z dystansu, blend pozy, śmierć | 1,5 | Trafienie w animacji wypada w ticku trafienia z sim przy każdej prędkości | gotowe |
 | M2-6 | Pociski i elementy dynamiczne: pula sprite'ów pocisków, cięciwa łuku | 1 | Strzała widoczna od wystrzału do trafienia lub krawędzi pola | gotowe |
-| M2-7 | Efekty: błysk trafienia, liczby obrażeń i leczenia z puli, płynne pokazanie odrzutu | 1 | Każde zdarzenie `Damaged`, `Healed` i `KnockedBack` ma efekt; brak alokacji | — |
+| M2-7 | Efekty: błysk trafienia, liczby obrażeń i leczenia z puli, płynne pokazanie odrzutu | 1 | Każde zdarzenie `Damaged`, `Healed` i `KnockedBack` ma efekt; brak alokacji | gotowe; pomiar alokacji w M2-10 |
 | M2-8 | Debug: pivoty i ramki, zasięgi i cele, overlay wydajności, krokowanie | 1 | Przełączane klawiszami w dev; brak w `dist/` | — |
 | M2-9 | Piaskownica walki: `tools.html`, dowolne składy, krokowanie, prędkość | 1,5 | Dowolna walka z testów golden daje się obejrzeć w piaskownicy | — |
 | M2-10 | Pomiar wydajności i zapis wyników | 0,5 | Render klatki < 4 ms na desktopie przy 10 jednostkach; 0 alokacji w stanie ustalonym; liczby zapisane w ARCHITECTURE.md | — |

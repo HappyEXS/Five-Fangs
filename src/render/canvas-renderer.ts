@@ -2,8 +2,11 @@
 // tablic, domknięć ani napisów tworzonych co klatkę. Wszystkie bufory powstają raz.
 import type { UnitVisual } from '../content/compile.ts';
 import type { RawRig } from '../content/schema-rig.ts';
+import { createRng, nextRange } from '../core/rng.ts';
 import {
   type Battle,
+  EVENT_DAMAGED,
+  EVENT_HEALED,
   type EventBuffer,
   isAlive,
   MAX_PROJECTILES,
@@ -25,6 +28,18 @@ import {
 import { type Atlas, type Sprite, VARIANT_DARK, VARIANT_NORMAL, VARIANT_WHITE } from './atlas.ts';
 import { drawBackground } from './background.ts';
 import { type Camera, createCamera, fitCamera, GROUND_Y } from './camera.ts';
+import {
+  clearFloatTexts,
+  createFloatTexts,
+  digitAt,
+  digitCount,
+  FLOAT_KIND_DAMAGE,
+  FLOAT_KIND_HEAL,
+  FLOAT_LIFE_MS,
+  FLOAT_RISE,
+  spawnFloatText,
+  updateFloatTexts,
+} from './float-text.ts';
 import type { Renderer } from './renderer.ts';
 import {
   type CompiledRig,
@@ -37,6 +52,9 @@ import {
 import type { Viewport } from './viewport.ts';
 
 const STRING_COLOR = '#e9e2cf';
+/** Skala cyfr liczb nad jednostkami i odstęp między nimi, w jednostkach logicznych sceny. */
+const NUMBER_SCALE = 2;
+const NUMBER_ADVANCE = 11;
 const HP_BACK = '#11151c';
 const HP_PLAYER = '#7fd36b';
 const HP_ENEMY = '#e0705c';
@@ -86,6 +104,80 @@ export function createCanvasRenderer(
   const boneSprites: (Sprite | null)[] = new Array(MAX_UNITS * maxBones).fill(null);
   const projectileSprites: (Sprite | null)[] = new Array(MAX_UNITS).fill(null);
   let battle: Battle | null = null;
+
+  // Liczby obrażeń i leczenia: cyfry z atlasu, rozrzut poziomy z RNG kosmetycznego.
+  const floatTexts = createFloatTexts();
+  const jitter = createRng(1);
+  const digitSprites: (Sprite | null)[] = [];
+  for (const set of ['dmg', 'heal']) {
+    for (let digit = 0; digit <= 9; digit++) {
+      digitSprites.push(atlas.sprites.get(`fx/${set}_${digit}`) ?? null);
+    }
+  }
+  const plusSprite = atlas.sprites.get('fx/heal_plus') ?? null;
+
+  /** Dodaje liczbę nad głową jednostki; pozycja ze stanu po ostatnim ticku. */
+  function spawnNumber(current: Battle, unit: number, value: number, kind: number): void {
+    const look = looks[unit];
+    if (look === null || look === undefined) return;
+    const facing = unit < TEAM_SIZE ? 1 : -1;
+    const slot = unit < TEAM_SIZE ? unit : unit - TEAM_SIZE;
+    const x = (current.state.x[unit] ?? 0) * camera.scale - facing * slot * LANE_SHIFT;
+    const head =
+      GROUND_Y + LANE_FRONT - slot * LANE_STEP - (look.rig.hipHeight + UPPER_BODY) * look.scale;
+    spawnFloatText(floatTexts, x + nextRange(jitter, -10, 10), head - 20, value, kind);
+  }
+
+  function drawGlyph(
+    image: CanvasImageSource,
+    sprite: Sprite | null | undefined,
+    s: number,
+    x: number,
+    y: number,
+  ): void {
+    if (sprite === null || sprite === undefined) return;
+    const scale = NUMBER_SCALE * s;
+    ctx.setTransform(scale, 0, 0, scale, x * s, y * s);
+    ctx.drawImage(
+      image,
+      sprite.sx,
+      sprite.sy,
+      sprite.sw,
+      sprite.sh,
+      -sprite.pivotX,
+      -sprite.pivotY,
+      sprite.width,
+      sprite.height,
+    );
+  }
+
+  function drawNumbers(viewport: Viewport): void {
+    const image = atlas.images[VARIANT_NORMAL];
+    if (image === undefined) return;
+    for (let i = 0; i < floatTexts.count; i++) {
+      const text = floatTexts.items[i];
+      if (text === undefined) continue;
+      const progress = text.ageMs / FLOAT_LIFE_MS;
+      // Szybki start, łagodne wyhamowanie; zanikanie dopiero pod koniec.
+      const y = text.y - FLOAT_RISE * (1 - (1 - progress) * (1 - progress));
+      ctx.globalAlpha = progress < 0.6 ? 1 : 1 - (progress - 0.6) / 0.4;
+
+      const heal = text.kind === FLOAT_KIND_HEAL;
+      const digits = digitCount(text.value);
+      const glyphs = heal ? digits + 1 : digits;
+      let x = text.x - ((glyphs - 1) * NUMBER_ADVANCE) / 2;
+      if (heal) {
+        drawGlyph(image, plusSprite, viewport.scale, x, y);
+        x += NUMBER_ADVANCE;
+      }
+      for (let d = 0; d < digits; d++) {
+        const sprite = digitSprites[(heal ? 10 : 0) + digitAt(text.value, digits, d)];
+        drawGlyph(image, sprite, viewport.scale, x, y);
+        x += NUMBER_ADVANCE;
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
 
   function resolveLook(visual: UnitVisual): UnitLook {
     const rig = rigs.get(visual.rig);
@@ -329,6 +421,7 @@ export function createCanvasRenderer(
       battle = next;
       fitCamera(camera, next.width);
       resetAnimator(animator);
+      clearFloatTexts(floatTexts);
       boneSprites.fill(null);
       for (let unit = 0; unit < MAX_UNITS; unit++) {
         const visual = visuals[unit] ?? null;
@@ -350,16 +443,29 @@ export function createCanvasRenderer(
     },
     consume(events: EventBuffer): void {
       animatorOnEvents(animator, events);
+      if (battle === null) return;
+      for (let i = 0; i < events.count; i++) {
+        const type = events.type[i];
+        const value = events.b[i] ?? 0;
+        if (value <= 0) continue;
+        if (type === EVENT_DAMAGED) {
+          spawnNumber(battle, events.a[i] ?? 0, value, FLOAT_KIND_DAMAGE);
+        } else if (type === EVENT_HEALED) {
+          spawnNumber(battle, events.a[i] ?? 0, value, FLOAT_KIND_HEAL);
+        }
+      }
     },
     draw(viewport: Viewport, alpha: number, frameMs: number): void {
       drawBackground(ctx, viewport);
       if (battle === null) return;
+      updateFloatTexts(floatTexts, frameMs);
       // Od najdalszego slotu do najbliższego, żeby bliższe postacie zasłaniały dalsze.
       for (let slot = TEAM_SIZE - 1; slot >= 0; slot--) {
         drawUnit(battle, slot, viewport, alpha, frameMs);
         drawUnit(battle, TEAM_SIZE + slot, viewport, alpha, frameMs);
       }
       drawProjectiles(battle, viewport, alpha);
+      drawNumbers(viewport);
       ctx.setTransform(viewport.scale, 0, 0, viewport.scale, 0, 0);
     },
     endBattle(): void {

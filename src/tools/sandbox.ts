@@ -55,7 +55,11 @@ export async function startSandbox(
   const startTick = Number(new URLSearchParams(location.search).get('tick') ?? '0');
   if (Number.isInteger(startTick) && startTick > 0) {
     runner.loop.paused = true;
-    for (let i = 0; i < startTick; i++) runner.stepOnce();
+    // Klatka po każdym ticku, żeby animacje i efekty starzały się tak jak przy odtwarzaniu.
+    for (let i = 0; i < startTick; i++) {
+      runner.stepOnce();
+      runner.frame(viewport, 0);
+    }
   }
 
   const status = document.createElement('pre');
