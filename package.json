@@ -21,6 +21,7 @@
     "bench": "node --expose-gc scripts/bench-sim.ts",
     "battle": "node scripts/run-battle.ts",
     "balance": "node scripts/balance.ts",
+    "atlas:placeholder": "node scripts/atlas-placeholder.ts",
     "deps:check": "node scripts/check-deps.ts",
     "check:size": "node scripts/check-size.ts",
     "check:dist": "node scripts/check-dist.ts",

@@ -54,7 +54,7 @@ Cel: walka widoczna na ekranie, port prototypu na docelową architekturę, piask
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
 | M2-1 | Szkielet renderera: interfejs `Renderer`, integracja z pętlą, interpolacja, jednostki jako prostokąty | 1 | Walka z M1 odtwarza się płynnie przy x1/x2/x4 | gotowe |
-| M2-2 | Generator części placeholder i ładowanie atlasu; warianty ciemny i biała sylwetka | 1,5 | Atlas ładowany przez import Vite; warianty generowane raz przy ładowaniu | — |
+| M2-2 | Generator części placeholder i ładowanie atlasu; warianty ciemny i biała sylwetka | 1,5 | Atlas ładowany przez import Vite; warianty generowane raz przy ładowaniu | gotowe |
 | M2-3 | Rig: schemat, kompilacja kości, macierze w `Float32Array`, kolejność rysowania, odbicie dla przeciwnika, skórki | 1,5 | Postać w pozie spoczynkowej zgodna z prototypem; profiler nie pokazuje alokacji | — |
 | M2-4 | Klipy: schemat, kompilacja, próbkowanie smoothstep, znaczniki; port idle, walk, slash, shoot | 1,5 | Walidator sprawdza zgodność znacznika `hit` z `hitFraction` | — |
 | M2-5 | Sterowanie animacją ze stanu sim: mapowanie stanów, postęp ataku z sim, faza chodu z dystansu, blend pozy, śmierć | 1,5 | Trafienie w animacji wypada w ticku trafienia z sim przy każdej prędkości | — |
