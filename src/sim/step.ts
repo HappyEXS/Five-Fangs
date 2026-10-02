@@ -5,6 +5,7 @@ import { decide } from './decide.ts';
 import { clearEvents } from './events.ts';
 import { hashEvents } from './hash.ts';
 import { move } from './move.ts';
+import { moveProjectiles } from './projectiles.ts';
 import { finish, resolve } from './resolve.ts';
 import { OUTCOME_IN_PROGRESS } from './types.ts';
 
@@ -23,6 +24,7 @@ export function stepBattle(battle: Battle): void {
   decide(battle);
   move(battle);
   progressAttacks(battle);
+  moveProjectiles(battle);
   resolve(battle);
   finish(battle);
   battle.eventHash = hashEvents(battle.eventHash, battle.events);

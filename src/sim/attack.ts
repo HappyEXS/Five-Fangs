@@ -1,21 +1,16 @@
-// Faza 3: postęp zamachów. W ticku trafienia cios wręcz dopisuje obrażenia do kolejki.
+// Faza 3: postęp zamachów. W ticku trafienia cios wręcz dopisuje obrażenia do kolejki,
+// a strzelec wypuszcza pocisk.
 //
 // Oś czasu ataku rozpoczętego w ticku T (ADR 0008):
 //   T               decyzja o ataku, swingTick = 0
-//   T + hitTick     trafienie
+//   T + hitTick     trafienie albo wystrzał
 //   T + swingTicks  faza decyzji zwalnia jednostkę
 import type { Battle } from './battle.ts';
 import { isAlive } from './decide.ts';
-import { EVENT_ATTACK_HIT, EVENT_DAMAGED, pushEvent } from './events.ts';
+import { EVENT_ATTACK_HIT, pushEvent } from './events.ts';
+import { queueHit } from './hits.ts';
+import { spawnProjectile } from './projectiles.ts';
 import { MAX_UNITS, STATUS_ATTACKING } from './types.ts';
-
-/** Dopisuje trafienie do kolejki; HP zmieni dopiero faza rozstrzygnięcia. */
-export function queueHit(battle: Battle, source: number, target: number, damage: number): void {
-  const { state, pending } = battle;
-  pending.damage[target] = (pending.damage[target] ?? 0) + damage;
-  state.damageDealt[source] = (state.damageDealt[source] ?? 0) + damage;
-  pushEvent(battle.events, EVENT_DAMAGED, target, damage, source);
-}
 
 function meleeHit(battle: Battle, unitId: number): void {
   const { state, specs } = battle;
@@ -31,7 +26,11 @@ export function progressAttacks(battle: Battle): void {
   for (let i = 0; i < MAX_UNITS; i++) {
     if (state.status[i] !== STATUS_ATTACKING) continue;
     const swingTick = state.swingTick[i] ?? 0;
-    if (swingTick === (specs.hitTick[i] ?? 0)) meleeHit(battle, i);
+    if (swingTick === (specs.hitTick[i] ?? 0)) {
+      // Strzelec wypuszcza pocisk także wtedy, gdy cel już nie żyje: pocisk i tak leci po linii.
+      if ((specs.projectileStep[i] ?? 0) === 0) meleeHit(battle, i);
+      else spawnProjectile(battle, i);
+    }
     state.swingTick[i] = swingTick + 1;
   }
 }
