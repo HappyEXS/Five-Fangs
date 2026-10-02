@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { type BuildVersion, createBuildVersion } from './scripts/lib/build-version.ts';
+import { parseHeadersFile } from './scripts/lib/render-config.ts';
 
 // W kontenerze deweloperskim zdarzenia systemu plików z Windows nie docierają do Linuksa,
 // więc obserwowanie zmian musi odpytywać dysk (compose.yaml ustawia FF_WATCH_POLLING).
@@ -30,6 +31,14 @@ function readGitHead(): string | null {
 
 const buildVersion = createBuildVersion(readPackageVersion(), process.env, readGitHead, new Date());
 
+// Podgląd builda wysyła te same nagłówki bezpieczeństwa co hosting, żeby naruszenia CSP
+// wychodziły lokalnie i w testach end-to-end, a nie dopiero po deployu.
+const securityHeaders = Object.fromEntries(
+  parseHeadersFile(readFileSync(new URL('./public/_headers', import.meta.url), 'utf8'))
+    .filter((rule) => rule.path === '/*')
+    .map((rule) => [rule.name, rule.value]),
+);
+
 /** Zapisuje dist/version.json; gra porównuje go ze swoją wersją, żeby wykryć nowy deploy. */
 function versionJson(build: BuildVersion): Plugin {
   return {
@@ -48,6 +57,9 @@ function versionJson(build: BuildVersion): Plugin {
 export default defineConfig({
   // Ścieżki względne: build działa pod dowolnym adresem (docs/DEPLOY.md).
   base: './',
+  // Gra nie ma routingu po ścieżkach, więc brakujący plik ma dać 404, a nie index.html,
+  // tak samo lokalnie jak na hostingu.
+  appType: 'mpa',
   define: {
     __APP_VERSION__: JSON.stringify(buildVersion.version),
     __APP_COMMIT__: JSON.stringify(buildVersion.commit),
@@ -57,11 +69,13 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    watch: pollingWatch ? { usePolling: true, interval: 300 } : null,
+    // Bez odpytywania zostaje domyślne obserwowanie Vite (`watch: null` wyłączyłoby je całkiem).
+    ...(pollingWatch ? { watch: { usePolling: true, interval: 300 } } : {}),
   },
   preview: {
     port: 4173,
     strictPort: true,
+    headers: securityHeaders,
   },
   build: {
     target: 'es2022',
