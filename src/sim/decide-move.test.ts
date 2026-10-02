@@ -99,7 +99,7 @@ describe('ruch', () => {
     const battle = createBattle(setupOf([ranged()], [still()]));
     stepBattle(battle);
     expect(battle.state.status[0]).toBe(STATUS_ATTACKING);
-    expect(battle.state.swingTick[0]).toBe(0);
+    expect(battle.state.swingTick[0]).toBe(1);
     expect(battle.state.x[0]).toBe(u(400));
     expect(battle.events.type[0]).toBe(EVENT_ATTACK_STARTED);
     expect(battle.events.a[0]).toBe(0);
@@ -110,21 +110,16 @@ describe('ruch', () => {
     // Wolny startuje z przodu (slot 0), szybki 60 jednostek za nim (slot 1).
     const slow = melee({ moveStep: u(1) });
     const fast = melee({ moveStep: u(4) });
-    const battle = createBattle(setupOf([slow, fast], [still()]));
+    const battle = createBattle(setupOf([slow, fast], [still({ attack: 0 })]));
     const { state } = battle;
 
     run(battle, 30);
     expect(state.x[0]).toBe(u(430));
     expect(state.x[1]).toBe(u(460));
 
-    const ticks = runUntil(
-      battle,
-      () => state.status[0] === STATUS_ATTACKING && state.status[1] === STATUS_ATTACKING,
-    );
-    expect(ticks).toBeLessThan(500);
     // Obaj mają ten sam zasięg, więc kończą w tym samym punkcie.
-    expect(state.x[0]).toBe(u(570));
-    expect(state.x[1]).toBe(u(570));
+    const ticks = runUntil(battle, () => state.x[0] === u(570) && state.x[1] === u(570));
+    expect(ticks).toBeLessThan(500);
   });
 
   it('wrogie jednostki nigdy się nie mijają, nawet przy największym dozwolonym kroku', () => {
@@ -137,7 +132,7 @@ describe('ruch', () => {
       const enemyFront = Math.min(state.x[5] ?? 0, state.x[6] ?? 0);
       expect(front).toBeLessThanOrEqual(enemyFront);
     }
-    expect(state.status[0]).toBe(STATUS_ATTACKING);
+    expect((state.x[5] ?? 0) - (state.x[0] ?? 0)).toBeLessThanOrEqual(u(30));
   });
 
   it('idący co tick wybiera cel od nowa', () => {

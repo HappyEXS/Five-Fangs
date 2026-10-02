@@ -6,7 +6,15 @@ import {
   unitsPerSecondToStep,
   unitsToSubunits,
 } from '../core/units.ts';
-import { type ArenaSpec, type BattleSetup, TEAM_SIZE, type UnitSpec } from './types.ts';
+import type { Battle } from './battle.ts';
+import { stepBattle } from './step.ts';
+import {
+  type ArenaSpec,
+  type BattleSetup,
+  OUTCOME_IN_PROGRESS,
+  TEAM_SIZE,
+  type UnitSpec,
+} from './types.ts';
 
 /** Jednostki świata → podjednostki. */
 export const u = unitsToSubunits;
@@ -17,6 +25,37 @@ export const TEST_ARENA: ArenaSpec = {
   enemySlots: [600, 660, 720, 780, 840].map(u),
   timeLimitTicks: secondsToTicks(90),
 };
+
+/** Sloty frontowe 20 jednostek od siebie: jednostki wręcz mają się w zasięgu od pierwszego ticka. */
+export const CLOSE_SLOTS: Pick<ArenaSpec, 'playerSlots' | 'enemySlots'> = {
+  playerSlots: [500, 440, 380, 320, 260].map(u),
+  enemySlots: [520, 580, 640, 700, 760].map(u),
+};
+
+/** Wykonuje podaną liczbę ticków. */
+export function runTicks(battle: Battle, ticks: number): void {
+  for (let i = 0; i < ticks; i++) stepBattle(battle);
+}
+
+/** Wykonuje ticki do spełnienia warunku albo końca walki; zwraca liczbę wykonanych. */
+export function runUntil(battle: Battle, done: () => boolean, limit = 3000): number {
+  let ticks = 0;
+  while (!done() && battle.state.outcome === OUTCOME_IN_PROGRESS && ticks < limit) {
+    stepBattle(battle);
+    ticks++;
+  }
+  return ticks;
+}
+
+/** Zdarzenia ostatniego ticka jako krotki `[typ, a, b, c]`. */
+export function lastEvents(battle: Battle): number[][] {
+  const { events } = battle;
+  const out: number[][] = [];
+  for (let i = 0; i < events.count; i++) {
+    out.push([events.type[i] ?? 0, events.a[i] ?? 0, events.b[i] ?? 0, events.c[i] ?? 0]);
+  }
+  return out;
+}
 
 /** Wojownik wręcz: zamach 12 ticków z trafieniem w 6., atak co 30 ticków. */
 export function melee(overrides: Partial<UnitSpec> = {}): UnitSpec {
