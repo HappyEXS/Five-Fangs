@@ -32,7 +32,7 @@ tests/       golden, fixtures zapisów, testy wielomodułowe
 | `ui` | `game`, `core`, `content` |
 | `tools` | wszystko |
 
-Granice wymusza dependency-cruiser (`pnpm deps:check`) w CI.
+Granice wymusza własny skrypt `scripts/check-deps.ts` (`pnpm deps:check`) w CI. Sprawdza też dozwolone pakiety zewnętrzne per warstwa i zakazane API w `sim` (ADR 0012).
 
 ## 2. Przepływ danych
 
