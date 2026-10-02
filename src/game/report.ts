@@ -31,7 +31,7 @@ export function buildReport(input: ReportInput): string {
       Object.values(save.levels).filter((level) => level.cleared).length
     }`,
     `squad: ${JSON.stringify(save.squad)}`,
-    `lines: ${JSON.stringify(save.lines)}`,
+    `heroes: ${JSON.stringify(save.heroes)}`,
     '',
     `errors (${input.errors.length}):`,
   ];

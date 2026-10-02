@@ -19,8 +19,10 @@ export interface CompiledLine {
   /** Koszty kolejnych ulepszeń dla każdej z dwóch form. */
   readonly upgradeCosts: readonly [readonly number[], readonly number[]];
   readonly evolveCost: number;
-  /** Poziom, którego pierwsze przejście odblokowuje linię; null dla linii startowej. */
-  readonly unlockLevel: string | null;
+  /** Cena jednego bohatera tej linii w sklepie. */
+  readonly price: number;
+  /** Gracz zaczyna grę z jednym bohaterem tej linii. */
+  readonly starter: boolean;
 }
 
 export interface LevelEnemy {
@@ -173,16 +175,13 @@ export function loadProgression(
         });
       }
     }
-    const unlockLevel = line.unlock.type === 'level' ? line.unlock.level : null;
-    if (unlockLevel !== null && !levels.has(unlockLevel)) {
-      issues.push({ source, message: `${line.id}: nieznany poziom "${unlockLevel}"` });
-    }
     lines.set(line.id, {
       id: line.id,
       forms: line.forms,
       upgradeCosts: line.upgradeCosts,
       evolveCost: line.evolveCost,
-      unlockLevel,
+      price: line.price,
+      starter: line.starter,
     });
   }
 

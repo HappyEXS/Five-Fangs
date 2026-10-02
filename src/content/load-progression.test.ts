@@ -9,7 +9,8 @@ const line = {
     [300, 400, 550, 750],
   ],
   evolveCost: 250,
-  unlock: { type: 'start' },
+  price: 200,
+  starter: true,
 };
 
 const level = (id: string, overrides: Record<string, unknown> = {}) => ({
@@ -47,7 +48,7 @@ describe('dane progresji gry', () => {
     });
   });
 
-  it('linie mają dwie formy, koszty i warunek odblokowania', () => {
+  it('linie mają dwie formy, koszty, cenę w sklepie i flagę linii startowej', () => {
     expect(content?.lines.get('archer')).toEqual({
       id: 'archer',
       forms: ['archer_a', 'archer_b'],
@@ -56,8 +57,11 @@ describe('dane progresji gry', () => {
         [300, 400, 550, 750],
       ],
       evolveCost: 250,
-      unlockLevel: null,
+      price: 200,
+      starter: true,
     });
+    expect(content?.lines.get('guard')).toMatchObject({ price: 300, starter: false });
+    expect([...(content?.lines.keys() ?? [])]).toEqual(['swordsman', 'archer', 'guard', 'cleric']);
   });
 
   it('światy mają poziomy w kolejności, a poziom zna swój świat i nagrody', () => {
@@ -103,13 +107,13 @@ describe('walidacja linii', () => {
     ]);
   });
 
-  it('sprawdza poziom odblokowujący linię', () => {
-    const ok = { ...line, unlock: { type: 'level', level: 'w1_l6' } };
-    expect(messages({ 'lines.json': [ok] })).toEqual([]);
-    const bad = { ...line, unlock: { type: 'level', level: 'w9_l9' } };
-    expect(messages({ 'lines.json': [bad] })).toEqual([
-      'lines.json: swordsman: nieznany poziom "w9_l9"',
-    ]);
+  it('wymaga dodatniej ceny; linia bez flagi nie jest startowa', () => {
+    const { price: _price, ...free } = line;
+    expect(messages({ 'lines.json': [free] })).not.toEqual([]);
+    expect(messages({ 'lines.json': [{ ...line, price: 0 }] })).not.toEqual([]);
+    const { starter: _starter, ...plain } = line;
+    const { content: loaded } = loadContent({ ...rawContent, 'lines.json': [plain] });
+    expect(loaded?.lines.get('swordsman')?.starter).toBe(false);
   });
 
   it('odrzuca błędny kształt linii', () => {

@@ -25,7 +25,8 @@ describe('buildReport', () => {
     expect(report).toContain('version: 0.1.0 (abcdef1), built 2026-10-02T10:00:00Z');
     expect(report).toContain('browser: TestBrowser/1.0');
     expect(report).toContain('time: 2026-10-02T12:00:00.000Z');
-    expect(report).toContain('squad: ["swordsman","archer",null,null,null]');
+    expect(report).toContain('squad: [1,2,null,null,null]');
+    expect(report).toContain('"line":"swordsman"');
     expect(report).toContain('errors (0):\n  none');
     expect(report).toContain('last battle setup:\n  none');
   });

@@ -6,6 +6,9 @@ import { BACKUP_KEY, decodeSave, SAVE_KEY, type SaveStorage } from './save.ts';
 import { SAVE_VERSION } from './save-schema.ts';
 
 const content = requireContent();
+// W nowej grze miecznik ma id 1, łucznik id 2.
+const SWORD = 1;
+const ARCHER = 2;
 
 function memory(initial: Record<string, string> = {}) {
   const items = new Map(Object.entries(initial));
@@ -26,9 +29,9 @@ const WIN = { outcome: 'win', reason: 'eliminated', ticks: 400 } as const;
 const LOSS = { outcome: 'loss', reason: 'timeout', ticks: 2700 } as const;
 
 describe('start gry', () => {
-  it('bez zapisu zaczyna nową grę w menu, w języku przeglądarki', () => {
+  it('bez zapisu zaczyna nową grę w panelu głównym, w języku przeglądarki', () => {
     const game = start();
-    expect(game.scene.value).toEqual({ name: 'menu' });
+    expect(game.scene.value).toEqual({ name: 'hub' });
     expect(game.save.value.settings.lang).toBe('en');
     expect(language.value).toBe('en');
     expect(game.storage.value).toBe('ok');
@@ -45,6 +48,31 @@ describe('start gry', () => {
     expect(again.save.value.gold).toBe(100);
     expect(again.save.value.gameVersion).toBe('9.9.9');
     expect(language.value).toBe('pl');
+  });
+
+  it('wczytuje zapis w wersji 1 przez migrację', () => {
+    const v1 = JSON.stringify({
+      saveVersion: 1,
+      gameVersion: '0.1.0',
+      gold: 55,
+      lines: {
+        swordsman: { form: 0, upgrades: 2, runes: [null, null] },
+        archer: { form: 0, upgrades: 0, runes: [null, null] },
+      },
+      runes: [],
+      levels: { w1_l1: { cleared: true, bestTicks: 300 } },
+      squad: ['archer', 'swordsman', null, null, null],
+      settings: { lang: 'pl', battleSpeed: 1 },
+    });
+    const game = start(memory({ [SAVE_KEY]: v1 }).storage);
+    expect(game.recovered.value).toBe(false);
+    expect(game.save.value.saveVersion).toBe(SAVE_VERSION);
+    expect(game.save.value.gold).toBe(55);
+    expect(game.save.value.heroes.map((hero) => [hero.line, hero.upgrades])).toEqual([
+      ['swordsman', 2],
+      ['archer', 0],
+    ]);
+    expect(game.save.value.squad).toEqual([2, 1, null, null, null]);
   });
 
   it('uszkodzony zapis: nowa gra, kopia zapasowa, informacja dla gracza', () => {
@@ -77,25 +105,36 @@ describe('start gry', () => {
 });
 
 describe('sceny', () => {
-  it('przechodzi menu → mapa → skład → walka → wynik → mapa', () => {
+  it('przechodzi panel główny → mapa → walka → wynik → mapa', () => {
     const game = start();
-    game.go({ name: 'map' });
-    expect(game.openLevel('w1_l1')).toBe(true);
-    expect(game.scene.value).toEqual({ name: 'squad', level: 'w1_l1' });
+    game.openMap();
+    expect(game.scene.value).toEqual({ name: 'map', selected: null });
+    game.openMap('w1_l1');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
     expect(game.startBattle('w1_l1')).toBe(true);
     expect(game.scene.value).toEqual({ name: 'battle', level: 'w1_l1' });
     game.finishBattle('w1_l1', WIN);
     expect(game.scene.value.name).toBe('result');
-    game.go({ name: 'map' });
-    expect(game.scene.value).toEqual({ name: 'map' });
+    game.openMap('w1_l2');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l2' });
   });
 
-  it('zablokowany poziom nie daje się otworzyć ani uruchomić', () => {
+  it('z panelu głównego prowadzą wejścia do składu i sklepu', () => {
     const game = start();
-    game.go({ name: 'map' });
-    expect(game.openLevel('w1_l2')).toBe(false);
+    game.go({ name: 'squad' });
+    expect(game.scene.value).toEqual({ name: 'squad' });
+    game.go({ name: 'shop' });
+    expect(game.scene.value).toEqual({ name: 'shop' });
+    game.go({ name: 'hub' });
+    expect(game.scene.value).toEqual({ name: 'hub' });
+  });
+
+  it('zablokowanego poziomu nie da się wybrać na mapie ani uruchomić', () => {
+    const game = start();
+    game.openMap('w1_l2');
+    expect(game.scene.value).toEqual({ name: 'map', selected: null });
     expect(game.startBattle('w1_l2')).toBe(false);
-    expect(game.scene.value).toEqual({ name: 'map' });
+    expect(game.scene.value.name).toBe('map');
   });
 
   it('walka nie zaczyna się z pustym składem', () => {
@@ -115,7 +154,7 @@ describe('wynik walki', () => {
       name: 'result',
       level: 'w1_l1',
       battle: WIN,
-      rewards: { firstClear: true, gold: 100, rune: null, lines: [] },
+      rewards: { firstClear: true, gold: 100, rune: null },
     });
     const stored = decodeSave(items.get(SAVE_KEY) ?? '');
     expect(stored.kind === 'ok' && stored.save.levels.w1_l1).toEqual({
@@ -142,8 +181,8 @@ describe('akcje gracza', () => {
       if (decoded.kind !== 'ok') throw new Error('nothing stored');
       return decoded.save;
     };
-    expect(game.placeInSquad('archer', 4)).toBe(true);
-    expect(stored().squad).toEqual(['swordsman', null, null, null, 'archer']);
+    expect(game.placeInSquad(ARCHER, 4)).toBe(true);
+    expect(stored().squad).toEqual([1, null, null, null, 2]);
     game.setBattleSpeed(4);
     expect(stored().settings.battleSpeed).toBe(4);
   });
@@ -151,10 +190,11 @@ describe('akcje gracza', () => {
   it('odmowa reguły nie zmienia zapisu', () => {
     const game = start();
     const before = game.save.value;
-    expect(game.upgrade('swordsman')).toBe(false);
-    expect(game.evolve('swordsman')).toBe(false);
-    expect(game.equipRune('swordsman', 0, 'rune_hp_200')).toBe(false);
-    expect(game.placeInSquad('nie_ma', 0)).toBe(false);
+    expect(game.upgrade(SWORD)).toBe(false);
+    expect(game.evolve(SWORD)).toBe(false);
+    expect(game.equipRune(SWORD, 0, 'rune_hp_200')).toBe(false);
+    expect(game.placeInSquad(99, 0)).toBe(false);
+    expect(game.buyHero('guard')).toBe(false);
     expect(game.save.value).toBe(before);
   });
 
@@ -162,9 +202,29 @@ describe('akcje gracza', () => {
     const game = start();
     game.finishBattle('w1_l1', WIN);
     game.finishBattle('w1_l2', WIN);
-    expect(game.upgrade('swordsman')).toBe(true);
+    expect(game.upgrade(SWORD)).toBe(true);
     expect(game.save.value.gold).toBe(500 - 50);
-    expect(game.equipRune('swordsman', 0, 'rune_hp_100')).toBe(true);
+    expect(game.equipRune(SWORD, 0, 'rune_hp_100')).toBe(true);
+  });
+
+  it('zakup w sklepie dodaje bohatera, zdejmuje złoto i zapisuje grę', () => {
+    const { storage, items } = memory();
+    const game = start(storage);
+    game.finishBattle('w1_l1', WIN);
+    game.finishBattle('w1_l2', WIN);
+    expect(game.buyHero('guard')).toBe(true);
+    expect(game.save.value.gold).toBe(500 - 300);
+    expect(game.buyHero('swordsman')).toBe(true);
+    expect(game.save.value.heroes.map((hero) => hero.line)).toEqual([
+      'swordsman',
+      'archer',
+      'guard',
+      'swordsman',
+    ]);
+    expect(game.save.value.squad).toEqual([1, 2, 3, 4, null]);
+    const stored = decodeSave(items.get(SAVE_KEY) ?? '');
+    expect(stored.kind === 'ok' && stored.save.heroes).toHaveLength(4);
+    expect(game.buyHero('cleric')).toBe(false);
   });
 });
 
@@ -175,10 +235,10 @@ describe('eksport, import i reset', () => {
     const text = source.exportSave();
 
     const target = start();
-    target.go({ name: 'map' });
+    target.openMap();
     expect(target.importSave(text)).toBe('ok');
     expect(target.save.value.gold).toBe(100);
-    expect(target.scene.value).toEqual({ name: 'menu' });
+    expect(target.scene.value).toEqual({ name: 'hub' });
   });
 
   it('odrzuca uszkodzony plik i plik z nowszej wersji, nie zmieniając gry', () => {

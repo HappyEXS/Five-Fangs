@@ -161,6 +161,7 @@ describe('validateContent', () => {
         message: 'nameless: brak tekstu "unit.nameless.name" w słowniku',
       },
       { source: 'units/heroes.json', message: 'nameless: nie należy do żadnej linii' },
+      { source: 'lines.json', message: 'żadna linia nie jest startowa' },
     ]);
   });
 });

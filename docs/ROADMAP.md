@@ -111,6 +111,15 @@ Cel: komplet mechanik grywalny na jednym świecie testowym. Autor gry zdecydowa�
 | M5-7 | Iteracje balansu z `pnpm balance` | 1 | Raport do zatwierdzenia przez autora gry | raport w `reports/balance.md` czeka na ocenę autora gry |
 | M5-8 | Komplet tekstów PL i EN | 0,5 | Walidator: brak brakujących kluczy w obu językach | gotowe dla obecnej treści |
 
+## M5b – Uwagi autora po pierwszym przejściu gry (2026-10-02)
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5b-1 | Płaska scena: bez perspektywy i ścieżek slotów, postacie na linii podłogi; sloty w jednym rzędzie | 0,5 | Wszystkie postacie stoją na jednej wysokości; sloty w UI w jednym rzędzie | gotowe |
+| M5b-2 | Bohaterowie jako egzemplarze: zapis v2 z migracją z v1, reguły progresji po id bohatera | 1,5 | Fixture v1 migruje do v2; w składzie może stać kilku bohaterów tej samej linii | gotowe |
+| M5b-3 | Sklep: zakup nowych linii i kolejnych egzemplarzy za złoto; dwie linie testowe do kupienia | 1 | Testy reguł zakupu; zakup widoczny w zapisie i składzie | gotowe |
+| M5b-4 | Panel główny z wejściami Mapa, Skład, Sklep; mapa bez zmiany składu; skład z ulepszeniami, ewolucją i runami | 1,5 | Test end-to-end przechodzi cały przepływ na buildzie produkcyjnym | gotowe |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

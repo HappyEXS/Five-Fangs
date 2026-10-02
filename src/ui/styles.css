@@ -200,9 +200,9 @@ ol {
   justify-items: center;
 }
 
-/* Menu */
+/* Panel główny */
 
-.menu {
+.hub {
   justify-content: center;
 }
 
@@ -211,11 +211,45 @@ ol {
   letter-spacing: 0.04em;
 }
 
-.menu-actions {
-  display: grid;
-  gap: 0.6em;
-  min-width: 14em;
+.hub-gold {
   font-size: 1.2em;
+}
+
+.hub-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 15em);
+  gap: 1em;
+}
+
+.tile {
+  display: grid;
+  gap: 0.5em;
+  min-height: 9em;
+  padding: 1.2em;
+  border: 1px solid var(--line);
+  border-radius: 0.6em;
+  background: var(--panel);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  align-content: center;
+}
+
+.tile:hover,
+.tile:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.tile-title {
+  color: var(--accent);
+  font-size: 1.8em;
+  font-weight: 700;
+}
+
+.tile-note {
+  color: var(--text-dim);
 }
 
 .settings {
@@ -268,10 +302,18 @@ ol {
 
 /* Mapa */
 
+.map-body {
+  display: grid;
+  grid-template-columns: 1fr 19em;
+  gap: 0.8em;
+  width: 100%;
+  min-height: 0;
+  align-items: start;
+}
+
 .worlds {
   display: grid;
   gap: 0.8em;
-  width: 100%;
   overflow: auto;
 }
 
@@ -282,7 +324,28 @@ ol {
 .levels {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 0.6em;
+  gap: 0.5em;
+}
+
+.level-details {
+  display: grid;
+  gap: 0.5em;
+  align-content: start;
+}
+
+.level-details ul {
+  display: grid;
+  gap: 0.2em;
+}
+
+.level-details h4 {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.level[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .level {
@@ -333,26 +396,32 @@ ol {
 /* Skład */
 
 .squad-bench,
-.squad-enemies {
+.squad-details {
   position: absolute;
   top: 5.6em;
   display: grid;
   gap: 0.5em;
-  width: 19em;
+  overflow: auto;
   font-size: 0.9em;
+  align-content: start;
 }
 
+/* Ławka kończy się nad głowami bohaterów stojących na canvasie. */
 .squad-bench {
   left: 1.4em;
+  width: 26em;
+  max-height: 42%;
 }
 
-.squad-enemies {
+.squad-details {
   right: 1.4em;
+  bottom: 1.4em;
+  width: 24em;
 }
 
-.squad-enemies ul {
+.hero-details {
   display: grid;
-  gap: 0.25em;
+  gap: 0.55em;
 }
 
 .chips {
@@ -388,15 +457,16 @@ ol {
   pointer-events: none;
 }
 
-/* Strefy slotów leżą pod bohaterami narysowanymi na canvasie (stopy ok. 80% wysokości). */
+/* Sloty leżą w jednym rzędzie, tuż pod linią podłogi, każdy pod swoim bohaterem na canvasie.
+   Pozycje startowe dzieli 6% szerokości sceny, więc nazwa bohatera łamie się w wąskim polu. */
 .slot {
   position: absolute;
-  top: 84.5%;
+  top: 79.5%;
   display: grid;
   gap: 0.2em;
-  width: 11%;
-  min-height: 4.4em;
-  padding: 0.25em 0.2em;
+  width: 5.8%;
+  min-height: 5.6em;
+  padding: 0.2em 0.1em;
   border: 1px dashed var(--line);
   border-radius: 0.4em;
   background: rgb(11 13 18 / 55%);
@@ -406,41 +476,27 @@ ol {
   justify-items: center;
 }
 
-.slot-low {
-  top: 91.8%;
-}
-
 .slot .hero-chip {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  width: 100%;
+  padding: 0.25em 0.1em;
+  border-radius: 0.5em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
 }
 
 .slot-label {
-  padding: 0;
+  padding: 0 0.5em;
   border: 0;
   background: none;
   color: var(--text-dim);
   font: inherit;
-  text-align: center;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .slot-label:disabled {
   cursor: default;
-}
-
-.squad-footer {
-  position: absolute;
-  right: 1.4em;
-  bottom: 1.2em;
-  display: flex;
-  align-items: center;
-  gap: 1em;
-}
-
-.squad-footer .button {
-  font-size: 1.3em;
 }
 
 /* Statystyki */
@@ -470,27 +526,29 @@ ol {
   font-size: 0.9em;
 }
 
-/* Bohaterowie */
+/* Sklep */
 
-.hero-cards {
+.shop-hint {
+  width: 100%;
+}
+
+.shop-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.8em;
   width: 100%;
   overflow: auto;
   align-content: start;
 }
 
-.hero-card {
+.shop-card {
   display: grid;
   gap: 0.55em;
   align-content: start;
   font-size: 0.92em;
 }
 
-.hero-locked {
-  opacity: 0.6;
-}
+/* Akcje bohatera i runy */
 
 .hero-actions {
   display: flex;

@@ -1,11 +1,11 @@
-// Menu główne i ustawienia: język, zapis gry (eksport, import, reset), zgłoszenie problemu.
+// Ustawienia: język, zapis gry (eksport, import, reset), zgłoszenie problemu.
 import { useSignal } from '@preact/signals';
 import { LANGUAGES } from '../content/i18n/index.ts';
 import { recentErrors } from '../game/errors.ts';
 import type { Game } from '../game/game.ts';
 import { language, t } from '../game/i18n.ts';
 import { buildReport } from '../game/report.ts';
-import { gameVersion, versionLabel } from '../game/version.ts';
+import { gameVersion } from '../game/version.ts';
 
 function downloadText(name: string, text: string): void {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -16,7 +16,7 @@ function downloadText(name: string, text: string): void {
   URL.revokeObjectURL(url);
 }
 
-function Settings(props: { game: Game; onClose: () => void }) {
+export function Settings(props: { game: Game; onClose: () => void }) {
   const { game } = props;
   const message = useSignal<string | null>(null);
   const confirmReset = useSignal(false);
@@ -140,50 +140,5 @@ function Settings(props: { game: Game; onClose: () => void }) {
         {t('common.close')}
       </button>
     </section>
-  );
-}
-
-export function Menu(props: { game: Game }) {
-  const { game } = props;
-  const settings = useSignal(false);
-  return (
-    <div class="screen menu">
-      <h1 class="title">{t('app.title')}</h1>
-      {settings.value ? (
-        <Settings
-          game={game}
-          onClose={() => {
-            settings.value = false;
-          }}
-        />
-      ) : (
-        <nav class="menu-actions">
-          <button
-            type="button"
-            class="button button-primary"
-            onClick={() => game.go({ name: 'map' })}
-          >
-            {t('menu.play')}
-          </button>
-          <button
-            type="button"
-            class="button"
-            onClick={() => game.go({ name: 'heroes', back: { name: 'menu' } })}
-          >
-            {t('heroes.title')}
-          </button>
-          <button
-            type="button"
-            class="button"
-            onClick={() => {
-              settings.value = true;
-            }}
-          >
-            {t('menu.settings')}
-          </button>
-        </nav>
-      )}
-      <footer class="version">{t('app.version', { version: versionLabel(gameVersion) })}</footer>
-    </div>
   );
 }

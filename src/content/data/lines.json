@@ -4,13 +4,29 @@
     "forms": ["swordsman_a", "swordsman_b"],
     "upgradeCosts": [[50, 80, 120, 180], [300, 400, 550, 750]],
     "evolveCost": 250,
-    "unlock": { "type": "start" }
+    "price": 200,
+    "starter": true
   },
   {
     "id": "archer",
     "forms": ["archer_a", "archer_b"],
     "upgradeCosts": [[50, 80, 120, 180], [300, 400, 550, 750]],
     "evolveCost": 250,
-    "unlock": { "type": "start" }
+    "price": 200,
+    "starter": true
+  },
+  {
+    "id": "guard",
+    "forms": ["guard_a", "guard_b"],
+    "upgradeCosts": [[50, 80, 120, 180], [300, 400, 550, 750]],
+    "evolveCost": 250,
+    "price": 300
+  },
+  {
+    "id": "cleric",
+    "forms": ["cleric_a", "cleric_b"],
+    "upgradeCosts": [[50, 80, 120, 180], [300, 400, 550, 750]],
+    "evolveCost": 250,
+    "price": 300
   }
 ]

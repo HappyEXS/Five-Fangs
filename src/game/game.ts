@@ -10,6 +10,7 @@ import {
   applyEvolve,
   applyUpgrade,
   applyVictory,
+  buyHero,
   equipRune,
   isLevelUnlocked,
   isSquadEmpty,
@@ -28,13 +29,17 @@ export interface BattleOutcome {
   readonly ticks: number;
 }
 
-/** Scena to wartość sygnału, nie ścieżka URL (docs/ARCHITECTURE.md §6.1). */
+/**
+ * Scena to wartość sygnału, nie ścieżka URL (docs/ARCHITECTURE.md §6.1). Panel główny (`hub`)
+ * prowadzi do mapy, składu i sklepu. Skład zmienia się tylko na ekranie składu: mapa pokazuje
+ * poziomy i zaczyna walkę bieżącym składem.
+ */
 export type Scene =
-  | { readonly name: 'menu' }
-  | { readonly name: 'map' }
-  /** Ulepszenia, ewolucja i runy; `back` to scena, do której wraca przycisk powrotu. */
-  | { readonly name: 'heroes'; readonly back: Scene }
-  | { readonly name: 'squad'; readonly level: string }
+  | { readonly name: 'hub' }
+  /** `selected` to poziom, którego szczegóły pokazuje mapa. */
+  | { readonly name: 'map'; readonly selected: string | null }
+  | { readonly name: 'squad' }
+  | { readonly name: 'shop' }
   | { readonly name: 'battle'; readonly level: string }
   | {
       readonly name: 'result';
@@ -63,17 +68,19 @@ export interface Game {
   readonly lastBattle: Signal<BattleSetup | null>;
 
   go(scene: Scene): void;
-  /** Otwiera ekran składu dla poziomu. False, gdy poziom jest zablokowany. */
-  openLevel(level: string): boolean;
-  /** Zaczyna walkę. False, gdy skład jest pusty albo poziom zablokowany. */
+  /** Otwiera mapę, opcjonalnie z wybranym poziomem. */
+  openMap(selected?: string | null): void;
+  /** Zaczyna walkę bieżącym składem. False, gdy skład jest pusty albo poziom zablokowany. */
   startBattle(level: string): boolean;
   /** Kończy walkę: przy wygranej nalicza nagrody, zapisuje grę i pokazuje wynik. */
   finishBattle(level: string, battle: BattleOutcome): void;
 
-  upgrade(line: string): boolean;
-  evolve(line: string): boolean;
-  equipRune(line: string, slot: number, rune: string | null): boolean;
-  placeInSquad(line: string, slot: number): boolean;
+  /** Kupuje w sklepie bohatera linii. False, gdy brakuje złota. */
+  buyHero(line: string): boolean;
+  upgrade(hero: number): boolean;
+  evolve(hero: number): boolean;
+  equipRune(hero: number, slot: number, rune: string | null): boolean;
+  placeInSquad(hero: number, slot: number): boolean;
   removeFromSquad(slot: number): void;
   setLanguage(lang: Language): void;
   setBattleSpeed(speed: BattleSpeed): void;
@@ -101,7 +108,7 @@ export function createGame(options: GameOptions): Game {
       : newSave(content, gameVersion, options.preferredLanguage);
 
   const save = signal<Save>(initial);
-  const scene = signal<Scene>({ name: 'menu' });
+  const scene = signal<Scene>({ name: 'hub' });
   const storage = signal<StorageStatus>(
     loaded.kind === 'newer' ? 'blocked' : loaded.kind === 'unavailable' ? 'memory' : 'ok',
   );
@@ -133,10 +140,9 @@ export function createGame(options: GameOptions): Game {
     go(next) {
       scene.value = next;
     },
-    openLevel(level) {
-      if (!isLevelUnlocked(content, save.value, level)) return false;
-      scene.value = { name: 'squad', level };
-      return true;
+    openMap(selected = null) {
+      const valid = selected !== null && isLevelUnlocked(content, save.value, selected);
+      scene.value = { name: 'map', selected: valid ? selected : null };
     },
     startBattle(level) {
       if (!isLevelUnlocked(content, save.value, level) || isSquadEmpty(save.value)) return false;
@@ -155,10 +161,11 @@ export function createGame(options: GameOptions): Game {
       scene.value = { name: 'result', level, battle, rewards };
     },
 
-    upgrade: (line) => attempt(applyUpgrade(content, save.value, line)),
-    evolve: (line) => attempt(applyEvolve(content, save.value, line)),
-    equipRune: (line, slot, rune) => attempt(equipRune(content, save.value, line, slot, rune)),
-    placeInSquad: (line, slot) => attempt(placeInSquad(save.value, line, slot)),
+    buyHero: (line) => attempt(buyHero(content, save.value, line)),
+    upgrade: (hero) => attempt(applyUpgrade(content, save.value, hero)),
+    evolve: (hero) => attempt(applyEvolve(content, save.value, hero)),
+    equipRune: (hero, slot, rune) => attempt(equipRune(content, save.value, hero, slot, rune)),
+    placeInSquad: (hero, slot) => attempt(placeInSquad(save.value, hero, slot)),
     removeFromSquad(slot) {
       commit(removeFromSquad(save.value, slot));
     },
@@ -180,12 +187,12 @@ export function createGame(options: GameOptions): Game {
       if (storage.value === 'blocked') storage.value = 'ok';
       commit(reconcileSave(content, decoded.save));
       language.value = save.value.settings.lang;
-      scene.value = { name: 'menu' };
+      scene.value = { name: 'hub' };
       return 'ok';
     },
     resetProgress() {
       commit(newSave(content, gameVersion, save.value.settings.lang));
-      scene.value = { name: 'menu' };
+      scene.value = { name: 'hub' };
     },
   };
 }

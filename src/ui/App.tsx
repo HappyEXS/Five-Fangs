@@ -4,10 +4,10 @@ import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
 import { reloadGame } from '../game/update.ts';
 import { BattleHud, ResultScreen } from './BattleScreens.tsx';
-import { HeroesScreen } from './HeroesScreen.tsx';
+import { Hub } from './Hub.tsx';
 import { LoadFailureBanner } from './LoadFailureBanner.tsx';
 import { MapScreen } from './MapScreen.tsx';
-import { Menu } from './Menu.tsx';
+import { ShopScreen } from './ShopScreen.tsx';
 import { SquadScreen } from './SquadScreen.tsx';
 
 export interface AppProps {
@@ -19,14 +19,14 @@ function SceneView(props: AppProps) {
   const { game, stage } = props;
   const scene = game.scene.value;
   switch (scene.name) {
-    case 'menu':
-      return <Menu game={game} />;
+    case 'hub':
+      return <Hub game={game} />;
     case 'map':
-      return <MapScreen game={game} />;
-    case 'heroes':
-      return <HeroesScreen game={game} back={scene.back} />;
+      return <MapScreen game={game} selected={scene.selected} />;
     case 'squad':
-      return <SquadScreen key={scene.level} game={game} level={scene.level} />;
+      return <SquadScreen game={game} />;
+    case 'shop':
+      return <ShopScreen game={game} />;
     case 'battle':
       return <BattleHud game={game} stage={stage} level={scene.level} />;
     case 'result':
@@ -78,7 +78,7 @@ export function App(props: AppProps) {
           </button>
         </div>
       )}
-      {storage === 'memory' && game.scene.value.name === 'menu' && (
+      {storage === 'memory' && game.scene.value.name === 'hub' && (
         <div class="banner banner-bottom" role="status">
           <span>{t('notice.memory')}</span>
         </div>

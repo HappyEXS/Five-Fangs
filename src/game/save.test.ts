@@ -15,16 +15,18 @@ import { SAVE_VERSION, type Save } from './save-schema.ts';
 
 // Przykładowe pliki zapisów z kolejnych wersji gry sprawdza tests/saves/fixtures.test.ts.
 const sample: Save = {
-  saveVersion: 1,
+  saveVersion: 2,
   gameVersion: '0.1.0',
   gold: 135,
-  lines: {
-    swordsman: { form: 0, upgrades: 3, runes: ['rune_hp_200', null] },
-    archer: { form: 1, upgrades: 1, runes: [null, null] },
-  },
+  heroes: [
+    { id: 1, line: 'swordsman', form: 0, upgrades: 3, runes: ['rune_hp_200', null] },
+    { id: 2, line: 'archer', form: 1, upgrades: 1, runes: [null, null] },
+    { id: 3, line: 'swordsman', form: 0, upgrades: 0, runes: [null, null] },
+  ],
+  nextHeroId: 4,
   runes: ['rune_hp_200', 'rune_attack_25'],
   levels: { w1_l1: { cleared: true, bestTicks: 412 } },
-  squad: ['swordsman', 'archer', null, null, null],
+  squad: [1, 2, null, 3, null],
   settings: { lang: 'pl', battleSpeed: 2 },
 };
 const sampleText = JSON.stringify(sample);
@@ -65,6 +67,9 @@ describe('decodeSave', () => {
     ['wersja, która nie jest liczbą całkowitą', '{ "saveVersion": "1" }'],
     ['wersja zerowa', '{ "saveVersion": 0 }'],
     ['pusty zapis w bieżącej wersji', `{ "saveVersion": ${SAVE_VERSION} }`],
+    // Migracja nie zakłada niczego o danych; braki wyłapuje schemat po migracji.
+    ['pusty zapis w wersji 1', '{ "saveVersion": 1 }'],
+    ['zapis w wersji 1 ze śmieciami w liniach', '{ "saveVersion": 1, "lines": [1, "x"] }'],
   ])('uznaje za uszkodzony: %s', (_label, text) => {
     expect(decodeSave(text).kind).toBe('corrupt');
   });
@@ -73,7 +78,8 @@ describe('decodeSave', () => {
     const save = JSON.parse(sampleText);
     expect(decodeSave(JSON.stringify({ ...save, gold: -1 })).kind).toBe('corrupt');
     expect(decodeSave(JSON.stringify({ ...save, cheats: true })).kind).toBe('corrupt');
-    expect(decodeSave(JSON.stringify({ ...save, squad: ['swordsman'] })).kind).toBe('corrupt');
+    expect(decodeSave(JSON.stringify({ ...save, squad: [1] })).kind).toBe('corrupt');
+    expect(decodeSave(JSON.stringify({ ...save, nextHeroId: 0 })).kind).toBe('corrupt');
     expect(
       decodeSave(JSON.stringify({ ...save, settings: { lang: 'de', battleSpeed: 1 } })).kind,
     ).toBe('corrupt');

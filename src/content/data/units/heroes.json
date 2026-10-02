@@ -50,5 +50,59 @@
     "traits": [{ "type": "pierce" }],
     "skin": "archer_b",
     "scale": 1.08
+  },
+  {
+    "id": "guard_a",
+    "kind": "melee",
+    "maxHp": 1100,
+    "attack": 22,
+    "moveSpeed": 45,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 35,
+    "attackType": "slash",
+    "skin": "guard_a",
+    "scale": 1.1
+  },
+  {
+    "id": "guard_b",
+    "kind": "melee",
+    "maxHp": 1700,
+    "attack": 38,
+    "moveSpeed": 45,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 45,
+    "attackType": "slash",
+    "traits": [{ "type": "periodicHeal", "target": "self", "amount": 30, "interval": 3 }],
+    "skin": "guard_b",
+    "scale": 1.18
+  },
+  {
+    "id": "cleric_a",
+    "kind": "ranged",
+    "maxHp": 320,
+    "attack": 14,
+    "moveSpeed": 50,
+    "attackSpeed": 0.8,
+    "range": 150,
+    "knockback": 0,
+    "attackType": "shoot",
+    "traits": [{ "type": "periodicHeal", "target": "team", "amount": 12, "interval": 3 }],
+    "skin": "cleric_a"
+  },
+  {
+    "id": "cleric_b",
+    "kind": "ranged",
+    "maxHp": 450,
+    "attack": 22,
+    "moveSpeed": 50,
+    "attackSpeed": 0.8,
+    "range": 170,
+    "knockback": 0,
+    "attackType": "shoot",
+    "traits": [{ "type": "periodicHeal", "target": "team", "amount": 22, "interval": 2.5 }],
+    "skin": "cleric_b",
+    "scale": 1.08
   }
 ]

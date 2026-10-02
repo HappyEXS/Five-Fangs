@@ -178,10 +178,15 @@ describe('atlas placeholder', () => {
     }
   });
 
-  it('atlas placeholderów mieści się w szerokości 512', () => {
-    expect(built.meta.width).toBe(512);
-    expect(built.image.width).toBe(512);
-    expect(built.image.height).toBe(built.meta.height);
+  it('atlas placeholderów ma szerokość będącą potęgą dwójki i mieści wszystkie sprite’y', () => {
+    const { width, height } = built.meta;
+    expect(Math.log2(width) % 1).toBe(0);
+    expect(built.image.width).toBe(width);
+    expect(built.image.height).toBe(height);
+    for (const [x = 0, y = 0, w = 0, h = 0] of Object.values(built.meta.sprites)) {
+      expect(x + w).toBeLessThanOrEqual(width);
+      expect(y + h).toBeLessThanOrEqual(height);
+    }
   });
 });
 

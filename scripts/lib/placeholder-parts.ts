@@ -96,6 +96,33 @@ export const SKINS: readonly Skin[] = [
     weapon: 'sword',
     palette: { main: '#a85b49', dark: '#4a251d', accent: '#dccaa6' },
   },
+  // Linie testowe ze sklepu.
+  {
+    id: 'guard_a',
+    head: 'helm',
+    weapon: 'sword',
+    palette: { main: '#5c6b7a', dark: '#232b33', accent: '#b9c4cf' },
+  },
+  {
+    id: 'guard_b',
+    head: 'helm',
+    weapon: 'sword',
+    evolved: true,
+    palette: { main: '#3f5f8a', dark: '#16243a', accent: '#e6edf5' },
+  },
+  {
+    id: 'cleric_a',
+    head: 'hood',
+    weapon: 'bow',
+    palette: { main: '#d9d2bd', dark: '#5e5642', accent: '#c9a548' },
+  },
+  {
+    id: 'cleric_b',
+    head: 'hood',
+    weapon: 'bow',
+    evolved: true,
+    palette: { main: '#f1ead6', dark: '#6b5a2a', accent: '#e3b34b' },
+  },
   // Jednostki specjalne świata Las: gracz ich nie zdobywa.
   {
     id: 'raider',

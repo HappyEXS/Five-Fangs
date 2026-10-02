@@ -24,11 +24,10 @@ export const lineSchema = z.strictObject({
   /** Koszty kolejnych ulepszeń: najpierw formy bazowej, potem formy po ewolucji. */
   upgradeCosts: z.tuple([z.array(cost), z.array(cost)]),
   evolveCost: cost,
-  unlock: z.discriminatedUnion('type', [
-    z.strictObject({ type: z.literal('start') }),
-    /** Linia odblokowana po pierwszym przejściu wskazanego poziomu. */
-    z.strictObject({ type: z.literal('level'), level: id }),
-  ]),
+  /** Cena jednego bohatera tej linii w sklepie; każdy kolejny egzemplarz kosztuje tyle samo. */
+  price: cost,
+  /** Gracz zaczyna grę z jednym bohaterem tej linii. */
+  starter: z.boolean().default(false),
 });
 
 export const runeSchema = z.strictObject({

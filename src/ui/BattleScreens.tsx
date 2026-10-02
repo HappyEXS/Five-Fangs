@@ -6,7 +6,7 @@ import { t, tName } from '../game/i18n.ts';
 import { nextLevel, type Rewards } from '../game/progress.ts';
 import type { BattleSpeed } from '../game/save-schema.ts';
 import { formatBattleTime } from '../game/stats.ts';
-import { runeLabel, unitName } from './common.tsx';
+import { runeLabel } from './common.tsx';
 
 const SPEEDS: readonly BattleSpeed[] = [1, 2, 4];
 
@@ -41,7 +41,7 @@ export function BattleHud(props: { game: Game; stage: StageControls; level: stri
             {t('battle.speed', { speed: option })}
           </button>
         ))}
-        <button type="button" class="button" onClick={() => game.go({ name: 'map' })}>
+        <button type="button" class="button" onClick={() => game.openMap(props.level)}>
           {t('battle.exit')}
         </button>
       </header>
@@ -64,12 +64,6 @@ function RewardList(props: { game: Game; rewards: Rewards }) {
         )}
       </li>
       {rune !== undefined && <li>{t('result.reward.rune', { rune: runeLabel(rune) })}</li>}
-      {rewards.lines.map((line) => {
-        const form = game.content.lines.get(line)?.forms[0];
-        return form === undefined ? null : (
-          <li key={line}>{t('result.reward.line', { name: unitName(form) })}</li>
-        );
-      })}
     </ul>
   );
 }
@@ -92,11 +86,13 @@ export function ResultScreen(props: {
         <p>{t('result.time', { time: formatBattleTime(battle.ticks) })}</p>
         {rewards !== null && <RewardList game={game} rewards={rewards} />}
         <nav class="result-actions">
+          {/* Następny poziom otwiera się na mapie: gracz widzi przeciwników, zanim zacznie. */}
           {next !== null && (
             <button
               type="button"
               class="button button-primary"
-              onClick={() => game.openLevel(next)}
+              data-action="next"
+              onClick={() => game.openMap(next)}
             >
               {t('result.next')}
             </button>
@@ -108,20 +104,17 @@ export function ResultScreen(props: {
           >
             {t('result.retry')}
           </button>
-          <button type="button" class="button" onClick={() => game.openLevel(level)}>
-            {t('result.squad')}
+          <button type="button" class="button" onClick={() => game.go({ name: 'squad' })}>
+            {t('hub.squad')}
           </button>
-          <button
-            type="button"
-            class="button"
-            onClick={() =>
-              game.go({ name: 'heroes', back: { name: 'result', level, battle, rewards } })
-            }
-          >
-            {t('heroes.title')}
+          <button type="button" class="button" onClick={() => game.go({ name: 'shop' })}>
+            {t('hub.shop')}
           </button>
-          <button type="button" class="button" onClick={() => game.go({ name: 'map' })}>
-            {t('result.map')}
+          <button type="button" class="button" onClick={() => game.openMap(level)}>
+            {t('hub.map')}
+          </button>
+          <button type="button" class="button" onClick={() => game.go({ name: 'hub' })}>
+            {t('result.hub')}
           </button>
         </nav>
       </section>

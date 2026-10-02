@@ -6,15 +6,18 @@ import {
   applyEvolve,
   applyUpgrade,
   applyVictory,
+  buyHero,
+  currentLevel,
   equipRune,
   evolveCost,
   freeRunes,
+  heroView,
   isLevelUnlocked,
   isSquadEmpty,
   levelOrder,
-  lineView,
   newSave,
   nextLevel,
+  ownedCount,
   placeInSquad,
   reconcileSave,
   removeFromSquad,
@@ -26,6 +29,9 @@ import type { Save } from './save-schema.ts';
 
 const content = requireContent();
 const fresh = (): Save => newSave(content, '0.0.0', 'pl');
+// W nowej grze miecznik ma id 1, łucznik id 2.
+const SWORD = 1;
+const ARCHER = 2;
 
 /** Zapis po wygraniu podanych poziomów po kolei. */
 function cleared(levels: readonly string[], from: Save = fresh()): Save {
@@ -39,12 +45,15 @@ function cleared(levels: readonly string[], from: Save = fresh()): Save {
 }
 
 describe('newSave', () => {
-  it('daje linie startowe bez ulepszeń, ustawione w składzie od frontu', () => {
+  it('daje po jednym bohaterze każdej linii startowej, ustawionych w składzie od frontu', () => {
     const save = fresh();
     expect(save.gold).toBe(0);
-    expect(Object.keys(save.lines)).toEqual(['swordsman', 'archer']);
-    expect(save.lines.swordsman).toEqual({ form: 0, upgrades: 0, runes: [null, null] });
-    expect(save.squad).toEqual(['swordsman', 'archer', null, null, null]);
+    expect(save.heroes).toEqual([
+      { id: 1, line: 'swordsman', form: 0, upgrades: 0, runes: [null, null] },
+      { id: 2, line: 'archer', form: 0, upgrades: 0, runes: [null, null] },
+    ]);
+    expect(save.nextHeroId).toBe(3);
+    expect(save.squad).toEqual([1, 2, null, null, null]);
     expect(save.settings).toEqual({ lang: 'pl', battleSpeed: 1 });
   });
 
@@ -64,6 +73,7 @@ describe('odblokowywanie poziomów', () => {
       'w1_l1',
     ]);
     expect(isLevelUnlocked(content, save, 'nie_ma')).toBe(false);
+    expect(currentLevel(content, save)).toBe('w1_l1');
   });
 
   it('wygrana odblokowuje następny poziom, a przeszłe zostają dostępne', () => {
@@ -73,8 +83,14 @@ describe('odblokowywanie poziomów', () => {
       'w1_l2',
       'w1_l3',
     ]);
+    expect(currentLevel(content, save)).toBe('w1_l3');
     expect(nextLevel(content, 'w1_l2')).toBe('w1_l3');
     expect(nextLevel(content, 'w1_l6')).toBeNull();
+  });
+
+  it('po przejściu wszystkich poziomów bieżącym zostaje ostatni', () => {
+    const save = cleared(levelOrder(content));
+    expect(currentLevel(content, save)).toBe('w1_l6');
   });
 
   it('zablokowanego poziomu nie da się zaliczyć', () => {
@@ -90,7 +106,6 @@ describe('nagrody', () => {
       firstClear: true,
       gold: 400,
       rune: 'rune_hp_100',
-      lines: [],
     });
     const after = cleared(['w1_l2'], before);
     expect(after.gold).toBe(100 + 400);
@@ -104,7 +119,6 @@ describe('nagrody', () => {
       firstClear: false,
       gold: 100,
       rune: null,
-      lines: [],
     });
     const again = applyVictory(content, save, 'w1_l2', 450);
     expect(again?.save.gold).toBe(500 + 100);
@@ -116,22 +130,52 @@ describe('nagrody', () => {
     expect(applyVictory(content, save, 'w1_l1', 450)?.save.levels.w1_l1?.bestTicks).toBe(450);
     expect(applyVictory(content, save, 'w1_l1', 900)?.save.levels.w1_l1?.bestTicks).toBe(500);
   });
+});
 
-  it('odblokowuje linię przypisaną do poziomu, tylko przy pierwszym przejściu', () => {
-    const lines = new Map(content.lines);
-    const archer = content.lines.get('archer');
-    if (archer === undefined) throw new Error('missing line');
-    lines.set('archer', { ...archer, unlockLevel: 'w1_l1' });
-    const gated = { ...content, lines };
+describe('sklep', () => {
+  const rich = (gold: number): Save => ({ ...fresh(), gold });
 
-    const save = newSave(gated, '0.0.0', 'pl');
-    expect(Object.keys(save.lines)).toEqual(['swordsman']);
-    expect(victoryRewards(gated, save, 'w1_l1')?.lines).toEqual(['archer']);
-    const won = applyVictory(gated, save, 'w1_l1', 500);
-    expect(won?.save.lines.archer).toEqual({ form: 0, upgrades: 0, runes: [null, null] });
-    // Nowa linia nie wchodzi sama do składu: gracz decyduje o ustawieniu.
-    expect(won?.save.squad).toEqual(['swordsman', null, null, null, null]);
-    expect(won && victoryRewards(gated, won.save, 'w1_l1')?.lines).toEqual([]);
+  it('kupuje bohatera nowej linii: forma bazowa, nowe id, pierwszy wolny slot składu', () => {
+    const save = buyHero(content, rich(500), 'guard');
+    expect(save?.gold).toBe(500 - 300);
+    expect(save?.heroes[2]).toEqual({
+      id: 3,
+      line: 'guard',
+      form: 0,
+      upgrades: 0,
+      runes: [null, null],
+    });
+    expect(save?.nextHeroId).toBe(4);
+    expect(save?.squad).toEqual([1, 2, 3, null, null]);
+  });
+
+  it('pozwala kupić kolejny egzemplarz posiadanej linii, z własnym stanem', () => {
+    let save = applyUpgrade(content, rich(1000), SWORD) ?? rich(1000);
+    save = buyHero(content, save, 'swordsman') ?? save;
+    expect(ownedCount(save, 'swordsman')).toBe(2);
+    expect(save.heroes.filter((hero) => hero.line === 'swordsman')).toEqual([
+      { id: 1, line: 'swordsman', form: 0, upgrades: 1, runes: [null, null] },
+      { id: 3, line: 'swordsman', form: 0, upgrades: 0, runes: [null, null] },
+    ]);
+    // Ulepszenie drugiego egzemplarza nie rusza pierwszego.
+    save = applyUpgrade(content, save, 3) ?? save;
+    save = applyUpgrade(content, save, 3) ?? save;
+    expect(save.heroes.map((hero) => hero.upgrades)).toEqual([1, 0, 2]);
+  });
+
+  it('przy pełnym składzie bohater trafia poza skład', () => {
+    let save = rich(5000);
+    for (const line of ['guard', 'cleric', 'archer']) save = buyHero(content, save, line) ?? save;
+    expect(save.squad).toEqual([1, 2, 3, 4, 5]);
+    save = buyHero(content, save, 'guard') ?? save;
+    expect(save.heroes).toHaveLength(6);
+    expect(save.squad).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('odmawia bez złota i dla nieznanej linii', () => {
+    expect(buyHero(content, rich(299), 'guard')).toBeNull();
+    expect(buyHero(content, rich(300), 'guard')?.gold).toBe(0);
+    expect(buyHero(content, rich(9999), 'nie_ma')).toBeNull();
   });
 });
 
@@ -142,52 +186,61 @@ describe('ulepszenia i ewolucja', () => {
     let save = rich(1000);
     const paid: number[] = [];
     for (let i = 0; i < 4; i++) {
-      const cost = upgradeCost(content, save, 'swordsman');
-      const next = applyUpgrade(content, save, 'swordsman');
+      const cost = upgradeCost(content, save, SWORD);
+      const next = applyUpgrade(content, save, SWORD);
       if (cost === null || next === null) throw new Error('upgrade refused');
       paid.push(cost);
       save = next;
     }
     expect(paid).toEqual([50, 80, 120, 180]);
     expect(save.gold).toBe(1000 - 430);
-    expect(save.lines.swordsman?.upgrades).toBe(4);
-    expect(upgradeCost(content, save, 'swordsman')).toBeNull();
-    expect(applyUpgrade(content, save, 'swordsman')).toBeNull();
+    expect(save.heroes[0]?.upgrades).toBe(4);
+    expect(upgradeCost(content, save, SWORD)).toBeNull();
+    expect(applyUpgrade(content, save, SWORD)).toBeNull();
   });
 
   it('bez złota nie da się ulepszyć', () => {
-    expect(applyUpgrade(content, rich(49), 'swordsman')).toBeNull();
-    expect(applyUpgrade(content, rich(50), 'swordsman')?.gold).toBe(0);
-    expect(applyUpgrade(content, rich(500), 'nie_ma')).toBeNull();
+    expect(applyUpgrade(content, rich(49), SWORD)).toBeNull();
+    expect(applyUpgrade(content, rich(50), SWORD)?.gold).toBe(0);
+    expect(applyUpgrade(content, rich(500), 99)).toBeNull();
   });
 
   it('ewolucja jest dostępna dopiero po czterech ulepszeniach formy bazowej', () => {
     let save = rich(2000);
     for (let i = 0; i < 3; i++) {
-      expect(evolveCost(content, save, 'swordsman')).toBeNull();
-      expect(applyEvolve(content, save, 'swordsman')).toBeNull();
-      save = applyUpgrade(content, save, 'swordsman') ?? save;
+      expect(evolveCost(content, save, SWORD)).toBeNull();
+      expect(applyEvolve(content, save, SWORD)).toBeNull();
+      save = applyUpgrade(content, save, SWORD) ?? save;
     }
-    expect(evolveCost(content, save, 'swordsman')).toBeNull();
-    save = applyUpgrade(content, save, 'swordsman') ?? save;
-    expect(evolveCost(content, save, 'swordsman')).toBe(250);
+    expect(evolveCost(content, save, SWORD)).toBeNull();
+    save = applyUpgrade(content, save, SWORD) ?? save;
+    expect(evolveCost(content, save, SWORD)).toBe(250);
 
-    const evolved = applyEvolve(content, save, 'swordsman');
+    const evolved = applyEvolve(content, save, SWORD);
     expect(evolved?.gold).toBe(save.gold - 250);
-    expect(evolved?.lines.swordsman).toEqual({ form: 1, upgrades: 0, runes: [null, null] });
+    expect(evolved?.heroes[0]).toEqual({
+      id: 1,
+      line: 'swordsman',
+      form: 1,
+      upgrades: 0,
+      runes: [null, null],
+    });
     // Forma druga ma własne ulepszenia i nie ewoluuje dalej.
-    expect(evolved && upgradeCost(content, evolved, 'swordsman')).toBe(300);
-    expect(evolved && evolveCost(content, evolved, 'swordsman')).toBeNull();
+    expect(evolved && upgradeCost(content, evolved, SWORD)).toBe(300);
+    expect(evolved && evolveCost(content, evolved, SWORD)).toBeNull();
+    // Po ewolucji bohater ma jednostkę i typ ataku formy drugiej.
+    expect(evolved && heroView(content, evolved, SWORD)?.unitId).toBe('swordsman_b');
+    expect(evolved && heroView(content, evolved, SWORD)?.spec.splashRadius).toBeGreaterThan(0);
   });
 
   it('ewolucja wymaga złota i zachowuje runy', () => {
     let save: Save = { ...rich(430), runes: ['rune_hp_200'] };
-    save = equipRune(content, save, 'swordsman', 1, 'rune_hp_200') ?? save;
-    for (let i = 0; i < 4; i++) save = applyUpgrade(content, save, 'swordsman') ?? save;
+    save = equipRune(content, save, SWORD, 1, 'rune_hp_200') ?? save;
+    for (let i = 0; i < 4; i++) save = applyUpgrade(content, save, SWORD) ?? save;
     expect(save.gold).toBe(0);
-    expect(applyEvolve(content, save, 'swordsman')).toBeNull();
-    const evolved = applyEvolve(content, { ...save, gold: 250 }, 'swordsman');
-    expect(evolved?.lines.swordsman?.runes).toEqual([null, 'rune_hp_200']);
+    expect(applyEvolve(content, save, SWORD)).toBeNull();
+    const evolved = applyEvolve(content, { ...save, gold: 250 }, SWORD);
+    expect(evolved?.heroes[0]?.runes).toEqual([null, 'rune_hp_200']);
   });
 });
 
@@ -195,50 +248,50 @@ describe('runy', () => {
   const withRunes = (): Save => ({ ...fresh(), runes: ['rune_attack_25', 'rune_hp_200'] });
 
   it('wkłada wolną runę do slotu i zdejmuje ją z listy wolnych', () => {
-    const save = equipRune(content, withRunes(), 'archer', 0, 'rune_attack_25');
-    expect(save?.lines.archer?.runes).toEqual(['rune_attack_25', null]);
+    const save = equipRune(content, withRunes(), ARCHER, 0, 'rune_attack_25');
+    expect(save?.heroes[1]?.runes).toEqual(['rune_attack_25', null]);
     expect(save && freeRunes(save)).toEqual(['rune_hp_200']);
   });
 
   it('runy włożonej jednemu bohaterowi nie da się włożyć drugiemu bez wyjęcia', () => {
-    const save = equipRune(content, withRunes(), 'archer', 0, 'rune_attack_25');
+    const save = equipRune(content, withRunes(), ARCHER, 0, 'rune_attack_25');
     if (save === null) throw new Error('equip refused');
-    expect(equipRune(content, save, 'swordsman', 0, 'rune_attack_25')).toBeNull();
-    const emptied = equipRune(content, save, 'archer', 0, null);
+    expect(equipRune(content, save, SWORD, 0, 'rune_attack_25')).toBeNull();
+    const emptied = equipRune(content, save, ARCHER, 0, null);
     expect(emptied && freeRunes(emptied)).toEqual(['rune_attack_25', 'rune_hp_200']);
-    expect(emptied && equipRune(content, emptied, 'swordsman', 0, 'rune_attack_25')).not.toBeNull();
+    expect(emptied && equipRune(content, emptied, SWORD, 0, 'rune_attack_25')).not.toBeNull();
   });
 
   it('dwie takie same runy da się włożyć dwóm bohaterom', () => {
     let save: Save = { ...fresh(), runes: ['rune_attack_25', 'rune_attack_25'] };
-    save = equipRune(content, save, 'archer', 0, 'rune_attack_25') ?? save;
-    save = equipRune(content, save, 'swordsman', 1, 'rune_attack_25') ?? save;
+    save = equipRune(content, save, ARCHER, 0, 'rune_attack_25') ?? save;
+    save = equipRune(content, save, SWORD, 1, 'rune_attack_25') ?? save;
     expect(freeRunes(save)).toEqual([]);
-    expect(equipRune(content, save, 'swordsman', 0, 'rune_attack_25')).toBeNull();
+    expect(equipRune(content, save, SWORD, 0, 'rune_attack_25')).toBeNull();
   });
 
   it('zamiana runy w slocie zwraca poprzednią do wolnych', () => {
-    let save = equipRune(content, withRunes(), 'archer', 0, 'rune_attack_25');
-    save = save && equipRune(content, save, 'archer', 0, 'rune_hp_200');
-    expect(save?.lines.archer?.runes).toEqual(['rune_hp_200', null]);
+    let save = equipRune(content, withRunes(), ARCHER, 0, 'rune_attack_25');
+    save = save && equipRune(content, save, ARCHER, 0, 'rune_hp_200');
+    expect(save?.heroes[1]?.runes).toEqual(['rune_hp_200', null]);
     expect(save && freeRunes(save)).toEqual(['rune_attack_25']);
   });
 
-  it('odrzuca slot spoza zakresu, nieznaną linię i runę, której gracz nie ma', () => {
-    expect(equipRune(content, withRunes(), 'archer', 2, 'rune_hp_200')).toBeNull();
-    expect(equipRune(content, withRunes(), 'archer', -1, 'rune_hp_200')).toBeNull();
-    expect(equipRune(content, withRunes(), 'nie_ma', 0, 'rune_hp_200')).toBeNull();
-    expect(equipRune(content, fresh(), 'archer', 0, 'rune_hp_200')).toBeNull();
+  it('odrzuca slot spoza zakresu, nieznanego bohatera i runę, której gracz nie ma', () => {
+    expect(equipRune(content, withRunes(), ARCHER, 2, 'rune_hp_200')).toBeNull();
+    expect(equipRune(content, withRunes(), ARCHER, -1, 'rune_hp_200')).toBeNull();
+    expect(equipRune(content, withRunes(), 99, 0, 'rune_hp_200')).toBeNull();
+    expect(equipRune(content, fresh(), ARCHER, 0, 'rune_hp_200')).toBeNull();
   });
 
   it('podgląd statystyk równa się temu, co liczy resolveUnitSpec', () => {
     let save: Save = { ...withRunes(), gold: 1000 };
-    save = applyUpgrade(content, save, 'archer') ?? save;
-    save = applyUpgrade(content, save, 'archer') ?? save;
-    save = equipRune(content, save, 'archer', 0, 'rune_attack_25') ?? save;
-    save = equipRune(content, save, 'archer', 1, 'rune_hp_200') ?? save;
+    save = applyUpgrade(content, save, ARCHER) ?? save;
+    save = applyUpgrade(content, save, ARCHER) ?? save;
+    save = equipRune(content, save, ARCHER, 0, 'rune_attack_25') ?? save;
+    save = equipRune(content, save, ARCHER, 1, 'rune_hp_200') ?? save;
 
-    const view = lineView(content, save, 'archer');
+    const view = heroView(content, save, ARCHER);
     const unit = content.heroes.get('archer_a');
     const runes = [content.runes.get('rune_attack_25'), content.runes.get('rune_hp_200')];
     if (view === null || unit === undefined || runes.includes(undefined)) throw new Error('setup');
@@ -258,29 +311,35 @@ describe('runy', () => {
 
 describe('skład', () => {
   it('przestawia bohatera na pusty slot', () => {
-    const save = placeInSquad(fresh(), 'archer', 3);
-    expect(save?.squad).toEqual(['swordsman', null, null, 'archer', null]);
+    expect(placeInSquad(fresh(), ARCHER, 3)?.squad).toEqual([1, null, null, 2, null]);
   });
 
   it('zamienia miejscami dwóch bohaterów ze składu', () => {
-    expect(placeInSquad(fresh(), 'archer', 0)?.squad).toEqual([
-      'archer',
-      'swordsman',
-      null,
+    expect(placeInSquad(fresh(), ARCHER, 0)?.squad).toEqual([2, 1, null, null, null]);
+  });
+
+  it('bohater spoza składu zajmuje slot, a poprzedni z niego wypada', () => {
+    const benched = removeFromSquad(fresh(), 1);
+    expect(benched.squad).toEqual([1, null, null, null, null]);
+    expect(placeInSquad(benched, ARCHER, 0)?.squad).toEqual([2, null, null, null, null]);
+  });
+
+  it('w składzie może stać kilku bohaterów tej samej linii', () => {
+    const save = buyHero(content, { ...fresh(), gold: 200 }, 'swordsman');
+    if (save === null) throw new Error('purchase refused');
+    const members = squadMembers(content, save);
+    expect(members.map((member) => member?.unit.id ?? null)).toEqual([
+      'swordsman_a',
+      'archer_a',
+      'swordsman_a',
       null,
       null,
     ]);
   });
 
-  it('bohater spoza składu zajmuje slot, a poprzedni z niego wypada', () => {
-    const benched = removeFromSquad(fresh(), 1);
-    expect(benched.squad).toEqual(['swordsman', null, null, null, null]);
-    expect(placeInSquad(benched, 'archer', 0)?.squad).toEqual(['archer', null, null, null, null]);
-  });
-
-  it('odrzuca nieznaną linię i slot spoza zakresu', () => {
-    expect(placeInSquad(fresh(), 'nie_ma', 0)).toBeNull();
-    expect(placeInSquad(fresh(), 'archer', 5)).toBeNull();
+  it('odrzuca nieznanego bohatera i slot spoza zakresu', () => {
+    expect(placeInSquad(fresh(), 99, 0)).toBeNull();
+    expect(placeInSquad(fresh(), ARCHER, 5)).toBeNull();
   });
 
   it('rozpoznaje pusty skład', () => {
@@ -295,39 +354,65 @@ describe('reconcileSave', () => {
     expect(reconcileSave(content, save)).toEqual(save);
   });
 
-  it('usuwa linie, runy i poziomy, których nie ma już w treści gry', () => {
+  it('usuwa bohaterów, runy i poziomy, których nie ma już w treści gry', () => {
     const save: Save = {
       ...fresh(),
-      lines: {
-        swordsman: { form: 1, upgrades: 9, runes: ['rune_dawna', 'rune_hp_200', 'rune_hp_200'] },
-        dawna_linia: { form: 0, upgrades: 1, runes: [null, null] },
-      },
+      heroes: [
+        { id: 1, line: 'dawna_linia', form: 0, upgrades: 1, runes: [null, null] },
+        {
+          id: 2,
+          line: 'swordsman',
+          form: 1,
+          upgrades: 9,
+          runes: ['rune_dawna', 'rune_hp_200', 'rune_hp_200'],
+        },
+        // Powtórzone id: zostaje pierwszy bohater.
+        { id: 2, line: 'archer', form: 0, upgrades: 0, runes: [null, null] },
+      ],
+      nextHeroId: 2,
       runes: ['rune_dawna', 'rune_hp_200'],
       levels: { w1_l1: { cleared: true, bestTicks: 300 }, dawny: { cleared: true, bestTicks: 1 } },
-      squad: ['dawna_linia', 'swordsman', 'swordsman', null, null],
+      squad: [1, 2, 2, 7, null],
     };
     const fixed = reconcileSave(content, save);
     expect(fixed.runes).toEqual(['rune_hp_200']);
     expect(Object.keys(fixed.levels)).toEqual(['w1_l1']);
     // Ulepszenia przycięte do maksimum, runy do liczby slotów i do posiadanych sztuk.
-    expect(fixed.lines.swordsman).toEqual({ form: 1, upgrades: 4, runes: [null, 'rune_hp_200'] });
-    // Linia startowa, której zapis nie miał, wraca.
-    expect(fixed.lines.archer).toEqual({ form: 0, upgrades: 0, runes: [null, null] });
-    expect(fixed.lines.dawna_linia).toBeUndefined();
-    expect(fixed.squad).toEqual([null, 'swordsman', null, null, null]);
+    expect(fixed.heroes).toEqual([
+      { id: 2, line: 'swordsman', form: 1, upgrades: 4, runes: [null, 'rune_hp_200'] },
+    ]);
+    // Następne id nie może powtórzyć istniejącego.
+    expect(fixed.nextHeroId).toBe(3);
+    expect(fixed.squad).toEqual([null, 2, null, null, null]);
   });
 
   it('runa włożona dwóm bohaterom przy jednej posiadanej sztuce zostaje u pierwszego', () => {
+    const base = fresh();
     const save: Save = {
-      ...fresh(),
+      ...base,
       runes: ['rune_attack_25'],
-      lines: {
-        swordsman: { form: 0, upgrades: 0, runes: ['rune_attack_25', null] },
-        archer: { form: 0, upgrades: 0, runes: ['rune_attack_25', null] },
-      },
+      heroes: base.heroes.map((hero) => ({ ...hero, runes: ['rune_attack_25', null] })),
     };
     const fixed = reconcileSave(content, save);
-    expect(fixed.lines.swordsman?.runes).toEqual(['rune_attack_25', null]);
-    expect(fixed.lines.archer?.runes).toEqual([null, null]);
+    expect(fixed.heroes[0]?.runes).toEqual(['rune_attack_25', null]);
+    expect(fixed.heroes[1]?.runes).toEqual([null, null]);
+  });
+
+  it('zapis bez żadnego bohatera dostaje bohaterów startowych', () => {
+    const save: Save = {
+      ...fresh(),
+      gold: 77,
+      heroes: [{ id: 4, line: 'dawna_linia', form: 0, upgrades: 0, runes: [null, null] }],
+      nextHeroId: 5,
+      squad: [4, null, null, null, null],
+    };
+    const fixed = reconcileSave(content, save);
+    expect(fixed.gold).toBe(77);
+    expect(fixed.heroes.map((hero) => [hero.id, hero.line])).toEqual([
+      [5, 'swordsman'],
+      [6, 'archer'],
+    ]);
+    expect(fixed.squad).toEqual([5, 6, null, null, null]);
+    expect(fixed.nextHeroId).toBe(7);
   });
 });

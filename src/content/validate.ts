@@ -39,6 +39,12 @@ function orphanHeroes(content: GameContent): ContentIssue[] {
   return issues;
 }
 
+/** Bez bohatera startowego nowa gra nie miałaby czym wygrać pierwszego poziomu. */
+function starterLines(content: GameContent): ContentIssue[] {
+  const hasStarter = [...content.lines.values()].some((line) => line.starter);
+  return hasStarter ? [] : [{ source: 'lines.json', message: 'żadna linia nie jest startowa' }];
+}
+
 export function validateContent(raw: RawContent = rawContent): ContentIssue[] {
   const issues: ContentIssue[] = [...validateDictionaries(dictionaries, SOURCE_LANGUAGE)];
   const { content, issues: loadIssues } = loadContent(raw);
@@ -46,6 +52,7 @@ export function validateContent(raw: RawContent = rawContent): ContentIssue[] {
   if (content !== null) {
     issues.push(...missingNames(content, dictionaries[SOURCE_LANGUAGE]));
     issues.push(...orphanHeroes(content));
+    issues.push(...starterLines(content));
   }
   return issues;
 }

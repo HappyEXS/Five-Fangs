@@ -1,4 +1,4 @@
-// Test end-to-end pętli gry na buildzie produkcyjnym (M4-11): gra startuje, walka dochodzi
+// Testy end-to-end pętli gry na buildzie produkcyjnym (M4-11): gra startuje, walka dochodzi
 // do końca, postęp się zapisuje, a konsola przeglądarki nie zawiera błędów.
 import { expect, type Page, test } from '@playwright/test';
 
@@ -20,6 +20,24 @@ async function readSave(page: Page): Promise<Record<string, unknown>> {
   return JSON.parse(text ?? '{}') as Record<string, unknown>;
 }
 
+/** Wstawia zapis przed startem gry, o ile przeglądarka nie ma jeszcze żadnego. */
+async function seedSave(page: Page, save: unknown): Promise<void> {
+  await page.addInitScript(
+    ([key, value]) => {
+      if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
+    },
+    [SAVE_KEY, JSON.stringify(save)] as const,
+  );
+}
+
+const hero = (id: number, line: string) => ({
+  id,
+  line,
+  form: 0,
+  upgrades: 0,
+  runes: [null, null],
+});
+
 test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez błędów', async ({
   page,
 }) => {
@@ -27,15 +45,15 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Five Fangs' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Graj' }).click();
-  // Na starcie dostępny jest tylko pierwszy poziom.
+  // Panel główny prowadzi na mapę z wybranym następnym poziomem.
+  await page.locator('[data-tile="map"]').click();
   await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
   await expect(page.locator('[data-level="w1_l2"]')).toBeDisabled();
+  const details = page.locator('.level-details');
+  await expect(details).toContainText('Skraj lasu');
+  await expect(details).toContainText('Osiłek');
 
-  await page.locator('[data-level="w1_l1"]').click();
-  await expect(page.locator('[data-drop="slot:0"] .hero-chip')).toHaveText('Miecznik');
-  await page.getByRole('button', { name: 'Walcz' }).click();
-
+  await details.getByRole('button', { name: 'Walcz' }).click();
   await page.getByRole('button', { name: 'x4' }).click();
   const result = page.locator('.result-panel');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
@@ -46,61 +64,65 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   expect(save.gold).toBe(100);
   expect(save.levels).toMatchObject({ w1_l1: { cleared: true } });
 
-  // Po przeładowaniu strony postęp zostaje, a drugi poziom jest odblokowany.
+  // „Następny poziom” otwiera mapę z jego przeciwnikami; składu nie da się tam zmienić.
+  await result.locator('[data-action="next"]').click();
+  await expect(page.locator('.level-details')).toContainText('Zasadzka');
+  await expect(page.locator('.hero-chip')).toHaveCount(0);
+
+  // Po przeładowaniu strony postęp zostaje.
   await page.reload();
-  await page.getByRole('button', { name: 'Graj' }).click();
+  await expect(page.locator('.hub .gold')).toHaveText('Złoto: 100');
+  await page.locator('[data-tile="map"]').click();
   await expect(page.locator('[data-level="w1_l1"]')).toHaveClass(/level-cleared/);
   await expect(page.locator('[data-level="w1_l2"]')).toBeEnabled();
-  await expect(page.locator('.gold')).toHaveText('Złoto: 100');
 
   expect(errors).toEqual([]);
 });
 
-test('ulepszenie bohatera, zmiana składu przeciągnięciem i zmiana języka', async ({ page }) => {
+test('skład i sklep: ulepszenie, zakup bohatera, przeciąganie na slot, zmiana języka', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
-  // Zapis z 260 złota: wystarcza na ulepszenia za 50 i 80.
-  await page.addInitScript(
-    ([key, value]) => {
-      if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
-    },
-    [
-      SAVE_KEY,
-      JSON.stringify({
-        saveVersion: 1,
-        gameVersion: '0.1.0',
-        gold: 260,
-        lines: {
-          swordsman: { form: 0, upgrades: 0, runes: [null, null] },
-          archer: { form: 0, upgrades: 0, runes: [null, null] },
-        },
-        runes: [],
-        levels: { w1_l1: { cleared: true, bestTicks: 420 } },
-        squad: ['swordsman', 'archer', null, null, null],
-        settings: { lang: 'pl', battleSpeed: 1 },
-      }),
-    ] as const,
-  );
+  await seedSave(page, {
+    saveVersion: 2,
+    gameVersion: '0.1.0',
+    gold: 600,
+    heroes: [hero(1, 'swordsman'), hero(2, 'archer')],
+    nextHeroId: 3,
+    runes: [],
+    levels: { w1_l1: { cleared: true, bestTicks: 420 } },
+    squad: [1, 2, null, null, null],
+    settings: { lang: 'pl', battleSpeed: 1 },
+  });
   await page.goto('/');
 
-  await page.getByRole('button', { name: 'Bohaterowie' }).click();
-  const card = page.locator('[data-line="swordsman"]');
-  await expect(card).toContainText('ulepszenia 0/4');
-  await card.locator('[data-action="upgrade"]').click();
-  await expect(card).toContainText('ulepszenia 1/4');
-  await expect(page.locator('.gold')).toHaveText('Złoto: 210');
-  await page.getByRole('button', { name: 'Wróć' }).click();
+  // Skład: ulepszenie wybranego bohatera.
+  await page.locator('[data-tile="squad"]').click();
+  const details = page.locator('.squad-details');
+  await expect(details).toContainText('Miecznik');
+  await expect(details).toContainText('ulepszenia 0/4');
+  await details.locator('[data-action="upgrade"]').click();
+  await expect(details).toContainText('ulepszenia 1/4');
+  await expect(page.locator('.gold')).toHaveText('Złoto: 550');
 
-  // Łucznik ze slotu 2 na slot 4, przeciągnięciem.
-  await page.getByRole('button', { name: 'Graj' }).click();
-  await page.locator('[data-level="w1_l2"]').click();
-  await page
-    .locator('[data-drop="slot:1"] .hero-chip')
-    .dragTo(page.locator('[data-drop="slot:3"]'));
-  await expect(page.locator('[data-drop="slot:3"] .hero-chip')).toHaveText('Łucznik');
-  expect((await readSave(page)).squad).toEqual(['swordsman', null, null, 'archer', null]);
+  // Sklep: nowy typ bohatera i drugi egzemplarz posiadanego.
+  await page.getByRole('button', { name: 'Sklep' }).click();
+  await page.locator('[data-line="guard"] [data-action="buy"]').click();
+  await page.locator('[data-line="swordsman"] [data-action="buy"]').click();
+  await expect(page.locator('.gold')).toHaveText('Złoto: 50');
+  await expect(page.locator('[data-line="swordsman"]')).toContainText('Posiadasz: 2');
+  await expect(page.locator('[data-line="cleric"] [data-action="buy"]')).toBeDisabled();
+  let save = await readSave(page);
+  expect(save.squad).toEqual([1, 2, 3, 4, null]);
+
+  // Skład: Tarczownik (id 3) na front przeciągnięciem; zamienia się miejscami z Miecznikiem.
+  await page.getByRole('button', { name: 'Skład' }).click();
+  await page.locator('[data-hero="3"].hero-chip').dragTo(page.locator('[data-drop="slot:0"]'));
+  await expect(page.locator('[data-drop="slot:0"] .hero-chip')).toHaveText('Tarczownik');
+  save = await readSave(page);
+  expect(save.squad).toEqual([3, 2, 1, 4, null]);
 
   // Język: zmiana od razu widoczna i zapisana.
-  await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Ustawienia' }).click();
   await page.getByRole('button', { name: 'English' }).click();
@@ -111,13 +133,36 @@ test('ulepszenie bohatera, zmiana składu przeciągnięciem i zmiana języka', a
   expect(errors).toEqual([]);
 });
 
+test('zapis w wersji 1 wczytuje się przez migrację', async ({ page }) => {
+  const errors = collectErrors(page);
+  await seedSave(page, {
+    saveVersion: 1,
+    gameVersion: '0.1.0',
+    gold: 135,
+    lines: {
+      swordsman: { form: 0, upgrades: 3, runes: [null, null] },
+      archer: { form: 1, upgrades: 1, runes: [null, null] },
+    },
+    runes: [],
+    levels: { w1_l1: { cleared: true, bestTicks: 412 } },
+    squad: ['swordsman', 'archer', null, null, null],
+    settings: { lang: 'pl', battleSpeed: 2 },
+  });
+  await page.goto('/');
+  await expect(page.locator('.hub .gold')).toHaveText('Złoto: 135');
+  await page.locator('[data-tile="squad"]').click();
+  await expect(page.locator('[data-drop="slot:0"] .hero-chip')).toHaveText('Miecznik +3');
+  await expect(page.locator('[data-drop="slot:1"] .hero-chip')).toHaveText('Strzelec wyborowy +1');
+  expect(errors).toEqual([]);
+});
+
 test('uszkodzony zapis nie zatrzymuje gry', async ({ page }) => {
   const errors = collectErrors(page);
   await page.addInitScript((key) => localStorage.setItem(key, '{ zepsuty zapis'), SAVE_KEY);
   await page.goto('/');
   await expect(page.getByRole('alert')).toContainText('Zapis gry był uszkodzony');
   await page.getByRole('button', { name: 'OK' }).click();
-  await page.getByRole('button', { name: 'Graj' }).click();
+  await page.locator('[data-tile="map"]').click();
   await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
   expect(errors).toEqual([]);
 });

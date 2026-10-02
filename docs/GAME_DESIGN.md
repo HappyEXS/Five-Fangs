@@ -4,11 +4,13 @@
 
 ## 1. Pętla gry
 
-1. Gracz wybiera poziom na mapie (5 światów po 6 poziomów, odblokowywane kolejno).
-2. Układa skład: do 5 bohaterów na 5 slotach, każdemu może włożyć do 2 run.
-3. Walka toczy się automatycznie. Gracz nie ma wpływu na jej przebieg; może ją tylko wstrzymać, zmienić prędkość odtwarzania (x1/x2/x4) albo wyjść.
-4. Wygrana daje złoto, czasem runę lub nową linię bohaterów, i odblokowuje następny poziom.
-5. Złoto idzie na ulepszenia i ewolucje bohaterów.
+Gra ma panel główny z trzema wejściami: **Mapa**, **Skład** i **Sklep**.
+
+1. Na **mapie** gracz wybiera poziom (5 światów po 6 poziomów, odblokowywane kolejno), widzi jego przeciwników i nagrody i zaczyna walkę bieżącym składem. Mapa nie pozwala zmieniać składu.
+2. Na ekranie **składu** ustawia do 5 bohaterów na 5 slotach, ulepsza ich, ewoluuje i wkłada im runy (do 2 na bohatera).
+3. W **sklepie** kupuje za złoto nowych bohaterów.
+4. Walka toczy się automatycznie. Gracz nie ma wpływu na jej przebieg; może ją tylko wstrzymać, zmienić prędkość odtwarzania (x1/x2/x4) albo wyjść.
+5. Wygrana daje złoto, czasem runę, i odblokowuje następny poziom.
 
 W walce **nie ma losowości**: ten sam skład na tym samym poziomie zawsze daje ten sam wynik. Gra jest więc bliższa łamigłówce: przegrana oznacza, że trzeba zmienić skład, ustawienie, runy albo ulepszyć bohaterów.
 
@@ -151,12 +153,13 @@ Pociski w locie w chwili końca walki nie mają znaczenia.
 
 ## 5. Bohaterowie i progresja
 
-### 5.1 Linie i formy
+### 5.1 Linie, formy i egzemplarze
 
-- **6 linii bohaterów, każda z 2 formami** (bazowa i ewolucja): łącznie 12 jednostek gracza.
+- **Linia** to typ bohatera z 2 formami (bazowa i ewolucja). Docelowo 6 linii, czyli 12 jednostek gracza.
 - Forma po ewolucji to **inny bohater**: własne części graficzne, własne statystyki bazowe, może mieć inny typ ataku i inne cechy. Obie formy dzielą rig i klipy animacji.
-- Gracz zaczyna z 3 liniami. Linie 4, 5 i 6 odblokowują się po pokonaniu bossów światów 1, 2 i 3.
-- **Stan na teraz (decyzja autora z 2026-10-02):** gra ma dwie linie testowe, miecznika i łucznika; pozostałe linie autor uzupełni przy wykańczaniu gry. Forma po ewolucji obu linii ma inny typ ataku niż forma bazowa, żeby dało się przetestować wszystkie mechaniki.
+- Gracz posiada **egzemplarze** bohaterów (decyzja autora z 2026-10-02). Każdy egzemplarz ma własne ulepszenia, formę i runy. Tej samej linii można mieć kilka egzemplarzy i wystawić ich w składzie obok siebie.
+- Gracz zaczyna z dwoma bohaterami: po jednym z każdej linii startowej (Miecznik i Łucznik). Kolejnych kupuje w sklepie (sekcja 5.5).
+- **Stan na teraz:** linie startowe to miecznik i łucznik; w sklepie są dodatkowo dwie linie testowe, Tarczownik → Strażnik (dużo życia i odrzutu; Strażnik leczy sam siebie) oraz Akolita → Kapłan (leczenie drużyny). Docelowy roster autor uzupełni przy wykańczaniu gry. Forma po ewolucji miecznika i łucznika ma inny typ ataku niż forma bazowa.
 
 ### 5.2 Ulepszenia i ewolucja
 
@@ -184,9 +187,20 @@ Koszty (wyjściowe, do balansu w M5): ulepszenia formy A `50, 80, 120, 180`, ewo
 
 ### 5.4 Złoto
 
-- Jedyna waluta. Źródło: nagrody za poziomy. Odpływ: ulepszenia i ewolucje. Sklepu nie ma.
+- Jedyna waluta. Źródło: nagrody za poziomy. Odpływ: ulepszenia, ewolucje i zakupy bohaterów w sklepie.
 - Pierwsze przejście poziomu daje pełną nagrodę. Każda powtórka daje 25% złota i nic poza tym.
 - Wynik walki jest powtarzalny, więc powtórka poziomu składem, który już wygrał, to pewne złoto. Ułamek 25% ma sprawić, że farmienie jest możliwe, ale wolniejsze niż postęp.
+
+### 5.5 Sklep
+
+- Sklep sprzedaje bohaterów za złoto. Wszystkie linie są dostępne od początku gry; ogranicza tylko cena.
+- Zakup daje nowy egzemplarz w formie bazowej, bez ulepszeń i run. Jeśli w składzie jest wolny slot, bohater od razu go zajmuje (pierwszy wolny od frontu); inaczej trafia poza skład.
+- Tę samą linię można kupić wiele razy; każdy egzemplarz kosztuje tyle samo. Liczba posiadanych bohaterów nie ma limitu.
+- Bohaterów nie da się sprzedać.
+- Jednostek specjalnych (przeciwników takich jak Osiłek czy Herszt) nie ma w sklepie.
+- Ceny wyjściowe: Miecznik i Łucznik 200, Tarczownik i Akolita 300.
+
+Nagrody świata „Las” są policzone tak, by pierwsze przejścia opłacały ulepszenia dwóch bohaterów startowych. Zakup dodatkowych bohaterów wymaga więc powtarzania poziomów albo rezygnacji z części ulepszeń; ceny i nagrody do korekty przy docelowym balansie.
 
 ## 6. Cechy pasywne
 

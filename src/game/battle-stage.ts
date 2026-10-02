@@ -1,6 +1,7 @@
 // Canvas pod interfejsem: tło, podgląd pola walki na ekranie składu i sama walka.
 // Reaguje na scenę z `Game`; UI steruje walką przez `StageControls`.
 import { effect, type Signal, signal } from '@preact/signals';
+import type { CompiledLevel } from '../content/load-progression.ts';
 import { levelSetup, levelVisuals } from '../content/resolve-spec.ts';
 import { TICKS_PER_SECOND } from '../core/units.ts';
 import { loadUnitsAtlas } from '../render/atlas.ts';
@@ -14,6 +15,16 @@ import type { Game, Scene } from './game.ts';
 import { squadMembers } from './progress.ts';
 import { attachStage, get2dContext } from './stage.ts';
 import { guardedLoad } from './update.ts';
+
+/** Poziom bez przeciwników: podgląd samego składu gracza na ekranie składu. */
+const NO_ENEMIES: CompiledLevel = {
+  id: '',
+  world: '',
+  index: 0,
+  enemies: [],
+  gold: 0,
+  rune: null,
+};
 
 /** Czas po rozstrzygnięciu walki, zanim pojawi się wynik: animacje śmierci i ostatnie liczby. */
 const END_DELAY_MS = 1400;
@@ -58,11 +69,10 @@ export function startStage(
         assets.value = 'ready';
       },
       () => {
-        // Komunikat pokazuje baner z `guardedLoad`; gracz wraca na mapę i może spróbować ponownie.
+        // Komunikat pokazuje baner z `guardedLoad`; gracz może spróbować ponownie.
         assets.value = 'failed';
-        if (game.scene.value.name === 'battle' || game.scene.value.name === 'squad') {
-          game.go({ name: 'map' });
-        }
+        // Bez grafik nie ma walki; ekran składu działa dalej, tylko bez podglądu.
+        if (game.scene.value.name === 'battle') game.openMap();
       },
     );
   }
@@ -80,15 +90,20 @@ export function startStage(
     const scene = game.scene.value;
     const save = game.save.value;
     const ready = assets.value === 'ready';
-    const level = scene.name === 'squad' || scene.name === 'battle' ? scene.level : null;
     // Podgląd odświeżamy po zmianie składu, ulepszeń i run; trwająca walka ich nie śledzi.
-    const squadKey = scene.name === 'squad' ? JSON.stringify([save.squad, save.lines]) : '';
+    const squadKey = scene.name === 'squad' ? JSON.stringify([save.squad, save.heroes]) : '';
     if (scene === shownScene && squadKey === shownSquad && (runner !== null || previewing)) return;
 
     clear();
     shownScene = scene;
     shownSquad = squadKey;
-    const compiled = level === null ? undefined : content.levels.get(level);
+    // Ekran składu pokazuje samych bohaterów na ich slotach; walka bierze wrogów z poziomu.
+    const compiled =
+      scene.name === 'squad'
+        ? NO_ENEMIES
+        : scene.name === 'battle'
+          ? content.levels.get(scene.level)
+          : undefined;
     if (compiled === undefined) return;
     if (!ready || renderer === null) {
       ensureRenderer();

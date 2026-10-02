@@ -1,13 +1,20 @@
 // Kształt zapisu gry (docs/ARCHITECTURE.md §6.2, ADR 0005). Zmiana kształtu wymaga podniesienia
 // SAVE_VERSION, migracji w save-migrations.ts i fixture w tests/fixtures/saves/.
+//
+// Wersja 2: bohaterowie są egzemplarzami (gracz może mieć kilku bohaterów tej samej linii,
+// każdy z własnymi ulepszeniami i runami). W wersji 1 stan był trzymany per linia.
 import { z } from 'zod';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 /** Liczba slotów składu; równa TEAM_SIZE symulacji. */
 export const SQUAD_SLOTS = 5;
 
-const lineStateSchema = z.strictObject({
+const heroSchema = z.strictObject({
+  /** Id egzemplarza, unikalne w zapisie; nadawane kolejno przy zdobyciu bohatera. */
+  id: z.number().int().positive(),
+  /** Id linii z lines.json. */
+  line: z.string(),
   /** 0 = forma bazowa, 1 = forma po ewolucji. */
   form: z.union([z.literal(0), z.literal(1)]),
   /** Liczba ulepszeń bieżącej formy. */
@@ -27,13 +34,15 @@ export const saveSchema = z.strictObject({
   /** Wersja gry, która zapisała plik; tylko do diagnostyki. */
   gameVersion: z.string(),
   gold: z.number().int().nonnegative(),
-  /** Stan odblokowanych linii bohaterów; klucz to id linii. */
-  lines: z.record(z.string(), lineStateSchema),
+  /** Posiadani bohaterowie w kolejności zdobycia. */
+  heroes: z.array(heroSchema),
+  /** Id, które dostanie następny zdobyty bohater. */
+  nextHeroId: z.number().int().positive(),
   /** Id posiadanych run, także tych włożonych; ta sama runa może wystąpić kilka razy. */
   runes: z.array(z.string()),
   levels: z.record(z.string(), levelStateSchema),
-  /** Id linii w każdym slocie składu albo null. */
-  squad: z.array(z.string().nullable()).length(SQUAD_SLOTS),
+  /** Id bohatera w każdym slocie składu albo null. */
+  squad: z.array(z.number().int().positive().nullable()).length(SQUAD_SLOTS),
   settings: z.strictObject({
     lang: z.enum(['pl', 'en']),
     battleSpeed: z.union([z.literal(1), z.literal(2), z.literal(4)]),
@@ -41,6 +50,6 @@ export const saveSchema = z.strictObject({
 });
 
 export type Save = z.infer<typeof saveSchema>;
-export type LineState = z.infer<typeof lineStateSchema>;
+export type HeroState = z.infer<typeof heroSchema>;
 export type LevelState = z.infer<typeof levelStateSchema>;
 export type BattleSpeed = Save['settings']['battleSpeed'];

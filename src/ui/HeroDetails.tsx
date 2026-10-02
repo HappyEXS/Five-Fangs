@@ -1,32 +1,35 @@
-// Bohaterowie: ulepszenia, ewolucja i runy. Reguły i koszty liczy game/progress.ts.
-import { levelNameKey } from '../content/i18n/keys.ts';
-import type { CompiledLine } from '../content/load-progression.ts';
-import type { Game, Scene } from '../game/game.ts';
-import { t, tName } from '../game/i18n.ts';
+// Szczegóły wybranego bohatera na ekranie składu: statystyki z podglądem następnego zakupu,
+// ulepszenie, ewolucja i runy. Reguły i koszty liczy game/progress.ts.
+import type { Game } from '../game/game.ts';
+import { t } from '../game/i18n.ts';
 import {
   evolveCost,
   freeRunes,
-  lineView,
+  type HeroView,
   previewEvolve,
   previewUpgrade,
   upgradeCost,
 } from '../game/progress.ts';
-import { runeLabel, StatTable, TopBar, unitName } from './common.tsx';
+import { runeLabel, StatTable, unitName } from './common.tsx';
 
-function RuneSlots(props: { game: Game; line: string }) {
-  const { game, line } = props;
+/** Nazwa bohatera z liczbą ulepszeń: odróżnia egzemplarze tej samej linii. */
+export function heroLabel(view: HeroView): string {
+  const name = unitName(view.unitId);
+  return view.hero.upgrades > 0 ? `${name} +${view.hero.upgrades}` : name;
+}
+
+function RuneSlots(props: { game: Game; view: HeroView }) {
+  const { game, view } = props;
   const { content } = game;
-  const save = game.save.value;
-  const state = save.lines[line];
-  if (state === undefined) return null;
+  const heroId = view.hero.id;
   // Każdą wolną runę pokazujemy raz, nawet gdy gracz ma kilka takich samych.
-  const free = [...new Set(freeRunes(save))];
+  const free = [...new Set(freeRunes(game.save.value))];
   const slots = Array.from({ length: content.progression.runeSlots }, (_, slot) => slot);
   return (
     <div class="runes">
       <h4>{t('heroes.runes')}</h4>
       {slots.map((slot) => {
-        const id = state.runes[slot] ?? null;
+        const id = view.hero.runes[slot] ?? null;
         const rune = id === null ? undefined : content.runes.get(id);
         return (
           <div class="rune-slot" key={slot}>
@@ -36,7 +39,7 @@ function RuneSlots(props: { game: Game; line: string }) {
                 <button
                   type="button"
                   class="button"
-                  onClick={() => game.equipRune(line, slot, null)}
+                  onClick={() => game.equipRune(heroId, slot, null)}
                 >
                   {t('heroes.rune.remove')}
                 </button>
@@ -48,7 +51,7 @@ function RuneSlots(props: { game: Game; line: string }) {
                 disabled={free.length === 0}
                 onChange={(event) => {
                   const chosen = event.currentTarget.value;
-                  if (chosen !== '') game.equipRune(line, slot, chosen);
+                  if (chosen !== '') game.equipRune(heroId, slot, chosen);
                 }}
               >
                 <option value="">
@@ -71,36 +74,24 @@ function RuneSlots(props: { game: Game; line: string }) {
   );
 }
 
-function HeroCard(props: { game: Game; line: CompiledLine }) {
-  const { game, line } = props;
+export function HeroDetails(props: { game: Game; view: HeroView }) {
+  const { game, view } = props;
   const { content } = game;
   const save = game.save.value;
-  const view = lineView(content, save, line.id);
-
-  if (view === null) {
-    // Linia jeszcze nieodblokowana: gracz widzi, co ją odblokowuje.
-    return (
-      <article class="panel hero-card hero-locked">
-        <h3>{unitName(line.forms[0])}</h3>
-        {line.unlockLevel !== null && (
-          <p class="dim">{t('heroes.locked', { level: tName(levelNameKey(line.unlockLevel)) })}</p>
-        )}
-      </article>
-    );
-  }
-
+  const heroId = view.hero.id;
   const { maxUpgrades } = content.progression;
-  const upgrade = upgradeCost(content, save, line.id);
-  const evolve = evolveCost(content, save, line.id);
-  const evolved = previewEvolve(content, save, line.id);
+  const upgrade = upgradeCost(content, save, heroId);
+  const evolve = evolveCost(content, save, heroId);
+  const evolved = previewEvolve(content, save, heroId);
   // Podgląd pokazuje skutek najbliższego zakupu: ewolucji, jeśli jest dostępna, inaczej ulepszenia.
-  const next = evolve !== null ? (evolved?.spec ?? null) : previewUpgrade(content, save, line.id);
+  const next = evolve !== null ? (evolved?.spec ?? null) : previewUpgrade(content, save, heroId);
+  const slot = save.squad.indexOf(heroId);
   return (
-    <article class="panel hero-card" data-line={line.id}>
+    <div class="hero-details" data-hero={heroId}>
       <h3>{unitName(view.unitId)}</h3>
       <p class="dim">
-        {t(view.state.form === 0 ? 'heroes.form.base' : 'heroes.form.evolved')} ·{' '}
-        {t('heroes.upgrades', { count: view.state.upgrades, max: maxUpgrades })}
+        {t(view.hero.form === 0 ? 'heroes.form.base' : 'heroes.form.evolved')} ·{' '}
+        {t('heroes.upgrades', { count: view.hero.upgrades, max: maxUpgrades })}
       </p>
       <StatTable spec={view.spec} next={next} />
       <div class="hero-actions">
@@ -110,7 +101,7 @@ function HeroCard(props: { game: Game; line: CompiledLine }) {
             class="button button-primary"
             data-action="upgrade"
             disabled={save.gold < upgrade}
-            onClick={() => game.upgrade(line.id)}
+            onClick={() => game.upgrade(heroId)}
           >
             {t('heroes.upgrade', { cost: upgrade })}
           </button>
@@ -121,36 +112,24 @@ function HeroCard(props: { game: Game; line: CompiledLine }) {
             class="button button-primary"
             data-action="evolve"
             disabled={save.gold < evolve}
-            onClick={() => game.evolve(line.id)}
+            onClick={() => game.evolve(heroId)}
           >
             {t('heroes.evolve', { name: unitName(evolved.unitId), cost: evolve })}
           </button>
         )}
         {upgrade === null && evolve === null && <span class="dim">{t('heroes.upgrade.max')}</span>}
-        {view.state.form === 0 && evolve === null && evolved !== null && (
+        {view.hero.form === 0 && evolve === null && evolved !== null && (
           <span class="dim">
             {t('heroes.evolve.locked', { name: unitName(evolved.unitId), max: maxUpgrades })}
           </span>
         )}
       </div>
-      <RuneSlots game={game} line={line.id} />
-    </article>
-  );
-}
-
-export function HeroesScreen(props: { game: Game; back: Scene }) {
-  const { game } = props;
-  const free = freeRunes(game.save.value).length;
-  return (
-    <div class="screen heroes">
-      <TopBar game={game} title={t('heroes.title')} onBack={() => game.go(props.back)}>
-        <span class="dim">{t('heroes.runes.free', { count: free })}</span>
-      </TopBar>
-      <div class="hero-cards">
-        {[...game.content.lines.values()].map((line) => (
-          <HeroCard key={line.id} game={game} line={line} />
-        ))}
-      </div>
+      <RuneSlots game={game} view={view} />
+      {slot >= 0 && (
+        <button type="button" class="button" onClick={() => game.removeFromSquad(slot)}>
+          {t('squad.remove')}
+        </button>
+      )}
     </div>
   );
 }
