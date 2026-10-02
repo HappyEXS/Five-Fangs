@@ -227,15 +227,20 @@ src/content/data/
   attacks.json          typy ataków
   units/heroes.json     formy bohaterów (12)
   units/enemies.json    wrogowie i bossowie
+  progression.json      stałe progresji: liczba ulepszeń, procent na ulepszenie, sloty run, złoto za powtórkę
   lines.json            linie bohaterów: formy, koszty, warunek odblokowania
   runes.json
   worlds.json
-  levels/world_N.json
-  rigs/*.json
-  clips/*.json
+  levels/world_N.json   poziomy świata w kolejności odblokowywania
+  rigs/*.json           (od M2)
+  clips/*.json          (od M2)
   balance/reference-squads.json   składy referencyjne dla skryptu balansu
 src/content/i18n/pl.json, en.json
 ```
+
+Nazwy jednostek, światów i poziomów nie leżą w danych, tylko w słownikach pod kluczami `unit.<id>.name`, `world.<id>.name`, `level.<id>.name`; walidator sprawdza ich komplet.
+
+Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` (jednostki i arena), `load.ts` i `load-progression.ts` (walidacja odwołań i złożenie `GameContent`), `resolve-spec.ts` (statystyki efektywne i setup poziomu), `validate.ts` (walidacja całości).
 
 ### 4.2 Formaty surowe
 
@@ -248,8 +253,8 @@ src/content/i18n/pl.json, en.json
 // units/heroes.json
 { "id": "archer_a", "kind": "ranged", "maxHp": 350, "attack": 30, "moveSpeed": 50,
   "attackSpeed": 0.8, "range": 220, "knockback": 0, "attackType": "shoot",
-  "traits": [{ "type": "pierce" }],
-  "rig": "humanoid", "skin": "archer_a" }
+  "traits": [{ "type": "pierce" }] }
+// pola "rig" i "skin" dojdą razem z rendererem w M2
 
 // cecha okresowa
 { "type": "periodicHeal", "target": "team", "amount": 20, "interval": 2.0 }
@@ -283,11 +288,17 @@ Jedyne miejsce konwersji jednostek czytelnych dla człowieka na runtime:
 Statystyki efektywne liczy czysta funkcja w `content`, używana przez `game`, UI (podgląd) i skrypt balansu:
 
 ```ts
-function resolveUnitSpec(unit: CompiledUnit, rank: number, runes: readonly CompiledRune[]): UnitSpec;
-// maxHp i attack: floor(base × (10 + rank) / 10), potem płaskie premie z run
+function resolveUnitSpec(
+  unit: CompiledUnit, rank: number, runes: readonly Rune[], progression: Progression,
+): UnitSpec;
+// maxHp i attack: floor(base × (100 + rank × upgradePercent) / 100), potem płaskie premie z run
+
+function levelSetup(
+  content: GameContent, level: CompiledLevel, squad: readonly (SquadMember | null)[],
+): BattleSetup;
 ```
 
-`rank` to liczba ulepszeń formy (0–4) dla bohatera albo `level` dla wroga.
+`rank` to liczba ulepszeń formy (0–4) dla bohatera albo `level` dla wroga. `levelSetup` składa skład gracza i wrogów poziomu w wejście symulacji.
 
 ### 4.4 Walidator (`pnpm validate-content`)
 
@@ -297,7 +308,11 @@ function resolveUnitSpec(unit: CompiledUnit, rank: number, runes: readonly Compi
 - największy `moveStep` ≤ najmniejszy `range` (gwarancja, że wrogie jednostki się nie miną);
 - `pierce` tylko przy ataku z pociskiem;
 - górne ograniczenie liczby żywych pocisków mieści się w puli;
-- każda linia ma dokładnie 2 formy i komplet kosztów; każdy świat ma 6 poziomów.
+- każda linia ma dokładnie 2 formy i komplet kosztów, forma należy do jednej linii, a każdy bohater do jakiejś linii;
+- każdy świat ma plik poziomów z wymaganą liczbą poziomów (`levelsPerWorld`); w poziomie sloty wrogów się nie powtarzają;
+- najwyżej jedna cecha danego typu na jednostkę.
+
+Reguły zależne od kodu symulacji (niezmienniki `UnitSpec`, mijanie się, pula pocisków) sprawdza `scripts/lib/content-sim-checks.ts`, bo `content` może importować z `sim` tylko typy.
 
 ## 5. Renderer (`src/render`)
 

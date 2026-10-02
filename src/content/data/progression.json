@@ -1,0 +1,7 @@
+{
+  "maxUpgrades": 4,
+  "upgradePercent": 10,
+  "runeSlots": 2,
+  "replayGoldPercent": 25,
+  "levelsPerWorld": 6
+}

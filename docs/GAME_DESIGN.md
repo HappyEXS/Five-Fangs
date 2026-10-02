@@ -43,12 +43,19 @@ Typ ataku ma **stały czas zamachu** (`swingDuration`, np. 0,4 s) i `hitFraction
 
 Odstęp nie może być krótszy niż zamach; walidator treści odrzuca takie dane. Gracz widzi w UI wartości efektywne, po zaokrągleniu do ticków.
 
-### Wartości wyjściowe jednostek testowych (M1–M2)
+### Wartości wyjściowe jednostek testowych (M1–M4)
 
-| Jednostka | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Atak |
+Do czasu zaprojektowania rosteru (M5) gra zawiera jednostki testowe: dwie linie bohaterów po dwie formy i jednego wroga. Ich nazwy i liczby są tymczasowe.
+
+| Jednostka | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Atak i cechy |
 |---|---|---|---|---|---|---|---|
-| swordsman (melee) | 600 | 40 | 60 | 1,0 | 30 | 15 | slash: zamach 0,4 s, trafienie 0,5 |
-| archer (ranged) | 350 | 30 | 50 | 0,8 | 220 | 0 | shoot: zamach 0,6 s, wystrzał 0,5, pocisk 400 jedn./s |
+| swordsman_a (melee) | 600 | 40 | 60 | 1,0 | 30 | 15 | slash: zamach 0,4 s, trafienie 0,5 |
+| swordsman_b (melee) | 900 | 60 | 60 | 1,1 | 30 | 20 | slash |
+| archer_a (ranged) | 350 | 30 | 50 | 0,8 | 220 | 0 | shoot: zamach 0,6 s, wystrzał 0,5, pocisk 400 jedn./s |
+| archer_b (ranged) | 500 | 45 | 50 | 0,9 | 240 | 0 | shoot, `pierce` |
+| brute (wróg, melee) | 800 | 35 | 45 | 0,7 | 30 | 25 | slash |
+
+Testowy świat ma 6 poziomów z osiłkami o rosnącym poziomie siły; szósty to boss (osiłek poziomu 12 z obstawą).
 
 ## 4. Przebieg walki
 
@@ -189,8 +196,6 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 ```json
 {
   "id": "w2_l1",
-  "world": "world_2",
-  "name": "level.w2_l1.name",
   "enemies": [
     { "slot": 0, "unit": "brute", "level": 7 },
     { "slot": 1, "unit": "brute", "level": 7 },
@@ -200,7 +205,9 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 }
 ```
 
-`level` wroga skaluje `maxHp` i `attack` tak samo jak ulepszenia bohatera: +10% wartości bazowej na poziom (wyjściowo).
+Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania. Nazwa poziomu to tekst `level.<id>.name` w słownikach, nazwa świata `world.<id>.name`.
+
+`level` wroga skaluje `maxHp` i `attack` tak samo jak ulepszenia bohatera: +10% wartości bazowej na poziom (wyjściowo, `upgradePercent` w `progression.json`), z zaokrągleniem w dół.
 
 ## 8. Prezentacja
 

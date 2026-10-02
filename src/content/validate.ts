@@ -12,17 +12,40 @@ export function unitNameKey(unitId: string): string {
   return `unit.${unitId}.name`;
 }
 
+/** Klucz i18n z nazwą świata. */
+export function worldNameKey(worldId: string): string {
+  return `world.${worldId}.name`;
+}
+
+/** Klucz i18n z nazwą poziomu. */
+export function levelNameKey(levelId: string): string {
+  return `level.${levelId}.name`;
+}
+
 function missingNames(content: GameContent, source: Dictionary): ContentIssue[] {
   const issues: ContentIssue[] = [];
-  for (const [file, units] of [
-    ['units/heroes.json', content.heroes],
-    ['units/enemies.json', content.enemies],
-  ] as const) {
-    for (const id of units.keys()) {
-      const key = unitNameKey(id);
-      if (source[key] === undefined) {
-        issues.push({ source: file, message: `${id}: brak tekstu "${key}" w słowniku` });
-      }
+  const require = (file: string, id: string, key: string): void => {
+    if (source[key] === undefined) {
+      issues.push({ source: file, message: `${id}: brak tekstu "${key}" w słowniku` });
+    }
+  };
+  for (const id of content.heroes.keys()) require('units/heroes.json', id, unitNameKey(id));
+  for (const id of content.enemies.keys()) require('units/enemies.json', id, unitNameKey(id));
+  for (const world of content.worlds) require('worlds.json', world.id, worldNameKey(world.id));
+  for (const level of content.levels.values()) {
+    require(`levels/${level.world}.json`, level.id, levelNameKey(level.id));
+  }
+  return issues;
+}
+
+/** Forma bohatera, która nie należy do żadnej linii, jest nieosiągalna w grze. */
+function orphanHeroes(content: GameContent): ContentIssue[] {
+  const inLines = new Set<string>();
+  for (const line of content.lines.values()) for (const form of line.forms) inLines.add(form);
+  const issues: ContentIssue[] = [];
+  for (const id of content.heroes.keys()) {
+    if (!inLines.has(id)) {
+      issues.push({ source: 'units/heroes.json', message: `${id}: nie należy do żadnej linii` });
     }
   }
   return issues;
@@ -32,6 +55,9 @@ export function validateContent(raw: RawContent = rawContent): ContentIssue[] {
   const issues: ContentIssue[] = [...validateDictionaries(dictionaries, SOURCE_LANGUAGE)];
   const { content, issues: loadIssues } = loadContent(raw);
   issues.push(...loadIssues);
-  if (content !== null) issues.push(...missingNames(content, dictionaries[SOURCE_LANGUAGE]));
+  if (content !== null) {
+    issues.push(...missingNames(content, dictionaries[SOURCE_LANGUAGE]));
+    issues.push(...orphanHeroes(content));
+  }
   return issues;
 }

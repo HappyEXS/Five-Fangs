@@ -1,6 +1,6 @@
 [
   {
-    "id": "swordsman",
+    "id": "swordsman_a",
     "kind": "melee",
     "maxHp": 600,
     "attack": 40,
@@ -11,7 +11,18 @@
     "attackType": "slash"
   },
   {
-    "id": "archer",
+    "id": "swordsman_b",
+    "kind": "melee",
+    "maxHp": 900,
+    "attack": 60,
+    "moveSpeed": 60,
+    "attackSpeed": 1.1,
+    "range": 30,
+    "knockback": 20,
+    "attackType": "slash"
+  },
+  {
+    "id": "archer_a",
     "kind": "ranged",
     "maxHp": 350,
     "attack": 30,
@@ -20,5 +31,17 @@
     "range": 220,
     "knockback": 0,
     "attackType": "shoot"
+  },
+  {
+    "id": "archer_b",
+    "kind": "ranged",
+    "maxHp": 500,
+    "attack": 45,
+    "moveSpeed": 50,
+    "attackSpeed": 0.9,
+    "range": 240,
+    "knockback": 0,
+    "attackType": "shoot",
+    "traits": [{ "type": "pierce" }]
   }
 ]

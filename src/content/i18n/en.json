@@ -9,7 +9,16 @@
   "update.reload": "Reload",
   "load.failed": "Could not load game data. Check your internet connection.",
   "load.retry": "Try again",
-  "unit.swordsman.name": "Swordsman",
-  "unit.archer.name": "Archer",
-  "unit.brute.name": "Brute"
+  "unit.swordsman_a.name": "Swordsman",
+  "unit.swordsman_b.name": "Knight",
+  "unit.archer_a.name": "Archer",
+  "unit.archer_b.name": "Marksman",
+  "unit.brute.name": "Brute",
+  "world.world_1.name": "Test world",
+  "level.w1_l1.name": "Test level 1",
+  "level.w1_l2.name": "Test level 2",
+  "level.w1_l3.name": "Test level 3",
+  "level.w1_l4.name": "Test level 4",
+  "level.w1_l5.name": "Test level 5",
+  "level.w1_l6.name": "Test level 6: boss"
 }

@@ -1,12 +1,22 @@
 // Wczytanie treści: walidacja schematem, sprawdzenie odwołań i kompilacja do struktur runtime.
-import type { ZodType } from 'zod';
 import type { ArenaSpec } from '../sim/types.ts';
 import { type CompiledUnit, compileArena, compileUnit } from './compile.ts';
 import arenaJson from './data/arena.json' with { type: 'json' };
 import attacksJson from './data/attacks.json' with { type: 'json' };
+import world1LevelsJson from './data/levels/world_1.json' with { type: 'json' };
+import linesJson from './data/lines.json' with { type: 'json' };
+import progressionJson from './data/progression.json' with { type: 'json' };
+import runesJson from './data/runes.json' with { type: 'json' };
 import enemiesJson from './data/units/enemies.json' with { type: 'json' };
 import heroesJson from './data/units/heroes.json' with { type: 'json' };
+import worldsJson from './data/worlds.json' with { type: 'json' };
 import type { ContentIssue } from './issues.ts';
+import {
+  loadProgression,
+  type ProgressionContent,
+  type RawProgression,
+} from './load-progression.ts';
+import { indexById, parse } from './parse.ts';
 import {
   arenaSchema,
   attackTypesSchema,
@@ -16,7 +26,7 @@ import {
 } from './schema.ts';
 
 /** Surowe dane treści przed walidacją; klucz = plik względem src/content/data. */
-export interface RawContent {
+export interface RawContent extends RawProgression {
   readonly 'arena.json': unknown;
   readonly 'attacks.json': unknown;
   readonly 'units/heroes.json': unknown;
@@ -28,9 +38,14 @@ export const rawContent: RawContent = {
   'attacks.json': attacksJson,
   'units/heroes.json': heroesJson,
   'units/enemies.json': enemiesJson,
+  'progression.json': progressionJson,
+  'lines.json': linesJson,
+  'runes.json': runesJson,
+  'worlds.json': worldsJson,
+  levels: { world_1: world1LevelsJson },
 };
 
-export interface GameContent {
+export interface GameContent extends ProgressionContent {
   readonly arena: ArenaSpec;
   readonly attacks: ReadonlyMap<string, RawAttackType>;
   readonly heroes: ReadonlyMap<string, CompiledUnit>;
@@ -41,39 +56,6 @@ export interface ContentResult {
   /** Skompilowana treść albo null, gdy dane nie przeszły schematów. */
   readonly content: GameContent | null;
   readonly issues: readonly ContentIssue[];
-}
-
-function parse<T>(
-  source: string,
-  schema: ZodType<T>,
-  data: unknown,
-  issues: ContentIssue[],
-): T | null {
-  const result = schema.safeParse(data);
-  if (result.success) return result.data;
-  for (const issue of result.error.issues) {
-    const path = issue.path.length === 0 ? '' : `${issue.path.join('.')}: `;
-    issues.push({ source, message: `${path}${issue.message}` });
-  }
-  return null;
-}
-
-function indexById<T extends { id: string }>(
-  source: string,
-  items: readonly T[],
-  seen: Set<string>,
-  issues: ContentIssue[],
-): Map<string, T> {
-  const map = new Map<string, T>();
-  for (const item of items) {
-    if (seen.has(item.id)) {
-      issues.push({ source, message: `powtórzone id "${item.id}"` });
-      continue;
-    }
-    seen.add(item.id);
-    map.set(item.id, item);
-  }
-  return map;
 }
 
 function compileUnits(
@@ -130,16 +112,24 @@ export function loadContent(raw: RawContent = rawContent): ContentResult {
   const attacks = indexById('attacks.json', attackList, new Set(), issues);
   // Bohaterowie i wrogowie dzielą przestrzeń id: poziomy i UI odwołują się do jednostek po samym id.
   const unitIds = new Set<string>();
-  const heroes = indexById('units/heroes.json', heroList, unitIds, issues);
-  const enemies = indexById('units/enemies.json', enemyList, unitIds, issues);
+  const heroes = compileUnits(
+    'units/heroes.json',
+    indexById('units/heroes.json', heroList, unitIds, issues),
+    attacks,
+    issues,
+  );
+  const enemies = compileUnits(
+    'units/enemies.json',
+    indexById('units/enemies.json', enemyList, unitIds, issues),
+    attacks,
+    issues,
+  );
+
+  const progression = loadProgression(raw, heroes, enemies, issues);
+  if (progression === null) return { content: null, issues };
 
   return {
-    content: {
-      arena: compileArena(arena),
-      attacks,
-      heroes: compileUnits('units/heroes.json', heroes, attacks, issues),
-      enemies: compileUnits('units/enemies.json', enemies, attacks, issues),
-    },
+    content: { arena: compileArena(arena), attacks, heroes, enemies, ...progression },
     issues,
   };
 }

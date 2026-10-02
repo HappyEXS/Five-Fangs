@@ -1,0 +1,4 @@
+[
+  { "id": "rune_attack_25", "stat": "attack", "value": 25 },
+  { "id": "rune_hp_200", "stat": "maxHp", "value": 200 }
+]

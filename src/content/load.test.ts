@@ -14,8 +14,16 @@ const unit = {
   attackType: 'slash',
 };
 
+/** Treść z podanymi bohaterami, bez danych odwołujących się do prawdziwych jednostek gry. */
 function withHeroes(heroes: unknown): RawContent {
-  return { ...rawContent, 'units/heroes.json': heroes, 'units/enemies.json': [] };
+  return {
+    ...rawContent,
+    'units/heroes.json': heroes,
+    'units/enemies.json': [],
+    'lines.json': [],
+    'worlds.json': [],
+    levels: {},
+  };
 }
 
 const messages = (raw: RawContent) =>
@@ -25,8 +33,9 @@ describe('loadContent', () => {
   it('wczytuje treść gry bez problemów', () => {
     const { content, issues } = loadContent();
     expect(issues).toEqual([]);
-    expect(content?.heroes.get('swordsman')?.base.maxHp).toBe(600);
-    expect(content?.heroes.get('archer')?.base.projectileStep).toBeGreaterThan(0);
+    expect(content?.heroes.get('swordsman_a')?.base.maxHp).toBe(600);
+    expect(content?.heroes.get('archer_a')?.base.projectileStep).toBeGreaterThan(0);
+    expect(content?.heroes.get('archer_b')?.base.pierce).toBe(true);
     expect(content?.enemies.has('brute')).toBe(true);
     expect(content?.arena.timeLimitTicks).toBe(2700);
   });
@@ -41,11 +50,7 @@ describe('loadContent', () => {
     expect(messages(withHeroes([unit, unit]))).toEqual([
       'units/heroes.json: powtórzone id "swordsman"',
     ]);
-    const raw: RawContent = {
-      ...rawContent,
-      'units/heroes.json': [unit],
-      'units/enemies.json': [unit],
-    };
+    const raw: RawContent = { ...withHeroes([unit]), 'units/enemies.json': [unit] };
     expect(messages(raw)).toEqual(['units/enemies.json: powtórzone id "swordsman"']);
   });
 
@@ -114,13 +119,14 @@ describe('validateContent', () => {
     expect(validateContent()).toEqual([]);
   });
 
-  it('wymaga nazwy każdej jednostki w słowniku', () => {
+  it('wymaga nazwy każdej jednostki w słowniku i przynależności bohatera do linii', () => {
     const issues = validateContent(withHeroes([{ ...unit, id: 'nameless' }]));
     expect(issues).toEqual([
       {
         source: 'units/heroes.json',
         message: 'nameless: brak tekstu "unit.nameless.name" w słowniku',
       },
+      { source: 'units/heroes.json', message: 'nameless: nie należy do żadnej linii' },
     ]);
   });
 });

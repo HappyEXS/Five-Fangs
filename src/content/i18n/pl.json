@@ -9,7 +9,16 @@
   "update.reload": "Odśwież",
   "load.failed": "Nie udało się wczytać danych gry. Sprawdź połączenie z internetem.",
   "load.retry": "Spróbuj ponownie",
-  "unit.swordsman.name": "Miecznik",
-  "unit.archer.name": "Łucznik",
-  "unit.brute.name": "Osiłek"
+  "unit.swordsman_a.name": "Miecznik",
+  "unit.swordsman_b.name": "Rycerz",
+  "unit.archer_a.name": "Łucznik",
+  "unit.archer_b.name": "Strzelec wyborowy",
+  "unit.brute.name": "Osiłek",
+  "world.world_1.name": "Świat testowy",
+  "level.w1_l1.name": "Poziom testowy 1",
+  "level.w1_l2.name": "Poziom testowy 2",
+  "level.w1_l3.name": "Poziom testowy 3",
+  "level.w1_l4.name": "Poziom testowy 4",
+  "level.w1_l5.name": "Poziom testowy 5",
+  "level.w1_l6.name": "Poziom testowy 6: boss"
 }
