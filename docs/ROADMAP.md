@@ -98,7 +98,7 @@ Cel: pełna gra na grafikach placeholder. Zaczyna się od decyzji z [GAME_DESIGN
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
-| M5-1 | Projekt rosteru z autorem gry: 6 linii × 2 formy, role, cechy; wrogowie i bossowie 5 światów | 1 | GAME_DESIGN.md uzupełniony; lista nowych cech zatwierdzona | — |
+| M5-1 | Projekt rosteru z autorem gry: 6 linii × 2 formy, role, cechy; wrogowie i bossowie 5 światów | 1 | GAME_DESIGN.md uzupełniony; lista nowych cech zatwierdzona | czeka na decyzję autora; propozycja w `docs/proposals/M5-roster.md` |
 | M5-2 | Nowe cechy pasywne z M5-1 (każda osobno: schemat, sim, testy, golden) | 1–2 na cechę | Jak M1-10 | — |
 | M5-3 | Dane 12 form bohaterów i skórki placeholder | 2 | Wszystkie formy grywalne w piaskownicy | — |
 | M5-4 | Wrogowie i bossowie | 2 | Każdy boss ma unikalną cechę lub kombinację | — |

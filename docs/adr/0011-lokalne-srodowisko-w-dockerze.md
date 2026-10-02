@@ -32,3 +32,4 @@ Docker dotyczy wyłącznie pracy lokalnej. CI w GitHub Actions i build na Render
 - Wyniki pomiarów wydajności symulacji z kontenera są zbliżone do natywnych; wydajność renderowania mierzymy w przeglądarce na hoście, nie w kontenerze.
 - Końce linii w repozytorium to zawsze LF (`.gitattributes`), bo formatowanie i testy działają pod Linuksem.
 - Dodanie zależności: `docker compose exec dev pnpm add ...`; `package.json` i `pnpm-lock.yaml` zmieniają się na hoście przez montowanie.
+- Obraz zawiera biblioteki systemowe przeglądarki dla testów end-to-end (`playwright install-deps chromium`, od M4-11). Sama przeglądarka leży w wolumenie `node_modules` i pobiera się raz przez `pnpm e2e:install`. Wersja Playwright w `Dockerfile.dev` musi być zgodna z `package.json`; pilnuje tego test `scripts/lib/tooling.test.ts`. Po zmianie wersji: `docker compose build dev`.

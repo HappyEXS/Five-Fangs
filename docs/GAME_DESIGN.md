@@ -222,6 +222,8 @@ Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania. Naz
 
 Do rozstrzygnięcia z autorem gry przed wskazanym milestone'em; do tego czasu nie zgadujemy.
 
+Propozycja rosteru, nowych cech, światów i run do decyzji: [proposals/M5-roster.md](proposals/M5-roster.md).
+
 | Kwestia | Termin |
 |---|---|
 | Roster: nazwy, role i cechy 6 linii oraz ich form | przed M5 |
