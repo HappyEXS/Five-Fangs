@@ -1,12 +1,16 @@
-// pnpm validate-content – walidacja wszystkich danych treści: schematy, odwołania, słowniki
-// oraz reguły wynikające z niezmienników symulacji.
+// pnpm validate-content – walidacja wszystkich danych treści: schematy, odwołania, słowniki,
+// reguły wynikające z niezmienników symulacji oraz składy referencyjne skryptu balansu.
 import { loadContent } from '../src/content/load.ts';
 import { validateContent } from '../src/content/validate.ts';
 import { contentSimIssues } from './lib/content-sim-checks.ts';
+import { loadReference } from './lib/reference-squads.ts';
 
 const issues = [...validateContent()];
 const { content } = loadContent();
-if (content !== null) issues.push(...contentSimIssues(content));
+if (content !== null) {
+  issues.push(...contentSimIssues(content));
+  issues.push(...loadReference(content).issues);
+}
 
 if (issues.length > 0) {
   for (const issue of issues) console.error(`${issue.source}: ${issue.message}`);

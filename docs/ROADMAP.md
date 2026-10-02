@@ -45,7 +45,7 @@ Cel: pełna logika walki w Node, z treścią testową, testami golden i raportem
 | M1-10 | Cechy pasywne, część 1: pola cech w `UnitSpec`, schemat `traits`, `periodicHeal` (self i team), zdarzenie `Healed` | 1,5 | Testy: leczenie ratuje przed śmiercią w tym samym ticku, przycięcie do `maxHp`, martwy nie jest leczony; nowe hashe golden opisane w commicie | gotowe |
 | M1-11 | Cechy pasywne, część 2: `pierce` | 1 | Testy: każdy wróg trafiony najwyżej raz i każdy odrzucony; walidator odrzuca `pierce` u melee | gotowe |
 | M1-12 | Progresja w danych: schematy linii, run, światów i poziomów; `resolveUnitSpec` (ranga, runy) | 1 | Testy skalowania i premii z run; walidator sprawdza komplet form i kosztów | gotowe |
-| M1-13 | Skrypt balansu: `pnpm balance`, składy referencyjne, raport `reports/balance.md` | 1 | Raport dla poziomów testowych: wynik, czas, zapas HP, najniższa wygrywająca ranga | — |
+| M1-13 | Skrypt balansu: `pnpm balance`, składy referencyjne, raport `reports/balance.md` | 1 | Raport dla poziomów testowych: wynik, czas, zapas HP, najniższa wygrywająca ranga | gotowe |
 
 ## M2 – Renderer i rig (ok. 12 dni)
 

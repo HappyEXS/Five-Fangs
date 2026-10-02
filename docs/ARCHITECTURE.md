@@ -422,8 +422,14 @@ Preact jako nakładka DOM nad canvasem. W walce tylko HUD (pauza, prędkość, w
 - `tools.html` + `src/tools.ts`: osobne wejście, serwowane tylko przez `pnpm dev`. Build produkcyjny ma jedno wejście (`index.html`), więc kod narzędzi nie trafia do `dist/`; CI dodatkowo sprawdza brak jego śladów (ADR 0010).
 - Piaskownica walki: dowolne składy, krokowanie, prędkość, overlay debug.
 - Edytor animacji: suwaki stawów, oś czasu, eksport klipu do JSON.
-- `scripts/balance.ts`: dla każdego poziomu jedna walka na każdą rangę składu referencyjnego; raport w `reports/balance.md` (wynik, czas, zapas HP, najniższa wygrywająca ranga).
-- `scripts/validate-content.ts`, `scripts/atlas.ts`, `scripts/check-size.ts`, `scripts/write-version.ts`.
+- `scripts/balance.ts` (`pnpm balance`): dla każdego poziomu jedna walka na każdą rangę składu referencyjnego; raport w `reports/balance.md` (wynik, czas, zapas HP, najniższa wygrywająca ranga i ocena względem rangi oczekiwanej). Rangi A0–A4 to ulepszenia formy bazowej, B0–B4 formy po ewolucji; wszyscy członkowie składu mają tę samą rangę, bez run. Składy i rangi oczekiwane leżą w `src/content/data/balance/reference-squads.json`. Raport nie zawiera daty, więc jego diff między commitami pokazuje tylko zmiany balansu.
+- `scripts/run-battle.ts` (`pnpm battle`): walka w konsoli z logiem zdarzeń.
+- `scripts/bench-sim.ts` (`pnpm bench`): pomiar budżetów symulacji.
+- `scripts/validate-content.ts`: walidacja treści, niezmienniki symulacji dla treści, składy referencyjne.
+- `scripts/check-deps.ts`, `scripts/check-size.ts`, `scripts/check-dist.ts`, `scripts/smoke-check.ts`: granice modułów, budżety rozmiaru, czystość builda, kontrola wdrożenia.
+- `scripts/atlas.ts`: pakowanie atlasów (M3).
+
+Wersję builda zapisuje wtyczka w `vite.config.ts` (logika w `scripts/lib/build-version.ts`), nie osobny skrypt.
 
 ## 9. Testy
 
