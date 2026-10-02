@@ -2,6 +2,7 @@
 import { pickLanguage } from '../content/i18n/index.ts';
 import { drawEmptyScene } from '../render/empty-scene.ts';
 import { createViewport, fitViewport, LOGICAL_WIDTH } from '../render/viewport.ts';
+import { installGlobalErrorHandlers } from './errors.ts';
 import { createFrameLoop } from './frame-loop.ts';
 import { language } from './i18n.ts';
 
@@ -12,6 +13,7 @@ export function startApp(stage: HTMLElement, canvas: HTMLCanvasElement): void {
   const ctx = canvas.getContext('2d', { alpha: false });
   if (ctx === null) throw new Error('Canvas 2D is not available');
 
+  installGlobalErrorHandlers(window);
   language.value = pickLanguage(navigator.languages);
 
   const viewport = createViewport();

@@ -4,5 +4,9 @@
   "scene.empty.message": "Foundations are in place. Battles arrive in upcoming versions.",
   "settings.language": "Language",
   "language.pl": "Polski",
-  "language.en": "English"
+  "language.en": "English",
+  "update.available": "A new version of the game is available.",
+  "update.reload": "Reload",
+  "load.failed": "Could not load game data. Check your internet connection.",
+  "load.retry": "Try again"
 }

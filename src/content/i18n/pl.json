@@ -4,5 +4,9 @@
   "scene.empty.message": "Fundamenty gotowe. Walki pojawią się w kolejnych wersjach.",
   "settings.language": "Język",
   "language.pl": "Polski",
-  "language.en": "English"
+  "language.en": "English",
+  "update.available": "Dostępna jest nowa wersja gry.",
+  "update.reload": "Odśwież",
+  "load.failed": "Nie udało się wczytać danych gry. Sprawdź połączenie z internetem.",
+  "load.retry": "Spróbuj ponownie"
 }

@@ -1,10 +1,12 @@
 import { LANGUAGES } from '../content/i18n/index.ts';
 import { language, t } from '../game/i18n.ts';
 import { gameVersion, versionLabel } from '../game/version.ts';
+import { LoadFailureBanner } from './LoadFailureBanner.tsx';
 
 export function App() {
   return (
     <div class="screen">
+      <LoadFailureBanner />
       <h1 class="title">{t('app.title')}</h1>
       <p class="hint">{t('scene.empty.message')}</p>
       <fieldset class="language">
