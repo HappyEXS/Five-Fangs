@@ -62,7 +62,13 @@ function hit(battle: Battle, p: number, target: number): void {
     target,
     state.x[target] ?? 0,
   );
-  queueHit(battle, state.projOwner[p] ?? 0, target, state.projDamage[p] ?? 0);
+  queueHit(
+    battle,
+    state.projOwner[p] ?? 0,
+    target,
+    state.projDamage[p] ?? 0,
+    state.projKnockback[p] ?? 0,
+  );
 }
 
 /**

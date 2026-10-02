@@ -18,7 +18,7 @@ function meleeHit(battle: Battle, unitId: number): void {
   // Cel mógł zginąć w trakcie zamachu: cios chybia, zamach dobiega końca.
   if (target < 0 || !isAlive(state.status[target] ?? 0)) return;
   pushEvent(battle.events, EVENT_ATTACK_HIT, unitId, target, 0);
-  queueHit(battle, unitId, target, specs.attack[unitId] ?? 0);
+  queueHit(battle, unitId, target, specs.attack[unitId] ?? 0, specs.knockback[unitId] ?? 0);
 }
 
 export function progressAttacks(battle: Battle): void {
