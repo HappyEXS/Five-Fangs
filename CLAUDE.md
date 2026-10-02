@@ -21,8 +21,10 @@ pnpm test:golden       # testy deterministyczne walk (hash stanu)
 pnpm validate-content  # walidacja wszystkich JSON-ów treści
 pnpm balance           # walki headless wszystkich poziomów, raport do reports/balance.md
 pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated
-pnpm deps:check        # weryfikacja granic modułów
-pnpm check:size        # budżety rozmiaru dist/ (gzip/brotli) – uruchamiać po build
+pnpm deps:check        # granice modułów, dozwolone pakiety, zakazane API w sim (ADR 0012)
+pnpm check:size        # budżety rozmiaru dist/ (gzip) – uruchamiać po build
+pnpm check:dist        # czystość dist/: brak narzędzi dev i kodu debug, adresy względne – po build
+pnpm check             # typecheck + lint + test + validate-content + deps:check
 ```
 
 Lokalnie wszystkie komendy działają w kontenerze Docker (ADR 0011); zależności nie instalujemy na hoście:
@@ -35,8 +37,8 @@ docker compose run --rm dev pnpm <komenda>   # to samo, gdy kontener nie działa
 
 Git działa na hoście. CI i build na Render nie używają Dockera.
 
-Przed uznaniem zadania za skończone: `pnpm typecheck && pnpm lint && pnpm test && pnpm validate-content`.
-Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo `pnpm build && pnpm check:size`.
+Przed uznaniem zadania za skończone: `pnpm check`.
+Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo `pnpm build && pnpm check:size && pnpm check:dist`.
 
 ## Struktura i granice modułów
 
@@ -127,7 +129,7 @@ Transfer: pierwsze uruchomienie < 2 MB łącznie · atlas świata < 1 MB · powt
 - Build na Render = tylko instalacja + `vite build`. Testy i walidacje działają w GitHub Actions. Deploy wyłącznie z `main` po zielonym CI (`autoDeployTrigger: checksPass`).
 - Każdy dynamiczny import i ładowanie assetów obsługuje błąd (po deployu stare chunki znikają) komunikatem o nowej wersji i przeładowaniem po zapisie stanu.
 - `version.json` i wersja w paczce generowane przy buildzie; zapis gry przechowuje `gameVersion` i `saveVersion`.
-- Narzędzia dev i debug nie mogą trafić do `dist/` (sprawdzane w CI).
+- Narzędzia dev i debug nie mogą trafić do `dist/` (sprawdzane w CI przez `check:dist`). Wejście narzędzi i moduły debug odwołują się do znaczników z `src/core/dev-markers.ts`, po których skrypt je wykrywa.
 
 ## Sposób pracy
 

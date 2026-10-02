@@ -86,7 +86,7 @@ services:
 
 ## 5. Pipeline
 
-1. **Push / PR → GitHub Actions (`ci.yml`)**: `typecheck`, `lint`, `test`, `test:golden`, `validate-content`, `deps:check`, `build`, `check:size`, test czystości `dist/`.
+1. **Push / PR → GitHub Actions (`ci.yml`)**: `typecheck`, `lint`, `test`, `test:golden`, `validate-content`, `deps:check`, `build`, `check:size`, `check:dist`.
 2. **Deploy**: Render buduje `main` dopiero po zielonych checkach (`autoDeployTrigger: checksPass`). Build na Render to tylko instalacja i `vite build`.
 3. **Smoke check (`smoke.yml`)**: po udanym CI na `main` pobiera `https://<domena>/version.json` z ponawianiem (do ok. 10 minut) i porównuje skrót commita; sprawdza `Cache-Control` jednego pliku z `/assets/` oraz `index.html`. Pomijany, gdy zmiana dotyczyła tylko ścieżek z `buildFilter.ignoredPaths`.
 

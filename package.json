@@ -15,7 +15,12 @@
     "format": "biome format --write",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deps:check": "node scripts/check-deps.ts"
+    "test:golden": "vitest run tests/golden --passWithNoTests",
+    "validate-content": "node scripts/validate-content.ts",
+    "deps:check": "node scripts/check-deps.ts",
+    "check:size": "node scripts/check-size.ts",
+    "check:dist": "node scripts/check-dist.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm validate-content && pnpm deps:check"
   },
   "packageManager": "pnpm@12.8.1+sha512.f64ba907507f5ceafe06c8d38e6052d0179444580ec1279ddd5bfc11cb48aa8a2644b66598e07e761da84872a9fc57d5f902b87fa49d024198d558612aabbe45",
   "dependencies": {

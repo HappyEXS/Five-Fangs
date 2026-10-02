@@ -24,7 +24,7 @@ Cel: puste, ale kompletne repozytorium z CI i działającym deployem na Render.
 | M0-4 | Pusta scena: canvas 1280×720 z letterboxem i DPR ≤ 2, nakładka Preact, szkielet i18n (PL/EN) | 0,5 | Strona skaluje się poprawnie przy zmianie okna; tekst testowy w obu językach | gotowe |
 | M0-5 | Wersja builda: `version.json`, `define`, numer wersji na ekranie | 0,5 | `dist/version.json` zawiera wersję, skrót commita i datę | gotowe |
 | M0-6 | Obsługa błędów ładowania: wspólna funkcja dla dynamicznych importów, bufor błędów w pamięci | 0,5 | Test: nieudany import pokazuje komunikat o nowej wersji | gotowe |
-| M0-7 | CI (`ci.yml`): wszystkie kroki z [DEPLOY.md §5](DEPLOY.md), `scripts/check-size.ts`, test czystości `dist/` | 1 | CI zielone na PR; sztucznie zawyżony plik powoduje błąd `check:size` | — |
+| M0-7 | CI (`ci.yml`): wszystkie kroki z [DEPLOY.md §5](DEPLOY.md), `scripts/check-size.ts`, test czystości `dist/` | 1 | CI zielone na PR; sztucznie zawyżony plik powoduje błąd `check:size` | w toku: wszystkie kroki przechodzą lokalnie, workflow czeka na pierwszy push |
 | M0-8 | Deploy: weryfikacja limitów Render, `render.yaml`, `public/_headers`, `smoke.yml`, sprawdzenie nagłówków `curl -I`, uzupełnienie DEPLOY.md i ADR 0006 | 1 | Gra dostępna pod `onrender.com`; smoke check zielony; wszystkie pozycje **[M0]** w DEPLOY.md uzupełnione | — |
 
 ## M1 – Symulacja headless (ok. 14 dni)

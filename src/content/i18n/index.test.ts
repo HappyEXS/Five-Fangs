@@ -1,23 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { dictionaries, LANGUAGES, pickLanguage, SOURCE_LANGUAGE } from './index.ts';
-
-const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+import { dictionaries, pickLanguage, SOURCE_LANGUAGE } from './index.ts';
+import { validateDictionaries } from './validate.ts';
 
 describe('słowniki i18n', () => {
-  const sourceKeys = Object.keys(dictionaries[SOURCE_LANGUAGE]).sort();
-
-  it.each(LANGUAGES)('język %s ma dokładnie te same klucze co źródłowy', (lang) => {
-    expect(Object.keys(dictionaries[lang]).sort()).toEqual(sourceKeys);
-  });
-
-  it.each(LANGUAGES)('język %s nie ma pustych tekstów i ma te same parametry', (lang) => {
-    for (const key of sourceKeys) {
-      const text = dictionaries[lang][key] ?? '';
-      expect(text.trim(), key).not.toBe('');
-      expect(placeholders(text), key).toEqual(
-        placeholders(dictionaries[SOURCE_LANGUAGE][key] ?? ''),
-      );
-    }
+  it('wszystkie języki są zgodne ze źródłowym', () => {
+    expect(validateDictionaries(dictionaries, SOURCE_LANGUAGE)).toEqual([]);
   });
 });
 
