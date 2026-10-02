@@ -14,11 +14,11 @@ import {
   EVENT_PROJECTILE_SPAWNED,
   pushEvent,
 } from './events.ts';
-import { queueHit } from './hits.ts';
+import { attackDamage, queueHit } from './hits.ts';
 import type { BattleState } from './state.ts';
 import { forwardOf, MAX_PROJECTILES, TEAM_SIZE, teamOf } from './types.ts';
 
-/** Tworzy pocisk w pozycji strzelca, z jego obrażeniami z chwili wystrzału. */
+/** Tworzy pocisk w pozycji strzelca, z jego obrażeniami z chwili wystrzału (także premią szału). */
 export function spawnProjectile(battle: Battle, owner: number): void {
   const { state, specs } = battle;
   const p = state.projCount;
@@ -33,7 +33,7 @@ export function spawnProjectile(battle: Battle, owner: number): void {
   state.projPrevX[p] = x;
   state.projStep[p] = forwardOf(teamOf(owner)) * (specs.projectileStep[owner] ?? 0);
   state.projOwner[p] = owner;
-  state.projDamage[p] = specs.attack[owner] ?? 0;
+  state.projDamage[p] = attackDamage(battle, owner);
   state.projKnockback[p] = specs.knockback[owner] ?? 0;
   state.projPierce[p] = specs.pierce[owner] ?? 0;
   state.projHitMask[p] = 0;

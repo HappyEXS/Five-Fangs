@@ -14,6 +14,8 @@ const INTEGER_FIELDS = [
   'projectileStep',
   'healAmount',
   'healInterval',
+  'enrageHpPercent',
+  'enrageAttackPercent',
 ] as const;
 
 /** Problemy pojedynczej specyfikacji jednostki, niezależne od składu i areny. */
@@ -41,6 +43,14 @@ export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
   }
   if (spec.healAmount > 0 && spec.healInterval < 1) {
     problems.push(`${label}: healInterval musi być co najmniej 1, gdy healAmount > 0`);
+  }
+  if (spec.enrageHpPercent > 99) {
+    problems.push(`${label}: enrageHpPercent musi być w przedziale 0..99`);
+  }
+  if (spec.enrageHpPercent > 0 !== spec.enrageAttackPercent > 0) {
+    problems.push(
+      `${label}: enrageHpPercent i enrageAttackPercent muszą być oba zerowe albo oba dodatnie`,
+    );
   }
   return problems;
 }

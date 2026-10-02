@@ -72,6 +72,8 @@ describe('compileUnit', () => {
         healAmount: 0,
         healInterval: 0,
         healTeam: false,
+        enrageHpPercent: 0,
+        enrageAttackPercent: 0,
       },
       visual: {
         rig: 'humanoid',
@@ -158,6 +160,15 @@ describe('cechy pasywne', () => {
     const { base } = compileUnit(healer, slash);
     expect(base.healTeam).toBe(false);
     expect(base.healInterval).toBe(1);
+  });
+
+  it('szał zapisuje próg i premię w procentach', () => {
+    const berserker: RawUnit = {
+      ...swordsman,
+      traits: [{ type: 'enrage', hpBelow: 40, attackBonus: 75 }],
+    };
+    const { base } = compileUnit(berserker, slash);
+    expect([base.enrageHpPercent, base.enrageAttackPercent]).toEqual([40, 75]);
   });
 
   it('pierce ustawia flagę i łączy się z leczeniem', () => {

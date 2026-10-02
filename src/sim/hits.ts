@@ -4,6 +4,17 @@ import type { Battle } from './battle.ts';
 import { EVENT_DAMAGED, pushEvent } from './events.ts';
 
 /**
+ * Obrażenia ataku jednostki w tej chwili: z premią szału, gdy jej HP jest poniżej progu.
+ * HP zmienia się tylko w rozstrzygnięciu ticka, więc wynik nie zależy od kolejności jednostek.
+ */
+export function attackDamage(battle: Battle, unitId: number): number {
+  const { specs } = battle;
+  return (battle.state.hp[unitId] ?? 0) < (specs.enrageHp[unitId] ?? 0)
+    ? (specs.enragedAttack[unitId] ?? 0)
+    : (specs.attack[unitId] ?? 0);
+}
+
+/**
  * Dopisuje trafienie do kolejki. `knockback` to odrzut źródła (dla pocisku: strzelca z chwili
  * wystrzału); trafiony jest odpychany o różnicę ponad własny odrzut, nigdy przyciągany.
  */

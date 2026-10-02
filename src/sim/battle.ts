@@ -1,4 +1,5 @@
 // Walka: niezmienne wejście (arena, specyfikacje) i zmienny stan.
+import { mulDivCeil, mulDivFloor } from '../core/int.ts';
 import { createEventBuffer, type EventBuffer } from './events.ts';
 import { EVENT_HASH_SEED } from './hash.ts';
 import {
@@ -46,6 +47,11 @@ function placeUnit(battle: Battle, unitId: number, spec: UnitSpec, x: number): v
   specs.healAmount[unitId] = spec.healAmount;
   specs.healInterval[unitId] = spec.healInterval;
   specs.healTeam[unitId] = spec.healTeam ? 1 : 0;
+  // Próg i obrażenia szału liczymy raz: w gorącej pętli zostaje jedno porównanie.
+  // `hp < ceil(maxHp × próg / 100)` to dla całkowitego hp to samo co `hp × 100 < maxHp × próg`.
+  specs.enrageHp[unitId] = mulDivCeil(spec.maxHp, spec.enrageHpPercent, 100);
+  specs.enragedAttack[unitId] =
+    spec.attack + mulDivFloor(spec.attack, spec.enrageAttackPercent, 100);
 
   state.status[unitId] = STATUS_IDLE;
   state.x[unitId] = x;

@@ -8,7 +8,7 @@
 import type { Battle } from './battle.ts';
 import { isAlive } from './decide.ts';
 import { EVENT_ATTACK_HIT, pushEvent } from './events.ts';
-import { queueHit } from './hits.ts';
+import { attackDamage, queueHit } from './hits.ts';
 import { spawnProjectile } from './projectiles.ts';
 
 function meleeHit(battle: Battle, unitId: number): void {
@@ -17,7 +17,7 @@ function meleeHit(battle: Battle, unitId: number): void {
   // Cel mógł zginąć w trakcie zamachu: cios chybia, zamach dobiega końca.
   if (target < 0 || !isAlive(state.status[target] ?? 0)) return;
   pushEvent(battle.events, EVENT_ATTACK_HIT, unitId, target, 0);
-  queueHit(battle, unitId, target, specs.attack[unitId] ?? 0, specs.knockback[unitId] ?? 0);
+  queueHit(battle, unitId, target, attackDamage(battle, unitId), specs.knockback[unitId] ?? 0);
 }
 
 /** Postęp zamachu jednostki `i`, która w tym ticku ma status Attacking. */

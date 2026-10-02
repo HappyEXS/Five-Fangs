@@ -56,6 +56,12 @@ export const GOLDEN_SETUPS: Readonly<Record<string, BattleSetup>> = {
     [brute(), melee({ healAmount: 20, healInterval: 60 }), archer()],
   ),
 
+  // Szał po obu stronach: wręcz u gracza, z pocisków u przeciwnika.
+  enrage: setupOf(
+    [melee({ enrageHpPercent: 60, enrageAttackPercent: 50, knockback: u(15) }), archer()],
+    [brute(), ranged({ enrageHpPercent: 80, enrageAttackPercent: 100 })],
+  ),
+
   // Pociski przebijające z odrzutem przeciw szeregowi wrogów.
   'pierce-line': setupOf(
     [swordsman(), ranged({ pierce: true, knockback: u(6) }), ranged({ pierce: true })],

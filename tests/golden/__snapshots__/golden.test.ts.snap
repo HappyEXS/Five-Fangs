@@ -33,6 +33,17 @@ exports[`walki golden > duel-melee 1`] = `
 }
 `;
 
+exports[`walki golden > enrage 1`] = `
+{
+  "eventHash": "0651c3d2",
+  "finalHp": "-10 -40 0 0 0 -30 110 0 0 0",
+  "outcome": "loss",
+  "reason": "eliminated",
+  "stateHash": "5e801b74",
+  "ticks": 683,
+}
+`;
+
 exports[`walki golden > full-5v5 1`] = `
 {
   "eventHash": "c8621f45",

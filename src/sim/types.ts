@@ -52,6 +52,10 @@ export interface UnitSpec {
   readonly healInterval: number;
   /** Leczenie okresowe obejmuje wszystkich żywych sojuszników zamiast samej jednostki. */
   readonly healTeam: boolean;
+  /** Szał: próg w procentach maxHp, poniżej którego ataki zadają więcej; 0 oznacza brak cechy. */
+  readonly enrageHpPercent: number;
+  /** Szał: o ile procent `attack` rosną obrażenia poniżej progu (zaokrąglenie w dół). */
+  readonly enrageAttackPercent: number;
 }
 
 export interface ArenaSpec {

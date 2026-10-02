@@ -59,13 +59,22 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
   let healAmount = 0;
   let healInterval = 0;
   let healTeam = false;
+  let enrageHpPercent = 0;
+  let enrageAttackPercent = 0;
   for (const trait of raw.traits) {
-    if (trait.type === 'pierce') {
-      pierce = true;
-    } else {
-      healAmount = trait.amount;
-      healInterval = Math.max(1, secondsToTicks(trait.interval));
-      healTeam = trait.target === 'team';
+    switch (trait.type) {
+      case 'pierce':
+        pierce = true;
+        break;
+      case 'periodicHeal':
+        healAmount = trait.amount;
+        healInterval = Math.max(1, secondsToTicks(trait.interval));
+        healTeam = trait.target === 'team';
+        break;
+      case 'enrage':
+        enrageHpPercent = trait.hpBelow;
+        enrageAttackPercent = trait.attackBonus;
+        break;
     }
   }
 
@@ -88,6 +97,8 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       healAmount,
       healInterval,
       healTeam,
+      enrageHpPercent,
+      enrageAttackPercent,
     },
     visual: {
       rig: raw.rig,

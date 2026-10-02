@@ -130,6 +130,10 @@ const specSchema = z.strictObject({
   healAmount: z.number(),
   healInterval: z.number(),
   healTeam: z.boolean(),
+  // Pola cech dodanych później mają wartość domyślną „brak cechy”, żeby wejście symulacji
+  // z raportu starszej wersji gry dalej dawało się wczytać.
+  enrageHpPercent: z.number().default(0),
+  enrageAttackPercent: z.number().default(0),
 });
 
 const setupSchema = z.strictObject({

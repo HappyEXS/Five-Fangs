@@ -95,6 +95,10 @@ export interface UnitSpecs {
   readonly healAmount: Int32Array;
   readonly healInterval: Int32Array;
   readonly healTeam: Int32Array;
+  /** Szał: jednostka jest w szale, gdy `hp < enrageHp`; 0 oznacza brak cechy. */
+  readonly enrageHp: Int32Array;
+  /** Obrażenia ataku w szale; bez cechy równe `attack`. */
+  readonly enragedAttack: Int32Array;
 }
 
 export function createSpecs(): UnitSpecs {
@@ -113,6 +117,8 @@ export function createSpecs(): UnitSpecs {
     healAmount: units(),
     healInterval: units(),
     healTeam: units(),
+    enrageHp: units(),
+    enragedAttack: units(),
   };
 }
 

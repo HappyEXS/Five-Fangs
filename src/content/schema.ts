@@ -46,6 +46,12 @@ export const traitSchema = z.discriminatedUnion('type', [
   }),
   /** Pociski jednostki trafiają każdego wroga na drodze. Tylko dla ataku z pociskiem. */
   z.strictObject({ type: z.literal('pierce') }),
+  /** Szał: poniżej `hpBelow` procent życia ataki zadają o `attackBonus` procent więcej. */
+  z.strictObject({
+    type: z.literal('enrage'),
+    hpBelow: z.number().int().min(1).max(99),
+    attackBonus: z.number().int().positive(),
+  }),
 ]);
 
 export const unitSchema = z.strictObject({

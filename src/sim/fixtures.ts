@@ -73,6 +73,8 @@ export function melee(overrides: Partial<UnitSpec> = {}): UnitSpec {
     healAmount: 0,
     healInterval: 0,
     healTeam: false,
+    enrageHpPercent: 0,
+    enrageAttackPercent: 0,
     ...overrides,
   };
 }
