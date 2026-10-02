@@ -42,7 +42,7 @@ const duel = () => setupOf([melee()], [melee({ maxHp: 40, attack: 0, moveStep: 0
 describe('battle runner', () => {
   it('wykonuje ticki według czasu klatki i przekazuje zdarzenia każdego ticka', () => {
     const { renderer, calls } = recordingRenderer();
-    const runner = createBattleRunner(duel(), renderer);
+    const runner = createBattleRunner(duel(), [], renderer);
     expect(calls.begin).toBe(1);
 
     runner.frame(viewport, TICK * 3 + 1);
@@ -56,7 +56,7 @@ describe('battle runner', () => {
 
   it('mnożnik prędkości przyspiesza ticki i czas efektów', () => {
     const { renderer, calls } = recordingRenderer();
-    const runner = createBattleRunner(duel(), renderer);
+    const runner = createBattleRunner(duel(), [], renderer);
     runner.loop.speed = 4;
     runner.frame(viewport, TICK);
     expect(runner.battle.state.tick).toBe(4);
@@ -65,7 +65,7 @@ describe('battle runner', () => {
 
   it('w pauzie nie wykonuje ticków, rysuje stan ostatniego ticka, a krokowanie działa', () => {
     const { renderer, calls } = recordingRenderer();
-    const runner = createBattleRunner(duel(), renderer);
+    const runner = createBattleRunner(duel(), [], renderer);
     runner.loop.paused = true;
     runner.frame(viewport, 500);
     expect(runner.battle.state.tick).toBe(0);
@@ -76,11 +76,18 @@ describe('battle runner', () => {
     runner.stepOnce();
     expect(runner.battle.state.tick).toBe(2);
     expect(calls.consumed).toBe(2);
+
+    // Animacja dostaje czas dwóch ręcznych ticków, a potem znów stoi.
+    runner.frame(viewport, 500);
+    runner.frame(viewport, 500);
+    expect(calls.frameMs[1]).toBeCloseTo(TICK * 2);
+    expect(calls.frameMs[2]).toBe(0);
+    expect(runner.battle.state.tick).toBe(2);
   });
 
   it('po zakończeniu walki nie wykonuje dalszych ticków i rysuje stan końcowy', () => {
     const { renderer, calls } = recordingRenderer();
-    const runner = createBattleRunner(duel(), renderer);
+    const runner = createBattleRunner(duel(), [], renderer);
     // Wróg ginie w ticku 7; klatka niesie czas na 7,5 ticka, a kolejne klatki dalszy czas.
     runner.frame(viewport, TICK * 7.5);
     runner.frame(viewport, TICK * 3);
@@ -94,7 +101,7 @@ describe('battle runner', () => {
 
   it('dispose zwalnia renderer', () => {
     const { renderer, calls } = recordingRenderer();
-    createBattleRunner(duel(), renderer).dispose();
+    createBattleRunner(duel(), [], renderer).dispose();
     expect(calls.end).toBe(1);
   });
 });

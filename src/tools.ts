@@ -22,5 +22,5 @@ document.documentElement.dataset.tools = DEV_TOOLS_MARKER;
 if (new URLSearchParams(location.search).get('view') === 'atlas') {
   void startAtlasPreview(stage, canvas);
 } else {
-  startSandbox(stage, canvas, ui);
+  void startSandbox(stage, canvas, ui);
 }

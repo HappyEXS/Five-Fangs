@@ -1,11 +1,15 @@
 // Piaskownica walki: stanowisko testowe renderera i symulacji.
 //
 // Sterowanie: spacja pauza, 1/2/4 prędkość, kropka jeden tick (w pauzie), R od nowa.
+// Parametr ?tick=N przewija walkę do ticka N i zatrzymuje ją (stały kadr do zrzutów ekranu).
+import type { UnitVisual } from '../content/compile.ts';
 import { requireContent } from '../content/load.ts';
-import { levelSetup, type SquadMember } from '../content/resolve-spec.ts';
+import { levelSetup, levelVisuals, type SquadMember } from '../content/resolve-spec.ts';
 import { type BattleRunner, createBattleRunner } from '../game/battle-runner.ts';
 import { createFrameLoop } from '../game/frame-loop.ts';
 import { attachStage, get2dContext } from '../game/stage.ts';
+import { guardedLoad } from '../game/update.ts';
+import { loadUnitsAtlas } from '../render/atlas.ts';
 import { createCanvasRenderer } from '../render/canvas-renderer.ts';
 import { type BattleSetup, OUTCOME_IN_PROGRESS, OUTCOME_WIN } from '../sim/index.ts';
 
@@ -17,25 +21,37 @@ function member(unitId: string, rank = 0): SquadMember {
   return { unit, rank, runes: [] };
 }
 
-function defaultSetup(): BattleSetup {
+function defaultBattle(): { setup: BattleSetup; visuals: (UnitVisual | null)[] } {
   const level = content.levels.get('w1_l4');
   if (level === undefined) throw new Error('Level "w1_l4" is missing');
-  return levelSetup(content, level, [
+  const squad = [
     member('swordsman_a', 4),
     member('swordsman_b'),
     member('archer_a', 4),
     member('archer_b'),
-  ]);
+  ];
+  return {
+    setup: levelSetup(content, level, squad),
+    visuals: levelVisuals(content, level, squad),
+  };
 }
 
-export function startSandbox(stage: HTMLElement, canvas: HTMLCanvasElement, ui: HTMLElement): void {
+export async function startSandbox(
+  stage: HTMLElement,
+  canvas: HTMLCanvasElement,
+  ui: HTMLElement,
+): Promise<void> {
   const ctx = get2dContext(canvas);
   const viewport = attachStage(stage, canvas);
-  const renderer = createCanvasRenderer(ctx);
-  let runner: BattleRunner = createBattleRunner(defaultSetup(), renderer);
+  const atlas = await guardedLoad('atlas:units', loadUnitsAtlas);
+  const renderer = createCanvasRenderer(ctx, { atlas, rigs: content.rigs });
 
-  // ?tick=N przewija walkę do ticka N i zatrzymuje ją: stały kadr do zrzutów ekranu
-  // i do oglądania konkretnego momentu.
+  const start = (): BattleRunner => {
+    const { setup, visuals } = defaultBattle();
+    return createBattleRunner(setup, visuals, renderer);
+  };
+  let runner = start();
+
   const startTick = Number(new URLSearchParams(location.search).get('tick') ?? '0');
   if (Number.isInteger(startTick) && startTick > 0) {
     runner.loop.paused = true;
@@ -80,7 +96,7 @@ export function startSandbox(stage: HTMLElement, canvas: HTMLCanvasElement, ui: 
     } else if (event.key === 'r' || event.key === 'R') {
       const { speed, paused } = runner.loop;
       runner.dispose();
-      runner = createBattleRunner(defaultSetup(), renderer);
+      runner = start();
       runner.loop.speed = speed;
       runner.loop.paused = paused;
     }

@@ -12,6 +12,7 @@ const unit = {
   range: 30,
   knockback: 15,
   attackType: 'slash',
+  skin: 'swordsman_a',
 };
 
 /** Treść z podanymi bohaterami, bez danych odwołujących się do prawdziwych jednostek gry. */
@@ -70,7 +71,9 @@ describe('loadContent', () => {
   it('wymaga ułamka trafienia wewnątrz zamachu', () => {
     const raw: RawContent = {
       ...rawContent,
-      'attacks.json': [{ id: 'slash', swingDuration: 0.4, hitFraction: 1, clip: 'slash' }],
+      'attacks.json': [
+        { id: 'slash', swingDuration: 0.4, hitFraction: 1, clip: 'slash', stance: 'sword' },
+      ],
     };
     expect(loadContent(raw).content).toBeNull();
   });

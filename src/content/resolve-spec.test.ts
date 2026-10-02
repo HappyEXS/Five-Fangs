@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { requireContent } from './load.ts';
-import { levelSetup, resolveUnitSpec } from './resolve-spec.ts';
+import { levelSetup, levelVisuals, resolveUnitSpec } from './resolve-spec.ts';
 import type { Rune } from './schema-progression.ts';
 
 const content = requireContent();
@@ -84,5 +84,33 @@ describe('levelSetup', () => {
     expect(setup.enemy[0]?.maxHp).toBe(960);
     expect(setup.enemy[1]?.maxHp).toBe(880);
     expect(setup.enemy[2]).toBeNull();
+  });
+});
+
+describe('levelVisuals', () => {
+  it('podaje wygląd jednostek pod ich unitId: gracz 0..4, przeciwnik 5..9', () => {
+    const squad = [
+      { unit: hero('swordsman_a'), rank: 0, runes: [] },
+      null,
+      { unit: hero('archer_b'), rank: 0, runes: [] },
+    ];
+    const visuals = levelVisuals(content, levelOf('w1_l3'), squad);
+    expect(visuals).toHaveLength(10);
+    expect(visuals[0]).toEqual({
+      rig: 'humanoid',
+      skin: 'swordsman_a',
+      scale: 1,
+      attackClip: 'slash',
+      stance: 'sword',
+      projectileSprite: null,
+    });
+    expect(visuals[1]).toBeNull();
+    expect(visuals[2]?.skin).toBe('archer_b');
+    expect(visuals[2]?.projectileSprite).toBe('arrow');
+    expect(visuals[3]).toBeNull();
+    // Poziom w1_l3 ma osiłków w slotach 0 i 1.
+    expect(visuals[5]?.skin).toBe('brute');
+    expect(visuals[6]?.skin).toBe('brute');
+    expect(visuals[7]).toBeNull();
   });
 });

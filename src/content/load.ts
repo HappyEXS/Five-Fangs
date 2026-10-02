@@ -6,6 +6,7 @@ import attacksJson from './data/attacks.json' with { type: 'json' };
 import world1LevelsJson from './data/levels/world_1.json' with { type: 'json' };
 import linesJson from './data/lines.json' with { type: 'json' };
 import progressionJson from './data/progression.json' with { type: 'json' };
+import humanoidRigJson from './data/rigs/humanoid.json' with { type: 'json' };
 import runesJson from './data/runes.json' with { type: 'json' };
 import enemiesJson from './data/units/enemies.json' with { type: 'json' };
 import heroesJson from './data/units/heroes.json' with { type: 'json' };
@@ -16,6 +17,7 @@ import {
   type ProgressionContent,
   type RawProgression,
 } from './load-progression.ts';
+import { loadRigs } from './load-rigs.ts';
 import { indexById, parse } from './parse.ts';
 import {
   arenaSchema,
@@ -24,6 +26,7 @@ import {
   type RawUnit,
   unitsSchema,
 } from './schema.ts';
+import type { RawRig } from './schema-rig.ts';
 
 /** Surowe dane treści przed walidacją; klucz = plik względem src/content/data. */
 export interface RawContent extends RawProgression {
@@ -31,6 +34,8 @@ export interface RawContent extends RawProgression {
   readonly 'attacks.json': unknown;
   readonly 'units/heroes.json': unknown;
   readonly 'units/enemies.json': unknown;
+  /** Zawartość plików rigs/<id>.json. */
+  readonly rigs: Readonly<Record<string, unknown>>;
 }
 
 export const rawContent: RawContent = {
@@ -38,6 +43,7 @@ export const rawContent: RawContent = {
   'attacks.json': attacksJson,
   'units/heroes.json': heroesJson,
   'units/enemies.json': enemiesJson,
+  rigs: { humanoid: humanoidRigJson },
   'progression.json': progressionJson,
   'lines.json': linesJson,
   'runes.json': runesJson,
@@ -50,6 +56,8 @@ export interface GameContent extends ProgressionContent {
   readonly attacks: ReadonlyMap<string, RawAttackType>;
   readonly heroes: ReadonlyMap<string, CompiledUnit>;
   readonly enemies: ReadonlyMap<string, CompiledUnit>;
+  /** Rigi z klipami w postaci surowej; do tablic typowanych kompiluje je renderer. */
+  readonly rigs: ReadonlyMap<string, RawRig>;
 }
 
 export interface ContentResult {
@@ -58,10 +66,35 @@ export interface ContentResult {
   readonly issues: readonly ContentIssue[];
 }
 
+/** Sprawdza, czy rig jednostki ma klip i postawę jej typu ataku i czy trafienie wypada w tym samym momencie. */
+function animationIssues(
+  unit: RawUnit,
+  attack: RawAttackType,
+  rigs: ReadonlyMap<string, RawRig>,
+): string[] {
+  const rig = rigs.get(unit.rig);
+  if (rig === undefined) return [`${unit.id}: nieznany rig "${unit.rig}"`];
+  const problems: string[] = [];
+  const clip = rig.clips[attack.clip];
+  if (clip === undefined) {
+    problems.push(`${unit.id}: rig "${rig.id}" nie ma klipu "${attack.clip}" ataku "${attack.id}"`);
+  } else if (clip.markers.hit !== attack.hitFraction) {
+    // Symulacja jest źródłem prawdy o czasie; animacja musi pokazywać trafienie w tym samym momencie.
+    problems.push(
+      `${unit.id}: znacznik hit klipu "${attack.clip}" (${clip.markers.hit ?? 'brak'}) różni się od hitFraction ataku "${attack.id}" (${attack.hitFraction})`,
+    );
+  }
+  if (rig.stances[attack.stance] === undefined) {
+    problems.push(`${unit.id}: rig "${rig.id}" nie ma postawy "${attack.stance}"`);
+  }
+  return problems;
+}
+
 function compileUnits(
   source: string,
   units: ReadonlyMap<string, RawUnit>,
   attacks: ReadonlyMap<string, RawAttackType>,
+  rigs: ReadonlyMap<string, RawRig>,
   issues: ContentIssue[],
 ): Map<string, CompiledUnit> {
   const compiled = new Map<string, CompiledUnit>();
@@ -92,6 +125,7 @@ function compileUnits(
       issues.push({ source, message: `${unit.id}: cecha "pierce" wymaga ataku z pociskiem` });
       continue;
     }
+    for (const message of animationIssues(unit, attack, rigs)) issues.push({ source, message });
     compiled.set(unit.id, compileUnit(unit, attack));
   }
   return compiled;
@@ -105,7 +139,14 @@ export function loadContent(raw: RawContent = rawContent): ContentResult {
   const attackList = parse('attacks.json', attackTypesSchema, raw['attacks.json'], issues);
   const heroList = parse('units/heroes.json', unitsSchema, raw['units/heroes.json'], issues);
   const enemyList = parse('units/enemies.json', unitsSchema, raw['units/enemies.json'], issues);
-  if (arena === null || attackList === null || heroList === null || enemyList === null) {
+  const rigs = loadRigs(raw.rigs, issues);
+  if (
+    arena === null ||
+    attackList === null ||
+    heroList === null ||
+    enemyList === null ||
+    rigs === null
+  ) {
     return { content: null, issues };
   }
 
@@ -116,12 +157,14 @@ export function loadContent(raw: RawContent = rawContent): ContentResult {
     'units/heroes.json',
     indexById('units/heroes.json', heroList, unitIds, issues),
     attacks,
+    rigs,
     issues,
   );
   const enemies = compileUnits(
     'units/enemies.json',
     indexById('units/enemies.json', enemyList, unitIds, issues),
     attacks,
+    rigs,
     issues,
   );
 
@@ -129,7 +172,7 @@ export function loadContent(raw: RawContent = rawContent): ContentResult {
   if (progression === null) return { content: null, issues };
 
   return {
-    content: { arena: compileArena(arena), attacks, heroes, enemies, ...progression },
+    content: { arena: compileArena(arena), attacks, heroes, enemies, rigs, ...progression },
     issues,
   };
 }

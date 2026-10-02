@@ -2,7 +2,7 @@
 // służą grze, podglądowi w UI i skryptowi balansu, więc gracz widzi dokładnie to, co liczy symulacja.
 import { mulDivFloor } from '../core/int.ts';
 import type { BattleSetup, UnitSpec } from '../sim/types.ts';
-import type { CompiledUnit } from './compile.ts';
+import type { CompiledUnit, UnitVisual } from './compile.ts';
 import type { GameContent } from './load.ts';
 import type { CompiledLevel } from './load-progression.ts';
 import type { Progression, Rune } from './schema-progression.ts';
@@ -61,4 +61,22 @@ export function levelSetup(
     enemy[entry.slot] = resolveUnitSpec(unit, entry.level, [], content.progression);
   }
   return { arena: content.arena, player, enemy };
+}
+
+/**
+ * Wygląd jednostek tej samej walki dla renderera, indeksowany `unitId`:
+ * sloty gracza 0..4, potem sloty przeciwnika 5..9; null dla pustego slotu.
+ */
+export function levelVisuals(
+  content: GameContent,
+  level: CompiledLevel,
+  squad: readonly (SquadMember | null)[],
+): (UnitVisual | null)[] {
+  const visuals: (UnitVisual | null)[] = [];
+  for (let slot = 0; slot < TEAM_SLOTS; slot++) visuals.push(squad[slot]?.unit.visual ?? null);
+  for (let slot = 0; slot < TEAM_SLOTS; slot++) visuals.push(null);
+  for (const entry of level.enemies) {
+    visuals[TEAM_SLOTS + entry.slot] = content.enemies.get(entry.unit)?.visual ?? null;
+  }
+  return visuals;
 }

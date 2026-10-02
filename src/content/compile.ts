@@ -10,12 +10,27 @@ import {
 import type { ArenaSpec, UnitSpec } from '../sim/types.ts';
 import type { RawArena, RawAttackType, RawUnit } from './schema.ts';
 
+/** Wygląd jednostki: wszystko, czego renderer potrzebuje poza stanem symulacji. */
+export interface UnitVisual {
+  readonly rig: string;
+  /** Skórka w atlasie: sprite'y `<skin>/<część>`. */
+  readonly skin: string;
+  /** Mnożnik wielkości względem skali rigu. */
+  readonly scale: number;
+  /** Klip ataku i postawa w rigu. */
+  readonly attackClip: string;
+  readonly stance: string;
+  /** Sprite pocisku (`fx/<nazwa>`) albo null dla ataku wręcz. */
+  readonly projectileSprite: string | null;
+}
+
 export interface CompiledUnit {
   readonly id: string;
   readonly kind: 'melee' | 'ranged';
   readonly attackType: string;
   /** Specyfikacja bez ulepszeń i run. */
   readonly base: UnitSpec;
+  readonly visual: UnitVisual;
 }
 
 export function compileArena(raw: RawArena): ArenaSpec {
@@ -73,6 +88,14 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       healAmount,
       healInterval,
       healTeam,
+    },
+    visual: {
+      rig: raw.rig,
+      skin: raw.skin,
+      scale: raw.scale,
+      attackClip: attack.clip,
+      stance: attack.stance,
+      projectileSprite: attack.projectile === undefined ? null : attack.projectile.sprite,
     },
   };
 }

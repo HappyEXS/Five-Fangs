@@ -12,6 +12,7 @@ const unit = {
   range: 30,
   knockback: 15,
   attackType: 'slash',
+  skin: 'swordsman_a',
 };
 
 function issuesFor(overrides: Partial<RawContent>): string[] {
@@ -49,11 +50,15 @@ describe('contentSimIssues', () => {
       swingDuration: 0.1,
       hitFraction: 0.5,
       clip: 'shoot',
+      stance: 'bow',
       projectile: { speed: 10, sprite: 'arrow' },
     };
     const spammer = { ...unit, id: 'archer', kind: 'ranged', attackSpeed: 10, attackType: 'shoot' };
     const issues = issuesFor({
-      'attacks.json': [slowArrow, { id: 'slash', swingDuration: 0.4, hitFraction: 0.5, clip: 'x' }],
+      'attacks.json': [
+        slowArrow,
+        { id: 'slash', swingDuration: 0.4, hitFraction: 0.5, clip: 'slash', stance: 'sword' },
+      ],
       'units/heroes.json': [spammer],
       'units/enemies.json': [],
     });

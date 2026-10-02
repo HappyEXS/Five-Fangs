@@ -1,7 +1,10 @@
 // pnpm validate-content – walidacja wszystkich danych treści: schematy, odwołania, słowniki,
-// reguły wynikające z niezmienników symulacji oraz składy referencyjne skryptu balansu.
+// reguły wynikające z niezmienników symulacji, zgodność z atlasem oraz składy referencyjne
+// skryptu balansu.
+import unitsMeta from '../src/assets/generated/units.json' with { type: 'json' };
 import { loadContent } from '../src/content/load.ts';
 import { validateContent } from '../src/content/validate.ts';
+import { contentAssetIssues } from './lib/content-asset-checks.ts';
 import { contentSimIssues } from './lib/content-sim-checks.ts';
 import { loadReference } from './lib/reference-squads.ts';
 
@@ -9,6 +12,7 @@ const issues = [...validateContent()];
 const { content } = loadContent();
 if (content !== null) {
   issues.push(...contentSimIssues(content));
+  issues.push(...contentAssetIssues(content, new Set(Object.keys(unitsMeta.sprites))));
   issues.push(...loadReference(content).issues);
 }
 

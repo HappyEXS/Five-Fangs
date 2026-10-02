@@ -320,53 +320,64 @@ Reguły zależne od kodu symulacji (niezmienniki `UnitSpec`, mijanie się, pula 
 
 ```ts
 interface Renderer {
-  resize(cssWidth: number, cssHeight: number, dpr: number): void;
-  beginBattle(setup: BattleSetup, view: BattleView): void;  // skórki jednostek, tło
-  consume(events: EventBuffer): void;                        // po każdym ticku
-  draw(state: BattleState, alpha: number, frameMs: number): void;
+  beginBattle(battle: Battle, visuals: readonly (UnitVisual | null)[]): void;  // wygląd per unitId
+  consume(events: EventBuffer): void;                                           // po każdym ticku
+  draw(viewport: Viewport, alpha: number, frameMs: number): void;
   endBattle(): void;
-  dispose(): void;
 }
+
+function createCanvasRenderer(ctx: CanvasRenderingContext2D, assets: RenderAssets): Renderer;
 ```
 
-Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001).
+Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`).
 
 ### 5.2 Pętla
 
-`requestAnimationFrame` z akumulatorem stałego kroku z `core`: mnożnik prędkości 1/2/4, limit skoku czasu 0,25 s, pauza przy ukrytej karcie. Po każdym `step()` zdarzenia trafiają do renderera i HUD-u. Rysowanie co klatkę z `alpha = akumulator / krok`; pozycja jednostki to interpolacja między `prevX` a `x`.
+`requestAnimationFrame` (`game/frame-loop.ts`) z akumulatorem stałego kroku z `core`: mnożnik prędkości 1/2/4, limit skoku czasu 0,25 s, zerowanie czasu po powrocie do ukrytej karty. `BattleRunner` (`game/battle-runner.ts`) wykonuje należne ticki, po każdym przekazuje zdarzenia rendererowi i rysuje klatkę z `alpha = akumulator / krok`; pozycja jednostki to interpolacja między `prevX` a `x`. Po zakończeniu walki i w pauzie rysowany jest stan dokładnie z ostatniego ticka.
 
 Renderer może używać `Math.sin/cos` i floatów. Zakaz dotyczy tylko `sim`.
 
 ### 5.3 Rig i klipy
 
-- **Część**: prostokąt w atlasie, rozmiar, pivot. **Kość**: rodzic, punkt zaczepienia, część lub slot, kolejność rysowania, flaga „tylna”.
-- **Skórka** (`skin`) przypisuje części do kości. Formy bohaterów dzielą rig i klipy, a różnią się skórką. Głowa i broń są slotami.
-- Kolejność obliczeń kości jest niezależna od kolejności rysowania.
-- Klipy kompilowane przy ładowaniu do `Float32Array`: kanały kątów per kość oraz `bob` i `dx` korzenia; interpolacja smoothstep; znaczniki (`hit`).
-- Macierze: jedna `Float32Array`, 6 wartości na kość na jednostkę, liczone ręcznie, `ctx.setTransform`.
+Rig z klipami leży w jednym pliku treści (`rigs/humanoid.json`: dane z załącznika A briefu) i jest kompilowany przez renderer przy starcie (`render/rig.ts`, `render/clips.ts`).
+
+- **Kość**: rodzic (albo `root`), punkt zaczepienia względem pivota rodzica, nazwa części, flaga `back`. Kości są zapisane w kolejności obliczeń (rodzic przed dzieckiem); kolejność rysowania to osobna lista `drawOrder`.
+- **Skórka** (`skin` jednostki) wyznacza sprite'y: `<skórka>/<część>` w atlasie. Formy bohaterów dzielą rig i klipy, a różnią się skórką.
+- **Poza** to `channelCount` liczb: kąt każdej kości w radianach, potem `bob` i `dx` korzenia w jednostkach rigu.
+- **Klip**: klatki kluczowe `[czas 0..1, wartość]` per kanał, w `Float32Array`; interpolacja smoothstep; znaczniki (`hit`). Kanały, których klip nie animuje, biorą wartość z **postawy** typu ataku (np. kąt chwytu miecza albo łuku w idle i chodzie).
+- **Macierze**: 6 wartości na kość, liczone ręcznie (`computeBoneMatrices`), przekazywane do `ctx.setTransform`. Dodatni kąt to obrót zgodny z ruchem wskazówek zegara. Macierz korzenia zawiera pozycję stóp, skalę (ujemna w osi X odbija przeciwnika) i obrót całej postaci przy śmierci.
 - Elementy dynamiczne (cięciwa) rysowane wektorowo między punktami kości.
 
-Dane referencyjne rigu i klipów z prototypu: załącznik A briefu startowego; trafiają do `rigs/humanoid.json` i `clips/*.json` w M2.
+Skala postaci na scenie to `scale` rigu (wyjściowo 1,4 jednostki logicznej na jednostkę rigu) razy `scale` jednostki z treści.
 
 ### 5.4 Sterowanie animacją
 
+`render/animation.ts`, stan per jednostka w tablicach typowanych.
+
 | Stan w sim | Klip | Faza |
 |---|---|---|
-| `Idle` | idle (pętla) | czas renderera |
-| `Moving` | walk (pętla) | przebyty dystans / długość kroku |
-| `Attacking` | klip typu ataku | `(swingTick + alpha) / swingTicks` z sim |
-| `Dead` | obrót wokół stóp + zanikanie | czas od zdarzenia `Died` |
+| `Idle` | idle (pętla) | czas renderera; każda jednostka startuje w innej fazie |
+| `Moving` | walk (pętla) | przebyty dystans / (długość kroku × skala) |
+| `Attacking` | klip typu ataku | `(swingTick − 2 + alpha) / swingTicks` z sim, przycięte do 0..1 |
+| `Dead` | poza zastyga; postać pada do tyłu wokół stóp i zanika | czas od zdarzenia `Died` (700 ms) |
 
-Zmiana klipu przechodzi przez wykładniczy blend pozy (szybszy dla ataku). Błysk trafienia to biała sylwetka części przez krótki czas po `Damaged`.
+Wzór fazy ataku wynika z osi czasu zamachu: stan po ticku trafienia ma `swingTick = hitTick + 1`, więc przy `alpha = 1` faza równa się `hitFraction` i animacja pokazuje trafienie dokładnie wtedy, gdy symulacja je rozstrzyga, przy każdej prędkości gry.
 
-### 5.5 Atlasy
+Wyświetlana poza dąży wykładniczo do pozy z klipu (szybciej dla ataku), co wygładza zmiany klipów. Błysk trafienia to biała sylwetka części przez 110 ms po `Damaged`.
 
-- Części rysowane w 2× rozdzielczości logicznej (1280×720), wygładzanie włączone, format WebP.
-- `pnpm atlas` pakuje `assets/src/` do `src/assets/generated/` (obraz + JSON z prostokątami i pivotami). Vite nadaje nazwom hash treści.
-- Podział: atlas bohaterów, atlas wrogów i tło per świat (ładowane leniwie przy wejściu do świata).
-- Warianty części (ciemny dla tylnych kończyn, biała sylwetka) generowane raz przy ładowaniu na offscreen canvas. Bez `ctx.filter`.
+### 5.5 Ścieżki slotów
 
-### 5.6 Wydajność
+Symulacja jest jednowymiarowa i sojusznicy mogą stać w tym samym punkcie. Żeby postacie były rozróżnialne, renderer daje każdemu slotowi własną ścieżkę na pasie ziemi: slot 0 najbliżej widza, kolejne sloty 10 jednostek logicznych wyżej i 7 w tył szyku, rysowane od najdalszego. To wyłącznie prezentacja; pozycje w symulacji się nie zmieniają.
+
+### 5.6 Atlasy
+
+- Części rysowane w ponad 2× rozdzielczości logicznej (3 piksele atlasu na jednostkę rigu przy skali postaci 1,4), wygładzanie włączone.
+- Do M3 atlas postaci to grafiki placeholder z generatora `pnpm atlas:placeholder` (PNG, `src/assets/generated/units.png` + `units.json`). W M3 `pnpm atlas` będzie pakował `assets/src/` do tego samego formatu metadanych, docelowo jako WebP. Vite nadaje nazwom hash treści.
+- Docelowy podział: atlas bohaterów, atlas wrogów i tło per świat (ładowane leniwie przy wejściu do świata).
+- Warianty atlasu (przyciemniony dla tylnych kończyn, biała sylwetka) powstają raz przy ładowaniu na osobnych canvasach (`render/atlas.ts`). Bez `ctx.filter`.
+- `pnpm validate-content` sprawdza, że każda skórka ma komplet części swojego rigu, a każdy pocisk swój sprite.
+
+### 5.7 Wydajność
 
 Zero alokacji w `step()` i `draw()` w stanie ustalonym. Pule: pociski, liczby obrażeń (prerenderowane cyfry z atlasu), cząsteczki, zdarzenia. DPR ograniczony do 2, letterbox. Kod debug (pivoty, zasięgi, overlay wydajności, krokowanie) tylko pod `import.meta.env.DEV`.
 

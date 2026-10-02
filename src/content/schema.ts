@@ -20,12 +20,15 @@ export const attackTypeSchema = z.strictObject({
   swingDuration: z.number().positive(),
   /** Moment trafienia albo wystrzału jako ułamek zamachu. */
   hitFraction: z.number().gt(0).lt(1),
-  /** Klip animacji ataku. */
+  /** Klip animacji ataku w rigu jednostki; jego znacznik `hit` musi równać się `hitFraction`. */
   clip: z.string().min(1),
+  /** Postawa w rigu: kąty kości, których klipy idle i chodu nie animują (np. chwyt broni). */
+  stance: z.string().min(1),
   projectile: z
     .strictObject({
       /** Prędkość pocisku w jednostkach świata na sekundę. */
       speed: z.number().positive(),
+      /** Sprite pocisku w atlasie: `fx/<sprite>`. */
       sprite: z.string().min(1),
     })
     .optional(),
@@ -60,6 +63,12 @@ export const unitSchema = z.strictObject({
   knockback: z.number().nonnegative(),
   attackType: id,
   traits: z.array(traitSchema).default([]),
+  /** Rig, na którym animowana jest jednostka. */
+  rig: z.string().min(1).default('humanoid'),
+  /** Skórka: zestaw części w atlasie, `<skin>/<część>`. */
+  skin: id,
+  /** Mnożnik wielkości postaci względem skali rigu. Tylko wygląd; nie wpływa na walkę. */
+  scale: z.number().positive().default(1),
 });
 
 export const attackTypesSchema = z.array(attackTypeSchema);

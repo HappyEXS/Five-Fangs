@@ -8,6 +8,8 @@
     "attackSpeed": 0.7,
     "range": 30,
     "knockback": 25,
-    "attackType": "slash"
+    "attackType": "slash",
+    "skin": "brute",
+    "scale": 1.2
   }
 ]

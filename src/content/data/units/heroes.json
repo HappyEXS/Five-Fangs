@@ -8,7 +8,8 @@
     "attackSpeed": 1.0,
     "range": 30,
     "knockback": 15,
-    "attackType": "slash"
+    "attackType": "slash",
+    "skin": "swordsman_a"
   },
   {
     "id": "swordsman_b",
@@ -19,7 +20,9 @@
     "attackSpeed": 1.1,
     "range": 30,
     "knockback": 20,
-    "attackType": "slash"
+    "attackType": "slash",
+    "skin": "swordsman_b",
+    "scale": 1.08
   },
   {
     "id": "archer_a",
@@ -30,7 +33,8 @@
     "attackSpeed": 0.8,
     "range": 220,
     "knockback": 0,
-    "attackType": "shoot"
+    "attackType": "shoot",
+    "skin": "archer_a"
   },
   {
     "id": "archer_b",
@@ -42,6 +46,8 @@
     "range": 240,
     "knockback": 0,
     "attackType": "shoot",
-    "traits": [{ "type": "pierce" }]
+    "traits": [{ "type": "pierce" }],
+    "skin": "archer_b",
+    "scale": 1.08
   }
 ]

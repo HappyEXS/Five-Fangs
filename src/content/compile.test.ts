@@ -2,12 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { compileArena, compileUnit, hitTickOf, swingTicksOf } from './compile.ts';
 import type { RawAttackType, RawUnit } from './schema.ts';
 
-const slash: RawAttackType = { id: 'slash', swingDuration: 0.4, hitFraction: 0.5, clip: 'slash' };
+const slash: RawAttackType = {
+  id: 'slash',
+  swingDuration: 0.4,
+  hitFraction: 0.5,
+  clip: 'slash',
+  stance: 'sword',
+};
 const shoot: RawAttackType = {
   id: 'shoot',
   swingDuration: 0.6,
   hitFraction: 0.5,
   clip: 'shoot',
+  stance: 'bow',
   projectile: { speed: 400, sprite: 'arrow' },
 };
 
@@ -22,6 +29,9 @@ const swordsman: RawUnit = {
   knockback: 15,
   attackType: 'slash',
   traits: [],
+  rig: 'humanoid',
+  skin: 'swordsman_a',
+  scale: 1,
 };
 
 describe('compileArena', () => {
@@ -63,6 +73,32 @@ describe('compileUnit', () => {
         healInterval: 0,
         healTeam: false,
       },
+      visual: {
+        rig: 'humanoid',
+        skin: 'swordsman_a',
+        scale: 1,
+        attackClip: 'slash',
+        stance: 'sword',
+        projectileSprite: null,
+      },
+    });
+  });
+
+  it('wygląd strzelca wskazuje klip, postawę i sprite pocisku z typu ataku', () => {
+    const archer: RawUnit = {
+      ...swordsman,
+      kind: 'ranged',
+      attackType: 'shoot',
+      skin: 'archer_a',
+      scale: 1.2,
+    };
+    expect(compileUnit(archer, shoot).visual).toEqual({
+      rig: 'humanoid',
+      skin: 'archer_a',
+      scale: 1.2,
+      attackClip: 'shoot',
+      stance: 'bow',
+      projectileSprite: 'arrow',
     });
   });
 

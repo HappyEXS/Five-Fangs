@@ -1,11 +1,15 @@
 // Interfejs renderera walki (ADR 0001). Reszta gry zna tylko ten interfejs; implementacja
 // na Canvas 2D jest w canvas-renderer.ts. Renderer czyta stan symulacji, nigdy go nie zmienia.
+import type { UnitVisual } from '../content/compile.ts';
 import type { Battle, EventBuffer } from '../sim/index.ts';
 import type { Viewport } from './viewport.ts';
 
 export interface Renderer {
-  /** Przygotowuje renderer do nowej walki: kamera, stan animacji, efekty. */
-  beginBattle(battle: Battle): void;
+  /**
+   * Przygotowuje renderer do nowej walki. `visuals` to wygląd jednostek indeksowany `unitId`
+   * (null dla pustego slotu); symulacja o wyglądzie nic nie wie.
+   */
+  beginBattle(battle: Battle, visuals: readonly (UnitVisual | null)[]): void;
   /** Przyjmuje zdarzenia jednego ticka. Wołane po każdym `stepBattle`, przed `draw`. */
   consume(events: EventBuffer): void;
   /**

@@ -3,13 +3,15 @@
     "id": "slash",
     "swingDuration": 0.4,
     "hitFraction": 0.5,
-    "clip": "slash"
+    "clip": "slash",
+    "stance": "sword"
   },
   {
     "id": "shoot",
     "swingDuration": 0.6,
     "hitFraction": 0.5,
     "clip": "shoot",
+    "stance": "bow",
     "projectile": { "speed": 400, "sprite": "arrow" }
   }
 ]
