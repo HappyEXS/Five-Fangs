@@ -74,13 +74,11 @@ export function createScene(
 }
 
 /**
- * Sojusznicy mogą stać w tym samym punkcie osi walki. Żeby byli rozróżnialni, każdy slot
- * ma własną ścieżkę na pasie ziemi: slot 0 najbliżej widza, dalsze sloty wyżej, odrobinę
- * w tył szyku i rysowane wcześniej. To wyłącznie prezentacja; w symulacji pole jest osią.
+ * Scena jest płaska (decyzja autora gry z 2026-10-02): nie ma perspektywy ani ścieżek slotów.
+ * Wszystkie postacie stoją stopami dokładnie na linii podłogi, a ich pozycja X na scenie to
+ * pozycja z symulacji. Sojusznicy stojący w tym samym punkcie nakładają się na siebie.
  */
-const LANE_FRONT = 40;
-const LANE_STEP = 10;
-const LANE_SHIFT = 7;
+export const FEET_Y = GROUND_Y;
 
 /** Wysokość postaci nad biodrami w jednostkach rigu (tułów i głowa). */
 export const UPPER_BODY = 48;
@@ -90,23 +88,9 @@ export function unitFacing(unit: number): number {
   return unit < TEAM_SIZE ? 1 : -1;
 }
 
-export function unitSlot(unit: number): number {
-  return unit < TEAM_SIZE ? unit : unit - TEAM_SIZE;
-}
-
-/** Wysokość stóp jednostki ze slotu `slot` w jednostkach logicznych sceny. */
-export function laneFeetY(slot: number): number {
-  return GROUND_Y + LANE_FRONT - slot * LANE_STEP;
-}
-
-/** Pozycja X jednostki na scenie dla pozycji `worldX` z symulacji (podjednostki). */
-export function unitSceneX(scene: Scene, unit: number, worldX: number): number {
-  return worldX * scene.camera.scale - unitFacing(unit) * unitSlot(unit) * LANE_SHIFT;
-}
-
 /** Wysokość czubka głowy jednostki na scenie. */
-export function unitHeadY(look: UnitLook, slot: number): number {
-  return laneFeetY(slot) - (look.rig.hipHeight + UPPER_BODY) * look.scale;
+export function unitHeadY(look: UnitLook): number {
+  return FEET_Y - (look.rig.hipHeight + UPPER_BODY) * look.scale;
 }
 
 /**

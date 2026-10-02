@@ -10,7 +10,7 @@ import {
   FLOAT_RISE,
   spawnFloatText,
 } from './float-text.ts';
-import { blit, laneFeetY, type Scene, unitHeadY, unitSceneX, unitSlot } from './scene.ts';
+import { blit, FEET_Y, type Scene, unitHeadY } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 /** Wysokość lotu pocisku nad stopami strzelca w jednostkach rigu. */
@@ -41,7 +41,7 @@ export function drawProjectiles(
     local[0] = direction * look.scale;
     local[3] = look.scale;
     local[4] = (prev + ((state.projX[p] ?? 0) - prev) * alpha) * scene.camera.scale;
-    local[5] = laneFeetY(unitSlot(owner)) - PROJECTILE_HEIGHT * look.scale;
+    local[5] = FEET_Y - PROJECTILE_HEIGHT * look.scale;
     blit(scene, image, sprite, local, 0, viewport);
   }
 }
@@ -56,8 +56,8 @@ export function spawnNumber(
 ): void {
   const look = scene.looks[unit];
   if (look === null || look === undefined) return;
-  const x = unitSceneX(scene, unit, battle.state.x[unit] ?? 0);
-  const y = unitHeadY(look, unitSlot(unit)) - 20;
+  const x = (battle.state.x[unit] ?? 0) * scene.camera.scale;
+  const y = unitHeadY(look) - 20;
   spawnFloatText(scene.floatTexts, x + nextRange(scene.jitter, -10, 10), y, value, kind);
 }
 

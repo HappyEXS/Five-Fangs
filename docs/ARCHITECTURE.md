@@ -369,9 +369,9 @@ Wzór fazy ataku wynika z osi czasu zamachu: stan po ticku trafienia ma `swingTi
 
 Wyświetlana poza dąży wykładniczo do pozy z klipu (szybciej dla ataku), co wygładza zmiany klipów. Błysk trafienia to biała sylwetka części przez 110 ms po `Damaged`.
 
-### 5.5 Ścieżki slotów
+### 5.5 Płaska scena
 
-Symulacja jest jednowymiarowa i sojusznicy mogą stać w tym samym punkcie. Żeby postacie były rozróżnialne, renderer daje każdemu slotowi własną ścieżkę na pasie ziemi: slot 0 najbliżej widza, kolejne sloty 10 jednostek logicznych wyżej i 7 w tył szyku, rysowane od najdalszego. To wyłącznie prezentacja; pozycje w symulacji się nie zmieniają.
+Scena nie ma perspektywy (decyzja autora gry z 2026-10-02). Symulacja jest jednowymiarowa i renderer pokazuje ją wprost: wszystkie postacie stoją stopami dokładnie na linii podłogi (`FEET_Y = GROUND_Y`), a ich pozycja X to pozycja z symulacji. Sojusznicy stojący w tym samym punkcie nakładają się na siebie; kolejność rysowania (od slotu 4 do 0) decyduje, kto jest na wierzchu. Wcześniejsze „ścieżki slotów”, które rozsuwały postacie w pionie, zostały usunięte.
 
 ### 5.6 Atlasy
 

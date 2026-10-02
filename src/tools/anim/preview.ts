@@ -16,7 +16,7 @@ import type { Viewport } from '../../render/viewport.ts';
 const ZOOM = 3;
 /** Środek postaci i poziom stóp na scenie: lewa część, którą panel zostawia odsłoniętą. */
 const FEET_X = 300;
-const FEET_Y = GROUND_Y + 60;
+const FEET_Y = GROUND_Y;
 
 export interface PreviewInput {
   readonly rig: RawRig;

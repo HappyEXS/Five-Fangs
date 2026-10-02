@@ -12,7 +12,7 @@ import { attackProgress, DEATH_MS, updateUnitPose } from './animation.ts';
 import { debugOptions, debugRange } from './debug.ts';
 import { drawRigParts, drawString } from './draw-rig.ts';
 import { computeBoneMatrices, rootMatrix } from './rig.ts';
-import { laneFeetY, type Scene, UPPER_BODY, unitFacing, unitSceneX, unitSlot } from './scene.ts';
+import { FEET_Y, type Scene, UPPER_BODY, unitFacing } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 const HP_BACK = '#11151c';
@@ -49,10 +49,9 @@ export function drawUnit(
 
   const { ctx, animator, matrices } = scene;
   const facing = unitFacing(unit);
-  const slot = unitSlot(unit);
   const prev = state.prevX[unit] ?? 0;
-  const x = unitSceneX(scene, unit, prev + ((state.x[unit] ?? 0) - prev) * alpha);
-  const feetY = laneFeetY(slot);
+  const x = (prev + ((state.x[unit] ?? 0) - prev) * alpha) * scene.camera.scale;
+  const feetY = FEET_Y;
 
   updateUnitPose(
     animator,
@@ -117,8 +116,8 @@ export function drawUnit(
   if (import.meta.env.DEV && debugOptions.ranges) {
     const target = state.target[unit] ?? -1;
     const range = (battle.specs.range[unit] ?? 0) * scene.camera.scale;
-    const targetX = target < 0 ? -1 : unitSceneX(scene, target, state.x[target] ?? 0);
-    const targetY = target < 0 ? 0 : laneFeetY(unitSlot(target));
+    const targetX = target < 0 ? -1 : (state.x[target] ?? 0) * scene.camera.scale;
+    const targetY = FEET_Y;
     debugRange(ctx, x, feetY, facing, range, targetX, targetY);
   }
 }
