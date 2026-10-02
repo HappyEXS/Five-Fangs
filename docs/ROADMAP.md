@@ -20,7 +20,7 @@ Cel: puste, ale kompletne repozytorium z CI i działającym deployem na Render.
 |---|---|---|---|---|
 | M0-1 | Repozytorium i narzędzia: `git init`, pnpm (Corepack, `packageManager`), `.node-version`, TypeScript strict, Vite z `base: './'`, Biome, Vitest | 0,5 | `pnpm dev` pokazuje pustą stronę; `typecheck`, `lint`, `test` przechodzą | gotowe |
 | M0-2 | Struktura katalogów i granice modułów (własny skrypt, ADR 0012; `pnpm deps:check`) | 0,5 | Celowo zabroniony import (np. `sim` → `render`) powoduje błąd `deps:check` | gotowe |
-| M0-3 | `core`: matematyka całkowita, hash FNV-1a, pętla stałego kroku (akumulator, limit skoku, mnożnik prędkości, pauza), pule, RNG dla kosmetyki | 1,5 | Testy jednostkowe; pętla testowana na sztucznym zegarze | — |
+| M0-3 | `core`: matematyka całkowita, hash FNV-1a, pętla stałego kroku (akumulator, limit skoku, mnożnik prędkości, pauza), pule, RNG dla kosmetyki | 1,5 | Testy jednostkowe; pętla testowana na sztucznym zegarze | gotowe |
 | M0-4 | Pusta scena: canvas 1280×720 z letterboxem i DPR ≤ 2, nakładka Preact, szkielet i18n (PL/EN) | 0,5 | Strona skaluje się poprawnie przy zmianie okna; tekst testowy w obu językach | — |
 | M0-5 | Wersja builda: `version.json`, `define`, numer wersji na ekranie | 0,5 | `dist/version.json` zawiera wersję, skrót commita i datę | — |
 | M0-6 | Obsługa błędów ładowania: wspólna funkcja dla dynamicznych importów, bufor błędów w pamięci | 0,5 | Test: nieudany import pokazuje komunikat o nowej wersji | — |
