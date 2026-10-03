@@ -10,7 +10,8 @@ import { startAnimEditor } from './tools/anim/editor.tsx';
 import { startAtlasPreview } from './tools/atlas-preview.ts';
 import { startPerf } from './tools/perf.ts';
 import { startSandbox } from './tools/sandbox.tsx';
-import './ui/styles.css';
+import './ui/styles/base.css';
+import './ui/styles/components.css';
 import './tools/tools.css';
 
 const stage = document.getElementById('stage');

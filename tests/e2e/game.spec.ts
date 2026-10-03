@@ -91,7 +91,7 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   expect(errors).toEqual([]);
 });
 
-test('skład, sklep i bohaterowie: ulepszenie, zakup, przeciąganie postaci, zmiana języka', async ({
+test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postaci, język', async ({
   page,
 }) => {
   const errors = collectErrors(page);
@@ -101,21 +101,34 @@ test('skład, sklep i bohaterowie: ulepszenie, zakup, przeciąganie postaci, zmi
     gold: 600,
     heroes: [hero(1, 'swordsman'), hero(2, 'archer')],
     nextHeroId: 3,
-    runes: [],
+    runes: ['rune_hp_100'],
     levels: { w1_l1: { cleared: true, bestTicks: 420 } },
     squad: [1, 2, null, null, null],
     settings: { lang: 'pl', battleSpeed: 1 },
   });
   await play(page);
+  // Pola bohaterów (runy, ulepszenia, zakup) są tylko na ekranie składu.
+  await expect(page.locator('.rune-socket')).toHaveCount(0);
 
-  // Skład: ulepszenie wybranego bohatera.
+  // Skład: ulepszenie przyciskiem „Kup” w polu Miecznika; karta z prawej tylko pokazuje statystyki.
   await page.getByRole('button', { name: 'Skład' }).click();
+  const field = page.locator('[data-drop="slot:0"]');
   const sheet = page.locator('.hero-sheet');
   await expect(sheet).toContainText('Miecznik');
-  await expect(sheet).toContainText('Ulepszenia 0 z 4');
-  await sheet.locator('[data-action="upgrade"]').click();
+  await expect(sheet.getByRole('button')).toHaveCount(0);
+  await expect(field.locator('.upgrade-bar')).toHaveAttribute('data-upgrades', '0');
+  await field.getByRole('button', { name: 'Kup ulepszenie za 50 złota' }).click();
+  await expect(field.locator('.upgrade-bar')).toHaveAttribute('data-upgrades', '1');
   await expect(sheet).toContainText('Ulepszenia 1 z 4');
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '550');
+
+  // Runa: gniazdo nad bohaterem otwiera wybór, wybrany żeton trafia do gniazda.
+  await field.locator('[data-socket="0"]').click();
+  await page.locator('.rune-picker [data-rune="rune_hp_100"]').click();
+  await expect(page.locator('.rune-picker')).toHaveCount(0);
+  await expect(field.locator('[data-socket="0"] .rune-token')).toHaveText('+100');
+  const runes = ((await readSave(page)).heroes as { runes: unknown }[])[0]?.runes;
+  expect(runes).toEqual(['rune_hp_100', null]);
 
   // Ze składu wychodzi się tylko na mapę: nie ma skrótu do sklepu.
   await expect(page.getByRole('button', { name: 'Sklep' })).toHaveCount(0);
@@ -147,7 +160,7 @@ test('skład, sklep i bohaterowie: ulepszenie, zakup, przeciąganie postaci, zmi
   await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Skład' }).click();
   await page.locator('.stage-hero[data-hero="3"]').dragTo(page.locator('[data-drop="slot:0"]'));
-  await expect(page.locator('[data-drop="slot:0"] .hero-tag')).toHaveText('Tarczownik');
+  await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Tarczownik');
   save = await readSave(page);
   expect(save.squad).toEqual([3, 2, 1, 4, null]);
 
@@ -180,8 +193,8 @@ test('zapis w wersji 1 wczytuje się przez migrację', async ({ page }) => {
   await play(page);
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '135');
   await page.getByRole('button', { name: 'Skład' }).click();
-  await expect(page.locator('[data-drop="slot:0"] .hero-tag')).toHaveText('Miecznik +3');
-  await expect(page.locator('[data-drop="slot:1"] .hero-tag')).toHaveText('Strzelec wyborowy +1');
+  await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Miecznik +3');
+  await expect(page.locator('[data-drop="slot:1"] .field-name')).toHaveText('Strzelec wyborowy +1');
   expect(errors).toEqual([]);
 });
 

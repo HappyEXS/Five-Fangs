@@ -1,0 +1,255 @@
+/* Wspólne rekwizyty: znaki, przyciski, arkusze, złoto, nagłówek ekranu, tabela statystyk. */
+
+/* Znaki */
+
+.icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  fill: currentcolor;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.icon-hole {
+  fill: var(--paper);
+}
+
+/* Moneta ma atramentowy kontur także na niebie, gdzie tekst jest jasny. */
+.icon-coin {
+  stroke: var(--ink);
+}
+
+.icon-coin circle {
+  fill: var(--marigold);
+}
+
+.icon-coin path {
+  fill: none;
+}
+
+.icon-stamp {
+  fill: var(--moss);
+  stroke-width: 3.5;
+}
+
+.fang-mark {
+  flex: none;
+  width: 4.1em;
+  height: 1.12em;
+  overflow: visible;
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 0.11em;
+}
+
+.fang-mark path {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Przyciski: papierowy kartonik, który po naciśnięciu siada na swoim cieniu. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  padding: 0.22em 0.8em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper);
+  box-shadow: var(--drop) var(--drop) 0 var(--ink);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--paper-light);
+}
+
+.btn:active:not(:disabled) {
+  box-shadow: none;
+  translate: var(--drop) var(--drop);
+}
+
+.btn[aria-pressed="true"] {
+  background: var(--marigold);
+}
+
+.btn:disabled {
+  background: var(--paper-shade);
+  box-shadow: none;
+  color: var(--ink-soft);
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--marigold);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--marigold-light);
+}
+
+.btn-danger {
+  background: var(--madder);
+  color: var(--paper);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--madder);
+}
+
+.btn-small {
+  padding: 0.05em 0.55em;
+}
+
+.btn-big {
+  padding: 0.2em 1.5em 0.26em;
+  font: 400 1.7em / 1.1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+/* Obwódka fokusu liczy się od czcionki przycisku; przy dużej czcionce byłaby za gruba. */
+.btn-big:focus-visible {
+  outline-width: 0.1em;
+  outline-offset: 0.1em;
+}
+
+/* Arkusz: prostokąt papieru leżący na scenie. */
+
+.sheet {
+  padding: 0.8em 1em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0.32em 0.32em 0 var(--ink);
+  color: var(--ink);
+}
+
+.sheet-title {
+  font-weight: 800;
+}
+
+.note {
+  color: var(--ink-soft);
+  font-size: 0.92em;
+}
+
+/* Złoto */
+
+.purse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 1.3em;
+  font-weight: 800;
+}
+
+.gold-amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Kolor runy mówi, co wzmacnia: zielony życie, czerwony atak (żetony i etykiety). */
+.rune-hp {
+  background: var(--moss);
+  color: var(--ink);
+}
+
+.rune-attack {
+  background: var(--madder);
+  color: var(--paper);
+}
+
+.rune-tag {
+  display: inline-block;
+  padding: 0 0.5em;
+  border-radius: 0.22em;
+  background: var(--dusk);
+  color: var(--paper);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Nagłówek ekranów otwieranych z mapy */
+
+.screen-head {
+  position: absolute;
+  top: 2.2%;
+  right: 1.6%;
+  left: 1.6%;
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+}
+
+.screen-title {
+  font: 400 1.7em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.hero-name {
+  font: 400 1.75em / 1 var(--display);
+  letter-spacing: 0.02em;
+}
+/* Statystyki */
+
+.stats dl {
+  display: grid;
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.14em 0;
+  border-bottom: 0.07em dashed var(--ink-soft);
+}
+
+.stat:last-child {
+  border-bottom: 0;
+}
+
+.stat dd {
+  font-weight: 800;
+}
+
+/* Wartość po zakupie: trójkąt rysowany obramowaniem zamiast znaku strzałki. */
+.stat-next {
+  margin-left: 0.4em;
+  color: var(--moss-deep);
+}
+
+.stat-next::before {
+  display: inline-block;
+  margin-right: 0.35em;
+  border: 0.3em solid transparent;
+  border-right-width: 0;
+  border-left: 0.42em solid currentcolor;
+  content: "";
+}
+
+.stat-less {
+  color: var(--madder);
+}
+
+.trait {
+  margin-top: 0.5em;
+  font-size: 0.95em;
+  font-weight: 600;
+  line-height: 1.2;
+}

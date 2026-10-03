@@ -141,6 +141,7 @@ Autor gry ocenił M5c („o wiele lepiej”) i zlecił pięć poprawek. Uzupełn
 | M5d-3 | „Wróć” zamiast „Mapa”; bez przycisku sklepu w składzie i składu w sklepie | 0,25 | Ekrany otwierane z mapy mają tylko powrót (test end-to-end) | gotowe |
 | M5d-4 | Liczba życia nad paskiem HP | 0,5 | Liczba rysowana z atlasu; alokacje renderera bez zmian (279 B na klatkę) | gotowe |
 | M5d-5 | Zakładka „Bohaterowie” z formami linii i drogą ewolucji; sklep tylko do kupowania | 1 | Ekran pokazuje obie formy, koszty ulepszeń i ewolucji (test end-to-end) | gotowe |
+| M5d-6 | Pole bohatera w składzie: gniazda run jako okrągłe żetony z okienkiem wyboru, pasek ulepszeń i przycisk „Kup” z kosztem ulepszenia albo ewolucji; karta tylko do czytania | 1 | Zakup ulepszenia i włożenie runy z pola (test end-to-end); pól nie ma na mapie | gotowe |
 
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 

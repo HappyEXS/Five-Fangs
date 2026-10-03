@@ -29,6 +29,32 @@ const MIDDLE_GAP = 0.04;
 const BASE_FORM_AT = 0.37;
 const EVOLVED_FORM_AT = 0.63;
 
+/**
+ * Miejsca slotów składu na ekranie zarządzania składem, jako ułamek szerokości sceny. Szerzej
+ * niż w walce, żeby pod każdym bohaterem zmieściło się jego pole: runy, pasek ulepszeń i zakup.
+ * Kolejność jak w walce: slot 0 (front) najdalej w prawo.
+ */
+export const SQUAD_FIELD_AT: readonly number[] = [0.7, 0.55, 0.4, 0.25, 0.1];
+
+/**
+ * Wejście podglądu ekranu składu: ten sam skład, sloty gracza w miejscach pól. Ekran składu
+ * nie ma przeciwników, więc ich sloty odsuwamy na prawą krawędź: symulacja wymaga, by sloty
+ * gracza leżały na lewo od slotów przeciwnika, a pola sięgają dalej niż sloty walki.
+ */
+export function squadFieldSetup(setup: BattleSetup): BattleSetup {
+  const { width } = setup.arena;
+  const playerSlots = setup.arena.playerSlots.map((x, slot) => {
+    const at = SQUAD_FIELD_AT[slot];
+    return at === undefined ? x : Math.round(at * width);
+  });
+  const enemySlots = setup.arena.enemySlots.map(() => width);
+  return {
+    ...setup,
+    arena: { ...setup.arena, playerSlots, enemySlots },
+    enemy: setup.enemy.map(() => null),
+  };
+}
+
 function spread(count: number, from: number, to: number): number[] {
   if (count === 1) return [(from + to) / 2];
   return Array.from({ length: count }, (_, i) => from + ((to - from) * i) / (count - 1));

@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { type GameContent, requireContent } from '../content/load.ts';
 import type { CompiledLine } from '../content/load-progression.ts';
+import { levelSetup } from '../content/resolve-spec.ts';
 import { createBattle, validateSetup } from '../sim/index.ts';
+import { newSave, squadMembers } from './progress.ts';
 import { SQUAD_SLOTS } from './save-schema.ts';
-import { formStands, shopStands, standScene } from './stage-stands.ts';
+import {
+  formStands,
+  SQUAD_FIELD_AT,
+  shopStands,
+  squadFieldSetup,
+  standScene,
+} from './stage-stands.ts';
 
 const content = requireContent();
 
@@ -69,6 +77,26 @@ describe('formStands', () => {
       expect(battle.state.x[stand.slot]).toBe(Math.round(stand.position * content.arena.width));
       expect(scene.setup.player[stand.slot]).toBe(content.heroes.get(stand.unitId)?.base);
     }
+  });
+});
+
+describe('squadFieldSetup', () => {
+  it('przenosi sloty gracza w miejsca pól, zachowując skład i kolejność od frontu', () => {
+    const save = newSave(content, '0.0.0', 'pl');
+    const level = content.levels.get('w1_l1');
+    if (level === undefined) throw new Error('no level');
+    const setup = levelSetup(content, level, squadMembers(content, save));
+    const fields = squadFieldSetup(setup);
+    expect(validateSetup(fields)).toEqual([]);
+    expect(fields.player).toBe(setup.player);
+    expect(fields.enemy.every((unit) => unit === null)).toBe(true);
+    expect(() => createBattle(fields)).not.toThrow();
+    expect(fields.arena.playerSlots).toEqual(
+      SQUAD_FIELD_AT.map((at) => Math.round(at * setup.arena.width)),
+    );
+    // Front stoi najdalej w prawo, jak w walce.
+    const slots = fields.arena.playerSlots;
+    expect([...slots].sort((a, b) => b - a)).toEqual(slots);
   });
 });
 

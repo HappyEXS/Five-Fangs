@@ -14,6 +14,11 @@ export function runeLabel(rune: Rune): string {
   return t(rune.stat === 'attack' ? 'rune.attack' : 'rune.maxHp', { value: rune.value });
 }
 
+/** Klasa koloru runy: zielony dla życia, czerwony dla ataku. */
+export function runeColor(rune: Rune): string {
+  return rune.stat === 'maxHp' ? 'rune-hp' : 'rune-attack';
+}
+
 /** Liczba z odstępem co trzy cyfry: „12 500” czyta się szybciej niż „12500”. */
 export function formatNumber(value: number): string {
   return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');

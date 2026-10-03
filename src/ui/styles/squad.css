@@ -1,0 +1,342 @@
+/* Skład. Każdy bohater ma na scenie swoje pole (ADR 0015, uzupełnienie): kolumnę na całą
+   wysokość sceny, w której stoją jego nazwa, gniazda run, postać z kłem slotu, pasek ulepszeń
+   i przycisk zakupu. Samo pole nie łapie wskaźnika, tylko jego elementy; wysokości są
+   w procentach sceny, więc trafiają w te same miejsca co postać na canvasie. */
+
+.reserve {
+  position: absolute;
+  top: 10.5%;
+  left: 1.6%;
+  display: grid;
+  gap: 0.4em;
+  width: 74%;
+  max-height: 25%;
+  overflow: auto;
+  align-content: start;
+}
+
+.reserve.is-over {
+  background: var(--paper-light);
+  outline: 0.17em solid var(--marigold);
+  outline-offset: 0.17em;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.hero-chip {
+  padding: 0.1em 0.6em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper);
+  box-shadow: 0.14em 0.14em 0 var(--ink);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: grab;
+  /* Przeciąganie obsługujemy sami; bez tego dotyk przewijałby stronę. */
+  touch-action: none;
+  user-select: none;
+}
+
+.hero-chip[aria-pressed="true"] {
+  background: var(--marigold);
+}
+
+.drag-ghost {
+  position: fixed;
+  z-index: 20;
+  background: var(--marigold);
+  rotate: -4deg;
+  translate: -50% -120%;
+  pointer-events: none;
+}
+
+/* Karta wybranego bohatera: tylko statystyki, bez przycisków. */
+.hero-sheet {
+  position: absolute;
+  top: 10.5%;
+  right: 1.6%;
+  width: 21%;
+  max-height: 86%;
+  overflow: auto;
+  font-size: 0.92em;
+}
+
+.hero-card {
+  display: grid;
+  gap: 0.6em;
+}
+
+.hero-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 0.8em;
+  margin-top: -0.3em;
+}
+
+/* Pole bohatera */
+
+.field {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12.5%;
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+.field > * {
+  pointer-events: auto;
+}
+
+/* Uchwyt: od nazwy po kieł pod linią podłogi (38–87% sceny). Bohatera łapie się za postać,
+   nazwę albo kieł; gniazda run leżą nad uchwytem i mają własne kliknięcie. */
+.stage-hero,
+.slot-place {
+  position: absolute;
+  top: 38%;
+  right: 0;
+  bottom: 13%;
+  left: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+}
+
+.stage-hero {
+  cursor: grab;
+  /* Przeciąganie obsługujemy sami; bez tego dotyk przewijałby stronę. */
+  touch-action: none;
+  user-select: none;
+}
+
+.stage-hero:active {
+  cursor: grabbing;
+}
+
+.slot-place:not(:disabled) {
+  cursor: pointer;
+}
+
+.field-name {
+  position: absolute;
+  top: 0.3em;
+  left: 50%;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0.08em 0.55em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper);
+  box-shadow: 0.14em 0.14em 0 var(--ink);
+  font-size: 0.85em;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  translate: -50% 0;
+}
+
+.stage-hero:hover .field-name {
+  background: var(--paper-light);
+}
+
+.stage-hero[aria-pressed="true"] .field-name {
+  background: var(--marigold);
+}
+
+/* Linia podłogi leży na 81,18% wysokości uchwytu: (77,78 − 38) / 49. */
+.slot-fang {
+  position: absolute;
+  top: calc(81.18% + 0.25em);
+  left: 50%;
+  width: 2.2em;
+  height: 2.9em;
+  overflow: visible;
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+  transition: scale 90ms ease-out;
+  translate: -50% 0;
+}
+
+.slot-number {
+  position: absolute;
+  top: calc(81.18% + 0.55em);
+  right: 0;
+  left: 0;
+  color: var(--ink);
+  font: 400 1em / 1 var(--display);
+  text-align: center;
+}
+
+.field-empty .slot-fang {
+  fill: var(--paper-shade);
+}
+
+.field-selected .slot-fang {
+  fill: var(--marigold);
+}
+
+/* Pole pod przeciąganym bohaterem: tu trafi po upuszczeniu. */
+.field-over .slot-fang {
+  fill: var(--marigold-light);
+  scale: 1.18;
+}
+
+/* Runy: okrągłe żetony nad postacią. */
+
+.rune-sockets {
+  position: absolute;
+  top: 43.3%;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 0.45em;
+}
+
+.rune-socket {
+  display: grid;
+  width: 2.6em;
+  height: 2.6em;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--paper);
+  font: 400 1.1em / 1 var(--display);
+  cursor: pointer;
+  place-items: center;
+}
+
+/* Puste gniazdo: przerywany krąg z plusem, zaprasza do włożenia runy. */
+.rune-socket-empty {
+  border: 0.12em dashed var(--paper);
+  font-size: 1.1em;
+}
+
+.rune-socket-empty:hover {
+  border-color: var(--marigold);
+  color: var(--marigold);
+}
+
+.rune-token {
+  display: grid;
+  width: 3.25em;
+  height: 3.25em;
+  border: var(--line) solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 0.16em 0.16em 0 var(--ink);
+  font: 400 0.8em / 1 var(--display);
+  letter-spacing: 0.02em;
+  place-items: center;
+}
+
+/* Okienko wyboru runy stoi nad gniazdami pola. */
+.rune-picker {
+  position: absolute;
+  bottom: 58%;
+  z-index: 25;
+  display: grid;
+  gap: 0.55em;
+  width: max-content;
+  min-width: 11em;
+  max-width: 22em;
+  translate: -50% 0;
+  justify-items: start;
+}
+
+.rune-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+}
+
+.rune-option {
+  position: relative;
+  display: grid;
+  gap: 0.25em;
+  padding: 0.35em 0.4em 0.3em;
+  border: var(--line) solid transparent;
+  border-radius: 0.35em;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  justify-items: center;
+}
+
+.rune-option:hover {
+  border-color: var(--ink);
+  background: var(--paper-light);
+}
+
+.rune-option-stat {
+  font-size: 0.8em;
+  font-weight: 700;
+}
+
+/* Licznik takich samych run: plakietka w rogu żetonu. */
+.rune-option-count {
+  position: absolute;
+  top: 0.1em;
+  right: 0.05em;
+  padding: 0 0.35em;
+  border-radius: 1em;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.72em;
+  font-weight: 700;
+}
+
+.rune-socket:hover .rune-token {
+  translate: 0 -0.12em;
+}
+
+/* Pod kłem: pasek ulepszeń bieżącej formy i zakup następnego ulepszenia albo ewolucji. */
+
+.field-foot {
+  position: absolute;
+  top: 87.4%;
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 0.45em;
+  justify-items: center;
+}
+
+.upgrade-bar {
+  display: flex;
+  gap: 0.2em;
+  width: 6.4em;
+  height: 0.6em;
+}
+
+.segment {
+  flex: 1;
+  border: 0.1em solid var(--paper);
+  border-radius: 0.12em;
+}
+
+.segment-on {
+  border-color: var(--ink);
+  background: var(--marigold);
+}
+
+/* Forma po ewolucji liczy ulepszenia od nowa; inny kolor odróżnia jej pasek. */
+.upgrade-bar-evolved .segment-on {
+  background: var(--moss);
+}
+
+.field-full {
+  font-weight: 700;
+}

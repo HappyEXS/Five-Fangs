@@ -25,7 +25,7 @@ import { createFrameLoop } from './frame-loop.ts';
 import type { Game, Scene } from './game.ts';
 import { currentLevel, squadMembers } from './progress.ts';
 import { attachStage, get2dContext } from './stage.ts';
-import { formStands, shopStands, standScene } from './stage-stands.ts';
+import { formStands, shopStands, squadFieldSetup, standScene } from './stage-stands.ts';
 import { guardedLoad } from './update.ts';
 
 /** Poziom bez przeciwników: podgląd samego składu gracza. */
@@ -170,7 +170,8 @@ export function startStage(
     const setup = levelSetup(content, compiled, members);
     const visuals = levelVisuals(content, compiled, members);
     if (scene.name !== 'battle') {
-      showPreview(renderer, setup, visuals);
+      // Ekran składu rozstawia bohaterów szerzej niż walka: pod każdym jest jego pole.
+      showPreview(renderer, scene.name === 'squad' ? squadFieldSetup(setup) : setup, visuals);
       return;
     }
     game.lastBattle.value = setup;

@@ -1,0 +1,115 @@
+/* Okno ustawień i komunikaty. */
+
+/* Ustawienia */
+
+/* Okno modalne <dialog>: przeglądarka sama je środkuje i kładzie nad resztą strony. */
+.settings {
+  display: grid;
+  gap: 0.95em;
+  width: 31em;
+  max-height: 94vh;
+  overflow: auto;
+}
+
+/* Zasłona za oknem jest funkcjonalna: odcina mapę, na której nic teraz nie da się kliknąć. */
+.settings::backdrop {
+  background: rgb(36 31 61 / 74%);
+}
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.settings-title {
+  font: 400 1.7em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.settings-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6em 0.8em;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.settings-group legend {
+  margin-bottom: 0.35em;
+  padding: 0;
+  font-weight: 800;
+}
+
+.settings-message {
+  font-weight: 700;
+}
+
+.report {
+  width: 100%;
+  height: 7em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper-light);
+  color: var(--ink);
+  font:
+    0.75em ui-monospace,
+    Consolas,
+    monospace;
+}
+
+/* Komunikaty */
+
+.banner {
+  position: absolute;
+  top: 2.2%;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  max-width: 70%;
+  padding: 0.45em 0.9em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0.26em 0.26em 0 var(--ink);
+  color: var(--ink);
+  font-weight: 600;
+  translate: -50% 0;
+}
+
+.banner-bottom {
+  top: auto;
+  bottom: 2.5%;
+}
+
+/* Stała informacja w rogu mapy: nie zasłania szlaku ani przycisku walki. */
+.banner-corner {
+  top: auto;
+  right: 1.6%;
+  bottom: 2.5%;
+  left: auto;
+  max-width: 34%;
+  font-size: 0.9em;
+  translate: none;
+}
+
+.notice-blocking {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  display: grid;
+  gap: 0.8em;
+  width: 30em;
+  padding: 1.2em 1.6em 1.4em;
+  text-align: center;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.notice-title {
+  font: 400 1.7em / 1.05 var(--display);
+}

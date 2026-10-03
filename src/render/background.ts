@@ -1,5 +1,5 @@
 // Tło sceny: niebo, linia drzew, ziemia i linia podłogi. Płaskie kolory wycinanki, te same co
-// w ui/styles.css; tła poszczególnych światów dojdą w M6.
+// w ui/styles/base.css; tła poszczególnych światów dojdą w M6.
 import { GROUND_Y } from './camera.ts';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, type Viewport } from './viewport.ts';
 

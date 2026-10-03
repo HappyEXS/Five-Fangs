@@ -1,0 +1,284 @@
+/* Sklep, informacje o bohaterach, ekran startowy, walka i wynik. */
+
+/* Sklep: bohaterowie stoją na scenie, metki wiszą pod nimi */
+
+.shop-tag {
+  position: absolute;
+  top: calc(var(--floor) + 1.2em);
+  display: grid;
+  gap: 0.35em;
+  padding: 0.4em 0.5em 0.5em;
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0.26em 0.26em 0 var(--ink);
+  color: var(--ink);
+  text-align: center;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+/* Sznurek, na którym metka wisi pod linią podłogi. */
+.shop-tag::before {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 0.12em;
+  height: 1.05em;
+  background: var(--paper);
+  content: "";
+}
+
+.tag-name {
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.tag-owned {
+  color: var(--ink-soft);
+  font-size: 0.88em;
+}
+
+.shop-hint {
+  position: absolute;
+  top: 9.6%;
+  right: 1.6%;
+  left: 1.6%;
+  font-size: 0.92em;
+}
+
+/* Informacje o bohaterach: obie formy linii na scenie, karty po bokach, droga ulepszeń
+   pod linią podłogi */
+
+.line-tabs {
+  position: absolute;
+  top: 10.5%;
+  right: 1.6%;
+  left: 1.6%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+}
+
+.form-sheet {
+  position: absolute;
+  top: 18.5%;
+  left: 1.6%;
+  display: grid;
+  gap: 0.4em;
+  width: 20em;
+}
+
+.form-evolved {
+  right: 1.6%;
+  left: auto;
+}
+
+.evolve-info {
+  position: absolute;
+  top: 19%;
+  left: 50%;
+  display: grid;
+  gap: 0.55em;
+  width: 21em;
+  text-align: center;
+  text-wrap: balance;
+  translate: -50% 0;
+}
+
+.evolve-price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  font-weight: 700;
+}
+
+.path-steps {
+  position: absolute;
+  top: calc(var(--floor) + 1em);
+  display: flex;
+  gap: 0.9em;
+  translate: -50% 0;
+}
+
+.path-step {
+  display: grid;
+  gap: 0.3em;
+  justify-items: center;
+}
+
+/* Kieł ulepszenia na drodze linii: ten sam kształt co kły slotów. */
+.path-step .pip {
+  width: 1.15em;
+  height: 1.5em;
+  overflow: visible;
+  fill: var(--marigold);
+  stroke-linejoin: round;
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+
+.path-step .icon-coin {
+  display: none;
+}
+
+.path-evolve {
+  position: absolute;
+  top: calc(var(--floor) + 0.9em);
+  left: 50%;
+  display: grid;
+  gap: 0.15em;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.path-evolve-name {
+  font: 400 1.25em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+/* Ekran startowy */
+
+.title-mark {
+  position: absolute;
+  top: 13%;
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 0.6em;
+  justify-items: center;
+}
+
+.title-mark .fang-mark {
+  width: 15em;
+  height: 4.1em;
+  stroke-width: 0.16em;
+}
+
+.title-name {
+  font: 400 6.4em / 0.95 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.title-version {
+  position: absolute;
+  right: 1.6%;
+  bottom: 2.2%;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+/* Walka */
+
+.hud-level {
+  position: absolute;
+  top: 2.2%;
+  left: 1.6%;
+  display: grid;
+  gap: 0.15em;
+}
+
+.hud-name {
+  font: 400 1.55em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.hud-time {
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.hud-controls {
+  position: absolute;
+  top: 2.2%;
+  right: 1.6%;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+.hud-speed {
+  display: flex;
+  gap: 0.45em;
+  margin: 0 0.5em;
+}
+
+/* Wynik: arkusz opuszczany na scenę, na której zostało pole zakończonej walki. */
+
+.result-sheet {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  display: grid;
+  gap: 0.55em;
+  width: 23em;
+  padding: 1.1em 1.6em 1.4em;
+  text-align: center;
+  translate: -50% 0;
+  animation: sheet-drop 420ms cubic-bezier(0.2, 1.25, 0.4, 1) both;
+  justify-items: center;
+}
+
+.result-sheet .fang-mark {
+  width: 8em;
+  height: 2.2em;
+  fill: var(--marigold);
+}
+
+.result-sheet[data-outcome="loss"] .fang-mark {
+  fill: var(--paper-shade);
+}
+
+.result-title {
+  font: 400 3.3em / 0.95 var(--display);
+  letter-spacing: 0.02em;
+}
+
+.result-sheet[data-outcome="loss"] .result-title {
+  color: var(--madder);
+}
+
+.result-level {
+  font-weight: 600;
+}
+
+.result-sheet p {
+  text-wrap: balance;
+}
+
+.rewards {
+  display: grid;
+  gap: 0.3em;
+  margin: 0.2em 0;
+  font-size: 1.3em;
+  font-weight: 800;
+  justify-items: center;
+}
+
+.reward {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.result-sheet .btn-big {
+  margin-top: 0.3em;
+}
+
+@keyframes sheet-drop {
+  from {
+    rotate: -5deg;
+    translate: -50% -135%;
+  }
+
+  to {
+    rotate: 0deg;
+    translate: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-sheet {
+    animation: none;
+  }
+}

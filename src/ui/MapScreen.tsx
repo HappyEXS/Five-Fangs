@@ -7,7 +7,7 @@ import { t, tName } from '../game/i18n.ts';
 import { isLevelCleared, isLevelUnlocked, isSquadEmpty, victoryRewards } from '../game/progress.ts';
 import { SQUAD_SLOTS } from '../game/save-schema.ts';
 import { formatBattleTime } from '../game/stats.ts';
-import { Gold, Purse, runeLabel, unitName } from './common.tsx';
+import { Gold, Purse, runeColor, runeLabel, unitName } from './common.tsx';
 import {
   BookIcon,
   FANG_PATH,
@@ -142,7 +142,7 @@ function Plaque(props: { game: Game; level: string }) {
       <p class="plaque-reward">
         <span>{t(rewards.firstClear ? 'map.reward' : 'map.reward.replay')}</span>
         <Gold amount={rewards.gold} />
-        {rune !== undefined && <span class="rune-tag">{runeLabel(rune)}</span>}
+        {rune !== undefined && <span class={`rune-tag ${runeColor(rune)}`}>{runeLabel(rune)}</span>}
         {best !== null && (
           <span class="plaque-best">{t('map.best', { time: formatBattleTime(best) })}</span>
         )}

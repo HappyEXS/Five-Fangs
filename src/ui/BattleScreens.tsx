@@ -8,7 +8,7 @@ import { t, tName } from '../game/i18n.ts';
 import type { Rewards } from '../game/progress.ts';
 import type { BattleSpeed } from '../game/save-schema.ts';
 import { formatBattleTime } from '../game/stats.ts';
-import { formatNumber, runeLabel } from './common.tsx';
+import { formatNumber, runeColor, runeLabel } from './common.tsx';
 import { Coin, FangMark } from './icons.tsx';
 
 const SPEEDS: readonly BattleSpeed[] = [1, 2, 4];
@@ -68,7 +68,7 @@ function RewardList(props: { game: Game; rewards: Rewards }) {
         {rune !== undefined && (
           <li class="reward">
             <span>{t('result.reward.rune')}</span>
-            <span class="rune-tag">{runeLabel(rune)}</span>
+            <span class={`rune-tag ${runeColor(rune)}`}>{runeLabel(rune)}</span>
           </li>
         )}
       </ul>

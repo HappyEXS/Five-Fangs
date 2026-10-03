@@ -21,7 +21,7 @@ Ograniczenia z CLAUDE.md: zero zapytań do zewnętrznych domen (czcionki lokalni
 1. **Jedna scena, stała linia podłogi.** Każdy ekran pokazuje tę samą scenę z linią podłogi na 560 jednostkach logicznych. Zmieniają się aktorzy: na mapie skład gracza naprzeciw przeciwników wybranego poziomu, na ekranie składu sam skład, w sklepie bohaterowie na sprzedaż (`game/stage-stands.ts`), po walce pole zakończonej walki pod arkuszem wyniku.
 2. **Papier, nie szkło.** Płaskie wypełnienia, gruby atramentowy kontur, twardy cień bez rozmycia. Bez gradientów i półprzezroczystych paneli; jedynym wyjątkiem jest zasłona za oknem ustawień, która odcina mapę od kliknięć.
 3. **Kieł jest jedynym znakiem rozpoznawczym.** Pięć kłów wisi pod linią podłogi pod pięcioma slotami składu (pełny kieł = zajęty slot; na ekranie składu kły są przyciskami slotów). Ten sam kształt jest w znaku gry, w oznaczeniu ukończonego poziomu i w liczniku ulepszeń. Innych ozdobników nie dodajemy.
-4. **Paleta** (zmienne w `ui/styles.css`, kolory sceny powtórzone w `render/background.ts`):
+4. **Paleta** (zmienne w `ui/styles/base.css`, kolory sceny powtórzone w `render/background.ts`):
 
    | Nazwa | Kolor | Rola |
    |---|---|---|
@@ -42,12 +42,12 @@ Ograniczenia z CLAUDE.md: zero zapytań do zewnętrznych domen (czcionki lokalni
 
 - **Transfer.** Czcionki dodają 93 KB do pierwszego uruchomienia (218 KB łącznie według `check:size`, który liczy też pliki licencji, wobec budżetu 2 MB). Przeglądarka pobiera podzbiór `latin-ext` tylko wtedy, gdy na ekranie są znaki spoza `latin`; polski interfejs potrzebuje obu, angielski zwykle jednego.
 - **Do czasu wczytania czcionek** tekst rysuje się czcionką zastępczą (`font-display: swap`), więc przy pierwszej wizycie napisy mogą na chwilę zmienić krój.
-- **Położenie w procentach sceny, rozmiary w `em`.** Elementy stojące na scenie (kły, metki, podpisy przeciwników) są pozycjonowane procentem szerokości sceny wyliczonym z pozycji slotu w treści gry. Zmiana `GROUND_Y` wymaga zmiany `--floor` w `ui/styles.css`.
+- **Położenie w procentach sceny, rozmiary w `em`.** Elementy stojące na scenie (kły, metki, podpisy przeciwników) są pozycjonowane procentem szerokości sceny wyliczonym z pozycji slotu w treści gry. Zmiana `GROUND_Y` wymaga zmiany `--floor` w `ui/styles/base.css`.
 - **Style w wierszu** ustawia tylko Preact przez CSSOM (`element.style`), co CSP `style-src 'self'` dopuszcza; atrybutów `style` w HTML nie ma.
 - **Tło sceny** dostało sylwetkę linii drzew: jedna ścieżka `Path2D` budowana raz, wypełniana co klatkę. Pomiar narzędziem `/tools.html?view=perf` przed i po nie pokazał różnicy (mediana klatki 0,30 ms, alokacje 279 wobec 280 B na klatkę).
 - **Sklep** mieści na scenie do dziesięciu linii bohaterów (pięć po każdej stronie). Przy docelowym rosterze sześciu linii to wystarcza; większy sklep wymagałby przewijania albo stron.
 - Tła światów z M6 zastąpią płaskie niebo i linię drzew; paleta interfejsu ma wtedy pozostać czytelna na każdym tle albo dostać warianty per świat.
-- Ocena „czy to się podoba” należy do autora gry. Paleta i czcionki są w jednym miejscu (`ui/styles.css`), więc ich zmiana nie dotyka komponentów.
+- Ocena „czy to się podoba” należy do autora gry. Paleta i czcionki są w jednym miejscu (`ui/styles/base.css`), więc ich zmiana nie dotyka komponentów.
 
 ## Uzupełnienie z 2026-10-03
 
@@ -58,3 +58,13 @@ Autor gry przyjął kierunek („o wiele lepiej”) i zlecił poprawki ergonomii
 - **Tylko „Wróć”.** Skład, bohaterowie i sklep nie mają przejść między sobą; każdy wraca na mapę przyciskiem „Wróć”.
 - **Zakładka „Bohaterowie”.** Informacje o liniach (obie formy, statystyki, cechy, droga ulepszeń i ewolucji z kosztami) mają własny ekran. Sklep zostaje tylko do kupowania i nie pokazuje już karty ze statystykami.
 - **Liczba życia nad paskiem.** Renderer rysuje bieżące życie cyframi z atlasu w kolorach palety (papier z atramentowym konturem).
+
+### Pole bohatera w składzie (2026-10-03)
+
+Autor gry chciał, żeby wszystkie działania na bohaterze były w jego polu na scenie, nie w osobnym panelu.
+
+- Każdy bohater składu ma pole: u góry nazwa i gniazda run, pod kłem slotu pasek ulepszeń i przycisk „Kup” z kosztem następnego ulepszenia, a po komplecie ulepszeń formy bazowej „Ewolucja” z jej kosztem. Pasek formy po ewolucji ma inny kolor, bo ulepszenia liczą się od nowa.
+- Runy to okrągłe żetony: zielony dla życia, czerwony dla ataku, z napisem, ile dodają. Ten sam kolor mają etykiety run na tabliczce poziomu i w wyniku walki. Kliknięcie gniazda otwiera okienko z paletą wolnych run.
+- Żeby pola się zmieściły, ekran składu rozstawia bohaterów szerzej niż walka (15% szerokości sceny między slotami zamiast 6%). Kolejność slotów zostaje: front po prawej. To jedyny ekran, na którym postacie nie stoją w miejscach z walki.
+- Karta z prawej zostaje, ale tylko do czytania: statystyki z podglądem następnego zakupu. Bohater spoza składu nie ma pola; ulepsza się go po postawieniu w składzie.
+- Pola istnieją tylko na ekranie składu. Mapa i walka pokazują samą postać z paskiem życia.
