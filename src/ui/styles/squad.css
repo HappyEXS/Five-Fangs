@@ -251,6 +251,8 @@
   width: max-content;
   min-width: 11em;
   max-width: 22em;
+  /* Gdy okienko jest wyższe niż scena, keep-inside.ts ogranicza wysokość, a treść się przewija. */
+  overflow: auto;
   translate: -50% 0;
   justify-items: start;
 }

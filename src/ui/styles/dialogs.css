@@ -7,7 +7,9 @@
   display: grid;
   gap: 0.95em;
   width: 31em;
-  max-height: 94vh;
+  /* Scena ma 40 em wysokości (stage.ts skaluje czcionkę razem z nią); okno mieści się w niej
+     z marginesem także wtedy, gdy okno przeglądarki jest wyższe niż scena. */
+  max-height: min(94vh, 38em);
   overflow: auto;
 }
 

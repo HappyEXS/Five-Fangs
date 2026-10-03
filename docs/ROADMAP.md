@@ -156,6 +156,7 @@ Zlecenie autora gry: ewolucje się rozgałęziają, z jednego bohatera wybiera s
 | M5e-3 | Skład: wybór drogi ewolucji w polu bohatera; Bohaterowie: drzewo, droga na scenie, karta formy | 1 | Test end-to-end: wybór drogi zapisuje formę; drzewo pokazuje pięć form | gotowe |
 | M5e-4 | Balans po głównej drodze drzewa (rangi A–C) | 0,25 | Raport zgodny na wszystkich poziomach świata „Las” | gotowe |
 | M5e-5 | Docelowe drzewa i koszty | — | Czeka na roster od autora gry | wstrzymane |
+| M5e-6 | Okienka run, ewolucji i ustawień zawsze w granicach sceny | 0,25 | Sprawdzenie w czterech rozmiarach okna przy skrajnych polach: żadne okienko nie wystaje (poprzednia wersja: paleta run do 36 px poza sceną) | gotowe |
 
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 

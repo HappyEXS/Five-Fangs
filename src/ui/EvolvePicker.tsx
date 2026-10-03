@@ -23,13 +23,7 @@ export function EvolvePicker(props: { game: Game; pick: EvolvePick; onClose: () 
   if (view === null || purchase === null || purchase.kind !== 'evolve') return null;
 
   return (
-    <FieldPopup
-      anchor={pick}
-      kind="evolve-picker"
-      label={t('evolve.pick')}
-      halfWidth={2 + 6.6 * purchase.options.length}
-      onClose={onClose}
-    >
+    <FieldPopup anchor={pick} kind="evolve-picker" label={t('evolve.pick')} onClose={onClose}>
       <p class="sheet-title">{t('evolve.pick')}</p>
       <ul class="evolve-options">
         {purchase.options.map((option) => (

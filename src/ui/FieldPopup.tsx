@@ -1,7 +1,9 @@
 // Okienko nad polem bohatera na ekranie składu: wybór runy albo drogi ewolucji. Zamyka się
 // po wyborze, Escape albo kliknięciu poza okienkiem; fokus wraca do przycisku, który je otworzył.
+// Stoi nad swoim polem, ale nigdy nie wychodzi poza scenę (keep-inside.ts).
 import type { ComponentChildren } from 'preact';
 import { useLayoutEffect, useRef } from 'preact/hooks';
+import { useKeepInside } from './keep-inside.ts';
 
 export interface FieldAnchor {
   /** Środek pola bohatera jako ułamek szerokości sceny. */
@@ -21,14 +23,12 @@ export function FieldPopup(props: {
   label: string;
   /** Dodatkowa klasa: szerokość i układ treści zależą od rodzaju wyboru. */
   kind: string;
-  /** Połowa szerokości okienka w em: tyle co najmniej od krawędzi sceny stoi jego środek. */
-  halfWidth?: number;
   onClose: () => void;
   children: ComponentChildren;
 }) {
   const { anchor, onClose } = props;
-  const half = props.halfWidth ?? 9;
   const box = useRef<HTMLDivElement>(null);
+  useKeepInside(box, anchor.at);
 
   // Nasłuch zakładamy synchronicznie po wstawieniu okienka: Escape wciśnięty tuż po otwarciu
   // też je zamyka.
@@ -54,13 +54,7 @@ export function FieldPopup(props: {
   }, [anchor, onClose]);
 
   return (
-    <div
-      ref={box}
-      class={`sheet field-popup ${props.kind}`}
-      role="dialog"
-      aria-label={props.label}
-      style={{ left: `clamp(${half}em, ${anchor.at * 100}%, 100% - ${half}em)` }}
-    >
+    <div ref={box} class={`sheet field-popup ${props.kind}`} role="dialog" aria-label={props.label}>
       {props.children}
     </div>
   );
