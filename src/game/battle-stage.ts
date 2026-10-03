@@ -149,7 +149,7 @@ export function startStage(
           ? shopStands(content)
           : scene.line === null
             ? []
-            : formStands(content, scene.line);
+            : formStands(content, scene.line, scene.form);
       const stand = standScene(content, stands);
       showPreview(renderer, stand.setup, stand.visuals);
       return;

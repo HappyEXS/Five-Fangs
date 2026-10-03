@@ -1,17 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent, type RawContent, rawContent } from './load.ts';
 
-const line = {
-  id: 'swordsman',
-  forms: ['swordsman_a', 'swordsman_b'],
-  upgradeCosts: [
-    [50, 80, 120, 180],
-    [300, 400, 550, 750],
-  ],
-  evolveCost: 250,
-  price: 200,
-  starter: true,
-};
+const COSTS = [50, 80, 120, 180];
+const base = { unit: 'swordsman_a', upgradeCosts: COSTS };
+const evolved = { unit: 'swordsman_b', from: 'swordsman_a', evolveCost: 250, upgradeCosts: COSTS };
+const line = { id: 'swordsman', forms: [base, evolved], price: 200, starter: true };
+/** Linia z podanymi formami; reszta jak w `line`. */
+const withForms = (forms: unknown[]) => ({ ...line, forms });
 
 const level = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -48,17 +43,31 @@ describe('dane progresji gry', () => {
     });
   });
 
-  it('linie mają dwie formy, koszty, cenę w sklepie i flagę linii startowej', () => {
-    expect(content?.lines.get('archer')).toEqual({
-      id: 'archer',
-      forms: ['archer_a', 'archer_b'],
-      upgradeCosts: [
-        [50, 80, 120, 180],
-        [300, 400, 550, 750],
-      ],
-      evolveCost: 250,
-      price: 200,
-      starter: true,
+  it('linie mają drzewo form z kosztami, cenę w sklepie i flagę linii startowej', () => {
+    const archer = content?.lines.get('archer');
+    expect(archer).toMatchObject({ id: 'archer', base: 'archer_a', price: 200, starter: true });
+    expect([...(archer?.forms.keys() ?? [])]).toEqual([
+      'archer_a',
+      'archer_b',
+      'archer_c',
+      'archer_b2',
+      'archer_c2',
+    ]);
+    expect(archer?.forms.get('archer_a')).toEqual({
+      unit: 'archer_a',
+      from: null,
+      evolveCost: 0,
+      upgradeCosts: [50, 80, 120, 180],
+      next: ['archer_b', 'archer_c'],
+      tier: 0,
+    });
+    expect(archer?.forms.get('archer_c2')).toEqual({
+      unit: 'archer_c2',
+      from: 'archer_c',
+      evolveCost: 1200,
+      upgradeCosts: [1000, 1300, 1700, 2200],
+      next: [],
+      tier: 2,
     });
     expect(content?.lines.get('guard')).toMatchObject({ price: 300, starter: false });
     expect([...(content?.lines.keys() ?? [])]).toEqual(['swordsman', 'archer', 'guard', 'cleric']);
@@ -91,19 +100,66 @@ describe('dane progresji gry', () => {
 
 describe('walidacja linii', () => {
   it('odrzuca nieznaną formę i formę użytą w dwóch liniach', () => {
-    expect(messages({ 'lines.json': [{ ...line, forms: ['swordsman_a', 'ghost'] }] })).toEqual([
+    const ghost = { unit: 'ghost', from: 'swordsman_a', evolveCost: 250, upgradeCosts: COSTS };
+    expect(messages({ 'lines.json': [withForms([base, ghost])] })).toEqual([
       'lines.json: swordsman: nieznana forma "ghost"',
     ]);
-    const second = { ...line, id: 'copy', forms: ['swordsman_a', 'archer_b'] };
+    const second = {
+      ...line,
+      id: 'copy',
+      forms: [
+        { unit: 'archer_b', upgradeCosts: COSTS },
+        { ...base, from: 'archer_b', evolveCost: 1 },
+      ],
+    };
     expect(messages({ 'lines.json': [line, second] })).toEqual([
       'lines.json: copy: forma "swordsman_a" należy już do innej linii',
     ]);
   });
 
   it('wymaga kompletu kosztów ulepszeń dla każdej formy', () => {
-    const short = { ...line, upgradeCosts: [[50, 80, 120], line.upgradeCosts[1]] };
-    expect(messages({ 'lines.json': [short] })).toEqual([
-      'lines.json: swordsman: każda forma musi mieć 4 kosztów ulepszeń (jest 3)',
+    const short = { ...base, upgradeCosts: [50, 80, 120] };
+    expect(messages({ 'lines.json': [withForms([short, evolved])] })).toEqual([
+      'lines.json: swordsman: forma "swordsman_a" musi mieć 4 kosztów ulepszeń (jest 3)',
+    ]);
+  });
+
+  it('wymaga dokładnie jednej formy bazowej', () => {
+    const second = { unit: 'swordsman_b', upgradeCosts: COSTS };
+    expect(messages({ 'lines.json': [withForms([base, second])] })).toEqual([
+      'lines.json: swordsman: musi mieć dokładnie jedną formę bazową, bez "from" (ma 2)',
+    ]);
+  });
+
+  it('forma po ewolucji podaje razem, z czego powstaje i ile kosztuje ewolucja', () => {
+    const { evolveCost: _cost, ...noCost } = evolved;
+    expect(messages({ 'lines.json': [withForms([base, noCost])] })).toEqual([
+      'lines.json: swordsman: forma "swordsman_b": "from" i "evolveCost" podaje się razem',
+    ]);
+  });
+
+  it('odrzuca formę spoza linii jako źródło i cykl ewolucji', () => {
+    const foreign = { ...evolved, from: 'archer_a' };
+    expect(messages({ 'lines.json': [withForms([base, foreign])] })).toEqual([
+      'lines.json: swordsman: forma "swordsman_b" powstaje z "archer_a", której nie ma w tej linii',
+      'lines.json: swordsman: forma "swordsman_b" nie jest osiągalna z formy bazowej (cykl ewolucji)',
+    ]);
+    // swordsman_b i archer_b powstają nawzajem z siebie: żadna nie prowadzi do formy bazowej.
+    const loop = [
+      base,
+      { ...evolved, from: 'archer_b' },
+      { unit: 'archer_b', from: 'swordsman_b', evolveCost: 1, upgradeCosts: COSTS },
+    ];
+    expect(messages({ 'lines.json': [withForms(loop)] })).toEqual([
+      'lines.json: swordsman: forma "swordsman_b" nie jest osiągalna z formy bazowej (cykl ewolucji)',
+      'lines.json: swordsman: forma "archer_b" nie jest osiągalna z formy bazowej (cykl ewolucji)',
+    ]);
+  });
+
+  it('odrzuca formę powtórzoną w linii', () => {
+    expect(messages({ 'lines.json': [withForms([base, evolved, evolved])] })).toEqual([
+      'lines.json: swordsman: forma "swordsman_b" powtórzona',
+      'lines.json: swordsman: forma "swordsman_b" należy już do innej linii',
     ]);
   });
 
@@ -117,10 +173,10 @@ describe('walidacja linii', () => {
   });
 
   it('odrzuca błędny kształt linii', () => {
-    const oneForm = { ...line, forms: ['swordsman_a'] };
-    expect(loadContent({ ...rawContent, 'lines.json': [oneForm] }).content).toBeNull();
-    const freeUpgrade = { ...line, evolveCost: 0 };
-    expect(loadContent({ ...rawContent, 'lines.json': [freeUpgrade] }).content).toBeNull();
+    expect(loadContent({ ...rawContent, 'lines.json': [withForms([])] }).content).toBeNull();
+    const freeEvolve = { ...evolved, evolveCost: 0 };
+    const zero = withForms([base, freeEvolve]);
+    expect(loadContent({ ...rawContent, 'lines.json': [zero] }).content).toBeNull();
   });
 });
 

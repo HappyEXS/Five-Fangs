@@ -228,7 +228,7 @@ src/content/data/
   units/heroes.json     formy bohaterów (12)
   units/enemies.json    wrogowie i bossowie
   progression.json      stałe progresji: liczba ulepszeń, procent na ulepszenie, sloty run, złoto za powtórkę
-  lines.json            linie bohaterów: formy, koszty, warunek odblokowania
+  lines.json            linie bohaterów: drzewo form, koszty ulepszeń i ewolucji, cena, linia startowa
   runes.json
   worlds.json
   levels/world_N.json   poziomy świata w kolejności odblokowywania
@@ -262,10 +262,11 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
 { "type": "lifesteal", "percent": 35 }
 { "type": "splash", "radius": 45 }                        // jednostki świata
 
-// lines.json
-{ "id": "archer", "forms": ["archer_a", "archer_b"],
-  "upgradeCosts": [[50, 80, 120, 180], [300, 400, 550, 750]], "evolveCost": 250,
-  "unlock": { "type": "start" } }
+// lines.json: drzewo form (ADR 0016); forma bez "from" jest bazowa
+{ "id": "archer", "price": 200, "starter": true, "forms": [
+  { "unit": "archer_a", "upgradeCosts": [50, 80, 120, 180] },
+  { "unit": "archer_b", "from": "archer_a", "evolveCost": 250, "upgradeCosts": [300, 400, 550, 750] },
+  { "unit": "archer_c", "from": "archer_a", "evolveCost": 250, "upgradeCosts": [300, 400, 550, 750] } ] }
 
 // runes.json
 { "id": "rune_attack_25", "stat": "attack", "value": 25 }
@@ -439,7 +440,7 @@ Gra otwiera się ekranem startowym z jednym przyciskiem „Graj”. Dalej ekrane
 - **Bohaterowie są egzemplarzami**: zapis trzyma listę `heroes` z id nadawanym kolejno; reguły i akcje adresują bohatera po id, a skład to id bohaterów per slot. Kilku bohaterów tej samej linii to osobne wpisy.
 - **Akcje** `Game` wołają reguły i po każdej zmianie zapisują grę. UI czyta sygnały i wywołuje akcje; komponenty nie zawierają reguł.
 - **Canvas** obsługuje `game/battle-stage.ts`. Linia podłogi jest wspólna dla wszystkich ekranów, zmieniają się aktorzy. Podgląd to walka w ticku 0 bez kroków symulacji: na ekranie startowym i mapie skład gracza naprzeciw przeciwników poziomu, na ekranie składu sam skład, w sklepie bohaterowie na sprzedaż, w informacjach o bohaterach obie formy wybranej linii. `StageControls.movePreviewUnit(slot, pozycja)` przesuwa postać podglądu za wskaźnikiem przy przeciąganiu na ekranie składu i każe rendererowi rysować ją na wierzchu; zapis pozycji idzie wprost do stanu podglądu, który nigdy nie jest krokowany, więc nie dotyka żadnej walki. W scenie walki działa `BattleRunner`. Atlas ładuje się przy starcie gry, przez `guardedLoad`; po błędzie ekrany działają bez postaci na scenie, a z walki gracz wraca na mapę i widzi komunikat.
-- **Stanowiska na scenie** (`game/stage-stands.ts`): `shopStands` rozstawia linie bohaterów wzdłuż sceny (do pięciu w jednym rzędzie, do dziesięciu w dwóch grupach zwróconych do siebie), `formStands` stawia obok siebie formę bazową i formę po ewolucji jednej linii, a `standScene` buduje ze stanowisk wejście symulacji z własnymi pozycjami slotów. `squadFieldSetup` rozstawia skład na ekranie zarządzania szerzej niż w walce (`SQUAD_FIELD_AT`), żeby pod każdym bohaterem zmieściło się jego pole; sloty przeciwnika odsuwa na prawą krawędź, bo symulacja wymaga, by sloty gracza leżały na lewo od nich. Z tych samych stanowisk UI wylicza położenie metek i drogi ulepszeń.
+- **Stanowiska na scenie** (`game/stage-stands.ts`): `shopStands` rozstawia linie bohaterów wzdłuż sceny (do pięciu w jednym rzędzie, do dziesięciu w dwóch grupach zwróconych do siebie), `formStands` stawia formy jednej drogi ewolucji (od bazowej przez wybraną do końca drogi, `displayPath`), a `standScene` buduje ze stanowisk wejście symulacji z własnymi pozycjami slotów. `squadFieldSetup` rozstawia skład na ekranie zarządzania szerzej niż w walce (`SQUAD_FIELD_AT`), żeby pod każdym bohaterem zmieściło się jego pole; sloty przeciwnika odsuwa na prawą krawędź, bo symulacja wymaga, by sloty gracza leżały na lewo od nich. Z tych samych stanowisk UI wylicza położenie metek i drogi ulepszeń.
 - **Koniec walki**: po rozstrzygnięciu renderer rysuje jeszcze 1,4 s (animacje śmierci), potem `finishBattle` nalicza nagrody, zapisuje grę i przełącza na wynik. Pod arkuszem wyniku zostaje pole zakończonej walki. Wyjście ze sceny wyniku albo walki zwalnia `BattleRunner` i odpina walkę od renderera; sam renderer z atlasem żyje do końca sesji.
 
 Pomiar z 2026-10-02 (Edge 154 headless): sterta JS po 5, 35 i 65 cyklach „wejdź do walki, wyjdź” to 9157, 9261 i 9310 KB, czyli ok. 1,6–3,5 KB na cykl przy ok. 20 KB zajmowanych przez jedną walkę. Walki nie wyciekają.
@@ -449,14 +450,14 @@ Pomiar z 2026-10-02 (Edge 154 headless): sterta JS po 5, 35 i 65 cyklach „wejd
 Jeden obiekt w `localStorage`, dostęp wyłącznie przez moduł zapisu:
 
 ```ts
-interface SaveV2 {
-  saveVersion: 2;
+interface SaveV3 {
+  saveVersion: 3;
   gameVersion: string;
   gold: number;
   heroes: {                           // posiadani bohaterowie, w kolejności zdobycia
     id: number;                       // unikalne w zapisie
     line: string;                     // id linii z lines.json
-    form: 0 | 1;
+    form: string;                     // id jednostki bieżącej formy z drzewa linii
     upgrades: number;                 // 0..4 w bieżącej formie
     runes: (string | null)[];         // id runy per slot
   }[];
@@ -468,7 +469,7 @@ interface SaveV2 {
 }
 ```
 
-Wersja 1 trzymała stan per linia (`lines`) i id linii w składzie; migracja `1 → 2` zamienia każdą linię na jednego bohatera.
+Wersja 1 trzymała stan per linia (`lines`) i id linii w składzie; migracja `1 → 2` zamienia każdą linię na jednego bohatera. Wersja 2 trzymała formę jako indeks 0/1; migracja `2 → 3` zamienia go na id jednostki (`<linia>_a`, `<linia>_b`), bo formy tworzą teraz drzewo (ADR 0016).
 
 - Wczytanie (`game/save.ts`): parsowanie → łańcuch migracji `vN → vN+1` (`save-migrations.ts`) → walidacja Zod. Błąd na dowolnym etapie: uszkodzony zapis trafia pod klucz kopii zapasowej `five-fangs.save.backup`, gra startuje z nowym zapisem i informuje gracza.
 - Po wczytaniu `reconcileSave` dopasowuje zapis do treści gry: usuwa bohaterów nieistniejących linii, runy i poziomy, których już nie ma, przycina liczniki, naprawia skład; zapis bez żadnego bohatera dostaje bohaterów startowych. Zmiana treści między wersjami nie wymaga więc migracji, dopóki nie zmienia się kształt zapisu.
@@ -492,7 +493,7 @@ Preact jako nakładka DOM nad canvasem. Korzeń (`App.tsx`) pokazuje ekran bież
 | Ekran startowy | `TitleScreen.tsx` | Nazwa gry ze znakiem pięciu kłów, scena ze składem naprzeciw najbliższych przeciwników, przycisk „Graj” prowadzący na mapę, wersja gry |
 | Mapa (ekran główny) | `MapScreen.tsx`, `Settings.tsx` | Nazwa gry w rogu, złoto, z boku małe przyciski Skład, Bohaterowie, Sklep, Ustawienia. Poziomy świata jako nieregularne kafle na krętym szlaku (zablokowany kafel to nieaktywny przycisk, ukończony ma odcisk kła). Tabliczka wybranego poziomu: nazwa, nagroda, najlepszy czas. Pod linią podłogi: podpis pod każdą postacią (nazwa i prostokąt z liczbą wzmocnień: zielony u bohaterów gracza, czerwony u przeciwników), przycisk walki. Bez zmiany składu. Ustawienia to okno nad mapą: język, eksport i import zapisu, reset z potwierdzeniem, raport błędu, wersja gry |
 | Skład | `SquadScreen.tsx`, `HeroField.tsx`, `RunePicker.tsx`, `HeroCard.tsx` | Każdy bohater ma pole na scenie: u góry nazwa i gniazda run (okrągłe żetony: zielony życie, czerwony atak, z premią), pod kłem slotu pasek ulepszeń bieżącej formy i przycisk „Kup” z kosztem ulepszenia albo „Ewolucja” z jej kosztem. Gniazdo otwiera okienko z paletą wolnych run. Bohatera łapie się za postać, nazwę albo kieł. Arkusz bohaterów poza składem z podpowiedzią; karta wybranego bohatera tylko do czytania: statystyki z podglądem następnego zakupu |
-| Bohaterowie | `HeroesScreen.tsx` | Zakładki linii; obie formy wybranej linii stoją na scenie, obok każdej karta ze statystykami i cechami; pod linią podłogi droga ulepszeń i ewolucji z kosztami; cena w sklepie i liczba posiadanych. Bez kupowania |
+| Bohaterowie | `HeroesScreen.tsx` | Zakładki linii; drzewo ewolucji jako siatka (kolumna to stopień, rozwidlenie zajmuje wiersze gałęzi) z kosztami ewolucji; postacie drogi przez wybraną formę na scenie, pod nimi nazwy i koszty; karta wybranej formy: stopień, skąd powstaje, w co ewoluuje, statystyki względem formy, z której powstaje, koszty ulepszeń; cena w sklepie i liczba posiadanych. Bez kupowania |
 | Sklep | `ShopScreen.tsx` | Samo kupowanie: bohaterowie na sprzedaż stoją na scenie, pod każdym metka z nazwą, ceną i liczbą posiadanych |
 | Walka | `BattleScreens.tsx` | Nazwa poziomu i czas w lewym rogu; pauza, prędkość x1/x2/x4 i wyjście w prawym; nic więcej, bo gracz nie wpływa na walkę |
 | Wynik | `BattleScreens.tsx` | Arkusz nad polem zakończonej walki: wygrana albo powód przegranej, czas, nagrody, jeden przycisk OK wracający na mapę |
@@ -500,6 +501,7 @@ Preact jako nakładka DOM nad canvasem. Korzeń (`App.tsx`) pokazuje ekran bież
 - **Szata graficzna** (ADR 0015): papierowe rekwizyty na jednej scenie. Style leżą w `ui/styles/`, po pliku na odpowiedzialność: `base.css` (czcionki, paleta, podstawy), `components.css` (wspólne klasy `btn`, `sheet`, kolory run, tabela statystyk), `map.css`, `squad.css`, `screens.css` (sklep, bohaterowie, ekran startowy, walka, wynik), `dialogs.css` (ustawienia, komunikaty); znaki SVG, w tym kształt kła, w `ui/icons.tsx`. Czcionki leżą w `src/assets/fonts/` i przechodzą przez Vite; licencje w `public/licenses/`.
 - Przeciąganie (`drag.ts`) działa na Pointer Events, więc mysz i dotyk idą tym samym kodem. Cel upuszczenia to element z atrybutem `data-drop`; stan przeciągania niesie cel pod wskaźnikiem, więc slot docelowy się podświetla. Bohater ze składu jedzie po scenie za wskaźnikiem (`movePreviewUnit`), bohater spoza składu ma tylko etykietę przy wskaźniku. Upuszczenie na zajęty slot zamienia bohaterów miejscami, na arkusz „Poza składem” zdejmuje bohatera ze składu.
 - Bez przeciągania: kliknięcie postaci wybiera bohatera, kliknięcie pustego slotu stawia na nim wybranego, strzałki w lewo i w prawo przestawiają bohatera z fokusem o jeden slot, a Delete zdejmuje go ze składu.
+- Gdy z formy wychodzi kilka dróg ewolucji, przycisk zakupu otwiera `EvolvePicker.tsx`: drogi obok siebie z najważniejszymi statystykami po ewolucji i cechami. Okienka run i ewolucji dzielą zachowanie (`FieldPopup.tsx`).
 - Pola bohaterów, gniazda run i przyciski zakupu istnieją tylko na ekranie składu; mapa i walka pokazują samą postać. Co da się kupić i jakie runy są wolne, liczy `game/hero-options.ts` (`nextPurchase`, `runeStock`). Okienko run zamyka się po wyborze, Escape albo kliknięciem obok; fokus wraca do gniazda.
 - Ekrany otwierane z mapy mają wspólny nagłówek (`ScreenHead`) z przyciskiem „Wróć”, tytułem i złotem. Nie ma przejść między nimi na skróty.
 - Wszystkie teksty przez `t(key)`; nazwy jednostek, poziomów i światów przez `tName` z kluczem z `content/i18n/keys.ts`. Słowniki w `content/i18n`.

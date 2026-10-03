@@ -31,9 +31,16 @@ const messages = (reference: Reference) =>
   validateReference(content, reference).map((i) => i.message);
 
 describe('rangi', () => {
-  it('pięć rang formy bazowej, potem pięć formy po ewolucji', () => {
-    expect(rankCount(content)).toBe(10);
-    expect([0, 4, 5, 9].map((rank) => rankLabel(content, rank))).toEqual(['A0', 'A4', 'B0', 'B4']);
+  it('po pięć rang na każdy stopień głównej drogi ewolucji: A forma bazowa, B i C ewolucje', () => {
+    expect(rankCount(content)).toBe(15);
+    expect([0, 4, 5, 9, 10, 14].map((rank) => rankLabel(content, rank))).toEqual([
+      'A0',
+      'A4',
+      'B0',
+      'B4',
+      'C0',
+      'C4',
+    ]);
   });
 });
 
@@ -75,12 +82,12 @@ describe('validateReference', () => {
     const bad = referenceWith(0);
     delete bad.levels.w1_l6;
     bad.levels.w9_l9 = { squad: 'starter', expectedRank: 0 };
-    bad.levels.w1_l1 = { squad: 'elite', expectedRank: 10 };
+    bad.levels.w1_l1 = { squad: 'elite', expectedRank: 15 };
     expect(messages(bad).sort()).toEqual(
       [
         'nieznany poziom "w9_l9"',
         'w1_l1: nieznany skład "elite"',
-        'w1_l1: ranga 10 poza zakresem',
+        'w1_l1: ranga 15 poza zakresem',
         'brak składu referencyjnego dla poziomu "w1_l6"',
       ].sort(),
     );
@@ -92,7 +99,7 @@ describe('runBalance', () => {
 
   it('rozgrywa każdy poziom na każdej randze, w kolejności światów', () => {
     expect(reports.map((r) => r.level)).toEqual(content.worlds.flatMap((w) => w.levels));
-    for (const report of reports) expect(report.ranks).toHaveLength(10);
+    for (const report of reports) expect(report.ranks).toHaveLength(15);
   });
 
   it('najniższa wygrywająca ranga to pierwsza wygrana na liście', () => {

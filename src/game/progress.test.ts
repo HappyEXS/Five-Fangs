@@ -3,13 +3,11 @@ import { requireContent } from '../content/load.ts';
 import { levelSetup, resolveUnitSpec } from '../content/resolve-spec.ts';
 import { validateSetup } from '../sim/index.ts';
 import {
-  applyEvolve,
   applyUpgrade,
   applyVictory,
   buyHero,
   currentLevel,
   equipRune,
-  evolveCost,
   freeRunes,
   heroView,
   isLevelUnlocked,
@@ -49,8 +47,8 @@ describe('newSave', () => {
     const save = fresh();
     expect(save.gold).toBe(0);
     expect(save.heroes).toEqual([
-      { id: 1, line: 'swordsman', form: 0, upgrades: 0, runes: [null, null] },
-      { id: 2, line: 'archer', form: 0, upgrades: 0, runes: [null, null] },
+      { id: 1, line: 'swordsman', form: 'swordsman_a', upgrades: 0, runes: [null, null] },
+      { id: 2, line: 'archer', form: 'archer_a', upgrades: 0, runes: [null, null] },
     ]);
     expect(save.nextHeroId).toBe(3);
     expect(save.squad).toEqual([1, 2, null, null, null]);
@@ -141,7 +139,7 @@ describe('sklep', () => {
     expect(save?.heroes[2]).toEqual({
       id: 3,
       line: 'guard',
-      form: 0,
+      form: 'guard_a',
       upgrades: 0,
       runes: [null, null],
     });
@@ -154,8 +152,8 @@ describe('sklep', () => {
     save = buyHero(content, save, 'swordsman') ?? save;
     expect(ownedCount(save, 'swordsman')).toBe(2);
     expect(save.heroes.filter((hero) => hero.line === 'swordsman')).toEqual([
-      { id: 1, line: 'swordsman', form: 0, upgrades: 1, runes: [null, null] },
-      { id: 3, line: 'swordsman', form: 0, upgrades: 0, runes: [null, null] },
+      { id: 1, line: 'swordsman', form: 'swordsman_a', upgrades: 1, runes: [null, null] },
+      { id: 3, line: 'swordsman', form: 'swordsman_a', upgrades: 0, runes: [null, null] },
     ]);
     // Ulepszenie drugiego egzemplarza nie rusza pierwszego.
     save = applyUpgrade(content, save, 3) ?? save;
@@ -203,44 +201,6 @@ describe('ulepszenia i ewolucja', () => {
     expect(applyUpgrade(content, rich(49), SWORD)).toBeNull();
     expect(applyUpgrade(content, rich(50), SWORD)?.gold).toBe(0);
     expect(applyUpgrade(content, rich(500), 99)).toBeNull();
-  });
-
-  it('ewolucja jest dostępna dopiero po czterech ulepszeniach formy bazowej', () => {
-    let save = rich(2000);
-    for (let i = 0; i < 3; i++) {
-      expect(evolveCost(content, save, SWORD)).toBeNull();
-      expect(applyEvolve(content, save, SWORD)).toBeNull();
-      save = applyUpgrade(content, save, SWORD) ?? save;
-    }
-    expect(evolveCost(content, save, SWORD)).toBeNull();
-    save = applyUpgrade(content, save, SWORD) ?? save;
-    expect(evolveCost(content, save, SWORD)).toBe(250);
-
-    const evolved = applyEvolve(content, save, SWORD);
-    expect(evolved?.gold).toBe(save.gold - 250);
-    expect(evolved?.heroes[0]).toEqual({
-      id: 1,
-      line: 'swordsman',
-      form: 1,
-      upgrades: 0,
-      runes: [null, null],
-    });
-    // Forma druga ma własne ulepszenia i nie ewoluuje dalej.
-    expect(evolved && upgradeCost(content, evolved, SWORD)).toBe(300);
-    expect(evolved && evolveCost(content, evolved, SWORD)).toBeNull();
-    // Po ewolucji bohater ma jednostkę i typ ataku formy drugiej.
-    expect(evolved && heroView(content, evolved, SWORD)?.unitId).toBe('swordsman_b');
-    expect(evolved && heroView(content, evolved, SWORD)?.spec.splashRadius).toBeGreaterThan(0);
-  });
-
-  it('ewolucja wymaga złota i zachowuje runy', () => {
-    let save: Save = { ...rich(430), runes: ['rune_hp_200'] };
-    save = equipRune(content, save, SWORD, 1, 'rune_hp_200') ?? save;
-    for (let i = 0; i < 4; i++) save = applyUpgrade(content, save, SWORD) ?? save;
-    expect(save.gold).toBe(0);
-    expect(applyEvolve(content, save, SWORD)).toBeNull();
-    const evolved = applyEvolve(content, { ...save, gold: 250 }, SWORD);
-    expect(evolved?.heroes[0]?.runes).toEqual([null, 'rune_hp_200']);
   });
 });
 
@@ -358,16 +318,16 @@ describe('reconcileSave', () => {
     const save: Save = {
       ...fresh(),
       heroes: [
-        { id: 1, line: 'dawna_linia', form: 0, upgrades: 1, runes: [null, null] },
+        { id: 1, line: 'dawna_linia', form: 'dawna_a', upgrades: 1, runes: [null, null] },
         {
           id: 2,
           line: 'swordsman',
-          form: 1,
+          form: 'swordsman_b',
           upgrades: 9,
           runes: ['rune_dawna', 'rune_hp_200', 'rune_hp_200'],
         },
         // Powtórzone id: zostaje pierwszy bohater.
-        { id: 2, line: 'archer', form: 0, upgrades: 0, runes: [null, null] },
+        { id: 2, line: 'archer', form: 'archer_a', upgrades: 0, runes: [null, null] },
       ],
       nextHeroId: 2,
       runes: ['rune_dawna', 'rune_hp_200'],
@@ -379,11 +339,34 @@ describe('reconcileSave', () => {
     expect(Object.keys(fixed.levels)).toEqual(['w1_l1']);
     // Ulepszenia przycięte do maksimum, runy do liczby slotów i do posiadanych sztuk.
     expect(fixed.heroes).toEqual([
-      { id: 2, line: 'swordsman', form: 1, upgrades: 4, runes: [null, 'rune_hp_200'] },
+      { id: 2, line: 'swordsman', form: 'swordsman_b', upgrades: 4, runes: [null, 'rune_hp_200'] },
     ]);
     // Następne id nie może powtórzyć istniejącego.
     expect(fixed.nextHeroId).toBe(3);
     expect(fixed.squad).toEqual([null, 2, null, null, null]);
+  });
+
+  it('forma spoza drzewa linii wraca do formy bazowej bez ulepszeń, runy zostają', () => {
+    const save: Save = {
+      ...fresh(),
+      runes: ['rune_hp_200'],
+      heroes: [
+        {
+          id: 1,
+          line: 'swordsman',
+          form: 'dawna_forma',
+          upgrades: 3,
+          runes: ['rune_hp_200', null],
+        },
+        { id: 2, line: 'archer', form: 'swordsman_b', upgrades: 2, runes: [null, null] },
+      ],
+    };
+    const fixed = reconcileSave(content, save);
+    expect(fixed.heroes.map((hero) => [hero.form, hero.upgrades, hero.runes[0]])).toEqual([
+      ['swordsman_a', 0, 'rune_hp_200'],
+      // Forma z innej linii też nie należy do drzewa łucznika.
+      ['archer_a', 0, null],
+    ]);
   });
 
   it('runa włożona dwóm bohaterom przy jednej posiadanej sztuce zostaje u pierwszego', () => {
@@ -402,7 +385,7 @@ describe('reconcileSave', () => {
     const save: Save = {
       ...fresh(),
       gold: 77,
-      heroes: [{ id: 4, line: 'dawna_linia', form: 0, upgrades: 0, runes: [null, null] }],
+      heroes: [{ id: 4, line: 'dawna_linia', form: 'dawna_a', upgrades: 0, runes: [null, null] }],
       nextHeroId: 5,
       squad: [4, null, null, null, null],
     };

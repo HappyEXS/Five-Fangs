@@ -134,11 +134,14 @@ describe('sceny', () => {
   it('informacje o bohaterach otwierają się na wskazanej linii albo na pierwszej', () => {
     const game = start();
     game.openHeroes();
-    expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman' });
-    game.openHeroes('cleric');
-    expect(game.scene.value).toEqual({ name: 'heroes', line: 'cleric' });
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman', form: 'swordsman_a' });
+    game.openHeroes('cleric', 'cleric_c2');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'cleric', form: 'cleric_c2' });
+    // Forma spoza linii i nieznana linia: forma bazowa, pierwsza linia.
+    game.openHeroes('cleric', 'archer_b');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'cleric', form: 'cleric_a' });
     game.openHeroes('nobody');
-    expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman' });
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman', form: 'swordsman_a' });
   });
 
   it('zablokowanego poziomu nie da się wybrać na mapie ani uruchomić', () => {
@@ -203,7 +206,7 @@ describe('akcje gracza', () => {
     const game = start();
     const before = game.save.value;
     expect(game.upgrade(SWORD)).toBe(false);
-    expect(game.evolve(SWORD)).toBe(false);
+    expect(game.evolve(SWORD, 'swordsman_b')).toBe(false);
     expect(game.equipRune(SWORD, 0, 'rune_hp_200')).toBe(false);
     expect(game.placeInSquad(99, 0)).toBe(false);
     expect(game.buyHero('guard')).toBe(false);

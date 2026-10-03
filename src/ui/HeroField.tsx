@@ -49,14 +49,18 @@ export function RuneSockets(props: {
   );
 }
 
-/** Pasek ulepszeń bieżącej formy: jeden odcinek na ulepszenie, pełny = kupione. */
+/**
+ * Pasek ulepszeń bieżącej formy: jeden odcinek na ulepszenie, pełny = kupione. Kolor zależy od
+ * stopnia formy, bo po każdej ewolucji ulepszenia liczą się od nowa.
+ */
 export function UpgradeBar(props: { game: Game; view: HeroView }) {
   const { maxUpgrades } = props.game.content.progression;
   const { upgrades, form } = props.view.hero;
+  const tier = props.view.line.forms.get(form)?.tier ?? 0;
   const segments = Array.from({ length: maxUpgrades }, (_, segment) => segment);
   return (
     <div
-      class={form === 0 ? 'upgrade-bar' : 'upgrade-bar upgrade-bar-evolved'}
+      class={`upgrade-bar tier-${Math.min(tier, 2)}`}
       role="img"
       aria-label={t('heroes.upgrades', { count: upgrades, max: maxUpgrades })}
       data-upgrades={upgrades}
@@ -69,35 +73,63 @@ export function UpgradeBar(props: { game: Game; view: HeroView }) {
 }
 
 /**
- * Przycisk zakupu: „Kup” z kosztem ulepszenia, a po komplecie ulepszeń formy bazowej
- * „Ewolucja” z jej kosztem. Po komplecie formy drugiej zamiast przycisku jest napis.
+ * Przycisk zakupu: „Kup” z kosztem ulepszenia, a po komplecie ulepszeń formy „Ewolucja”.
+ * Gdy z formy wychodzi jedna droga, przycisk od razu ją kupuje; gdy kilka, `onChoose` otwiera
+ * wybór drogi (EvolvePicker.tsx). Na końcu drogi zamiast przycisku jest napis.
  */
-export function BuyButton(props: { game: Game; view: HeroView; onBuy: () => void }) {
+export function BuyButton(props: {
+  game: Game;
+  view: HeroView;
+  onBuy: () => void;
+  onChoose: (opener: HTMLElement) => void;
+}) {
   const { game, view } = props;
   const save = game.save.value;
   const heroId = view.hero.id;
   const purchase = nextPurchase(game.content, save, heroId);
   if (purchase === null) return <p class="field-full">{t('heroes.upgrade.full')}</p>;
+  const [first, ...rest] = purchase.options;
+  if (purchase.kind === 'evolve' && rest.length > 0) {
+    // Koszt na przycisku tylko wtedy, gdy wszystkie drogi kosztują tyle samo.
+    const same = rest.every((option) => option.cost === first.cost);
+    const cheapest = Math.min(first.cost, ...rest.map((option) => option.cost));
+    return (
+      <button
+        type="button"
+        class="btn btn-primary btn-small"
+        data-action="choose-evolve"
+        disabled={save.gold < cheapest}
+        aria-label={t('heroes.evolve.choose')}
+        onClick={(event) => {
+          props.onBuy();
+          props.onChoose(event.currentTarget);
+        }}
+      >
+        {t('heroes.evolve.short')}
+        {same && <Gold amount={first.cost} />}
+      </button>
+    );
+  }
   const evolve = purchase.kind === 'evolve';
   return (
     <button
       type="button"
       class="btn btn-primary btn-small"
       data-action={purchase.kind}
-      disabled={save.gold < purchase.cost}
+      disabled={save.gold < first.cost}
       aria-label={
         evolve
-          ? t('heroes.evolve.buy', { name: unitName(purchase.unitId), cost: purchase.cost })
-          : t('heroes.upgrade.buy', { cost: purchase.cost })
+          ? t('heroes.evolve.buy', { name: unitName(first.unitId), cost: first.cost })
+          : t('heroes.upgrade.buy', { cost: first.cost })
       }
       onClick={() => {
         props.onBuy();
-        if (evolve) game.evolve(heroId);
+        if (evolve) game.evolve(heroId, first.unitId);
         else game.upgrade(heroId);
       }}
     >
       {t(evolve ? 'heroes.evolve.short' : 'shop.buy')}
-      <Gold amount={purchase.cost} />
+      <Gold amount={first.cost} />
     </button>
   );
 }

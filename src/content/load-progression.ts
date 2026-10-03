@@ -1,6 +1,7 @@
 // Wczytanie danych progresji: linie bohaterów, runy, światy i poziomy, ze sprawdzeniem odwołań.
 import type { CompiledUnit } from './compile.ts';
 import type { ContentIssue } from './issues.ts';
+import { type CompiledLine, compileLine } from './load-lines.ts';
 import { indexById, parse } from './parse.ts';
 import {
   levelsSchema,
@@ -12,18 +13,7 @@ import {
   worldsSchema,
 } from './schema-progression.ts';
 
-export interface CompiledLine {
-  readonly id: string;
-  /** Id formy bazowej i formy po ewolucji. */
-  readonly forms: readonly [string, string];
-  /** Koszty kolejnych ulepszeń dla każdej z dwóch form. */
-  readonly upgradeCosts: readonly [readonly number[], readonly number[]];
-  readonly evolveCost: number;
-  /** Cena jednego bohatera tej linii w sklepie. */
-  readonly price: number;
-  /** Gracz zaczyna grę z jednym bohaterem tej linii. */
-  readonly starter: boolean;
-}
+export type { CompiledForm, CompiledLine } from './load-lines.ts';
 
 export interface LevelEnemy {
   readonly slot: number;
@@ -157,32 +147,8 @@ export function loadProgression(
   const lines = new Map<string, CompiledLine>();
   const usedForms = new Set<string>();
   for (const line of indexById('lines.json', lineList, new Set(), issues).values()) {
-    const source = 'lines.json';
-    for (const form of line.forms) {
-      if (!heroes.has(form)) {
-        issues.push({ source, message: `${line.id}: nieznana forma "${form}"` });
-      }
-      if (usedForms.has(form)) {
-        issues.push({ source, message: `${line.id}: forma "${form}" należy już do innej linii` });
-      }
-      usedForms.add(form);
-    }
-    for (const costs of line.upgradeCosts) {
-      if (costs.length !== progression.maxUpgrades) {
-        issues.push({
-          source,
-          message: `${line.id}: każda forma musi mieć ${progression.maxUpgrades} kosztów ulepszeń (jest ${costs.length})`,
-        });
-      }
-    }
-    lines.set(line.id, {
-      id: line.id,
-      forms: line.forms,
-      upgradeCosts: line.upgradeCosts,
-      evolveCost: line.evolveCost,
-      price: line.price,
-      starter: line.starter,
-    });
+    const compiled = compileLine(line, heroes, progression, usedForms, issues);
+    if (compiled !== null) lines.set(line.id, compiled);
   }
 
   return { progression, lines, runes, worlds, levels };

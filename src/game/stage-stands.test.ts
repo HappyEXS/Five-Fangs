@@ -34,7 +34,7 @@ describe('shopStands', () => {
     expect(stands[0]?.position).toBeCloseTo(0.12);
     expect(stands.at(-1)?.position).toBeCloseTo(0.88);
     for (const stand of stands) {
-      expect(stand.unitId).toBe(content.lines.get(stand.line)?.forms[0]);
+      expect(stand.unitId).toBe(content.lines.get(stand.line)?.base);
     }
   });
 
@@ -57,20 +57,34 @@ describe('shopStands', () => {
 });
 
 describe('formStands', () => {
-  it('stawia formę bazową z lewej, a formę po ewolucji z prawej, obie zwrócone w prawo', () => {
-    const [base, evolved] = formStands(content, 'swordsman');
-    expect(base).toMatchObject({ unitId: 'swordsman_a', side: 0 });
-    expect(evolved).toMatchObject({ unitId: 'swordsman_b', side: 0 });
-    expect(base?.position).toBeLessThan(evolved?.position ?? 0);
-    expect(base?.slot).not.toBe(evolved?.slot);
+  it('stawia drogę ewolucji od lewej: formę bazową, wybraną i dalsze stopnie, wszystkie w prawo', () => {
+    const stands = formStands(content, 'swordsman', 'swordsman_c');
+    expect(stands.map((stand) => stand.unitId)).toEqual([
+      'swordsman_a',
+      'swordsman_c',
+      'swordsman_c2',
+    ]);
+    expect(stands.every((stand) => stand.side === 0)).toBe(true);
+    const positions = stands.map((stand) => stand.position);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+    // Najdalej w prawo stoi slot 0, jak w walce.
+    expect(stands.map((stand) => stand.slot)).toEqual([2, 1, 0]);
+  });
+
+  it('bez wybranej formy idzie od formy bazowej pierwszą drogą z treści', () => {
+    expect(formStands(content, 'swordsman', null).map((stand) => stand.unitId)).toEqual([
+      'swordsman_a',
+      'swordsman_b',
+      'swordsman_b2',
+    ]);
   });
 
   it('dla nieznanej linii nie stawia nikogo', () => {
-    expect(formStands(content, 'nobody')).toEqual([]);
+    expect(formStands(content, 'nobody', null)).toEqual([]);
   });
 
-  it('obie formy dają poprawne wejście symulacji', () => {
-    const stands = formStands(content, 'archer');
+  it('formy drogi dają poprawne wejście symulacji', () => {
+    const stands = formStands(content, 'archer', 'archer_b2');
     const scene = standScene(content, stands);
     expect(validateSetup(scene.setup)).toEqual([]);
     const battle = createBattle(scene.setup);

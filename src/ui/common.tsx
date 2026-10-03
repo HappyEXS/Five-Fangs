@@ -14,6 +14,11 @@ export function runeLabel(rune: Rune): string {
   return t(rune.stat === 'attack' ? 'rune.attack' : 'rune.maxHp', { value: rune.value });
 }
 
+/** Nazwa stopnia formy w drzewie ewolucji: forma bazowa albo ewolucja kolejnego stopnia. */
+export function tierLabel(tier: number): string {
+  return tier === 0 ? t('heroes.tier.base') : t('heroes.tier', { tier });
+}
+
 /** Klasa koloru runy: zielony dla życia, czerwony dla ataku. */
 export function runeColor(rune: Rune): string {
   return rune.stat === 'maxHp' ? 'rune-hp' : 'rune-attack';
@@ -66,14 +71,28 @@ function one(value: number): string {
   return (Math.round(value * 10) / 10).toString();
 }
 
+export type StatKey =
+  | 'stat.maxHp'
+  | 'stat.attack'
+  | 'stat.attackRate'
+  | 'stat.dps'
+  | 'stat.range'
+  | 'stat.moveSpeed'
+  | 'stat.knockback';
+
 /**
  * Statystyki efektywne jednostki. `next` to specyfikacja po planowanej zmianie (ulepszenie,
- * ewolucja); różnice pokazujemy obok wartości bieżących.
+ * ewolucja); różnice pokazujemy obok wartości bieżących, a cechy są cechami po zmianie, bo
+ * ewolucja może je wymienić. `rows` zawęża tabelę do wybranych statystyk.
  */
-export function StatTable(props: { spec: UnitSpec; next?: UnitSpec | null }) {
+export function StatTable(props: {
+  spec: UnitSpec;
+  next?: UnitSpec | null;
+  rows?: readonly StatKey[];
+}) {
   const now = displayStats(props.spec);
   const then = props.next == null ? null : displayStats(props.next);
-  const rows = [
+  const all = [
     ['stat.maxHp', now.maxHp, then?.maxHp],
     ['stat.attack', now.attack, then?.attack],
     ['stat.attackRate', now.attackRate, then?.attackRate],
@@ -82,6 +101,8 @@ export function StatTable(props: { spec: UnitSpec; next?: UnitSpec | null }) {
     ['stat.moveSpeed', now.moveSpeed, then?.moveSpeed],
     ['stat.knockback', now.knockback, then?.knockback],
   ] as const;
+  const shown = props.rows;
+  const rows = shown === undefined ? all : all.filter(([key]) => shown.includes(key));
   return (
     <div class="stats">
       <dl>
@@ -99,7 +120,7 @@ export function StatTable(props: { spec: UnitSpec; next?: UnitSpec | null }) {
           </div>
         ))}
       </dl>
-      {traitsOf(props.spec).map((trait) => (
+      {traitsOf(props.next ?? props.spec).map((trait) => (
         <p class="trait" key={trait.key}>
           {t(trait.key, trait.params)}
         </p>

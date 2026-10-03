@@ -1,11 +1,12 @@
 // Kształt zapisu gry (docs/ARCHITECTURE.md §6.2, ADR 0005). Zmiana kształtu wymaga podniesienia
 // SAVE_VERSION, migracji w save-migrations.ts i fixture w tests/fixtures/saves/.
 //
+// Wersja 3: forma bohatera to id jednostki, bo formy linii tworzą drzewo ewolucji (ADR 0016).
 // Wersja 2: bohaterowie są egzemplarzami (gracz może mieć kilku bohaterów tej samej linii,
 // każdy z własnymi ulepszeniami i runami). W wersji 1 stan był trzymany per linia.
 import { z } from 'zod';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 /** Liczba slotów składu; równa TEAM_SIZE symulacji. */
 export const SQUAD_SLOTS = 5;
@@ -15,8 +16,8 @@ const heroSchema = z.strictObject({
   id: z.number().int().positive(),
   /** Id linii z lines.json. */
   line: z.string(),
-  /** 0 = forma bazowa, 1 = forma po ewolucji. */
-  form: z.union([z.literal(0), z.literal(1)]),
+  /** Id jednostki bieżącej formy: jednej z form linii w lines.json. */
+  form: z.string(),
   /** Liczba ulepszeń bieżącej formy. */
   upgrades: z.number().int().nonnegative(),
   /** Id runy w każdym slocie albo null. */

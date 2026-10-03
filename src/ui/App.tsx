@@ -27,7 +27,7 @@ function SceneView(props: AppProps) {
     case 'squad':
       return <SquadScreen game={game} stage={stage} />;
     case 'heroes':
-      return <HeroesScreen game={game} line={scene.line} />;
+      return <HeroesScreen game={game} line={scene.line} form={scene.form} />;
     case 'shop':
       return <ShopScreen game={game} />;
     case 'battle':

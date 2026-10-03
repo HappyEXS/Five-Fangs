@@ -10,11 +10,11 @@ import { mulDivFloor } from '../core/int.ts';
 import type { UnitSpec } from '../sim/types.ts';
 import { type HeroState, SAVE_VERSION, type Save, SQUAD_SLOTS } from './save-schema.ts';
 
-function freshHero(content: GameContent, id: number, line: string): HeroState {
+function freshHero(content: GameContent, id: number, line: CompiledLine): HeroState {
   return {
     id,
-    line,
-    form: 0,
+    line: line.id,
+    form: line.base,
     upgrades: 0,
     runes: new Array<string | null>(content.progression.runeSlots).fill(null),
   };
@@ -26,7 +26,7 @@ function starters(content: GameContent, firstId: number) {
   const squad = new Array<number | null>(SQUAD_SLOTS).fill(null);
   for (const line of content.lines.values()) {
     if (!line.starter) continue;
-    const hero = freshHero(content, firstId + heroes.length, line.id);
+    const hero = freshHero(content, firstId + heroes.length, line);
     if (heroes.length < SQUAD_SLOTS) squad[heroes.length] = hero.id;
     heroes.push(hero);
   }
@@ -65,8 +65,12 @@ export function reconcileSave(content: GameContent, save: Save): Save {
   const ids = new Set<number>();
   for (const hero of save.heroes) {
     // Powtórzone id oznacza uszkodzony zapis; zostaje pierwszy bohater o tym id.
-    if (!content.lines.has(hero.line) || ids.has(hero.id)) continue;
+    const line = content.lines.get(hero.line);
+    if (line === undefined || ids.has(hero.id)) continue;
     ids.add(hero.id);
+    // Formy, której nie ma już w drzewie linii, nie da się wystawić: bohater wraca do formy
+    // bazowej bez ulepszeń, ale zostaje graczowi razem z runami.
+    const known = line.forms.has(hero.form);
     const runes: (string | null)[] = [];
     for (let slot = 0; slot < progression.runeSlots; slot++) {
       const id = hero.runes[slot] ?? null;
@@ -81,7 +85,8 @@ export function reconcileSave(content: GameContent, save: Save): Save {
     }
     heroes.push({
       ...hero,
-      upgrades: Math.min(hero.upgrades, progression.maxUpgrades),
+      form: known ? hero.form : line.base,
+      upgrades: known ? Math.min(hero.upgrades, progression.maxUpgrades) : 0,
       runes,
     });
   }
@@ -186,7 +191,7 @@ function heroAndLine(content: GameContent, save: Save, heroId: number) {
   return hero === null || line === undefined ? null : { hero, line };
 }
 
-function withHero(save: Save, next: HeroState): Save {
+export function withHero(save: Save, next: HeroState): Save {
   return { ...save, heroes: save.heroes.map((hero) => (hero.id === next.id ? next : hero)) };
 }
 
@@ -194,15 +199,7 @@ function withHero(save: Save, next: HeroState): Save {
 export function upgradeCost(content: GameContent, save: Save, heroId: number): number | null {
   const found = heroAndLine(content, save, heroId);
   if (found === null || found.hero.upgrades >= content.progression.maxUpgrades) return null;
-  return found.line.upgradeCosts[found.hero.form][found.hero.upgrades] ?? null;
-}
-
-/** Koszt ewolucji albo null, gdy nie jest dostępna: forma druga albo brak kompletu ulepszeń. */
-export function evolveCost(content: GameContent, save: Save, heroId: number): number | null {
-  const found = heroAndLine(content, save, heroId);
-  if (found === null || found.hero.form !== 0) return null;
-  if (found.hero.upgrades < content.progression.maxUpgrades) return null;
-  return found.line.evolveCost;
+  return found.line.forms.get(found.hero.form)?.upgradeCosts[found.hero.upgrades] ?? null;
 }
 
 /** Kupuje ulepszenie. Null, gdy brakuje złota albo forma ma komplet. */
@@ -211,14 +208,6 @@ export function applyUpgrade(content: GameContent, save: Save, heroId: number): 
   const hero = findHero(save, heroId);
   if (cost === null || hero === null || save.gold < cost) return null;
   return withHero({ ...save, gold: save.gold - cost }, { ...hero, upgrades: hero.upgrades + 1 });
-}
-
-/** Kupuje ewolucję: forma druga bez ulepszeń, runy zostają. Null, gdy niedostępna. */
-export function applyEvolve(content: GameContent, save: Save, heroId: number): Save | null {
-  const cost = evolveCost(content, save, heroId);
-  const hero = findHero(save, heroId);
-  if (cost === null || hero === null || save.gold < cost) return null;
-  return withHero({ ...save, gold: save.gold - cost }, { ...hero, form: 1, upgrades: 0 });
 }
 
 /** Liczba posiadanych bohaterów danej linii. */
@@ -234,7 +223,7 @@ export function ownedCount(save: Save, lineId: string): number {
 export function buyHero(content: GameContent, save: Save, lineId: string): Save | null {
   const line = content.lines.get(lineId);
   if (line === undefined || save.gold < line.price) return null;
-  const hero = freshHero(content, save.nextHeroId, lineId);
+  const hero = freshHero(content, save.nextHeroId, line);
   const free = save.squad.indexOf(null);
   return {
     ...save,
@@ -312,7 +301,7 @@ export interface HeroView {
 export function heroView(content: GameContent, save: Save, heroId: number): HeroView | null {
   const found = heroAndLine(content, save, heroId);
   if (found === null) return null;
-  const unitId = found.line.forms[found.hero.form];
+  const unitId = found.hero.form;
   const unit = content.heroes.get(unitId);
   if (unit === undefined) return null;
   const runes: Rune[] = [];
@@ -346,18 +335,4 @@ export function previewUpgrade(content: GameContent, save: Save, heroId: number)
   if (view === null || unit === undefined) return null;
   if (view.hero.upgrades >= content.progression.maxUpgrades) return null;
   return resolveUnitSpec(unit, view.hero.upgrades + 1, view.runes, content.progression);
-}
-
-/** Forma po ewolucji z jej statystykami (bez ulepszeń, z tymi samymi runami) albo null. */
-export function previewEvolve(
-  content: GameContent,
-  save: Save,
-  heroId: number,
-): { unitId: string; spec: UnitSpec } | null {
-  const view = heroView(content, save, heroId);
-  if (view === null || view.hero.form !== 0) return null;
-  const unitId = view.line.forms[1];
-  const unit = content.heroes.get(unitId);
-  if (unit === undefined) return null;
-  return { unitId, spec: resolveUnitSpec(unit, 0, view.runes, content.progression) };
 }

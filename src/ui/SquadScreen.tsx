@@ -12,6 +12,7 @@ import { SQUAD_SLOTS } from '../game/save-schema.ts';
 import { SQUAD_FIELD_AT } from '../game/stage-stands.ts';
 import { ScreenHead } from './common.tsx';
 import { createDrag } from './drag.ts';
+import { type EvolvePick, EvolvePicker } from './EvolvePicker.tsx';
 import { HeroCard, heroLabel } from './HeroCard.tsx';
 import { BuyButton, RuneSockets, UpgradeBar } from './HeroField.tsx';
 import { FANG_PATH } from './icons.tsx';
@@ -32,7 +33,8 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
   const { content } = game;
   const save = game.save.value;
   const selected = useSignal<number | null>(save.squad.find((id) => id !== null) ?? null);
-  const pick = useSignal<RunePick | null>(null);
+  /** Otwarte okienko nad polem bohatera: wybór runy albo drogi ewolucji. */
+  const pick = useSignal<RunePick | EvolvePick | null>(null);
   const screen = useRef<HTMLDivElement>(null);
   /** Bohater przesunięty z klawiatury: po przerysowaniu jego uchwyt ma odzyskać fokus. */
   const refocus = useRef<number | null>(null);
@@ -194,8 +196,13 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
                   view={view}
                   onPick={(socket, opener) => {
                     selected.value = heroId;
-                    const open = picking?.hero === heroId && picking.socket === socket;
-                    pick.value = open ? null : { hero: heroId, socket, at: fieldAt(slot), opener };
+                    const open =
+                      picking?.kind === 'rune' &&
+                      picking.hero === heroId &&
+                      picking.socket === socket;
+                    pick.value = open
+                      ? null
+                      : { kind: 'rune', hero: heroId, socket, at: fieldAt(slot), opener };
                   }}
                 />
                 <div class="field-foot">
@@ -205,6 +212,12 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
                     view={view}
                     onBuy={() => {
                       selected.value = heroId;
+                    }}
+                    onChoose={(opener) => {
+                      const open = picking?.kind === 'evolve' && picking.hero === heroId;
+                      pick.value = open
+                        ? null
+                        : { kind: 'evolve', hero: heroId, at: fieldAt(slot), opener };
                     }}
                   />
                 </div>
@@ -228,7 +241,10 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
         );
       })}
 
-      {picking !== null && <RunePicker game={game} pick={picking} onClose={closePick} />}
+      {picking?.kind === 'rune' && <RunePicker game={game} pick={picking} onClose={closePick} />}
+      {picking?.kind === 'evolve' && (
+        <EvolvePicker game={game} pick={picking} onClose={closePick} />
+      )}
 
       {dragging !== null && draggedView !== null && (
         <div

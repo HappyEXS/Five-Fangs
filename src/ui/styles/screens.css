@@ -46,8 +46,8 @@
   font-size: 0.92em;
 }
 
-/* Informacje o bohaterach: obie formy linii na scenie, karty po bokach, droga ulepszeń
-   pod linią podłogi */
+/* Informacje o bohaterach: drzewo ewolucji linii u góry, postacie wybranej drogi na scenie,
+   karta wybranej formy z prawej, nazwy i koszty ewolucji pod linią podłogi (ADR 0016). */
 
 .line-tabs {
   position: absolute;
@@ -59,82 +59,157 @@
   gap: 0.6em;
 }
 
-.form-sheet {
+.tree-sheet {
   position: absolute;
-  top: 18.5%;
+  top: 17%;
   left: 1.6%;
   display: grid;
-  gap: 0.4em;
-  width: 20em;
+  gap: 0.6em;
+  width: 57%;
 }
 
-.form-evolved {
-  right: 1.6%;
-  left: auto;
-}
-
-.evolve-info {
-  position: absolute;
-  top: 19%;
-  left: 50%;
+/* Kolumna to stopień formy, wiersz to droga; rozwidlenie zajmuje wiersze swoich gałęzi. */
+.tree {
   display: grid;
-  gap: 0.55em;
-  width: 21em;
-  text-align: center;
-  text-wrap: balance;
-  translate: -50% 0;
+  gap: 0.45em 1.4em;
+  grid-auto-columns: 1fr;
+  align-items: center;
 }
 
-.evolve-price {
+.tree-cell {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.4em;
+}
+
+/* Koszt ewolucji przed formą: trójkąt pokazuje, skąd ona wychodzi. */
+.tree-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  flex: none;
+  font-size: 0.85em;
+}
+
+.tree-cost::before {
+  display: inline-block;
+  border: 0.3em solid transparent;
+  border-right-width: 0;
+  border-left: 0.42em solid var(--ink-soft);
+  content: "";
+}
+
+.tree-node {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25em 0.5em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper-light);
+  box-shadow: 0.14em 0.14em 0 var(--ink);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tree-node:hover {
+  background: var(--paper);
+}
+
+/* Formy na drodze do wybranej: jaśniejszy nagietek, wybrana: pełny. */
+.tree-path {
+  background: var(--marigold-light);
+}
+
+.tree-node[aria-pressed="true"] {
+  background: var(--marigold);
+}
+
+.tree-price {
+  display: flex;
+  align-items: center;
   gap: 0.6em;
   font-weight: 700;
 }
 
-.path-steps {
+.form-card {
+  position: absolute;
+  top: 17%;
+  right: 1.6%;
+  display: grid;
+  gap: 0.4em;
+  width: 36%;
+  max-height: 80%;
+  overflow: auto;
+  font-size: 0.95em;
+}
+
+.form-origin {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 600;
+}
+
+.form-next {
+  font-weight: 600;
+}
+
+.form-upgrades {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3em 0.8em;
+  margin-top: 0.3em;
+}
+
+.form-upgrade-costs {
+  display: flex;
+  gap: 0.7em;
+}
+
+.path-name {
+  position: absolute;
+  top: calc(var(--floor) + 0.9em);
+  max-width: 13%;
+  padding: 0.1em 0.5em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--paper);
+  box-shadow: 0.14em 0.14em 0 var(--ink);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85em;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+  translate: -50% 0;
+}
+
+.path-name[aria-pressed="true"] {
+  background: var(--marigold);
+}
+
+/* Między postaciami drogi: koszt ewolucji z jednej w drugą. */
+.path-arrow {
   position: absolute;
   top: calc(var(--floor) + 1em);
   display: flex;
-  gap: 0.9em;
+  align-items: center;
+  gap: 0.25em;
+  font-weight: 700;
   translate: -50% 0;
 }
 
-.path-step {
-  display: grid;
-  gap: 0.3em;
-  justify-items: center;
-}
-
-/* Kieł ulepszenia na drodze linii: ten sam kształt co kły slotów. */
-.path-step .pip {
-  width: 1.15em;
-  height: 1.5em;
-  overflow: visible;
-  fill: var(--marigold);
-  stroke-linejoin: round;
-  stroke: var(--ink);
-  stroke-width: 3;
-}
-
-.path-step .icon-coin {
-  display: none;
-}
-
-.path-evolve {
-  position: absolute;
-  top: calc(var(--floor) + 0.9em);
-  left: 50%;
-  display: grid;
-  gap: 0.15em;
-  translate: -50% 0;
-  justify-items: center;
-}
-
-.path-evolve-name {
-  font: 400 1.25em / 1 var(--display);
-  letter-spacing: 0.03em;
+.path-arrow::after {
+  display: inline-block;
+  border: 0.32em solid transparent;
+  border-right-width: 0;
+  border-left: 0.46em solid var(--paper);
+  content: "";
 }
 
 /* Ekran startowy */

@@ -29,7 +29,8 @@ function missingNames(content: GameContent, source: Dictionary): ContentIssue[] 
 /** Forma bohatera, która nie należy do żadnej linii, jest nieosiągalna w grze. */
 function orphanHeroes(content: GameContent): ContentIssue[] {
   const inLines = new Set<string>();
-  for (const line of content.lines.values()) for (const form of line.forms) inLines.add(form);
+  for (const line of content.lines.values())
+    for (const form of line.forms.keys()) inLines.add(form);
   const issues: ContentIssue[] = [];
   for (const id of content.heroes.keys()) {
     if (!inLines.has(id)) {

@@ -17,13 +17,25 @@ export const progressionSchema = z.strictObject({
   levelsPerWorld: z.number().int().positive(),
 });
 
+/**
+ * Forma bohatera w drzewie ewolucji linii (ADR 0016). Każda forma poza bazową wskazuje formę,
+ * z której powstaje; jedna forma może mieć kilka następnych, wtedy gracz wybiera drogę.
+ */
+export const formSchema = z.strictObject({
+  /** Id jednostki z units/heroes.json. */
+  unit: id,
+  /** Forma, z której ta powstaje przez ewolucję. Brak tylko przy formie bazowej. */
+  from: id.optional(),
+  /** Koszt ewolucji w tę formę; podawany razem z `from`. */
+  evolveCost: cost.optional(),
+  /** Koszty kolejnych ulepszeń tej formy. */
+  upgradeCosts: z.array(cost),
+});
+
 export const lineSchema = z.strictObject({
   id,
-  /** Forma bazowa i forma po ewolucji; id jednostek z units/heroes.json. */
-  forms: z.tuple([id, id]),
-  /** Koszty kolejnych ulepszeń: najpierw formy bazowej, potem formy po ewolucji. */
-  upgradeCosts: z.tuple([z.array(cost), z.array(cost)]),
-  evolveCost: cost,
+  /** Formy linii: dokładnie jedna bez `from` (bazowa), reszta tworzy z nią drzewo. */
+  forms: z.array(formSchema).min(1),
   /** Cena jednego bohatera tej linii w sklepie; każdy kolejny egzemplarz kosztuje tyle samo. */
   price: cost,
   /** Gracz zaczyna grę z jednym bohaterem tej linii. */
@@ -66,6 +78,7 @@ export const levelsSchema = z.array(levelSchema);
 
 export type Progression = z.infer<typeof progressionSchema>;
 export type RawLine = z.infer<typeof lineSchema>;
+export type RawForm = z.infer<typeof formSchema>;
 export type Rune = z.infer<typeof runeSchema>;
 export type RawWorld = z.infer<typeof worldSchema>;
 export type RawLevel = z.infer<typeof levelSchema>;

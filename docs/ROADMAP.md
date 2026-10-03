@@ -145,6 +145,18 @@ Autor gry ocenił M5c („o wiele lepiej”) i zlecił pięć poprawek. Uzupełn
 | M5d-8 | Postacie nie wystają poza scenę: margines pola i przesuwanie przy krawędzi według zmierzonego zasięgu | 0,5 | Test zasięgu dla każdej postaci z treści; odczyt pikseli z krawędzi canvasa w walce z odrzutem nie znajduje postaci; alokacje renderera bez zmian | gotowe |
 | M5d-6 | Pole bohatera w składzie: gniazda run jako okrągłe żetony z okienkiem wyboru, pasek ulepszeń i przycisk „Kup” z kosztem ulepszenia albo ewolucji; karta tylko do czytania | 1 | Zakup ulepszenia i włożenie runy z pola (test end-to-end); pól nie ma na mapie | gotowe |
 
+## M5e – Drzewo ewolucji (2026-10-03)
+
+Zlecenie autora gry: ewolucje się rozgałęziają, z jednego bohatera wybiera się jedną z dwóch ewolucji, potem jest jeszcze jeden krok. Decyzje w ADR 0016.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5e-1 | Treść: linia jako drzewo form z walidacją; drzewa testowe z kopii obecnych bohaterów | 0,5 | Walidator odrzuca brak formy bazowej, cykl, nieznaną formę, brak kosztu ewolucji | gotowe |
+| M5e-2 | Reguły ewolucji z wyborem drogi; zapis v3 z migracją v2 → v3 i plikiem przykładowym | 1 | Testy reguł i migracji; zapisy v1 i v2 wczytują się w v3 | gotowe |
+| M5e-3 | Skład: wybór drogi ewolucji w polu bohatera; Bohaterowie: drzewo, droga na scenie, karta formy | 1 | Test end-to-end: wybór drogi zapisuje formę; drzewo pokazuje pięć form | gotowe |
+| M5e-4 | Balans po głównej drodze drzewa (rangi A–C) | 0,25 | Raport zgodny na wszystkich poziomach świata „Las” | gotowe |
+| M5e-5 | Docelowe drzewa i koszty | — | Czeka na roster od autora gry | wstrzymane |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

@@ -4,8 +4,10 @@
 import { z } from 'zod';
 import type { ContentIssue } from '../../src/content/issues.ts';
 import type { GameContent } from '../../src/content/load.ts';
+import type { CompiledLine } from '../../src/content/load-progression.ts';
 import { levelSetup, type SquadMember } from '../../src/content/resolve-spec.ts';
 import { TICKS_PER_SECOND } from '../../src/core/units.ts';
+import { displayPath } from '../../src/game/evolution.ts';
 import { type BattleSetup, createBattle, runBattleToEnd, TEAM_SIZE } from '../../src/sim/index.ts';
 
 const id = z.string().regex(/^[a-z][a-z0-9_]*$/);
@@ -27,15 +29,28 @@ export const referenceSchema = z.strictObject({
 
 export type Reference = z.infer<typeof referenceSchema>;
 
-/** Liczba rang jednej linii: ulepszenia formy bazowej, potem formy po ewolucji. */
-export function rankCount(content: GameContent): number {
-  return 2 * (content.progression.maxUpgrades + 1);
+/**
+ * Główna droga ewolucji linii, po której idą rangi składu referencyjnego: na każdym stopniu
+ * pierwsza z następnych form w kolejności z treści (ADR 0016).
+ */
+function mainPath(line: CompiledLine): string[] {
+  return displayPath(line, line.base);
 }
 
-/** Etykieta rangi: A0..A4 dla formy bazowej, B0..B4 dla formy po ewolucji. */
+/**
+ * Liczba rang: kolejne ulepszenia każdej formy głównej drogi, dla najdłuższej drogi wśród linii.
+ * Linia o krótszej drodze na dalszych rangach zostaje na swojej ostatniej formie z kompletem.
+ */
+export function rankCount(content: GameContent): number {
+  let tiers = 1;
+  for (const line of content.lines.values()) tiers = Math.max(tiers, mainPath(line).length);
+  return tiers * (content.progression.maxUpgrades + 1);
+}
+
+/** Etykieta rangi: litera stopnia (A forma bazowa, B pierwsza ewolucja...) i liczba ulepszeń. */
 export function rankLabel(content: GameContent, rank: number): string {
   const perForm = content.progression.maxUpgrades + 1;
-  return `${rank < perForm ? 'A' : 'B'}${rank % perForm}`;
+  return `${String.fromCharCode(65 + Math.floor(rank / perForm))}${rank % perForm}`;
 }
 
 export function validateReference(content: GameContent, reference: Reference): ContentIssue[] {
@@ -102,11 +117,15 @@ function squadAtRank(
   const perForm = content.progression.maxUpgrades + 1;
   const members: (SquadMember | null)[] = [null, null, null, null, null];
   for (const member of squad.members) {
-    const formId = content.lines.get(member.line)?.forms[rank < perForm ? 0 : 1];
+    const line = content.lines.get(member.line);
+    const path = line === undefined ? [] : mainPath(line);
+    const tier = Math.floor(rank / perForm);
+    const formId = path[Math.min(tier, path.length - 1)];
     const unit = formId === undefined ? undefined : content.heroes.get(formId);
     if (unit === undefined)
       throw new Error(`Reference squad "${squad.id}": bad line "${member.line}"`);
-    members[member.slot] = { unit, rank: rank % perForm, runes: [] };
+    const upgrades = tier < path.length ? rank % perForm : content.progression.maxUpgrades;
+    members[member.slot] = { unit, rank: upgrades, runes: [] };
   }
   return members;
 }
@@ -183,7 +202,7 @@ export function formatBalanceReport(content: GameContent, reports: readonly Leve
     '',
     'Wygenerowany przez `pnpm balance`. Nie edytuj ręcznie.',
     '',
-    'Ranga składu referencyjnego: A0–A4 to kolejne ulepszenia formy bazowej, B0–B4 formy po ewolucji; wszyscy członkowie składu mają tę samą rangę, bez run. Walka nie ma losowości, więc każdy wynik to jedna walka.',
+    'Ranga składu referencyjnego: litera to stopień formy na głównej drodze ewolucji (A forma bazowa, B pierwsza ewolucja, C druga; na każdym stopniu pierwsza z dróg w kolejności z treści), cyfra to liczba ulepszeń tej formy. Wszyscy członkowie składu mają tę samą rangę, bez run. Walka nie ma losowości, więc każdy wynik to jedna walka.',
     '',
     '## Podsumowanie',
     '',

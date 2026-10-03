@@ -1,82 +1,102 @@
-// Informacje o bohaterach: obie formy wybranej linii stoją na scenie, obok każdej jej karta
-// ze statystykami, a pod linią podłogi droga ulepszeń i ewolucji z kosztami. Tu niczego się nie
-// kupuje: bohaterów sprzedaje sklep, a ulepszenia i ewolucję ekran składu.
+// Informacje o bohaterach: drzewo ewolucji wybranej linii (ADR 0016). U góry drzewo form
+// (kolumna to stopień, rozwidlenie to wybór drogi), na scenie postacie drogi przez wybraną
+// formę, z prawej jej karta. Tu niczego się nie kupuje: bohaterów sprzedaje sklep, a ulepszenia
+// i ewolucje ekran składu.
 import type { CompiledLine } from '../content/load-progression.ts';
+import { formPath, treeLayout } from '../game/evolution.ts';
 import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
 import { ownedCount } from '../game/progress.ts';
 import { formStands } from '../game/stage-stands.ts';
-import { Gold, ScreenHead, StatTable, unitName } from './common.tsx';
-import { FANG_PATH } from './icons.tsx';
+import { Gold, ScreenHead, StatTable, tierLabel, unitName } from './common.tsx';
 
-/** Karta jednej formy: nazwa, która to forma, statystyki bez ulepszeń i cechy. */
-function FormSheet(props: { game: Game; unitId: string; form: 0 | 1 }) {
-  const unit = props.game.content.heroes.get(props.unitId);
-  if (unit === undefined) return null;
+/** Drzewo form linii jako siatka przycisków; wybrana forma jest wyróżniona. */
+function Tree(props: { game: Game; line: CompiledLine; form: string }) {
+  const { game, line, form } = props;
+  const onPath = new Set(formPath(line, form));
   return (
-    <section class={props.form === 0 ? 'sheet form-sheet' : 'sheet form-sheet form-evolved'}>
-      <h3 class="hero-name">{unitName(props.unitId)}</h3>
-      <p class="note">{t(props.form === 0 ? 'heroes.form.base' : 'heroes.form.evolved')}</p>
-      <StatTable spec={unit.base} />
-    </section>
-  );
-}
-
-/** Ulepszenia jednej formy jako rząd kłów z kosztami: te same kły liczą ulepszenia w składzie. */
-function UpgradeSteps(props: { costs: readonly number[]; position: number }) {
-  const steps = props.costs.map((cost, index) => ({ cost, step: index + 1 }));
-  return (
-    <ol class="path-steps" style={{ left: `${props.position * 100}%` }}>
-      {steps.map(({ cost, step }) => (
-        <li key={step} class="path-step" title={t('heroes.path.upgrade', { step })}>
-          <svg class="pip pip-on" viewBox="0 0 40 52" aria-hidden="true">
-            <path d={FANG_PATH} />
-          </svg>
-          <span class="visually-hidden">{t('heroes.path.upgrade', { step })}</span>
-          <Gold amount={cost} />
-        </li>
-      ))}
+    <ol class="tree" aria-label={t('heroes.tree')}>
+      {treeLayout(line).map((cell) => {
+        const node = line.forms.get(cell.unit);
+        if (node === undefined) return null;
+        const classes = ['tree-node', onPath.has(cell.unit) ? 'tree-path' : ''];
+        return (
+          <li
+            key={cell.unit}
+            class="tree-cell"
+            style={{
+              gridColumn: `${cell.tier + 1}`,
+              gridRow: `${cell.row + 1} / span ${cell.rows}`,
+            }}
+          >
+            {node.from !== null && (
+              <span class="tree-cost">
+                <Gold amount={node.evolveCost} />
+              </span>
+            )}
+            <button
+              type="button"
+              class={classes.filter((name) => name !== '').join(' ')}
+              data-form={cell.unit}
+              aria-pressed={cell.unit === form}
+              onClick={() => game.openHeroes(line.id, cell.unit)}
+            >
+              {unitName(cell.unit)}
+            </button>
+          </li>
+        );
+      })}
     </ol>
   );
 }
 
-function LineInfo(props: { game: Game; line: CompiledLine }) {
-  const { game, line } = props;
-  const { content } = game;
-  const { maxUpgrades, upgradePercent } = content.progression;
-  const [base, evolved] = formStands(content, line.id);
-  if (base === undefined || evolved === undefined) return null;
+/** Karta formy: stopień, skąd się bierze, dokąd prowadzi, statystyki i koszty ulepszeń. */
+function FormCard(props: { game: Game; line: CompiledLine; form: string }) {
+  const { game, line, form } = props;
+  const node = line.forms.get(form);
+  const unit = game.content.heroes.get(form);
+  if (node === undefined || unit === undefined) return null;
+  const parent = node.from === null ? undefined : game.content.heroes.get(node.from);
   return (
-    <>
-      <FormSheet game={game} unitId={base.unitId} form={0} />
-      <FormSheet game={game} unitId={evolved.unitId} form={1} />
-
-      <section class="evolve-info">
-        <p>{t('heroes.info.upgrade', { percent: upgradePercent })}</p>
-        <p>{t('heroes.info.evolve', { max: maxUpgrades, name: unitName(evolved.unitId) })}</p>
-        <p>{t('heroes.info.where')}</p>
-        <p class="evolve-price">
-          <span>{t('heroes.info.price')}</span>
-          <Gold amount={line.price} />
-          <span>{t('shop.owned', { count: ownedCount(game.save.value, line.id) })}</span>
+    <section class="sheet form-card" data-details={form}>
+      <h3 class="hero-name">{unitName(form)}</h3>
+      <p class="note">{tierLabel(node.tier)}</p>
+      {node.from !== null && (
+        <p class="form-origin">
+          <span>{t('heroes.from', { name: unitName(node.from) })}</span>
+          <Gold amount={node.evolveCost} />
         </p>
-      </section>
-
-      {/* Droga jednej linii: ulepszenia formy bazowej, ewolucja, ulepszenia formy drugiej. */}
-      <UpgradeSteps costs={line.upgradeCosts[0]} position={base.position} />
-      <p class="path-evolve" data-evolve-cost={line.evolveCost}>
-        <span class="path-evolve-name">{t('heroes.path.evolve')}</span>
-        <Gold amount={line.evolveCost} />
+      )}
+      <p class="form-next">
+        {node.next.length === 0
+          ? t('heroes.last')
+          : t('heroes.into', { names: node.next.map((next) => unitName(next)).join(', ') })}
       </p>
-      <UpgradeSteps costs={line.upgradeCosts[1]} position={evolved.position} />
-    </>
+      {/* Forma po ewolucji zaczyna bez ulepszeń, więc porównujemy wartości bazowe obu form. */}
+      <StatTable spec={parent?.base ?? unit.base} next={parent === undefined ? null : unit.base} />
+      {parent !== undefined && <p class="note">{t('heroes.compare')}</p>}
+      <div class="form-upgrades">
+        <span class="sheet-title">{t('heroes.upgrade.costs')}</span>
+        <span class="form-upgrade-costs">
+          {node.upgradeCosts.map((cost, step) => (
+            <span key={`${step}:${cost}`} title={t('heroes.path.upgrade', { step: step + 1 })}>
+              <Gold amount={cost} />
+            </span>
+          ))}
+        </span>
+      </div>
+    </section>
   );
 }
 
-export function HeroesScreen(props: { game: Game; line: string | null }) {
+export function HeroesScreen(props: { game: Game; line: string | null; form: string | null }) {
   const { game } = props;
   const { content } = game;
   const line = props.line === null ? undefined : content.lines.get(props.line);
+  const form = line === undefined ? null : (props.form ?? line.base);
+  const stands = line === undefined ? [] : formStands(content, line.id, form);
+  const { maxUpgrades, upgradePercent } = content.progression;
+
   return (
     <div class="screen heroes">
       <ScreenHead game={game} title={t('nav.heroes')} />
@@ -90,11 +110,57 @@ export function HeroesScreen(props: { game: Game; line: string | null }) {
             aria-pressed={option.id === props.line}
             onClick={() => game.openHeroes(option.id)}
           >
-            {unitName(option.forms[0])}
+            {unitName(option.base)}
           </button>
         ))}
       </nav>
-      {line !== undefined && <LineInfo game={game} line={line} />}
+
+      {line !== undefined && form !== null && (
+        <>
+          <section class="sheet tree-sheet">
+            <Tree game={game} line={line} form={form} />
+            <p class="note">
+              {t('heroes.info.upgrade', { percent: upgradePercent })}{' '}
+              {t('heroes.info.evolve', { max: maxUpgrades })} {t('heroes.info.where')}
+            </p>
+            <p class="tree-price">
+              <span>{t('heroes.info.price')}</span>
+              <Gold amount={line.price} />
+              <span>{t('shop.owned', { count: ownedCount(game.save.value, line.id) })}</span>
+            </p>
+          </section>
+
+          <FormCard game={game} line={line} form={form} />
+
+          {/* Pod podłogą droga wybranej formy: nazwy postaci i koszty ewolucji między nimi. */}
+          {stands.map((stand, index) => {
+            const node = line.forms.get(stand.unitId);
+            const previous = stands[index - 1];
+            return (
+              <div key={stand.unitId}>
+                {previous !== undefined && node !== undefined && (
+                  <p
+                    class="path-arrow"
+                    style={{ left: `${((previous.position + stand.position) / 2) * 100}%` }}
+                  >
+                    <Gold amount={node.evolveCost} />
+                  </p>
+                )}
+                <button
+                  type="button"
+                  class="path-name"
+                  data-form={stand.unitId}
+                  aria-pressed={stand.unitId === form}
+                  style={{ left: `${stand.position * 100}%` }}
+                  onClick={() => game.openHeroes(line.id, stand.unitId)}
+                >
+                  {unitName(stand.unitId)}
+                </button>
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }

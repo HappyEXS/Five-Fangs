@@ -241,8 +241,8 @@
   place-items: center;
 }
 
-/* Okienko wyboru runy stoi nad gniazdami pola. */
-.rune-picker {
+/* Okienko nad polem bohatera (wybór runy albo drogi ewolucji) stoi nad gniazdami run. */
+.field-popup {
   position: absolute;
   bottom: 58%;
   z-index: 25;
@@ -253,6 +253,37 @@
   max-width: 22em;
   translate: -50% 0;
   justify-items: start;
+}
+
+/* Drogi ewolucji stoją obok siebie, żeby dało się je porównać wiersz w wiersz; okienko jest
+   wyższe niż wybór runy, więc wisi pod nagłówkiem ekranu zamiast nad gniazdami. */
+.evolve-picker {
+  top: 9.5%;
+  bottom: auto;
+  max-width: none;
+}
+
+.evolve-options {
+  display: grid;
+  gap: 1.2em;
+  grid-auto-columns: 13em;
+  grid-auto-flow: column;
+}
+
+.evolve-option {
+  display: grid;
+  gap: 0.4em;
+  align-content: start;
+  justify-items: start;
+  font-size: 0.92em;
+}
+
+.evolve-option .stats {
+  width: 100%;
+}
+
+.evolve-name {
+  font: 400 1.25em / 1.05 var(--display);
 }
 
 .rune-options {
@@ -332,9 +363,13 @@
   background: var(--marigold);
 }
 
-/* Forma po ewolucji liczy ulepszenia od nowa; inny kolor odróżnia jej pasek. */
-.upgrade-bar-evolved .segment-on {
+/* Po każdej ewolucji ulepszenia liczą się od nowa; kolor paska mówi, który to stopień. */
+.tier-1 .segment-on {
   background: var(--moss);
+}
+
+.tier-2 .segment-on {
+  background: var(--dusk);
 }
 
 .field-full {

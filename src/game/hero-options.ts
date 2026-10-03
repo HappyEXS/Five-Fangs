@@ -4,45 +4,48 @@
 import type { GameContent } from '../content/load.ts';
 import type { Rune } from '../content/schema-progression.ts';
 import type { UnitSpec } from '../sim/types.ts';
-import {
-  evolveCost,
-  findHero,
-  freeRunes,
-  previewEvolve,
-  previewUpgrade,
-  upgradeCost,
-} from './progress.ts';
+import { evolveOptions, previewEvolve } from './evolution.ts';
+import { findHero, freeRunes, previewUpgrade, upgradeCost } from './progress.ts';
 import type { Save } from './save-schema.ts';
 
-export interface Purchase {
-  readonly kind: 'upgrade' | 'evolve';
+export interface PurchaseOption {
   readonly cost: number;
   /** Statystyki bohatera po zakupie. */
   readonly spec: UnitSpec;
-  /** Jednostka po zakupie: przy ewolucji forma druga, przy ulepszeniu ta sama. */
+  /** Jednostka po zakupie: przy ewolucji nowa forma, przy ulepszeniu ta sama. */
   readonly unitId: string;
 }
 
 /**
- * Następny zakup bohatera: ulepszenie, dopóki forma nie ma kompletu, potem ewolucja (tylko
- * z formy bazowej). Null, gdy bohater ma komplet ulepszeń formy drugiej albo go nie ma.
- * Wynik nie zależy od złota gracza; czy go stać, sprawdza UI i reguła zakupu.
+ * Następny zakup bohatera. Ulepszenie ma jedną opcję; ewolucja tyle, ile dróg wychodzi
+ * z bieżącej formy (ADR 0016), i wtedy gracz wybiera jedną z nich.
+ */
+export interface Purchase {
+  readonly kind: 'upgrade' | 'evolve';
+  /** Co najmniej jedna opcja, w kolejności z treści. */
+  readonly options: readonly [PurchaseOption, ...PurchaseOption[]];
+}
+
+/**
+ * Następny zakup bohatera: ulepszenie, dopóki forma nie ma kompletu, potem ewolucja w jedną
+ * z następnych form. Null, gdy forma ma komplet ulepszeń i jest ostatnim stopniem swojej drogi
+ * (albo bohatera nie ma). Wynik nie zależy od złota; czy gracza stać, sprawdza UI i reguła.
  */
 export function nextPurchase(content: GameContent, save: Save, heroId: number): Purchase | null {
   const hero = findHero(save, heroId);
-  const line = hero === null ? undefined : content.lines.get(hero.line);
-  if (hero === null || line === undefined) return null;
+  if (hero === null) return null;
   const upgrade = upgradeCost(content, save, heroId);
   const upgraded = previewUpgrade(content, save, heroId);
   if (upgrade !== null && upgraded !== null) {
-    return { kind: 'upgrade', cost: upgrade, spec: upgraded, unitId: line.forms[hero.form] };
+    return { kind: 'upgrade', options: [{ cost: upgrade, spec: upgraded, unitId: hero.form }] };
   }
-  const evolve = evolveCost(content, save, heroId);
-  const evolved = previewEvolve(content, save, heroId);
-  if (evolve !== null && evolved !== null) {
-    return { kind: 'evolve', cost: evolve, spec: evolved.spec, unitId: evolved.unitId };
+  const options: PurchaseOption[] = [];
+  for (const option of evolveOptions(content, save, heroId)) {
+    const spec = previewEvolve(content, save, heroId, option.unitId);
+    if (spec !== null) options.push({ cost: option.cost, spec, unitId: option.unitId });
   }
-  return null;
+  const [first, ...rest] = options;
+  return first === undefined ? null : { kind: 'evolve', options: [first, ...rest] };
 }
 
 export interface RuneStock {

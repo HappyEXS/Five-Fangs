@@ -138,12 +138,12 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   await expect(page.getByRole('button', { name: 'Sklep' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Wróć' }).click();
 
-  // Bohaterowie: obie formy linii i koszt ewolucji; kupowania tu nie ma.
+  // Bohaterowie: drzewo ewolucji linii z kosztami; kupowania tu nie ma.
   await page.getByRole('button', { name: 'Bohaterowie' }).click();
   const info = page.locator('.heroes');
   await expect(info).toContainText('Miecznik');
   await expect(info).toContainText('Rycerz');
-  await expect(info.locator('[data-evolve-cost="250"]')).toContainText('Ewolucja');
+  await expect(info.locator('.tree-cost').first()).toContainText('250');
   await info.getByRole('button', { name: 'Akolita' }).click();
   await expect(info).toContainText('Kapłan');
   await expect(info.locator('[data-action="buy"]')).toHaveCount(0);
@@ -176,6 +176,58 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   expect((await readSave(page)).settings).toMatchObject({ lang: 'en' });
 
+  expect(errors).toEqual([]);
+});
+
+test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async ({ page }) => {
+  const errors = collectErrors(page);
+  await seedSave(page, {
+    saveVersion: 3,
+    gameVersion: '0.1.0',
+    gold: 2000,
+    heroes: [
+      { id: 1, line: 'swordsman', form: 'swordsman_a', upgrades: 4, runes: [null, null] },
+      { id: 2, line: 'archer', form: 'archer_a', upgrades: 0, runes: [null, null] },
+    ],
+    nextHeroId: 3,
+    runes: [],
+    levels: { w1_l1: { cleared: true, bestTicks: 420 } },
+    squad: [1, 2, null, null, null],
+    settings: { lang: 'pl', battleSpeed: 1 },
+  });
+  await play(page);
+
+  // Z formy bazowej wychodzą dwie drogi: przycisk otwiera wybór, każda droga ma własny zakup.
+  await page.getByRole('button', { name: 'Skład' }).click();
+  await page
+    .locator('[data-drop="slot:0"]')
+    .getByRole('button', { name: 'Wybierz drogę ewolucji' })
+    .click();
+  const picker = page.locator('.evolve-picker');
+  await expect(picker.locator('.evolve-option')).toHaveCount(2);
+  await expect(picker).toContainText('Rycerz');
+  await expect(picker).toContainText('Strażnik (kopia)');
+  await picker
+    .getByRole('button', { name: 'Kup ewolucję w formę Strażnik (kopia) za 250 złota' })
+    .click();
+  await expect(picker).toHaveCount(0);
+  await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Strażnik (kopia)');
+  const heroes = (await readSave(page)).heroes as { form: unknown; upgrades: unknown }[];
+  expect(heroes[0]).toMatchObject({ form: 'swordsman_c', upgrades: 0 });
+
+  // Bohaterowie: drzewo linii, wybrana forma na karcie i jej droga na scenie.
+  await page.getByRole('button', { name: 'Wróć' }).click();
+  await page.getByRole('button', { name: 'Bohaterowie' }).click();
+  const tree = page.locator('.tree');
+  await expect(tree.locator('.tree-node')).toHaveCount(5);
+  await tree.getByRole('button', { name: 'Strażnik II (kopia)' }).click();
+  await expect(page.locator('.form-card')).toContainText('Ewolucja 2. stopnia');
+  await expect(page.locator('.form-card')).toContainText('Ostatni stopień tej drogi');
+  await expect(page.locator('.path-name')).toHaveText([
+    'Miecznik',
+    'Strażnik (kopia)',
+    'Strażnik II (kopia)',
+  ]);
   expect(errors).toEqual([]);
 });
 

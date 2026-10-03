@@ -47,6 +47,25 @@ function linesToHeroes(save: Record<string, unknown>): Record<string, unknown> {
   };
 }
 
+/**
+ * v2 → v3: forma bohatera jako id jednostki zamiast indeksu (0 = bazowa, 1 = po ewolucji), bo
+ * formy linii tworzą teraz drzewo (ADR 0016). W treści gry z czasów zapisu v2 każda linia `L`
+ * miała dokładnie dwie formy, `L_a` i `L_b`, więc indeks wystarcza do odtworzenia id. Formę,
+ * której nie zna bieżąca treść, poprawia potem reconcileSave. Inna wartość niż 0 i 1 zostaje
+ * bez zmian i odrzuci ją schemat.
+ */
+function formIndexToUnit(save: Record<string, unknown>): Record<string, unknown> {
+  const heroes = Array.isArray(save.heroes)
+    ? save.heroes.map((hero: unknown) => {
+        if (!isRecord(hero) || typeof hero.line !== 'string') return hero;
+        if (hero.form !== 0 && hero.form !== 1) return hero;
+        return { ...hero, form: `${hero.line}_${hero.form === 1 ? 'b' : 'a'}` };
+      })
+    : save.heroes;
+  return { ...save, saveVersion: 3, heroes };
+}
+
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: linesToHeroes,
+  2: formIndexToUnit,
 };

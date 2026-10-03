@@ -5,9 +5,9 @@ import { type Signal, signal } from '@preact/signals';
 import type { Language } from '../content/i18n/index.ts';
 import type { GameContent } from '../content/load.ts';
 import type { BattleSetup } from '../sim/types.ts';
+import { applyEvolve } from './evolution.ts';
 import { language } from './i18n.ts';
 import {
-  applyEvolve,
   applyUpgrade,
   applyVictory,
   buyHero,
@@ -41,8 +41,11 @@ export type Scene =
   /** `selected` to poziom, którego przeciwników i nagrody pokazuje mapa; null, gdy gra nie ma poziomów. */
   | { readonly name: 'map'; readonly selected: string | null }
   | { readonly name: 'squad' }
-  /** `line` to linia bohatera, której formy pokazuje ekran; null, gdy gra nie ma linii. */
-  | { readonly name: 'heroes'; readonly line: string | null }
+  /**
+   * `line` to linia bohatera, której drzewo ewolucji pokazuje ekran (null, gdy gra nie ma
+   * linii), a `form` wybrana w nim forma.
+   */
+  | { readonly name: 'heroes'; readonly line: string | null; readonly form: string | null }
   | { readonly name: 'shop' }
   | { readonly name: 'battle'; readonly level: string }
   | {
@@ -77,8 +80,11 @@ export interface Game {
    * pierwszy poziom, którego gracz jeszcze nie przeszedł.
    */
   openMap(selected?: string): void;
-  /** Otwiera informacje o bohaterach na wskazanej linii; bez argumentu albo dla nieznanej linii na pierwszej. */
-  openHeroes(line?: string): void;
+  /**
+   * Otwiera informacje o bohaterach na wskazanej linii i formie. Bez linii albo dla nieznanej
+   * linii: pierwsza linia; bez formy albo dla formy spoza linii: jej forma bazowa.
+   */
+  openHeroes(line?: string, form?: string): void;
   /** Zaczyna walkę bieżącym składem. False, gdy skład jest pusty albo poziom zablokowany. */
   startBattle(level: string): boolean;
   /** Kończy walkę: przy wygranej nalicza nagrody, zapisuje grę i pokazuje wynik. */
@@ -87,7 +93,8 @@ export interface Game {
   /** Kupuje w sklepie bohatera linii. False, gdy brakuje złota. */
   buyHero(line: string): boolean;
   upgrade(hero: number): boolean;
-  evolve(hero: number): boolean;
+  /** Ewolucja w formę `target`, jedną z dróg wychodzących z bieżącej formy bohatera. */
+  evolve(hero: number, target: string): boolean;
   equipRune(hero: number, slot: number, rune: string | null): boolean;
   placeInSquad(hero: number, slot: number): boolean;
   removeFromSquad(slot: number): void;
@@ -158,10 +165,15 @@ export function createGame(options: GameOptions): Game {
       scene.value = next;
     },
     openMap,
-    openHeroes(line) {
-      const known = line !== undefined && content.lines.has(line);
-      const [first] = content.lines.keys();
-      scene.value = { name: 'heroes', line: known ? line : (first ?? null) };
+    openHeroes(line, form) {
+      const [first] = content.lines.values();
+      const shown = (line === undefined ? undefined : content.lines.get(line)) ?? first;
+      if (shown === undefined) {
+        scene.value = { name: 'heroes', line: null, form: null };
+        return;
+      }
+      const known = form !== undefined && shown.forms.has(form);
+      scene.value = { name: 'heroes', line: shown.id, form: known ? form : shown.base };
     },
     startBattle(level) {
       if (!isLevelUnlocked(content, save.value, level) || isSquadEmpty(save.value)) return false;
@@ -182,7 +194,7 @@ export function createGame(options: GameOptions): Game {
 
     buyHero: (line) => attempt(buyHero(content, save.value, line)),
     upgrade: (hero) => attempt(applyUpgrade(content, save.value, hero)),
-    evolve: (hero) => attempt(applyEvolve(content, save.value, hero)),
+    evolve: (hero, target) => attempt(applyEvolve(content, save.value, hero, target)),
     equipRune: (hero, slot, rune) => attempt(equipRune(content, save.value, hero, slot, rune)),
     placeInSquad: (hero, slot) => attempt(placeInSquad(save.value, hero, slot)),
     removeFromSquad(slot) {

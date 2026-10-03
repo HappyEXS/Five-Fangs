@@ -4,6 +4,7 @@
 import type { UnitVisual } from '../content/compile.ts';
 import type { GameContent } from '../content/load.ts';
 import type { BattleSetup, UnitSpec } from '../sim/types.ts';
+import { displayPath } from './evolution.ts';
 import { SQUAD_SLOTS } from './save-schema.ts';
 import { arenaXAt } from './stage-geometry.ts';
 
@@ -26,9 +27,13 @@ export interface ShopStand extends Stand {
 const EDGE = 0.12;
 /** Odstęp między lewą a prawą grupą, gdy linii jest więcej niż slotów jednej strony. */
 const MIDDLE_GAP = 0.04;
-/** Miejsca formy bazowej i formy po ewolucji na ekranie informacji o bohaterach. */
-const BASE_FORM_AT = 0.37;
-const EVOLVED_FORM_AT = 0.63;
+/**
+ * Droga ewolucji na ekranie informacji o bohaterach stoi w lewej części sceny (prawą zajmuje
+ * karta formy): od PATH_FROM do PATH_TO_SHORT dla trzech stopni, szerzej dla dłuższych dróg.
+ */
+const PATH_FROM = 0.12;
+const PATH_TO_SHORT = 0.5;
+const PATH_TO_LONG = 0.56;
 
 /**
  * Miejsca slotów składu na ekranie zarządzania składem, jako ułamek szerokości sceny. Szerzej
@@ -77,14 +82,14 @@ export function shopStands(content: GameContent): ShopStand[] {
   return [
     ...left.map((line, slot) => ({
       line: line.id,
-      unitId: line.forms[0],
+      unitId: line.base,
       position: leftAt[slot] ?? EDGE,
       side: 0 as const,
       slot,
     })),
     ...right.map((line, slot) => ({
       line: line.id,
-      unitId: line.forms[0],
+      unitId: line.base,
       position: rightAt[slot] ?? 1 - EDGE,
       side: 1 as const,
       slot,
@@ -93,17 +98,22 @@ export function shopStands(content: GameContent): ShopStand[] {
 }
 
 /**
- * Stanowiska obu form jednej linii: bazowa z lewej, po ewolucji z prawej, obie zwrócone w prawo,
- * więc czyta się je jak drogę od jednej do drugiej. Pusta lista, gdy linii nie ma w treści.
+ * Stanowiska form jednej drogi ewolucji (`displayPath`): od formy bazowej z lewej do ostatniego
+ * stopnia z prawej, wszystkie zwrócone w prawo, więc czyta się je jak drogę. Scena mieści pięć
+ * stopni. Pusta lista, gdy linii nie ma w treści.
  */
-export function formStands(content: GameContent, lineId: string): Stand[] {
+export function formStands(content: GameContent, lineId: string, form: string | null): Stand[] {
   const line = content.lines.get(lineId);
   if (line === undefined) return [];
-  // Slot 0 gracza leży najdalej w prawo, więc forma po ewolucji dostaje slot 0.
-  return [
-    { unitId: line.forms[0], position: BASE_FORM_AT, side: 0, slot: 1 },
-    { unitId: line.forms[1], position: EVOLVED_FORM_AT, side: 0, slot: 0 },
-  ];
+  const path = displayPath(line, form ?? line.base).slice(0, SQUAD_SLOTS);
+  const at = spread(path.length, PATH_FROM, path.length <= 3 ? PATH_TO_SHORT : PATH_TO_LONG);
+  // Slot 0 gracza leży najdalej w prawo, więc ostatni stopień dostaje slot 0.
+  return path.map((unitId, index) => ({
+    unitId,
+    position: at[index] ?? PATH_FROM,
+    side: 0 as const,
+    slot: path.length - 1 - index,
+  }));
 }
 
 export interface StandScene {

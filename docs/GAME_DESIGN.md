@@ -156,26 +156,29 @@ Pociski w locie w chwili końca walki nie mają znaczenia.
 
 ### 5.1 Linie, formy i egzemplarze
 
-- **Linia** to typ bohatera z 2 formami (bazowa i ewolucja). Docelowo 6 linii, czyli 12 jednostek gracza.
-- Forma po ewolucji to **inny bohater**: własne części graficzne, własne statystyki bazowe, może mieć inny typ ataku i inne cechy. Obie formy dzielą rig i klipy animacji.
+- **Linia** to typ bohatera z **drzewem form** połączonych ewolucjami (decyzja autora z 2026-10-03, ADR 0016). Forma może ewoluować w jedną formę, w kilka do wyboru albo w żadną (koniec drogi).
+- Forma po ewolucji to **inny bohater**: własne części graficzne, własne statystyki bazowe, może mieć inny typ ataku i inne cechy. Wszystkie formy linii dzielą rig i klipy animacji.
 - Gracz posiada **egzemplarze** bohaterów (decyzja autora z 2026-10-02). Każdy egzemplarz ma własne ulepszenia, formę i runy. Tej samej linii można mieć kilka egzemplarzy i wystawić ich w składzie obok siebie.
 - Gracz zaczyna z dwoma bohaterami: po jednym z każdej linii startowej (Miecznik i Łucznik). Kolejnych kupuje w sklepie (sekcja 5.5).
 - **Stan na teraz:** linie startowe to miecznik i łucznik; w sklepie są dodatkowo dwie linie testowe, Tarczownik → Strażnik (dużo życia i odrzutu; Strażnik leczy sam siebie) oraz Akolita → Kapłan (leczenie drużyny). Docelowy roster autor uzupełni przy wykańczaniu gry. Forma po ewolucji miecznika i łucznika ma inny typ ataku niż forma bazowa.
+- **Drzewa testowe** (z kopii obecnych bohaterów, do sprawdzenia rozgałęzień): każda linia ma drogę przez swoją dotychczasową formę po ewolucji i drugą drogę przez kopię formy po ewolucji innej linii (Miecznik → Rycerz albo Strażnik (kopia); Łucznik → Strzelec wyborowy albo Kapłan (kopia); Tarczownik → Strażnik albo Rycerz (kopia); Akolita → Kapłan albo Strzelec wyborowy (kopia)). Każda z tych form ma jeszcze jeden stopień: tę samą postać z życiem i atakiem ×1,35 („… II”).
 
 ### 5.2 Ulepszenia i ewolucja
 
-Ścieżka jednej linii:
+Drzewo jednej linii (obecny kształt testowy):
 
 ```
-A0 → A1 → A2 → A3 → A4 → [ewolucja] → B0 → B1 → B2 → B3 → B4
+                      ┌→ [ewolucja] → B0 … B4 → [ewolucja] → C0 … C4
+A0 → A1 → … → A4 ─────┤
+                      └→ [ewolucja] → B'0 … B'4 → [ewolucja] → C'0 … C'4
 ```
 
 - Ulepszenie kosztuje złoto i zwiększa `maxHp` oraz `attack` o 10% wartości bazowej formy (wyjściowo). Pozostałe statystyki się nie zmieniają.
-- Po 4 ulepszeniach formy bazowej dostępna jest **ewolucja**: osobny zakup za złoto, zamienia bohatera na formę drugą bez ulepszeń (B0).
-- Forma druga ma kolejne 4 ulepszenia. Dalszej ewolucji nie ma.
-- Ulepszenia i ewolucja są nieodwracalne.
+- Po 4 ulepszeniach bieżącej formy dostępna jest **ewolucja** w jedną z jej następnych form: osobny zakup za złoto (koszt zależy od formy docelowej), zamienia bohatera na tę formę bez ulepszeń. Gdy następnych form jest kilka, gracz wybiera jedną.
+- Każda forma ma własne 4 ulepszenia. Forma bez następnych jest końcem drogi.
+- Ulepszenia i ewolucja są nieodwracalne, także wybór drogi. Kto chce drugiej drogi, kupuje w sklepie kolejny egzemplarz linii.
 
-Koszty (wyjściowe, do balansu w M5): ulepszenia formy A `50, 80, 120, 180`, ewolucja `250`, ulepszenia formy B `300, 400, 550, 750`.
+Koszty (wyjściowe, do balansu): ulepszenia formy bazowej `50, 80, 120, 180`; ewolucja na drugi stopień `250`, jego ulepszenia `300, 400, 550, 750`; ewolucja na trzeci stopień `1200`, jego ulepszenia `1000, 1300, 1700, 2200` (trzeci stopień to na razie liczby robocze).
 
 ### 5.3 Runy
 
@@ -275,6 +278,7 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 | Kwestia | Stan |
 |---|---|
 | Roster: pozostałe cztery linie bohaterów | Autor uzupełni przy wykańczaniu gry; do tego czasu grają dwie linie testowe |
+| Docelowe drzewa ewolucji i koszty trzeciego stopnia | Autor poda razem z rosterem; do tego czasu drzewa z kopii (§5.1) |
 | Motywy, wrogowie i bossowie światów 2–5 | Autor poda później; do tego czasu istnieje jeden świat testowy „Las” |
 | Ostateczne koszty ulepszeń, nagrody i ułamek za powtórki | Po ustaleniu pełnego rosteru, na podstawie raportu balansu |
 | Czy gra może być osadzana na innych stronach (`frame-ancestors`) | Przed premierą |
