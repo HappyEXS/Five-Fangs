@@ -1,0 +1,16 @@
+{
+  "squads": [
+    {
+      "id": "starter",
+      "members": [{ "slot": 0, "line": "swordsman" }, { "slot": 1, "line": "archer" }]
+    }
+  ],
+  "levels": {
+    "w1_l1": { "squad": "starter", "expectedRank": 0 },
+    "w1_l2": { "squad": "starter", "expectedRank": 1 },
+    "w1_l3": { "squad": "starter", "expectedRank": 3 },
+    "w1_l4": { "squad": "starter", "expectedRank": 5 },
+    "w1_l5": { "squad": "starter", "expectedRank": 7 },
+    "w1_l6": { "squad": "starter", "expectedRank": 9 }
+  }
+}

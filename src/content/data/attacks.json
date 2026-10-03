@@ -1,0 +1,32 @@
+[
+  {
+    "id": "slash",
+    "swingDuration": 0.4,
+    "hitFraction": 0.5,
+    "clip": "slash",
+    "stance": "sword"
+  },
+  {
+    "id": "cleave",
+    "swingDuration": 0.7,
+    "hitFraction": 0.6,
+    "clip": "cleave",
+    "stance": "sword"
+  },
+  {
+    "id": "shoot",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "shoot",
+    "stance": "bow",
+    "projectile": { "speed": 400, "sprite": "arrow" }
+  },
+  {
+    "id": "snipe",
+    "swingDuration": 0.9,
+    "hitFraction": 0.7,
+    "clip": "snipe",
+    "stance": "longbow",
+    "projectile": { "speed": 700, "sprite": "arrow" }
+  }
+]

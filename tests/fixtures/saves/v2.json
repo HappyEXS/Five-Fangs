@@ -1,0 +1,21 @@
+{
+  "saveVersion": 2,
+  "gameVersion": "0.1.0",
+  "gold": 420,
+  "heroes": [
+    { "id": 1, "line": "swordsman", "form": 1, "upgrades": 2, "runes": ["rune_hp_200", null] },
+    { "id": 2, "line": "archer", "form": 0, "upgrades": 4, "runes": [null, "rune_attack_10"] },
+    { "id": 3, "line": "swordsman", "form": 0, "upgrades": 0, "runes": [null, null] },
+    { "id": 4, "line": "guard", "form": 0, "upgrades": 1, "runes": [null, null] }
+  ],
+  "nextHeroId": 5,
+  "runes": ["rune_hp_100", "rune_hp_200", "rune_attack_10"],
+  "levels": {
+    "w1_l1": { "cleared": true, "bestTicks": 412 },
+    "w1_l2": { "cleared": true, "bestTicks": 655 },
+    "w1_l3": { "cleared": true, "bestTicks": 731 },
+    "w1_l4": { "cleared": true, "bestTicks": 1180 }
+  },
+  "squad": [1, 4, 3, 2, null],
+  "settings": { "lang": "en", "battleSpeed": 4 }
+}

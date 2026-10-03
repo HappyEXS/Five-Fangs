@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+
+      # Wersję pnpm wyznacza pole packageManager w package.json.
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      # Z pomiarem pokrycia: próg dla src/sim jest w vite.config.ts.
+      - name: Unit tests
+        run: pnpm test:coverage
+
+      - name: Golden tests
+        run: pnpm test:golden
+
+      - name: Validate content
+        run: pnpm validate-content
+
+      - name: Module boundaries
+        run: pnpm deps:check
+
+      - name: Build
+        run: pnpm build
+
+      - name: Size budgets
+        run: pnpm check:size
+
+      - name: Dist cleanliness
+        run: pnpm check:dist
+
+      # Testy end-to-end na buildzie produkcyjnym serwowanym przez vite preview.
+      - name: Install browser for end-to-end tests
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: pnpm test:e2e

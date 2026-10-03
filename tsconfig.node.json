@@ -1,0 +1,18 @@
+{
+  // Kod, który musi działać w Node bez DOM: skrypty, konfiguracja oraz core, sim i content.
+  // Brak biblioteki "dom" sprawia, że użycie API przeglądarki w tych modułach jest błędem typów.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["es2022"],
+    "types": ["node"]
+  },
+  "include": [
+    "scripts",
+    "vite.config.ts",
+    "playwright.config.ts",
+    "src/core",
+    "src/sim",
+    "src/content",
+    "tests/golden"
+  ]
+}

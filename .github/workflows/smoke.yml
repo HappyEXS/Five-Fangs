@@ -1,0 +1,35 @@
+name: Smoke check
+
+# Uruchamia się po udanym CI na main. Render wdraża ten sam commit po przejściu checków
+# (autoDeployTrigger: checksPass), a ten workflow czeka, aż strona zacznie go serwować.
+# Adres strony: zmienna repozytorium SITE_URL (Settings → Secrets and variables → Actions → Variables).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          # Poprzedni commit jest potrzebny do sprawdzenia, czy buildFilter pominął deploy.
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+
+      - name: Smoke check
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          EXPECTED_COMMIT: ${{ github.event.workflow_run.head_sha }}
+        run: node scripts/smoke-check.ts

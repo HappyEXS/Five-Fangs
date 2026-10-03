@@ -4,11 +4,14 @@
 
 ## 1. Pętla gry
 
-1. Gracz wybiera poziom na mapie (5 światów po 6 poziomów, odblokowywane kolejno).
-2. Układa skład: do 5 bohaterów na 5 slotach, każdemu może włożyć do 2 run.
-3. Walka toczy się automatycznie. Gracz nie ma wpływu na jej przebieg; może ją tylko wstrzymać, zmienić prędkość odtwarzania (x1/x2/x4) albo wyjść.
-4. Wygrana daje złoto, czasem runę lub nową linię bohaterów, i odblokowuje następny poziom.
-5. Złoto idzie na ulepszenia i ewolucje bohaterów.
+Gra otwiera się **ekranem startowym** z przyciskiem „Graj”. Ekranem głównym jest **mapa**: z niej gracz przechodzi do **składu**, **informacji o bohaterach** i **sklepu** i na nią wraca po każdej walce. Z tych trzech ekranów wraca się tylko na mapę.
+
+1. Na **mapie** gracz wybiera poziom (5 światów po 6 poziomów, odblokowywane kolejno), widzi jego przeciwników i nagrody i zaczyna walkę bieżącym składem. Mapa nie pozwala zmieniać składu.
+2. Na ekranie **składu** ustawia do 5 bohaterów na 5 slotach, ulepsza ich, ewoluuje i wkłada im runy (do 2 na bohatera).
+3. W **sklepie** kupuje za złoto nowych bohaterów; sklep służy tylko do kupowania.
+4. W **informacjach o bohaterach** ogląda obie formy każdej linii, ich statystyki i cechy oraz drogę ulepszeń i ewolucji z kosztami.
+5. Walka toczy się automatycznie. Gracz nie ma wpływu na jej przebieg; może ją tylko wstrzymać, zmienić prędkość odtwarzania (x1/x2/x4) albo wyjść.
+6. Wygrana daje złoto, czasem runę, i odblokowuje następny poziom. Po walce gra pokazuje wynik i nagrody; jedyny przycisk wraca na mapę.
 
 W walce **nie ma losowości**: ten sam skład na tym samym poziomie zawsze daje ten sam wynik. Gra jest więc bliższa łamigłówce: przegrana oznacza, że trzeba zmienić skład, ustawienie, runy albo ulepszyć bohaterów.
 
@@ -43,12 +46,31 @@ Typ ataku ma **stały czas zamachu** (`swingDuration`, np. 0,4 s) i `hitFraction
 
 Odstęp nie może być krótszy niż zamach; walidator treści odrzuca takie dane. Gracz widzi w UI wartości efektywne, po zaokrągleniu do ticków.
 
-### Wartości wyjściowe jednostek testowych (M1–M2)
+### Jednostki testowe
 
-| Jednostka | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Atak |
+Do czasu, aż autor gry uzupełni roster, gra zawiera dwie linie bohaterów po dwie formy oraz jednostki specjalne świata „Las”. Nazwy i liczby są tymczasowe; balans pilnuje `pnpm balance`.
+
+| Jednostka | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|
-| swordsman (melee) | 600 | 40 | 60 | 1,0 | 30 | 15 | slash: zamach 0,4 s, trafienie 0,5 |
-| archer (ranged) | 350 | 30 | 50 | 0,8 | 220 | 0 | shoot: zamach 0,6 s, wystrzał 0,5, pocisk 400 jedn./s |
+| Miecznik `swordsman_a` (melee) | 600 | 40 | 60 | 1,0 | 30 | 15 | `slash` |
+| Rycerz `swordsman_b` (melee) | 950 | 85 | 60 | 0,8 | 30 | 25 | `cleave`, `splash` 45 |
+| Łucznik `archer_a` (ranged) | 350 | 30 | 50 | 0,8 | 220 | 0 | `shoot` |
+| Strzelec wyborowy `archer_b` (ranged) | 480 | 75 | 50 | 0,6 | 300 | 0 | `snipe`, `pierce` |
+| Osiłek `brute` (specjalna, melee) | 800 | 35 | 45 | 0,7 | 30 | 25 | `slash` |
+| Łupieżca `raider` (specjalna, melee) | 520 | 30 | 75 | 1,3 | 30 | 5 | `slash`, `lifesteal` 35% |
+| Szaman `shaman` (specjalna, ranged) | 300 | 18 | 45 | 0,7 | 200 | 0 | `shoot`, `periodicHeal` drużyny: 18 co 2,5 s |
+| Herszt `chieftain` (boss, melee) | 2200 | 60 | 40 | 0,6 | 30 | 40 | `cleave`, `splash` 40, `enrage` poniżej 50%: +60% |
+
+Typy ataku:
+
+| Typ | Zamach | Trafienie | Klip, postawa | Pocisk |
+|---|---|---|---|---|
+| `slash` | 0,4 s | 0,5 | `slash`, `sword` | brak |
+| `cleave` | 0,7 s | 0,6 | `cleave`, `sword` | brak |
+| `shoot` | 0,6 s | 0,5 | `shoot`, `bow` | 400 jedn./s |
+| `snipe` | 0,9 s | 0,7 | `snipe`, `longbow` | 700 jedn./s |
+
+Forma po ewolucji ma inny typ ataku niż forma bazowa: Rycerz bije wolniej, mocniej i obszarowo, Strzelec wyborowy celuje dłużej, a jego strzały lecą szybciej i przebijają.
 
 ## 4. Przebieg walki
 
@@ -132,30 +154,35 @@ Pociski w locie w chwili końca walki nie mają znaczenia.
 
 ## 5. Bohaterowie i progresja
 
-### 5.1 Linie i formy
+### 5.1 Linie, formy i egzemplarze
 
-- **6 linii bohaterów, każda z 2 formami** (bazowa i ewolucja): łącznie 12 jednostek gracza.
-- Forma po ewolucji to **inny bohater**: własne części graficzne, własne statystyki bazowe, może mieć inny typ ataku i inne cechy. Obie formy dzielą rig i klipy animacji.
-- Gracz zaczyna z 3 liniami. Linie 4, 5 i 6 odblokowują się po pokonaniu bossów światów 1, 2 i 3.
+- **Linia** to typ bohatera z **drzewem form** połączonych ewolucjami (decyzja autora z 2026-10-03, ADR 0016). Forma może ewoluować w jedną formę, w kilka do wyboru albo w żadną (koniec drogi).
+- Forma po ewolucji to **inny bohater**: własne części graficzne, własne statystyki bazowe, może mieć inny typ ataku i inne cechy. Wszystkie formy linii dzielą rig i klipy animacji.
+- Gracz posiada **egzemplarze** bohaterów (decyzja autora z 2026-10-02). Każdy egzemplarz ma własne ulepszenia, formę i runy. Tej samej linii można mieć kilka egzemplarzy i wystawić ich w składzie obok siebie.
+- Gracz zaczyna z dwoma bohaterami: po jednym z każdej linii startowej (Miecznik i Łucznik). Kolejnych kupuje w sklepie (sekcja 5.5).
+- **Stan na teraz:** linie startowe to miecznik i łucznik; w sklepie są dodatkowo dwie linie testowe, Tarczownik → Strażnik (dużo życia i odrzutu; Strażnik leczy sam siebie) oraz Akolita → Kapłan (leczenie drużyny). Docelowy roster autor uzupełni przy wykańczaniu gry. Forma po ewolucji miecznika i łucznika ma inny typ ataku niż forma bazowa.
+- **Drzewa testowe** (z kopii obecnych bohaterów, do sprawdzenia rozgałęzień): każda linia ma drogę przez swoją dotychczasową formę po ewolucji i drugą drogę przez kopię formy po ewolucji innej linii (Miecznik → Rycerz albo Strażnik (kopia); Łucznik → Strzelec wyborowy albo Kapłan (kopia); Tarczownik → Strażnik albo Rycerz (kopia); Akolita → Kapłan albo Strzelec wyborowy (kopia)). Każda z tych form ma jeszcze jeden stopień: tę samą postać z życiem i atakiem ×1,35 („… II”).
 
 ### 5.2 Ulepszenia i ewolucja
 
-Ścieżka jednej linii:
+Drzewo jednej linii (obecny kształt testowy):
 
 ```
-A0 → A1 → A2 → A3 → A4 → [ewolucja] → B0 → B1 → B2 → B3 → B4
+                      ┌→ [ewolucja] → B0 … B4 → [ewolucja] → C0 … C4
+A0 → A1 → … → A4 ─────┤
+                      └→ [ewolucja] → B'0 … B'4 → [ewolucja] → C'0 … C'4
 ```
 
 - Ulepszenie kosztuje złoto i zwiększa `maxHp` oraz `attack` o 10% wartości bazowej formy (wyjściowo). Pozostałe statystyki się nie zmieniają.
-- Po 4 ulepszeniach formy bazowej dostępna jest **ewolucja**: osobny zakup za złoto, zamienia bohatera na formę drugą bez ulepszeń (B0).
-- Forma druga ma kolejne 4 ulepszenia. Dalszej ewolucji nie ma.
-- Ulepszenia i ewolucja są nieodwracalne.
+- Po 4 ulepszeniach bieżącej formy dostępna jest **ewolucja** w jedną z jej następnych form: osobny zakup za złoto (koszt zależy od formy docelowej), zamienia bohatera na tę formę bez ulepszeń. Gdy następnych form jest kilka, gracz wybiera jedną.
+- Każda forma ma własne 4 ulepszenia. Forma bez następnych jest końcem drogi.
+- Ulepszenia i ewolucja są nieodwracalne, także wybór drogi. Kto chce drugiej drogi, kupuje w sklepie kolejny egzemplarz linii.
 
-Koszty (wyjściowe, do balansu w M5): ulepszenia formy A `50, 80, 120, 180`, ewolucja `250`, ulepszenia formy B `300, 400, 550, 750`.
+Koszty (wyjściowe, do balansu): ulepszenia formy bazowej `50, 80, 120, 180`; ewolucja na drugi stopień `250`, jego ulepszenia `300, 400, 550, 750`; ewolucja na trzeci stopień `1200`, jego ulepszenia `1000, 1300, 1700, 2200` (trzeci stopień to na razie liczby robocze).
 
 ### 5.3 Runy
 
-- Runa to żeton z płaską premią do jednej statystyki, np. `attack +25` albo `maxHp +200`. Na start runy dotyczą tylko `attack` i `maxHp`.
+- Runa to żeton z płaską premią do jednej statystyki. Runy dotyczą tylko `attack` i `maxHp` i mają trzy wielkości: atak +10, +25, +50; życie +100, +200, +400 (decyzja autora z 2026-10-02).
 - Każda linia ma **2 sloty na runy**; sloty zostają po ewolucji.
 - Runy są nagrodą za **pierwsze przejście** wybranych poziomów. Nie da się ich kupić. Wyjściowo runę daje co drugi poziom, czyli ok. 15 run w całej grze.
 - Runy można dowolnie wkładać, wyjmować i przekładać między bohaterami, bez kosztu.
@@ -164,9 +191,20 @@ Koszty (wyjściowe, do balansu w M5): ulepszenia formy A `50, 80, 120, 180`, ewo
 
 ### 5.4 Złoto
 
-- Jedyna waluta. Źródło: nagrody za poziomy. Odpływ: ulepszenia i ewolucje. Sklepu nie ma.
+- Jedyna waluta. Źródło: nagrody za poziomy. Odpływ: ulepszenia, ewolucje i zakupy bohaterów w sklepie.
 - Pierwsze przejście poziomu daje pełną nagrodę. Każda powtórka daje 25% złota i nic poza tym.
 - Wynik walki jest powtarzalny, więc powtórka poziomu składem, który już wygrał, to pewne złoto. Ułamek 25% ma sprawić, że farmienie jest możliwe, ale wolniejsze niż postęp.
+
+### 5.5 Sklep
+
+- Sklep sprzedaje bohaterów za złoto. Wszystkie linie są dostępne od początku gry; ogranicza tylko cena.
+- Zakup daje nowy egzemplarz w formie bazowej, bez ulepszeń i run. Jeśli w składzie jest wolny slot, bohater od razu go zajmuje (pierwszy wolny od frontu); inaczej trafia poza skład.
+- Tę samą linię można kupić wiele razy; każdy egzemplarz kosztuje tyle samo. Liczba posiadanych bohaterów nie ma limitu.
+- Bohaterów nie da się sprzedać.
+- Jednostek specjalnych (przeciwników takich jak Osiłek czy Herszt) nie ma w sklepie.
+- Ceny wyjściowe: Miecznik i Łucznik 200, Tarczownik i Akolita 300.
+
+Nagrody świata „Las” są policzone tak, by pierwsze przejścia opłacały ulepszenia dwóch bohaterów startowych. Zakup dodatkowych bohaterów wymaga więc powtarzania poziomów albo rezygnacji z części ulepszeń; ceny i nagrody do korekty przy docelowym balansie.
 
 ## 6. Cechy pasywne
 
@@ -176,21 +214,25 @@ Jednostka może mieć kilka cech różnych typów, najwyżej jedną danego typu.
 |---|---|---|
 | `periodicHeal` | `target`: `self` \| `team`; `amount`; `interval` (s) | Co `interval` leczy siebie albo wszystkich żywych sojuszników (wraz z sobą) o `amount`. Licznik biegnie od początku walki. |
 | `pierce` | brak | Pociski tej jednostki przebijają: trafiają każdego wroga na drodze. Tylko dla ranged. |
+| `splash` | `radius` (jednostki świata) | Cios wręcz zadaje pełne obrażenia także każdemu innemu żywemu wrogowi, który stoi nie dalej niż `radius` od celu. Odrzut dostaje tylko cel. Jeśli cel zginął w trakcie zamachu, cios chybia w całości. Tylko dla melee. |
+| `lifesteal` | `percent` (1–100) | Po każdym trafieniu, wręcz albo pociskiem, jednostka leczy się o `percent` procent obrażeń ciosu (zaokrąglenie w dół). Liczą się obrażenia ciosu, nie HP, które cel jeszcze miał. Leczenie wchodzi w rozstrzygnięcie tego samego ticka, więc może uratować przed śmiercią. Martwy strzelec nie leczy się z pocisków, które jeszcze lecą. |
+| `enrage` | `hpBelow` (1–99, procent życia), `attackBonus` (procent) | Gdy HP jednostki jest niższe niż `hpBelow` procent `maxHp`, jej ataki zadają o `attackBonus` procent więcej (zaokrąglenie w dół). Liczy się HP z chwili trafienia wręcz albo wystrzału; pocisk niesie obrażenia z chwili wystrzału. Uleczenie powyżej progu kończy szał. |
+
+Cechy się łączą: cios obszarowy jednostki w szale zadaje powiększone obrażenia wszystkim trafionym, a kradzież życia leczy za każdego z nich. Odległości ciosu obszarowego liczone są z pozycji z początku ticka.
 
 Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus kod w symulacji z testami. Dodanie nowej cechy to świadoma zmiana symulacji (nowe hashe golden), a nie konfiguracja. Wrogowie i bossowie korzystają z tych samych cech.
 
 ## 7. Poziomy i światy
 
-- **5 światów po 6 poziomów.** Każdy świat ma własne tło i własny zestaw wrogów.
+- **5 światów po 6 poziomów.** Każdy świat ma własne tło i własny zestaw wrogów. Na razie istnieje jeden świat testowy, „Las”; motywy pozostałych poda autor gry.
 - Szósty poziom świata to **boss**: większa jednostka z unikalną cechą lub kombinacją cech, zwykle z obstawą.
+- **Wrogami są zwykłe postacie z gry oraz jednostki specjalne.** Poziom może wystawić dowolną formę bohatera (np. Miecznika albo Rycerza) i jednostki, których gracz nie może zdobyć ani ewoluować (Osiłek, Łupieżca, Szaman, Herszt).
 - Poziomy odblokowują się kolejno. Przeszły poziom można powtarzać.
 - Poziom to skład wrogów na slotach, z poziomem siły każdej jednostki, oraz nagrody:
 
 ```json
 {
   "id": "w2_l1",
-  "world": "world_2",
-  "name": "level.w2_l1.name",
   "enemies": [
     { "slot": 0, "unit": "brute", "level": 7 },
     { "slot": 1, "unit": "brute", "level": 7 },
@@ -200,12 +242,31 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 }
 ```
 
-`level` wroga skaluje `maxHp` i `attack` tak samo jak ulepszenia bohatera: +10% wartości bazowej na poziom (wyjściowo).
+Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania. Nazwa poziomu to tekst `level.<id>.name` w słownikach, nazwa świata `world.<id>.name`.
+
+`level` wroga skaluje `maxHp` i `attack` tak samo jak ulepszenia bohatera: +10% wartości bazowej na poziom (wyjściowo, `upgradePercent` w `progression.json`), z zaokrągleniem w dół. Mapa pokazuje go tak samo jak ulepszenia bohatera, jako „+N” przy nazwie; wróg na poziomie 0 nie ma oznaczenia.
+
+### Świat 1: Las (testowy)
+
+| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Ranga oczekiwana | Złoto | Runa |
+|---|---|---|---|---|
+| Skraj lasu | 0: Osiłek 0 | A0 | 100 | |
+| Zasadzka | 0: Miecznik 0; 2: Łucznik 0 | A1 | 400 | życie +100 |
+| Obóz szamana | 0: Osiłek 4; 2: Szaman 4 | A3 | 860 | |
+| Łupieżcy | 0, 1: Łupieżca 3; 3: Łucznik 3 | B0 | 1400 | atak +10 |
+| Straż herszta | 0: Rycerz 1; 1: Osiłek 5; 3: Strzelec wyborowy 1 | B2 | 2600 | |
+| Herszt | 0: Herszt 3; 1: Łupieżca 5; 3: Szaman 4 | B4 | 1000 | życie +200 |
+
+Ranga oczekiwana to najniższa ranga obu bohaterów składu referencyjnego (Miecznik w slocie 1, Łucznik w slocie 2, bez run), przy której poziom da się wygrać; pilnuje jej raport `pnpm balance`. Złoto za pierwsze przejście poziomu wystarcza dokładnie na rangę oczekiwaną na następnym. Każda cecha pasywna występuje w tym świecie co najmniej raz.
 
 ## 8. Prezentacja
 
 - Widok z boku, animacja wycinankowa (cutout). Grafika gładka, rysowana w 2× rozdzielczości logicznej 1280×720.
+- **Scena jest płaska, bez perspektywy** (decyzja autora z 2026-10-02): wszystkie postacie stoją i chodzą dokładnie po linii podłogi, na jednej wysokości. Sloty w interfejsie leżą w jednym rzędzie.
+- Interfejs to teatrzyk z wycinanek (ADR 0015): na każdym ekranie ta sama scena z linią podłogi, a przyciski, kafle mapy i karty to papierowe rekwizyty. Pięć kłów pod linią podłogi oznacza pięć slotów składu.
+- Walkę oddziela od reszty gry metalowa brama: zamyka się po ekranie startowym, przed walką i po niej; wynik walki wisi na zamkniętej bramie (ADR 0015).
 - Każda postać ma animacje: idle, chód, atak, błysk przy trafieniu, śmierć (obrót wokół stóp i zanikanie).
+- Nad każdą postacią jest pasek życia z bieżącym życiem jako liczbą (decyzja autora z 2026-10-03: sam pasek nie pokazuje skali).
 - Liczby obrażeń i leczenia unoszą się nad postacią i zanikają.
 - Desktop jest platformą główną (mysz, duży ekran). Telefon w poziomie ma działać, bez gwarancji wygody.
 - Języki: polski i angielski.
@@ -213,14 +274,19 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 
 ## 9. Kwestie otwarte
 
-Do rozstrzygnięcia z autorem gry przed wskazanym milestone'em; do tego czasu nie zgadujemy.
+Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 
-| Kwestia | Termin |
+| Kwestia | Stan |
 |---|---|
-| Roster: nazwy, role i cechy 6 linii oraz ich form | przed M5 |
-| Wrogowie i bossowie pięciu światów, motywy światów | przed M5 |
-| Kolejne cechy pasywne poza `periodicHeal` i `pierce` | przed M5 |
-| Ostateczne koszty ulepszeń, nagrody i ułamek za powtórki | M5, na podstawie raportu balansu |
-| Czy runy obejmą inne statystyki (`attackSpeed`, `moveSpeed`, `range`, `knockback`) | M5 |
-| Czy gra może być osadzana na innych stronach (`frame-ancestors`) | przed premierą |
-| Hosting publiczny | przed premierą (M6) |
+| Roster: pozostałe cztery linie bohaterów | Autor uzupełni przy wykańczaniu gry; do tego czasu grają dwie linie testowe |
+| Docelowe drzewa ewolucji i koszty trzeciego stopnia | Autor poda razem z rosterem; do tego czasu drzewa z kopii (§5.1) |
+| Motywy, wrogowie i bossowie światów 2–5 | Autor poda później; do tego czasu istnieje jeden świat testowy „Las” |
+| Ostateczne koszty ulepszeń, nagrody i ułamek za powtórki | Po ustaleniu pełnego rosteru, na podstawie raportu balansu |
+| Czy gra może być osadzana na innych stronach (`frame-ancestors`) | Przed premierą |
+| Hosting publiczny | Przed premierą (M6) |
+
+Rozstrzygnięte 2026-10-02:
+
+- Nowe cechy pasywne: `splash`, `lifesteal`, `enrage` (sekcja 6).
+- Runy obejmują tylko `attack` i `maxHp`, w trzech wielkościach każdej statystyki.
+- Wrogami na poziomach mogą być zwykłe postacie z gry (formy bohaterów) oraz jednostki specjalne, których gracz nie może zdobyć ani ewoluować.

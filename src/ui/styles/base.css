@@ -1,0 +1,176 @@
+/* Teatrzyk z wycinanek: jedna scena ze stałą linią podłogi, a interfejs to papierowe rekwizyty
+   z grubym konturem i twardym cieniem. Bez gradientów i półprzezroczystych paneli.
+   Scena ma proporcje 16:9; jej położenie i rozmiar ustawia game/stage.ts. Rozmiar czcionki
+   #stage rośnie razem ze sceną, więc rozmiary podajemy w em, a położenie na scenie w procentach. */
+
+@font-face {
+  font-family: "Protest Strike";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../../assets/fonts/protest-strike-latin-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Protest Strike";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../../assets/fonts/protest-strike-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Sofia Sans Condensed";
+  font-style: normal;
+  font-weight: 1 1000;
+  font-display: swap;
+  src: url("../../assets/fonts/sofia-sans-condensed-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Sofia Sans Condensed";
+  font-style: normal;
+  font-weight: 1 1000;
+  font-display: swap;
+  src: url("../../assets/fonts/sofia-sans-condensed-latin-ext-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Paleta. Kolory sceny (niebo, ziemia, linia podłogi) powtarza render/background.ts. */
+  --ink: #241f3d;
+  --dusk: #3f4c80;
+  --pine: #2c5446;
+  --paper: #efe6cf;
+  --marigold: #f0b429;
+  --madder: #c9463d;
+
+  /* Stary jasnobrązowy papier okien, przycisków i kafli; --paper to kość słoniowa kłów
+     i napisów na scenie. Tekstura (ziarno, włókna, plamy) przychodzi z ui/paper.ts. */
+  --sheet: #d9c29b;
+  --sheet-light: #e6d4b2;
+  --sheet-shade: #b9a17b;
+  /* Przypalone brzegi arkusza. */
+  --burn: rgb(118 76 30 / 42%);
+
+  /* Żelazo bramy przed i po walce (Gate.tsx). */
+  --iron: #3e4351;
+  --iron-dark: #272a33;
+  --iron-light: #79819a;
+  --iron-glint: #545a6a;
+
+  /* Odcienie pochodne. */
+  --paper-shade: #d9cdae;
+  --ink-soft: #5d5044;
+  --madder-deep: #9c2f27;
+  --marigold-light: #ffc94f;
+  --moss: #8db35a;
+  --moss-deep: #3f6a2a;
+
+  --display: "Protest Strike", "Arial Narrow", "Segoe UI", sans-serif;
+  --text: "Sofia Sans Condensed", "Arial Narrow", "Segoe UI", system-ui, sans-serif;
+
+  /* Grubość konturu i przesunięcie twardego cienia. */
+  --line: 0.13em;
+  --drop: 0.2em;
+
+  /* Linia podłogi sceny: GROUND_Y / LOGICAL_HEIGHT z render/camera.ts. */
+  --floor: 77.78%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--text);
+}
+
+#stage {
+  position: absolute;
+  overflow: hidden;
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#ui {
+  position: absolute;
+  inset: 0;
+  font-size: 1.125em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+dl,
+dd {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 0.17em solid var(--marigold);
+  outline-offset: 0.17em;
+}
+
+/* Na papierze nagietek ginie; tam obwódka fokusu jest atramentowa. */
+.sheet :focus-visible,
+.banner :focus-visible {
+  outline-color: var(--ink);
+}
+
+/* Ekran sceny wypełnia całą scenę; jego elementy stoją w stałych miejscach sceny. */
+.screen {
+  position: absolute;
+  inset: 0;
+}

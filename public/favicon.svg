@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Five Fangs</title>
+  <rect width="64" height="64" rx="12" fill="#1b2233"/>
+  <path d="M14 14h36c-2 14-8 28-18 38C22 42 16 28 14 14z" fill="#eef1f6"/>
+  <path d="M24 14h16c-1 8-4 16-8 23-4-7-7-15-8-23z" fill="#e3b34b"/>
+</svg>

@@ -1,0 +1,44 @@
+# Render Blueprint: statyczna strona gry (docs/DEPLOY.md, ADR 0006).
+# Nagłówki muszą być identyczne z public/_headers; pilnuje tego test
+# scripts/lib/render-config.test.ts.
+services:
+  - type: web
+    runtime: static
+    name: five-fangs
+    branch: main
+    # Deploy dopiero po przejściu checków CI na commicie.
+    autoDeployTrigger: checksPass
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    staticPublishPath: ./dist
+    buildFilter:
+      ignoredPaths:
+        - docs/**
+        - reports/**
+        - tests/**
+        - "**/*.md"
+        - "**/*.test.ts"
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /
+        name: Cache-Control
+        value: no-cache
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+      - path: /version.json
+        name: Cache-Control
+        value: no-cache
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=(), payment=(), usb=()

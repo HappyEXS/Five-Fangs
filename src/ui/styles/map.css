@@ -1,0 +1,309 @@
+/* Mapa: ekran główny gry. */
+
+/* Rogi ekranu głównego */
+
+.corner-mark {
+  position: absolute;
+  top: 2.4%;
+  left: 1.6%;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.wordmark {
+  font: 400 1.3em / 1 var(--display);
+  letter-spacing: 0.04em;
+}
+
+.corner-purse {
+  position: absolute;
+  top: 2.2%;
+  right: 1.6%;
+}
+
+.rail {
+  position: absolute;
+  top: 12.5%;
+  left: 1.6%;
+  display: grid;
+  gap: 0.65em;
+}
+
+.rail-btn {
+  justify-content: flex-start;
+  width: 7.4em;
+  padding-left: 0.55em;
+  font-size: 0.95em;
+}
+
+/* Mapa: szlak z nieregularnych kafli */
+
+.world-head {
+  position: absolute;
+  top: 1.8%;
+  left: 56%;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  translate: -50% 0;
+}
+
+.world-name {
+  font: 400 1.7em / 1 var(--display);
+  letter-spacing: 0.03em;
+}
+
+.trail {
+  position: absolute;
+  top: 8.5%;
+  right: 3%;
+  left: 15%;
+  height: 35%;
+}
+
+.trail-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.trail-line polyline {
+  fill: none;
+  stroke: var(--paper);
+  stroke-dasharray: 0.12em 0.62em;
+  stroke-linecap: round;
+  stroke-width: 0.24em;
+  vector-effect: non-scaling-stroke;
+}
+
+.trail-tiles {
+  position: absolute;
+  inset: 0;
+}
+
+/* Punkt zaczepienia kafla: sam nie ma rozmiaru, kafel jest na nim wyśrodkowany. */
+.tile-spot {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.tile {
+  position: absolute;
+  top: -3.1em;
+  left: -4em;
+  display: grid;
+  width: 8em;
+  height: 6.2em;
+  padding: 0.5em 0.7em 0.7em;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    translate 90ms ease-out,
+    scale 90ms ease-out;
+  align-content: center;
+  isolation: isolate;
+  justify-items: center;
+}
+
+.tile-shape {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tile-face,
+.tile-shadow {
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 0.15em;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Kafel z tego samego papieru co okna: wzór SVG z teksturą (ui/PaperDefs.tsx). */
+.tile-face {
+  fill: url(#ff-paper) var(--sheet);
+}
+
+.tile-shadow {
+  fill: var(--ink);
+  transform: translate(3.5px, 4.5px);
+}
+
+.tile-number {
+  font: 400 2.1em / 0.95 var(--display);
+}
+
+.tile-name {
+  max-width: 7.4em;
+  font-size: 0.84em;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.tile .icon {
+  position: absolute;
+  top: 0.55em;
+  right: 0.7em;
+}
+
+.tile .icon-stamp {
+  top: -0.35em;
+  right: 0.35em;
+  width: 1.25em;
+  height: 1.62em;
+  rotate: 14deg;
+}
+
+.tile-boss {
+  padding-top: 1.5em;
+}
+
+.tile-boss .tile-number {
+  color: var(--madder);
+}
+
+.tile-boss .icon {
+  top: 1.7em;
+}
+
+.tile:hover:not(:disabled) {
+  translate: 0 -0.18em;
+}
+
+.tile[aria-pressed="true"] {
+  scale: 1.1;
+}
+
+/* Zablokowany kafel leży płasko: bez cienia, na przygaszonym papierze. */
+.tile-locked {
+  color: var(--ink-soft);
+  cursor: default;
+}
+
+.tile-locked .tile-face {
+  fill: var(--sheet-shade);
+}
+
+.tile-locked .tile-shadow {
+  display: none;
+}
+
+.tile-locked .tile-number {
+  color: var(--ink-soft);
+}
+
+.tile[aria-pressed="true"] .tile-face {
+  fill: var(--marigold);
+}
+
+/* Tabliczka wybranego poziomu */
+
+.plaque {
+  position: absolute;
+  top: 43%;
+  left: 50%;
+  display: grid;
+  gap: 0.1em;
+  min-width: 15em;
+  padding: 0.4em 1.5em 0.45em;
+  border: var(--line) solid var(--ink);
+  background-color: var(--sheet);
+  background-image: var(--paper-grain, none), var(--paper-stains, none);
+  box-shadow:
+    inset 0 0 1.2em var(--burn),
+    0.32em 0.32em 0 var(--ink);
+  color: var(--ink);
+  text-align: center;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.plaque-name {
+  font: 400 1.55em / 1.05 var(--display);
+  letter-spacing: 0.02em;
+}
+
+.plaque-reward {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  font-weight: 600;
+}
+
+.plaque-best {
+  margin-left: 0.5em;
+  color: var(--ink-soft);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Pod linią podłogi: podpisy postaci i start walki. Podpis to nazwa i prostokąt z liczbą
+   wzmocnień: zielony u bohaterów gracza (ulepszenia), czerwony u przeciwników (poziom). */
+
+.unit-tag {
+  position: absolute;
+  top: calc(var(--floor) + 0.75em);
+  display: grid;
+  gap: 0.2em;
+  width: 5.4%;
+  font-size: 0.8em;
+  line-height: 1.05;
+  text-align: center;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.unit-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.unit-level {
+  padding: 0.05em 0.4em;
+  border-radius: 0.22em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.unit-tag-hero .unit-level {
+  background: var(--moss);
+  color: var(--ink);
+}
+
+.unit-tag-enemy .unit-level {
+  background: var(--madder);
+  color: var(--paper);
+}
+
+.fight {
+  position: absolute;
+  top: 81.5%;
+  left: 50%;
+  display: grid;
+  gap: 0.55em;
+  width: 16em;
+  translate: -50% 0;
+  justify-items: center;
+}
+
+.fight-note {
+  font-size: 0.92em;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+}

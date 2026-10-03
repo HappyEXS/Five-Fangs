@@ -17,16 +17,33 @@ pnpm lint              # biome check
 pnpm format            # biome format --write
 pnpm test              # vitest run
 pnpm test:watch        # vitest
-pnpm test:golden       # testy deterministyczne walk (hash stanu)
+pnpm test:golden       # testy deterministyczne walk (hash stanu); -u aktualizuje migawki
+pnpm test:e2e          # Playwright na buildzie z vite preview – po build; przeglądarkę pobiera raz pnpm e2e:install
+pnpm test:coverage     # testy z pomiarem pokrycia; próg > 90% linii dla src/sim
+pnpm bench             # walki/s, czas ticka i alokacje symulacji; --check kończy błędem poniżej budżetu
+pnpm battle a,b vs c   # walka w konsoli z logiem zdarzeń (jednostki z treści albo golden:<nazwa>)
 pnpm validate-content  # walidacja wszystkich JSON-ów treści
 pnpm balance           # walki headless wszystkich poziomów, raport do reports/balance.md
-pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated
-pnpm deps:check        # weryfikacja granic modułów
-pnpm check:size        # budżety rozmiaru dist/ (gzip/brotli) – uruchamiać po build
+pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated (--check: tylko sprawdza aktualność)
+pnpm atlas:placeholder # grafiki placeholder jako źródła atlasu w assets/src/units
+pnpm deps:check        # granice modułów, dozwolone pakiety, zakazane API w sim (ADR 0012)
+pnpm check:size        # budżety rozmiaru dist/ (gzip) – uruchamiać po build
+pnpm check:dist        # czystość dist/: brak narzędzi dev i kodu debug, adresy względne – po build
+pnpm check             # typecheck + lint + test + validate-content + deps:check
 ```
 
-Przed uznaniem zadania za skończone: `pnpm typecheck && pnpm lint && pnpm test && pnpm validate-content`.
-Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo `pnpm build && pnpm check:size`.
+Lokalnie wszystkie komendy działają w kontenerze Docker (ADR 0011); zależności nie instalujemy na hoście:
+
+```bash
+docker compose up -d dev                 # serwer deweloperski na http://localhost:5173
+docker compose exec dev pnpm <komenda>   # dowolna komenda z listy powyżej
+docker compose run --rm dev pnpm <komenda>   # to samo, gdy kontener nie działa
+```
+
+Git działa na hoście. CI i build na Render nie używają Dockera.
+
+Przed uznaniem zadania za skończone: `pnpm check`.
+Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo `pnpm build && pnpm check:size && pnpm check:dist`.
 
 ## Struktura i granice modułów
 
@@ -36,7 +53,7 @@ src/sim      symulacja walki – czysta logika
 src/content  dane JSON + schematy Zod + kompilacja do struktur runtime
 src/render   Canvas 2D, rig, animacje, atlas, efekty, debug overlay
 src/game     sceny, progresja, zapis
-src/ui       Preact (menu, mapa, skład, HUD)
+src/ui       Preact (ekran startowy, mapa jako ekran główny, skład, bohaterowie, sklep, HUD, wynik)
 src/tools    narzędzia dev (edytor animacji, piaskownica walki) – osobne wejście tools.html, nie trafiają do builda prod
 scripts/     skrypty Node (balans, walidacja, atlas)
 ```
@@ -62,6 +79,8 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 
 - **Zero alokacji w gorącej pętli** (step + render). Żadnych `new`, literałów obiektów/tablic, domknięć, `map/filter`, spread, `DOMMatrix`, template stringów co klatkę. Używaj pul i prealokowanych `Float32Array`.
 - Macierze kości: 6 floatów na kość w jednej tablicy, liczone ręcznie, `ctx.setTransform(a,b,c,d,e,f)`.
+- `drawImage` tylko przez `blit` (`render/scene.ts`) i tylko z argumentami całkowitymi: pivot i skala sprite'a wchodzą w transformację. Ułamkowe argumenty `drawImage` alokują w V8 (ARCHITECTURE.md §5.7).
+- Nowa funkcja rysująca w gorącej pętli dostaje ułamkowe współrzędne przez `scene.local`, nie przez argumenty: liczba ułamkowa przekazana do niewbudowanej funkcji alokuje 12 B (pomiar w ARCHITECTURE.md §5.7).
 - Rysowanie tylko z atlasu. Warianty części (zwykły, ciemny tył, biała sylwetka trafienia) generowane przy ładowaniu. Nie używaj `ctx.filter`.
 - Interpolacja pozycji między tickami (`alpha`). Faza chodu z przebytego dystansu.
 - DPR ograniczony do 2. Stała rozdzielczość logiczna, skalowanie z letterboxem.
@@ -101,7 +120,7 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 
 60 FPS na telefonie średniej klasy · render klatki < 4 ms (desktop) / < 8 ms (telefon) · tick sim < 0,2 ms · > 2000 walk headless/s w Node · JS gzip < 150 KB · 0 alokacji w gorącej pętli.
 Desktop jest platformą główną; budżety dla telefonu to cele pomiarowe, które nie blokują milestone'ów.
-Przy zmianach w `render` lub `sim` sprawdź overlay wydajności w piaskownicy walki. Jeśli zmiana może wpłynąć na budżet, zmierz przed i po.
+Przy zmianach w `render` lub `sim` sprawdź overlay wydajności w piaskownicy walki. Jeśli zmiana może wpłynąć na budżet, zmierz przed i po: symulację przez `pnpm bench`, renderer przez `/tools.html?view=perf` (metoda i ostatnie wyniki w ARCHITECTURE.md §3.8 i §5.7; interpretacja budżetu alokacji renderera w ADR 0013, proponowanym).
 
 Transfer: pierwsze uruchomienie < 2 MB łącznie · atlas świata < 1 MB · powtórna wizyta bez nowej wersji < 20 KB. CI odrzuca build przekraczający budżety.
 
@@ -117,7 +136,7 @@ Transfer: pierwsze uruchomienie < 2 MB łącznie · atlas świata < 1 MB · powt
 - Build na Render = tylko instalacja + `vite build`. Testy i walidacje działają w GitHub Actions. Deploy wyłącznie z `main` po zielonym CI (`autoDeployTrigger: checksPass`).
 - Każdy dynamiczny import i ładowanie assetów obsługuje błąd (po deployu stare chunki znikają) komunikatem o nowej wersji i przeładowaniem po zapisie stanu.
 - `version.json` i wersja w paczce generowane przy buildzie; zapis gry przechowuje `gameVersion` i `saveVersion`.
-- Narzędzia dev i debug nie mogą trafić do `dist/` (sprawdzane w CI).
+- Narzędzia dev i debug nie mogą trafić do `dist/` (sprawdzane w CI przez `check:dist`). Wejście narzędzi i moduły debug odwołują się do znaczników z `src/core/dev-markers.ts`, po których skrypt je wykrywa.
 
 ## Sposób pracy
 

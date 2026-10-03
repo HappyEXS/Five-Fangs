@@ -1,0 +1,58 @@
+[
+  {
+    "id": "brute",
+    "kind": "melee",
+    "maxHp": 800,
+    "attack": 35,
+    "moveSpeed": 45,
+    "attackSpeed": 0.7,
+    "range": 30,
+    "knockback": 25,
+    "attackType": "slash",
+    "skin": "brute",
+    "scale": 1.2
+  },
+  {
+    "id": "raider",
+    "kind": "melee",
+    "maxHp": 520,
+    "attack": 30,
+    "moveSpeed": 75,
+    "attackSpeed": 1.3,
+    "range": 30,
+    "knockback": 5,
+    "attackType": "slash",
+    "traits": [{ "type": "lifesteal", "percent": 35 }],
+    "skin": "raider"
+  },
+  {
+    "id": "shaman",
+    "kind": "ranged",
+    "maxHp": 300,
+    "attack": 18,
+    "moveSpeed": 45,
+    "attackSpeed": 0.7,
+    "range": 200,
+    "knockback": 0,
+    "attackType": "shoot",
+    "traits": [{ "type": "periodicHeal", "target": "team", "amount": 18, "interval": 2.5 }],
+    "skin": "shaman"
+  },
+  {
+    "id": "chieftain",
+    "kind": "melee",
+    "maxHp": 2200,
+    "attack": 60,
+    "moveSpeed": 40,
+    "attackSpeed": 0.6,
+    "range": 30,
+    "knockback": 40,
+    "attackType": "cleave",
+    "traits": [
+      { "type": "splash", "radius": 40 },
+      { "type": "enrage", "hpBelow": 50, "attackBonus": 60 }
+    ],
+    "skin": "chieftain",
+    "scale": 1.35
+  }
+]

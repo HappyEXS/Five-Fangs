@@ -1,0 +1,41 @@
+# Lokalne środowisko deweloperskie (ADR 0011). Wszystkie komendy pnpm działają w kontenerze:
+#
+#   docker compose up dev                      serwer deweloperski: http://localhost:5173
+#   docker compose run --rm dev pnpm test      dowolna komenda z package.json
+#   docker compose --profile preview up preview   podgląd builda: http://localhost:4173
+
+x-node: &node
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  working_dir: /app
+  init: true
+  environment:
+    # Zdarzenia systemu plików nie przechodzą z Windows do kontenera; Vite i Vitest muszą odpytywać.
+    FF_WATCH_POLLING: "1"
+    # Pobrany przez Corepack pnpm trafia do wolumenu, żeby nie ściągać go przy każdym uruchomieniu.
+    COREPACK_HOME: /app/node_modules/.corepack
+    # Przeglądarka dla testów end-to-end też w wolumenie: pobiera się raz (pnpm e2e:install).
+    PLAYWRIGHT_BROWSERS_PATH: /app/node_modules/.playwright
+  volumes:
+    - .:/app
+    # node_modules w wolumenie: binaria linuksowe i szybki dysk zamiast montowania z Windows.
+    # pnpm trzyma tu także swój magazyn pakietów (node_modules/.pnpm-store).
+    - node_modules:/app/node_modules
+
+services:
+  dev:
+    <<: *node
+    command: sh -c "pnpm install --frozen-lockfile && pnpm dev --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+
+  preview:
+    <<: *node
+    profiles: [preview]
+    command: sh -c "pnpm install --frozen-lockfile && pnpm build && pnpm preview --host 0.0.0.0"
+    ports:
+      - "4173:4173"
+
+volumes:
+  node_modules:

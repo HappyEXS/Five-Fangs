@@ -1,0 +1,8 @@
+[
+  { "id": "rune_attack_10", "stat": "attack", "value": 10 },
+  { "id": "rune_attack_25", "stat": "attack", "value": 25 },
+  { "id": "rune_attack_50", "stat": "attack", "value": 50 },
+  { "id": "rune_hp_100", "stat": "maxHp", "value": 100 },
+  { "id": "rune_hp_200", "stat": "maxHp", "value": 200 },
+  { "id": "rune_hp_400", "stat": "maxHp", "value": 400 }
+]

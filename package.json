@@ -1,0 +1,50 @@
+{
+  "name": "five-fangs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "lint": "biome check --error-on-warnings",
+    "format": "biome format --write",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:golden": "vitest run tests/golden",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "e2e:install": "playwright install chromium",
+    "validate-content": "node scripts/validate-content.ts",
+    "bench": "node --expose-gc scripts/bench-sim.ts",
+    "battle": "node scripts/run-battle.ts",
+    "balance": "node scripts/balance.ts",
+    "atlas": "node scripts/atlas.ts",
+    "atlas:placeholder": "node scripts/atlas-placeholder.ts",
+    "deps:check": "node scripts/check-deps.ts",
+    "check:size": "node scripts/check-size.ts",
+    "check:dist": "node scripts/check-dist.ts",
+    "smoke": "node scripts/smoke-check.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm validate-content && pnpm deps:check"
+  },
+  "packageManager": "pnpm@12.8.1+sha512.f64ba907507f5ceafe06c8d38e6052d0179444580ec1279ddd5bfc11cb48aa8a2644b66598e07e761da84872a9fc57d5f902b87fa49d024198d558612aabbe45",
+  "dependencies": {
+    "@preact/signals": "^2.11.3",
+    "preact": "^11.0.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.19.0",
+    "@vitest/coverage-v8": "^5.0.3",
+    "sharp": "^0.35.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.3"
+  }
+}
