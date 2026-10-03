@@ -4,9 +4,10 @@ import { useEffect, useRef } from 'preact/hooks';
 import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
 import { gameVersion, versionLabel } from '../game/version.ts';
+import type { Gate } from './gate.ts';
 import { FangMark } from './icons.tsx';
 
-export function TitleScreen(props: { game: Game }) {
+export function TitleScreen(props: { game: Game; gate: Gate }) {
   // Przycisk dostaje fokus, żeby Enter od razu zaczynał grę.
   const play = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -24,7 +25,7 @@ export function TitleScreen(props: { game: Game }) {
           type="button"
           class="btn btn-primary btn-big"
           data-action="play"
-          onClick={() => props.game.openMap()}
+          onClick={() => void props.gate.pass(() => props.game.openMap())}
         >
           {t('title.play')}
         </button>

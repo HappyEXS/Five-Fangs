@@ -9,12 +9,13 @@ import type { Rewards } from '../game/progress.ts';
 import type { BattleSpeed } from '../game/save-schema.ts';
 import { formatBattleTime } from '../game/stats.ts';
 import { formatNumber, runeColor, runeLabel } from './common.tsx';
+import type { Gate } from './gate.ts';
 import { Coin, FangMark } from './icons.tsx';
 
 const SPEEDS: readonly BattleSpeed[] = [1, 2, 4];
 
-export function BattleHud(props: { game: Game; stage: StageControls; level: string }) {
-  const { game, stage } = props;
+export function BattleHud(props: { game: Game; gate: Gate; stage: StageControls; level: string }) {
+  const { game, gate, stage } = props;
   const paused = stage.paused.value;
   const speed = game.save.value.settings.battleSpeed;
   return (
@@ -47,7 +48,11 @@ export function BattleHud(props: { game: Game; stage: StageControls; level: stri
             </button>
           ))}
         </div>
-        <button type="button" class="btn" onClick={() => game.openMap(props.level)}>
+        <button
+          type="button"
+          class="btn"
+          onClick={() => void gate.pass(() => game.openMap(props.level))}
+        >
           {t('battle.exit')}
         </button>
       </div>
@@ -83,6 +88,7 @@ function RewardList(props: { game: Game; rewards: Rewards }) {
 
 export function ResultScreen(props: {
   game: Game;
+  gate: Gate;
   level: string;
   battle: BattleOutcome;
   rewards: Rewards | null;
@@ -120,7 +126,7 @@ export function ResultScreen(props: {
           type="button"
           class="btn btn-primary btn-big"
           data-action="ok"
-          onClick={() => game.openMap(advance ? undefined : level)}
+          onClick={() => void props.gate.pass(() => game.openMap(advance ? undefined : level))}
         >
           {t('common.ok')}
         </button>

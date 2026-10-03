@@ -45,6 +45,11 @@ export interface StageControls {
   /** Grafiki walki: `loading` do pierwszego wczytania atlasu, `failed` po błędzie ładowania. */
   readonly assets: Signal<'idle' | 'loading' | 'ready' | 'failed'>;
   readonly paused: Signal<boolean>;
+  /**
+   * Walka stoi, póki interfejs ją zasłania (brama przed i po walce). Osobno od `paused`, bo pauza
+   * to wybór gracza widoczny w HUD, a to tylko oprawa.
+   */
+  readonly held: Signal<boolean>;
   /** Tick trwającej walki; sygnał zmienia się raz na sekundę gry, nie co klatkę. */
   readonly battleTick: Signal<number>;
   togglePause(): void;
@@ -67,6 +72,7 @@ export function startStage(
 
   const assets = signal<'idle' | 'loading' | 'ready' | 'failed'>('idle');
   const paused = signal(false);
+  const held = signal(false);
   const battleTick = signal(0);
 
   let renderer: Renderer | null = null;
@@ -189,7 +195,7 @@ export function startStage(
 
   createFrameLoop((frameMs) => {
     if (runner !== null) {
-      runner.loop.paused = paused.value;
+      runner.loop.paused = paused.value || held.value;
       runner.frame(viewport, frameMs);
       const { state } = runner.battle;
       // Licznik czasu w HUD zmienia się co sekundę gry; sygnał ustawiamy tylko wtedy.
@@ -212,6 +218,7 @@ export function startStage(
   return {
     assets,
     paused,
+    held,
     battleTick,
     togglePause() {
       paused.value = !paused.value;

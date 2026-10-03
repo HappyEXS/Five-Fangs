@@ -62,10 +62,24 @@
   --marigold: #f0b429;
   --madder: #c9463d;
 
+  /* Stary jasnobrązowy papier okien, przycisków i kafli; --paper to kość słoniowa kłów
+     i napisów na scenie. Tekstura (ziarno, włókna, plamy) przychodzi z ui/paper.ts. */
+  --sheet: #d9c29b;
+  --sheet-light: #e6d4b2;
+  --sheet-shade: #b9a17b;
+  /* Przypalone brzegi arkusza. */
+  --burn: rgb(118 76 30 / 42%);
+
+  /* Żelazo bramy przed i po walce (Gate.tsx). */
+  --iron: #3e4351;
+  --iron-dark: #272a33;
+  --iron-light: #79819a;
+  --iron-glint: #545a6a;
+
   /* Odcienie pochodne. */
-  --paper-light: #fbf5e4;
   --paper-shade: #d9cdae;
-  --ink-soft: #6a6579;
+  --ink-soft: #5d5044;
+  --madder-deep: #9c2f27;
   --marigold-light: #ffc94f;
   --moss: #8db35a;
   --moss-deep: #3f6a2a;

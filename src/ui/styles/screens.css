@@ -9,8 +9,11 @@
   gap: 0.35em;
   padding: 0.4em 0.5em 0.5em;
   border: var(--line) solid var(--ink);
-  background: var(--paper);
-  box-shadow: 0.26em 0.26em 0 var(--ink);
+  background-color: var(--sheet);
+  background-image: var(--paper-grain, none), var(--paper-stains, none);
+  box-shadow:
+    inset 0 0 1em var(--burn),
+    0.26em 0.26em 0 var(--ink);
   color: var(--ink);
   text-align: center;
   translate: -50% 0;
@@ -105,7 +108,8 @@
   padding: 0.25em 0.5em;
   border: var(--line) solid var(--ink);
   border-radius: 0.28em;
-  background: var(--paper-light);
+  background-color: var(--sheet-light);
+  background-image: var(--paper-grain, none);
   box-shadow: 0.14em 0.14em 0 var(--ink);
   color: var(--ink);
   font: inherit;
@@ -116,16 +120,16 @@
 }
 
 .tree-node:hover {
-  background: var(--paper);
+  background-color: var(--sheet);
 }
 
 /* Formy na drodze do wybranej: jaśniejszy nagietek, wybrana: pełny. */
 .tree-path {
-  background: var(--marigold-light);
+  background-color: var(--marigold-light);
 }
 
 .tree-node[aria-pressed="true"] {
-  background: var(--marigold);
+  background-color: var(--marigold);
 }
 
 .tree-price {
@@ -178,7 +182,8 @@
   padding: 0.1em 0.5em;
   border: var(--line) solid var(--ink);
   border-radius: 0.28em;
-  background: var(--paper);
+  background-color: var(--sheet);
+  background-image: var(--paper-grain, none);
   box-shadow: 0.14em 0.14em 0 var(--ink);
   color: var(--ink);
   font: inherit;
@@ -190,7 +195,7 @@
 }
 
 .path-name[aria-pressed="true"] {
-  background: var(--marigold);
+  background-color: var(--marigold);
 }
 
 /* Między postaciami drogi: koszt ewolucji z jednej w drugą. */
@@ -301,7 +306,7 @@
 }
 
 .result-sheet[data-outcome="loss"] .fang-mark {
-  fill: var(--paper-shade);
+  fill: var(--sheet-shade);
 }
 
 .result-title {

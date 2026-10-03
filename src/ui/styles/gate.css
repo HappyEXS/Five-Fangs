@@ -1,0 +1,99 @@
+/* Brama oddzielająca walkę od reszty gry (Gate.tsx). Żelazo wycięte jak reszta interfejsu:
+   płaskie płyty, atramentowy kontur, nity; kły z kości słoniowej w dwóch odcieniach. */
+
+.gate {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+}
+
+/* Otwarta brama stoi za kulisami: nie maluje się i nie łapie kliknięć. */
+.gate[data-phase="open"] {
+  visibility: hidden;
+}
+
+.gate-door {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.gate-left {
+  transform: translateX(-56%);
+}
+
+.gate-right {
+  transform: translateX(56%);
+}
+
+.gate-plate {
+  fill: var(--iron);
+  stroke: var(--ink);
+  stroke-width: 6;
+}
+
+.gate-plank {
+  stroke: var(--iron-dark);
+  stroke-width: 4;
+}
+
+.gate-glint {
+  stroke: var(--iron-glint);
+  stroke-width: 3;
+}
+
+.gate-band {
+  fill: var(--iron-dark);
+  stroke: var(--ink);
+  stroke-width: 4;
+}
+
+.gate-rivet {
+  fill: var(--iron-light);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+.gate-tooth {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 6;
+}
+
+.gate-right .gate-tooth {
+  fill: var(--paper-shade);
+}
+
+.gate-edge {
+  stroke: var(--ink);
+  stroke-width: 8;
+}
+
+.gate-bolt {
+  fill: var(--iron-light);
+  stroke: var(--ink);
+  stroke-width: 4;
+}
+
+/* Arkusz wyniku przybity do zamkniętej bramy. */
+.result-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+}
+
+.paper-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.scene-layer {
+  position: absolute;
+  inset: 0;
+}

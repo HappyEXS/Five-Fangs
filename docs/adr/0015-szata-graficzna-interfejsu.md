@@ -68,3 +68,12 @@ Autor gry chciał, żeby wszystkie działania na bohaterze były w jego polu na 
 - Żeby pola się zmieściły, ekran składu rozstawia bohaterów szerzej niż walka (15% szerokości sceny między slotami zamiast 6%). Kolejność slotów zostaje: front po prawej. To jedyny ekran, na którym postacie nie stoją w miejscach z walki.
 - Karta z prawej zostaje, ale tylko do czytania: statystyki z podglądem następnego zakupu. Bohater spoza składu nie ma pola; ulepsza się go po postawieniu w składzie.
 - Pola istnieją tylko na ekranie składu. Mapa i walka pokazują samą postać z paskiem życia.
+
+### Brama i stary papier (2026-10-03)
+
+Autor gry poprosił o typową animację gry: mechaniczną metalową bramę zamykaną z lewej i z prawej po ekranie startowym, przed walką i po niej, oraz o teksturę jasnobrązowego starego papieru zamiast wszechobecnej bieli okien. To zmienia punkt 2 decyzji (płaskie wypełnienia bez gradientów) dla okien i dodaje drugi, obok arkusza wyniku, moment ruchu.
+
+- **Brama to szczęki.** Dwa żelazne skrzydła (płyty z deskami, pasy z nitami) mają na wewnętrznych krawędziach kły z kości słoniowej, które po zamknięciu się zazębiają: lewe jaśniejsze, prawe ciemniejsze. To znak gry w dużej skali, nie dodatkowa ozdoba.
+- **Ruch mechaniczny:** skrzydła przyspieszają do uderzenia, scena drga, rygle z prawego skrzydła wsuwają się przez szczelinę. Przy otwieraniu najpierw odskakują rygle, potem skrzydła rozjeżdżają się z szarpnięciem. Przejście trwa ok. 1,3 s. Przy ustawieniu „ograniczony ruch” brama tylko pojawia się i znika (zmiana przezroczystości, bez przesuwania i drgań).
+- **Kiedy:** „Graj” na ekranie startowym, „Walcz” na mapie, „Wyjdź” z walki, koniec walki i „OK” po wyniku. Walka stoi, dopóki brama nie jest w pełni otwarta. Po walce brama zamyka się na polu bitwy, a arkusz wyniku wisi na zamkniętej bramie; „OK” otwiera ją na mapie. Inne przejścia (skład, sklep, bohaterowie) bramy nie używają.
+- **Papier:** okna, przyciski, kafle mapy i metki mają kolor starego papieru (#d9c29b) z ziarnem, krótkimi włóknami i plamami, a okna dodatkowo przypalone brzegi. Tekstura to szum SVG w adresie `data:` (`ui/paper.ts`), bez pliku graficznego i bez zapytań; kafle mapy używają jej przez wzór SVG. Kły i napisy na scenie zostają w kolorze kości słoniowej. Drobny tekst dostał ciemniejszy brąz i ciemniejszą marzannę, żeby kontrast na brązowym papierze nie spadł.

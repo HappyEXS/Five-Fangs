@@ -15,6 +15,7 @@ import { SQUAD_SLOTS } from '../game/save-schema.ts';
 import { stageFraction } from '../game/stage-geometry.ts';
 import { formatBattleTime } from '../game/stats.ts';
 import { Gold, Purse, runeColor, runeLabel, unitName } from './common.tsx';
+import type { Gate } from './gate.ts';
 import { BookIcon, FangMark, FangStamp, Gear, Lock, SquadIcon, TagIcon } from './icons.tsx';
 import { Settings } from './Settings.tsx';
 
@@ -149,8 +150,8 @@ function Plaque(props: { game: Game; level: string }) {
   );
 }
 
-export function MapScreen(props: { game: Game; selected: string | null }) {
-  const { game, selected } = props;
+export function MapScreen(props: { game: Game; gate: Gate; selected: string | null }) {
+  const { game, gate, selected } = props;
   const { content } = game;
   const save = game.save.value;
   const settings = useSignal(false);
@@ -291,7 +292,7 @@ export function MapScreen(props: { game: Game; selected: string | null }) {
             class="btn btn-primary btn-big"
             data-action="fight"
             disabled={empty}
-            onClick={() => game.startBattle(selected)}
+            onClick={() => void gate.pass(() => game.startBattle(selected))}
           >
             {t('map.fight')}
           </button>

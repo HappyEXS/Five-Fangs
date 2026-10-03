@@ -55,7 +55,7 @@
   width: 100%;
   height: 7em;
   border: var(--line) solid var(--ink);
-  background: var(--paper-light);
+  background: var(--sheet-light);
   color: var(--ink);
   font:
     0.75em ui-monospace,
@@ -69,15 +69,18 @@
   position: absolute;
   top: 2.2%;
   left: 50%;
-  z-index: 40;
+  z-index: 70;
   display: flex;
   align-items: center;
   gap: 1em;
   max-width: 70%;
   padding: 0.45em 0.9em;
   border: var(--line) solid var(--ink);
-  background: var(--paper);
-  box-shadow: 0.26em 0.26em 0 var(--ink);
+  background-color: var(--sheet);
+  background-image: var(--paper-grain, none), var(--paper-stains, none);
+  box-shadow:
+    inset 0 0 1.2em var(--burn),
+    0.26em 0.26em 0 var(--ink);
   color: var(--ink);
   font-weight: 600;
   translate: -50% 0;

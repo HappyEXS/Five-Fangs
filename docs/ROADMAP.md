@@ -158,6 +158,15 @@ Zlecenie autora gry: ewolucje się rozgałęziają, z jednego bohatera wybiera s
 | M5e-5 | Docelowe drzewa i koszty | — | Czeka na roster od autora gry | wstrzymane |
 | M5e-6 | Okienka run, ewolucji i ustawień zawsze w granicach sceny | 0,25 | Sprawdzenie w czterech rozmiarach okna przy skrajnych polach: żadne okienko nie wystaje (poprzednia wersja: paleta run do 36 px poza sceną) | gotowe |
 
+## M5f – Brama i stary papier (2026-10-03)
+
+Zlecenie autora gry: typowa animacja w postaci mechanicznej metalowej bramy oraz tekstura starego jasnobrązowego papieru zamiast białych okien. Uzupełnienie ADR 0015.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5f-1 | Brama: rysunek, ruch, przejścia po ekranie startowym, przed i po walce; walka stoi do otwarcia bramy; wynik na zamkniętej bramie | 1 | Testy kolejności ruchów; testy end-to-end przechodzą przez bramę; przy ograniczonym ruchu brak przesuwania | gotowe |
+| M5f-2 | Tekstura starego papieru dla okien, przycisków, kafli i metek | 0,5 | Brak żadnego pliku i zapytania; kontrast drobnego tekstu zachowany | gotowe |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

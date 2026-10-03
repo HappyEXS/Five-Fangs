@@ -264,6 +264,7 @@ Ranga oczekiwana to najniższa ranga obu bohaterów składu referencyjnego (Miec
 - Widok z boku, animacja wycinankowa (cutout). Grafika gładka, rysowana w 2× rozdzielczości logicznej 1280×720.
 - **Scena jest płaska, bez perspektywy** (decyzja autora z 2026-10-02): wszystkie postacie stoją i chodzą dokładnie po linii podłogi, na jednej wysokości. Sloty w interfejsie leżą w jednym rzędzie.
 - Interfejs to teatrzyk z wycinanek (ADR 0015): na każdym ekranie ta sama scena z linią podłogi, a przyciski, kafle mapy i karty to papierowe rekwizyty. Pięć kłów pod linią podłogi oznacza pięć slotów składu.
+- Walkę oddziela od reszty gry metalowa brama: zamyka się po ekranie startowym, przed walką i po niej; wynik walki wisi na zamkniętej bramie (ADR 0015).
 - Każda postać ma animacje: idle, chód, atak, błysk przy trafieniu, śmierć (obrót wokół stóp i zanikanie).
 - Nad każdą postacią jest pasek życia z bieżącym życiem jako liczbą (decyzja autora z 2026-10-03: sam pasek nie pokazuje skali).
 - Liczby obrażeń i leczenia unoszą się nad postacią i zanikają.

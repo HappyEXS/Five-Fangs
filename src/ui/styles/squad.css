@@ -16,7 +16,7 @@
 }
 
 .reserve.is-over {
-  background: var(--paper-light);
+  background-color: var(--sheet-light);
   outline: 0.17em solid var(--marigold);
   outline-offset: 0.17em;
 }
@@ -31,7 +31,8 @@
   padding: 0.1em 0.6em;
   border: var(--line) solid var(--ink);
   border-radius: 0.28em;
-  background: var(--paper);
+  background-color: var(--sheet);
+  background-image: var(--paper-grain, none);
   box-shadow: 0.14em 0.14em 0 var(--ink);
   color: var(--ink);
   font: inherit;
@@ -44,13 +45,13 @@
 }
 
 .hero-chip[aria-pressed="true"] {
-  background: var(--marigold);
+  background-color: var(--marigold);
 }
 
 .drag-ghost {
   position: fixed;
   z-index: 20;
-  background: var(--marigold);
+  background-color: var(--marigold);
   rotate: -4deg;
   translate: -50% -120%;
   pointer-events: none;
@@ -134,7 +135,8 @@
   padding: 0.08em 0.55em;
   border: var(--line) solid var(--ink);
   border-radius: 0.28em;
-  background: var(--paper);
+  background-color: var(--sheet);
+  background-image: var(--paper-grain, none);
   box-shadow: 0.14em 0.14em 0 var(--ink);
   font-size: 0.85em;
   font-weight: 700;
@@ -144,11 +146,11 @@
 }
 
 .stage-hero:hover .field-name {
-  background: var(--paper-light);
+  background-color: var(--sheet-light);
 }
 
 .stage-hero[aria-pressed="true"] .field-name {
-  background: var(--marigold);
+  background-color: var(--marigold);
 }
 
 /* Linia podłogi leży na 81,18% wysokości uchwytu: (77,78 − 38) / 49. */
@@ -310,7 +312,7 @@
 
 .rune-option:hover {
   border-color: var(--ink);
-  background: var(--paper-light);
+  background: var(--sheet-light);
 }
 
 .rune-option-stat {

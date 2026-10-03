@@ -129,8 +129,9 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* Kafel z tego samego papieru co okna: wzór SVG z teksturą (ui/PaperDefs.tsx). */
 .tile-face {
-  fill: var(--paper);
+  fill: url(#ff-paper) var(--sheet);
 }
 
 .tile-shadow {
@@ -191,7 +192,7 @@
 }
 
 .tile-locked .tile-face {
-  fill: var(--paper-shade);
+  fill: var(--sheet-shade);
 }
 
 .tile-locked .tile-shadow {
@@ -217,8 +218,11 @@
   min-width: 15em;
   padding: 0.4em 1.5em 0.45em;
   border: var(--line) solid var(--ink);
-  background: var(--paper);
-  box-shadow: 0.32em 0.32em 0 var(--ink);
+  background-color: var(--sheet);
+  background-image: var(--paper-grain, none), var(--paper-stains, none);
+  box-shadow:
+    inset 0 0 1.2em var(--burn),
+    0.32em 0.32em 0 var(--ink);
   color: var(--ink);
   text-align: center;
   translate: -50% 0;
