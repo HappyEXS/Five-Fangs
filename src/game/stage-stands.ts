@@ -5,6 +5,7 @@ import type { UnitVisual } from '../content/compile.ts';
 import type { GameContent } from '../content/load.ts';
 import type { BattleSetup, UnitSpec } from '../sim/types.ts';
 import { SQUAD_SLOTS } from './save-schema.ts';
+import { arenaXAt } from './stage-geometry.ts';
 
 export interface Stand {
   /** Id jednostki bohatera stojącej na stanowisku. */
@@ -45,7 +46,7 @@ export function squadFieldSetup(setup: BattleSetup): BattleSetup {
   const { width } = setup.arena;
   const playerSlots = setup.arena.playerSlots.map((x, slot) => {
     const at = SQUAD_FIELD_AT[slot];
-    return at === undefined ? x : Math.round(at * width);
+    return at === undefined ? x : arenaXAt(at, width);
   });
   const enemySlots = setup.arena.enemySlots.map(() => width);
   return {
@@ -126,7 +127,7 @@ export function standScene(content: GameContent, stands: readonly Stand[]): Stan
   for (const stand of stands) {
     const unit = content.heroes.get(stand.unitId);
     if (unit === undefined) continue;
-    const x = Math.round(stand.position * width);
+    const x = arenaXAt(stand.position, width);
     if (stand.side === 0) {
       playerSlots[stand.slot] = x;
       player[stand.slot] = unit.base;

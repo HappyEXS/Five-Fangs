@@ -59,7 +59,11 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
   await expect(page.locator('[data-level="w1_l2"]')).toBeDisabled();
   await expect(page.locator('.plaque')).toContainText('Skraj lasu');
-  await expect(page.locator('.enemy-tag')).toContainText('Osiłek');
+  await expect(page.locator('.unit-tag-enemy')).toContainText('Osiłek');
+  // Pod bohaterami gracza podpisy jak pod przeciwnikami, bez oznaczenia przy zerze ulepszeń.
+  await expect(page.locator('.unit-tag-hero')).toHaveCount(2);
+  await expect(page.locator('.unit-tag-hero', { hasText: 'Miecznik' })).toHaveCount(1);
+  await expect(page.locator('.unit-tag-hero .unit-level')).toHaveCount(0);
   await expect(page.locator('.hero-chip')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Walcz' }).click();

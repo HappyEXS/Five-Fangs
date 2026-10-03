@@ -14,6 +14,7 @@ import { VARIANT_NORMAL } from './atlas.ts';
 import { debugOptions, debugRange } from './debug.ts';
 import { drawRigParts, drawString } from './draw-rig.ts';
 import { digitAt, digitCount } from './float-text.ts';
+import { keepOnStage } from './reach.ts';
 import { computeBoneMatrices, rootMatrix } from './rig.ts';
 import { blit, FEET_Y, type Scene, UPPER_BODY, unitFacing } from './scene.ts';
 import type { Viewport } from './viewport.ts';
@@ -90,7 +91,8 @@ export function drawUnit(
   const { ctx, animator, matrices } = scene;
   const facing = unitFacing(unit);
   const prev = state.prevX[unit] ?? 0;
-  const x = (prev + ((state.x[unit] ?? 0) - prev) * alpha) * scene.camera.scale;
+  const arenaX = (prev + ((state.x[unit] ?? 0) - prev) * alpha) * scene.camera.scale;
+  let x = scene.camera.offset + arenaX;
   const feetY = FEET_Y;
 
   updateUnitPose(
@@ -113,6 +115,15 @@ export function drawUnit(
     if (progress >= 1) return;
     fall = progress * progress;
   }
+  // Postać przy krawędzi pola (odrzut, padanie po śmierci) nie może wystawać poza scenę.
+  x = keepOnStage(
+    x,
+    facing,
+    scene.reachBack[unit] ?? 0,
+    scene.reachFront[unit] ?? 0,
+    scene.reachHeight[unit] ?? 0,
+    fall,
+  );
 
   const { rig, scale } = look;
   const poseOffset = unit * animator.channels;
@@ -160,7 +171,8 @@ export function drawUnit(
   if (import.meta.env.DEV && debugOptions.ranges) {
     const target = state.target[unit] ?? -1;
     const range = (battle.specs.range[unit] ?? 0) * scene.camera.scale;
-    const targetX = target < 0 ? -1 : (state.x[target] ?? 0) * scene.camera.scale;
+    const targetX =
+      target < 0 ? -1 : scene.camera.offset + (state.x[target] ?? 0) * scene.camera.scale;
     const targetY = FEET_Y;
     debugRange(ctx, x, feetY, facing, range, targetX, targetY);
   }

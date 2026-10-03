@@ -4,20 +4,18 @@ import { useSignal } from '@preact/signals';
 import { levelNameKey, worldNameKey } from '../content/i18n/keys.ts';
 import type { Game } from '../game/game.ts';
 import { t, tName } from '../game/i18n.ts';
-import { isLevelCleared, isLevelUnlocked, isSquadEmpty, victoryRewards } from '../game/progress.ts';
+import {
+  heroView,
+  isLevelCleared,
+  isLevelUnlocked,
+  isSquadEmpty,
+  victoryRewards,
+} from '../game/progress.ts';
 import { SQUAD_SLOTS } from '../game/save-schema.ts';
+import { stageFraction } from '../game/stage-geometry.ts';
 import { formatBattleTime } from '../game/stats.ts';
 import { Gold, Purse, runeColor, runeLabel, unitName } from './common.tsx';
-import {
-  BookIcon,
-  FANG_PATH,
-  FangMark,
-  FangStamp,
-  Gear,
-  Lock,
-  SquadIcon,
-  TagIcon,
-} from './icons.tsx';
+import { BookIcon, FangMark, FangStamp, Gear, Lock, SquadIcon, TagIcon } from './icons.tsx';
 import { Settings } from './Settings.tsx';
 
 const SLOTS = Array.from({ length: SQUAD_SLOTS }, (_, slot) => slot);
@@ -254,28 +252,35 @@ export function MapScreen(props: { game: Game; selected: string | null }) {
 
       {selected !== null && <Plaque game={game} level={selected} />}
 
-      {/* Pięć kłów pod linią podłogi to pięć slotów składu; pełny kieł oznacza zajęty slot. */}
-      {SLOTS.map((slot) => (
-        <svg
-          key={slot}
-          class={save.squad[slot] == null ? 'fang fang-empty' : 'fang'}
-          style={{ left: `${((arena.playerSlots[slot] ?? 0) / arena.width) * 100}%` }}
-          viewBox="0 0 40 52"
-          aria-hidden="true"
-        >
-          <path d={FANG_PATH} />
-        </svg>
-      ))}
+      {/* Pod każdą postacią podpis: nazwa i liczba wzmocnień ponad wartości bazowe, u bohaterów
+          gracza ulepszenia, u przeciwników ich poziom. Ten sam zapis po obu stronach. */}
+      {SLOTS.map((slot) => {
+        const heroId = save.squad[slot] ?? null;
+        const view = heroId === null ? null : heroView(content, save, heroId);
+        if (view === null) return null;
+        return (
+          <p
+            key={slot}
+            class="unit-tag unit-tag-hero"
+            data-hero={view.hero.id}
+            style={{ left: `${stageFraction(arena.playerSlots[slot] ?? 0, arena.width) * 100}%` }}
+          >
+            <span class="unit-name">{unitName(view.unitId)}</span>
+            {view.hero.upgrades > 0 && <span class="unit-level">+{view.hero.upgrades}</span>}
+          </p>
+        );
+      })}
 
       {level?.enemies.map((enemy) => (
         <p
           key={enemy.slot}
-          class="enemy-tag"
-          style={{ left: `${((arena.enemySlots[enemy.slot] ?? 0) / arena.width) * 100}%` }}
+          class="unit-tag unit-tag-enemy"
+          style={{
+            left: `${stageFraction(arena.enemySlots[enemy.slot] ?? 0, arena.width) * 100}%`,
+          }}
         >
-          <span class="enemy-name">{unitName(enemy.unit)}</span>
-          {/* Ten sam zapis co przy bohaterach: liczba wzmocnień ponad wartości bazowe. */}
-          {enemy.level > 0 && <span class="enemy-level">+{enemy.level}</span>}
+          <span class="unit-name">{unitName(enemy.unit)}</span>
+          {enemy.level > 0 && <span class="unit-level">+{enemy.level}</span>}
         </p>
       ))}
 

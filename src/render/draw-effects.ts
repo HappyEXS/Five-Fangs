@@ -40,7 +40,8 @@ export function drawProjectiles(
     const direction = (state.projStep[p] ?? 1) > 0 ? 1 : -1;
     local[0] = direction * look.scale;
     local[3] = look.scale;
-    local[4] = (prev + ((state.projX[p] ?? 0) - prev) * alpha) * scene.camera.scale;
+    local[4] =
+      scene.camera.offset + (prev + ((state.projX[p] ?? 0) - prev) * alpha) * scene.camera.scale;
     local[5] = FEET_Y - PROJECTILE_HEIGHT * look.scale;
     blit(scene, image, sprite, local, 0, viewport);
   }
@@ -56,7 +57,7 @@ export function spawnNumber(
 ): void {
   const look = scene.looks[unit];
   if (look === null || look === undefined) return;
-  const x = (battle.state.x[unit] ?? 0) * scene.camera.scale;
+  const x = scene.camera.offset + (battle.state.x[unit] ?? 0) * scene.camera.scale;
   // Start nad liczbą życia, która stoi tuż nad paskiem (draw-units.ts).
   const y = unitHeadY(look) - 42;
   spawnFloatText(scene.floatTexts, x + nextRange(scene.jitter, -10, 10), y, value, kind);

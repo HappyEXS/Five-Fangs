@@ -5,6 +5,7 @@ import { levelSetup } from '../content/resolve-spec.ts';
 import { createBattle, validateSetup } from '../sim/index.ts';
 import { newSave, squadMembers } from './progress.ts';
 import { SQUAD_SLOTS } from './save-schema.ts';
+import { arenaXAt } from './stage-geometry.ts';
 import {
   formStands,
   SQUAD_FIELD_AT,
@@ -74,7 +75,7 @@ describe('formStands', () => {
     expect(validateSetup(scene.setup)).toEqual([]);
     const battle = createBattle(scene.setup);
     for (const stand of stands) {
-      expect(battle.state.x[stand.slot]).toBe(Math.round(stand.position * content.arena.width));
+      expect(battle.state.x[stand.slot]).toBe(arenaXAt(stand.position, content.arena.width));
       expect(scene.setup.player[stand.slot]).toBe(content.heroes.get(stand.unitId)?.base);
     }
   });
@@ -92,7 +93,7 @@ describe('squadFieldSetup', () => {
     expect(fields.enemy.every((unit) => unit === null)).toBe(true);
     expect(() => createBattle(fields)).not.toThrow();
     expect(fields.arena.playerSlots).toEqual(
-      SQUAD_FIELD_AT.map((at) => Math.round(at * setup.arena.width)),
+      SQUAD_FIELD_AT.map((at) => arenaXAt(at, setup.arena.width)),
     );
     // Front stoi najdalej w prawo, jak w walce.
     const slots = fields.arena.playerSlots;
@@ -107,7 +108,7 @@ describe('standScene', () => {
     expect(validateSetup(scene.setup)).toEqual([]);
     const battle = createBattle(scene.setup);
     for (const stand of stands) {
-      const x = Math.round(stand.position * content.arena.width);
+      const x = arenaXAt(stand.position, content.arena.width);
       expect(scene.setup.arena.playerSlots[stand.slot]).toBe(x);
       expect(scene.setup.player[stand.slot]).toBe(content.heroes.get(stand.unitId)?.base);
       expect(scene.visuals[stand.slot]).toBe(content.heroes.get(stand.unitId)?.visual);
@@ -127,7 +128,7 @@ describe('standScene', () => {
     const right = stands.filter((stand) => stand.side === 1);
     for (const stand of right) {
       expect(scene.setup.arena.enemySlots[stand.slot]).toBe(
-        Math.round(stand.position * many.arena.width),
+        arenaXAt(stand.position, many.arena.width),
       );
     }
   });

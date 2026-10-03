@@ -210,7 +210,7 @@
 
 .plaque {
   position: absolute;
-  top: 45%;
+  top: 43%;
   left: 50%;
   display: grid;
   gap: 0.1em;
@@ -244,38 +244,15 @@
   white-space: nowrap;
 }
 
-/* Pod linią podłogi: kły składu, podpisy przeciwników, start walki */
+/* Pod linią podłogi: podpisy postaci i start walki. Podpis to nazwa i prostokąt z liczbą
+   wzmocnień: zielony u bohaterów gracza (ulepszenia), czerwony u przeciwników (poziom). */
 
-.fang {
-  position: absolute;
-  top: calc(var(--floor) + 0.28em);
-  width: 2.6em;
-  height: 3.4em;
-  overflow: visible;
-  translate: -50% 0;
-}
-
-.fang path {
-  fill: var(--paper);
-  stroke: var(--ink);
-  stroke-linejoin: round;
-  stroke-width: 2.6;
-}
-
-.fang-empty path {
-  fill: none;
-  stroke: var(--paper);
-  stroke-dasharray: 3 5;
-  stroke-width: 2;
-  opacity: 0.65;
-}
-
-.enemy-tag {
+.unit-tag {
   position: absolute;
   top: calc(var(--floor) + 0.75em);
   display: grid;
   gap: 0.2em;
-  width: 5.9%;
+  width: 5.4%;
   font-size: 0.8em;
   line-height: 1.05;
   text-align: center;
@@ -283,17 +260,26 @@
   justify-items: center;
 }
 
-.enemy-name {
+.unit-name {
   font-weight: 700;
   overflow-wrap: anywhere;
 }
 
-.enemy-level {
+.unit-level {
   padding: 0.05em 0.4em;
   border-radius: 0.22em;
-  background: var(--madder);
   font-weight: 700;
   white-space: nowrap;
+}
+
+.unit-tag-hero .unit-level {
+  background: var(--moss);
+  color: var(--ink);
+}
+
+.unit-tag-enemy .unit-level {
+  background: var(--madder);
+  color: var(--paper);
 }
 
 .fight {

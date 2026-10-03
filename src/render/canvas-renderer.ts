@@ -24,6 +24,7 @@ import {
   FLOAT_KIND_HEAL,
   updateFloatTexts,
 } from './float-text.ts';
+import { measureReach } from './reach.ts';
 import type { Renderer } from './renderer.ts';
 import { type CompiledRig, compileRig } from './rig.ts';
 import { createScene } from './scene.ts';
@@ -89,10 +90,16 @@ export function createCanvasRenderer(
         }
         const look = resolveLook(visual);
         scene.looks[unit] = look;
-        look.rig.sprites.forEach((part, bone) => {
-          scene.boneSprites[unit * maxBones + bone] =
-            atlas.sprites.get(`${visual.skin}/${part}`) ?? null;
+        const parts = look.rig.sprites.map(
+          (part) => atlas.sprites.get(`${visual.skin}/${part}`) ?? null,
+        );
+        parts.forEach((sprite, bone) => {
+          scene.boneSprites[unit * maxBones + bone] = sprite;
         });
+        const reach = measureReach(look, parts);
+        scene.reachBack[unit] = reach.back;
+        scene.reachFront[unit] = reach.front;
+        scene.reachHeight[unit] = reach.height;
         scene.projectileSprites[unit] =
           visual.projectileSprite === null
             ? null

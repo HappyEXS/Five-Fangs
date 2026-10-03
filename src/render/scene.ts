@@ -36,6 +36,10 @@ export interface Scene {
   readonly plusSprite: Sprite | null;
   /** Jednostka rysowana na wierzchu pozostałych albo -1. */
   topUnit: number;
+  /** Zasięg postaci per unitId (reach.ts): za plecami, przed sobą i w górę, w jednostkach sceny. */
+  readonly reachBack: Float32Array;
+  readonly reachFront: Float32Array;
+  readonly reachHeight: Float32Array;
   battle: Battle | null;
 }
 
@@ -72,6 +76,9 @@ export function createScene(
     digitSprites,
     plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
     topUnit: -1,
+    reachBack: new Float32Array(MAX_UNITS),
+    reachFront: new Float32Array(MAX_UNITS),
+    reachHeight: new Float32Array(MAX_UNITS),
     battle: null,
   };
 }
