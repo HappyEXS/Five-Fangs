@@ -8,7 +8,10 @@ services:
     branch: main
     # Deploy dopiero po przejściu checków CI na commicie.
     autoDeployTrigger: checksPass
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    # pnpm przez `corepack pnpm`, nie `corepack enable`: na Render Node i jego skróty leżą
+    # w /usr, który jest tylko do odczytu, więc `corepack enable` kończy się błędem EROFS.
+    # Wersję pnpm wyznacza pole packageManager, tak samo jak w CI.
+    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm build
     staticPublishPath: ./dist
     buildFilter:
       ignoredPaths:
@@ -20,7 +23,7 @@ services:
     envVars:
       # Domyślnie Render sam instaluje zależności strony statycznej, zanim uruchomi
       # buildCommand, swoją wersją pnpm, która może nie pasować do lockfile'a pnpm 12.
-      # Instalację robi buildCommand: pnpm z pola packageManager przez Corepack, jak w CI.
+      # Instalację robi buildCommand: pnpm z pola packageManager przez Corepack.
       - key: SKIP_INSTALL_DEPS
         value: "true"
       # Corepack nie pyta o zgodę na pobranie pnpm: build nie ma terminala.

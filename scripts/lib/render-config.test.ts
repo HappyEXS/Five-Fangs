@@ -47,12 +47,14 @@ describe('render.yaml i public/_headers', () => {
     expect(csp).not.toMatch(/https?:/);
   });
 
-  it('Render nie instaluje zależności sam, a build robi to pnpm z Corepack jak CI', () => {
+  it('Render nie instaluje zależności sam, a build robi to pnpm z Corepack bez zapisu do /usr', () => {
     expect(renderYaml).toMatch(/- key: SKIP_INSTALL_DEPS\s+value: "true"/);
     expect(renderYaml).toMatch(/- key: COREPACK_ENABLE_DOWNLOAD_PROMPT\s+value: "0"/);
     expect(renderYaml).toMatch(
-      /buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build/,
+      /buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm build/,
     );
+    // `corepack enable` zapisuje skróty obok Node, a na Render ten katalog jest tylko do odczytu.
+    expect(renderYaml).not.toMatch(/buildCommand:.*corepack enable/);
     expect(renderYaml).toMatch(/runtime: static/);
     expect(renderYaml).toMatch(/staticPublishPath: \.\/dist/);
   });

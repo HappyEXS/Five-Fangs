@@ -32,7 +32,7 @@ Szacunek przy 5 GB i budżecie pierwszego uruchomienia 2 MB: ok. 2500 pierwszych
 | Typ usługi | `type: web`, `runtime: static` | |
 | Gałąź | `main` | |
 | Deploy | `autoDeployTrigger: checksPass` | Dopiero po zielonych checkach CI na commicie |
-| Build | `corepack enable && pnpm install --frozen-lockfile && pnpm build` | Bez testów; te działają w GitHub Actions |
+| Build | `corepack pnpm install --frozen-lockfile && corepack pnpm build` | Bez testów; te działają w GitHub Actions. pnpm przez `corepack pnpm`, bo `corepack enable` na Render kończy się błędem EROFS (katalog Node tylko do odczytu) |
 | Katalog publikacji | `./dist` | |
 | `buildFilter.ignoredPaths` | `docs/**`, `reports/**`, `tests/**`, `**/*.md`, `**/*.test.ts` | Takie zmiany nie zużywają minut buildu |
 | Wersja Node | plik `.node-version` | **[do potwierdzenia]** w logu pierwszego buildu |
@@ -113,7 +113,7 @@ Tylko gdy Blueprint nie wchodzi w grę. Nagłówki i filtry trzeba wtedy przepis
    | Name | `five-fangs` |
    | Branch | `main` |
    | Root Directory | puste |
-   | Build Command | `corepack enable && pnpm install --frozen-lockfile && pnpm build` |
+   | Build Command | `corepack pnpm install --frozen-lockfile && corepack pnpm build` |
    | Publish Directory | `dist` |
 
 3. **Advanced → Add Environment Variable**: `SKIP_INSTALL_DEPS` = `true` oraz `COREPACK_ENABLE_DOWNLOAD_PROMPT` = `0`. Nie dodawaj `NODE_ENV=production`: build potrzebuje zależności deweloperskich (Vite).
@@ -139,6 +139,7 @@ Tylko gdy Blueprint nie wchodzi w grę. Nagłówki i filtry trzeba wtedy przepis
 |---|---|
 | Formularz wymaga **Dockerfile Path**; build kończy się błędem o brakującym `Dockerfile` | Usługa ma typ *Web Service* (Docker). Usuń ją i utwórz *Static Site* (6.2 albo 6.3) |
 | Błąd przy instalacji zależności przed naszą komendą, inna wersja pnpm niż 12.8.1, błąd lockfile'a | Brak `SKIP_INSTALL_DEPS=true` (Render instaluje zależności sam, swoją wersją pnpm). Dodaj zmienną albo zsynchronizuj Blueprint |
+| `EROFS: read-only file system, unlink '/usr/bin/pnpm'` przy `corepack enable` | Na Render Node i jego skróty leżą w `/usr`, który jest tylko do odczytu. Komenda buildu nie może zawierać `corepack enable`; używa `corepack pnpm …` (jak w `render.yaml`). Sprawdzone lokalnie w kontenerze z systemem plików tylko do odczytu |
 | `corepack: command not found` albo inna wersja Node niż 24 | Render nie odczytał `.node-version`: ustaw zmienną `NODE_VERSION` = `24` w **Environment** usługi |
 | `vite: not found` | Zainstalowały się tylko zależności produkcyjne: usuń `NODE_ENV=production` ze zmiennych usługi |
 | Build się udał, ale strona zwraca 404 | **Publish Directory** różne od `dist` |
