@@ -17,6 +17,15 @@ services:
         - tests/**
         - "**/*.md"
         - "**/*.test.ts"
+    envVars:
+      # Domyślnie Render sam instaluje zależności strony statycznej, zanim uruchomi
+      # buildCommand, swoją wersją pnpm, która może nie pasować do lockfile'a pnpm 12.
+      # Instalację robi buildCommand: pnpm z pola packageManager przez Corepack, jak w CI.
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
+      # Corepack nie pyta o zgodę na pobranie pnpm: build nie ma terminala.
+      - key: COREPACK_ENABLE_DOWNLOAD_PROMPT
+        value: "0"
     headers:
       - path: /assets/*
         name: Cache-Control

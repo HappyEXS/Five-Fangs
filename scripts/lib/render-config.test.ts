@@ -47,6 +47,16 @@ describe('render.yaml i public/_headers', () => {
     expect(csp).not.toMatch(/https?:/);
   });
 
+  it('Render nie instaluje zależności sam, a build robi to pnpm z Corepack jak CI', () => {
+    expect(renderYaml).toMatch(/- key: SKIP_INSTALL_DEPS\s+value: "true"/);
+    expect(renderYaml).toMatch(/- key: COREPACK_ENABLE_DOWNLOAD_PROMPT\s+value: "0"/);
+    expect(renderYaml).toMatch(
+      /buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build/,
+    );
+    expect(renderYaml).toMatch(/runtime: static/);
+    expect(renderYaml).toMatch(/staticPublishPath: \.\/dist/);
+  });
+
   it('żadna reguła nie ustawia Cache-Control dla wszystkich ścieżek naraz', () => {
     const catchAll = parseRenderHeaders(renderYaml).filter(
       (r) => r.path === '/*' && r.name.toLowerCase() === 'cache-control',

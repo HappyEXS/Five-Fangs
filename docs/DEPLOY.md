@@ -1,6 +1,6 @@
 # Deploy – Five Fangs
 
-Stan na 2026-10-02: konfiguracja gotowa w repozytorium, pierwszy deploy jeszcze nie wykonany. Pozycje oznaczone **[do potwierdzenia]** wymagają dostępu do konta Render i uzupełnia się je przy pierwszym deployu (sekcja 6). Uzasadnienie decyzji: [ADR 0006](adr/0006-hosting-render-budzet-transferu.md).
+Stan na 2026-10-04: CI na GitHubie przeszło na `main` (commit „version 0.01”); pierwsza próba utworzenia usługi na Render nie powiodła się, bo powstała usługa typu Docker zamiast strony statycznej (sekcja 6). Pozycje oznaczone **[do potwierdzenia]** wymagają dostępu do konta Render i uzupełnia się je przy pierwszym deployu (sekcja 6). Uzasadnienie decyzji: [ADR 0006](adr/0006-hosting-render-budzet-transferu.md).
 
 ## 1. Założenia
 
@@ -37,6 +37,8 @@ Szacunek przy 5 GB i budżecie pierwszego uruchomienia 2 MB: ok. 2500 pierwszych
 | `buildFilter.ignoredPaths` | `docs/**`, `reports/**`, `tests/**`, `**/*.md`, `**/*.test.ts` | Takie zmiany nie zużywają minut buildu |
 | Wersja Node | plik `.node-version` | **[do potwierdzenia]** w logu pierwszego buildu |
 | pnpm | pole `packageManager` w `package.json`, przez Corepack | |
+| `SKIP_INSTALL_DEPS` | `true` | Render nie instaluje zależności sam przed `buildCommand` (swoją wersją pnpm); robi to `buildCommand`, tak jak CI |
+| `COREPACK_ENABLE_DOWNLOAD_PROMPT` | `0` | Corepack pobiera pnpm bez pytania (build nie ma terminala) |
 
 Nagłówki:
 
@@ -82,15 +84,66 @@ docker compose exec -e SITE_URL=https://<domena> -e EXPECTED_COMMIT=$(git rev-pa
 
 ## 6. Pierwszy deploy
 
-Kroki wymagające konta Render i uprawnień do repozytorium na GitHubie:
+Gra jest **stroną statyczną** (Render: *Static Site*). Nie jest usługą *Web Service* i nie używa Dockera: `Dockerfile.dev` w repozytorium służy tylko do pracy lokalnej (ADR 0011). Jeśli Render pyta o **Dockerfile Path**, to znaczy, że tworzona usługa ma typ *Web Service* z runtime Docker. To zły typ: taką usługę trzeba usunąć i utworzyć stronę statyczną jednym ze sposobów poniżej.
 
-1. Scalić gałąź z fundamentami do `main` i wypchnąć. CI na GitHubie powinno przejść.
-2. W Render: **New → Blueprint**, wskazać repozytorium `HappyEXS/Five-Fangs`. Render odczyta `render.yaml` i utworzy usługę `five-fangs`.
-3. W logu pierwszego buildu sprawdzić wersję Node i pnpm oraz czas buildu.
-4. W GitHubie: **Settings → Secrets and variables → Actions → Variables**, dodać `SITE_URL` z adresem strony (np. `https://five-fangs.onrender.com`).
-5. Ponowić workflow „Smoke check” albo wypchnąć kolejny commit i sprawdzić, czy przechodzi oraz czy nie ma zakleszczenia z sekcji 5.
-6. W panelu Render (Billing) odczytać limity transferu i minut buildu.
-7. Uzupełnić pozycje **[do potwierdzenia]** w tym pliku i w ADR 0006.
+### 6.1 Przed utworzeniem usługi
+
+1. Na `main` musi być aktualny `render.yaml` (z `envVars`: `SKIP_INSTALL_DEPS` i `COREPACK_ENABLE_DOWNLOAD_PROMPT`). CI na GitHubie (zakładka **Actions**, workflow **CI**) musi być zielone dla ostatniego commita `main`.
+2. Jeśli istnieje błędnie utworzona usługa (typ *Web Service*, pole *Dockerfile Path*): w panelu Render otwórz ją, **Settings**, na dole **Delete Web Service**. Nazwa `five-fangs` zwolni się dla właściwej usługi.
+
+### 6.2 Sposób zalecany: Blueprint (wszystko z `render.yaml`)
+
+1. Panel Render: **New → Blueprint**.
+2. Połącz konto GitHub (jeśli nie jest połączone) i wybierz repozytorium **HappyEXS/Five-Fangs**. Jeśli go nie ma na liście: **Configure account** i nadaj aplikacji Render dostęp do tego repozytorium.
+3. **Blueprint Name**: dowolna, np. `five-fangs`. **Branch**: `main`. **Blueprint Path**: zostaw domyślne `render.yaml`.
+4. Render pokaże listę zasobów do utworzenia: jedna usługa **five-fangs** typu *Static Site*. Nie powinien pytać o Dockerfile, region ani plan instancji. Jeśli pyta o Dockerfile, czyta inny plik albo inną gałąź: sprawdź punkt 3.
+5. **Deploy Blueprint** (albo **Apply**). Render utworzy usługę i zacznie pierwszy build.
+
+Blueprint ustawia od razu wszystko: komendę buildu, katalog `dist`, zmienne, nagłówki, `buildFilter` i `autoDeployTrigger: checksPass`. Kolejne zmiany konfiguracji wprowadza się w `render.yaml` na `main`; Render zastosuje je przy następnej synchronizacji Blueprintu.
+
+### 6.3 Sposób ręczny: New → Static Site
+
+Tylko gdy Blueprint nie wchodzi w grę. Nagłówki i filtry trzeba wtedy przepisać ręcznie i pilnować ich zgodności z `render.yaml`.
+
+1. Panel Render: **New → Static Site**, repozytorium **HappyEXS/Five-Fangs**.
+2. Pola formularza:
+
+   | Pole | Wartość |
+   |---|---|
+   | Name | `five-fangs` |
+   | Branch | `main` |
+   | Root Directory | puste |
+   | Build Command | `corepack enable && pnpm install --frozen-lockfile && pnpm build` |
+   | Publish Directory | `dist` |
+
+3. **Advanced → Add Environment Variable**: `SKIP_INSTALL_DEPS` = `true` oraz `COREPACK_ENABLE_DOWNLOAD_PROMPT` = `0`. Nie dodawaj `NODE_ENV=production`: build potrzebuje zależności deweloperskich (Vite).
+4. **Create Static Site**.
+5. Po utworzeniu, w **Settings**:
+   - **Build & Deploy → Auto-Deploy**: deploy po przejściu checków CI (*After CI Checks Pass*).
+   - **Build Filters → Ignored Paths**: ścieżki z tabeli w sekcji 3.
+   - **Headers**: każda reguła z tabeli nagłówków w sekcji 3 (ścieżka, nazwa, wartość).
+   - **Redirects/Rewrites**: nic nie dodawaj (gra nie ma routingu po ścieżkach).
+
+### 6.4 Po pierwszym buildzie
+
+1. W logu buildu (**Events / Logs** usługi) powinny być kolejno: wersja Node 24.x (z `.node-version`), pobranie pnpm 12.8.1 przez Corepack, `pnpm install`, `vite build` i na końcu informacja, że strona działa. Zapisz w sekcji 3 wersję Node i czas buildu.
+2. Otwórz adres strony z panelu (np. `https://five-fangs.onrender.com`): gra powinna wystartować ekranem startowym.
+3. W GitHubie: **Settings → Secrets and variables → Actions**, zakładka **Variables**, **New repository variable**: `SITE_URL` = adres strony z panelu Render, bez ukośnika na końcu.
+4. Smoke check rusza sam po każdym zielonym CI na `main`. Żeby sprawdzić go od razu: **Actions → Smoke check**, ostatnie uruchomienie, **Re-run all jobs**. Musi przejść; zwróć uwagę na zakleszczenie opisane w sekcji 5.
+5. W panelu Render (**Billing**) odczytaj limity transferu i minut buildu.
+6. Uzupełnij pozycje **[do potwierdzenia]** w tym pliku i w ADR 0006.
+
+### 6.5 Gdy build albo deploy się nie udaje
+
+| Objaw | Przyczyna i co zrobić |
+|---|---|
+| Formularz wymaga **Dockerfile Path**; build kończy się błędem o brakującym `Dockerfile` | Usługa ma typ *Web Service* (Docker). Usuń ją i utwórz *Static Site* (6.2 albo 6.3) |
+| Błąd przy instalacji zależności przed naszą komendą, inna wersja pnpm niż 12.8.1, błąd lockfile'a | Brak `SKIP_INSTALL_DEPS=true` (Render instaluje zależności sam, swoją wersją pnpm). Dodaj zmienną albo zsynchronizuj Blueprint |
+| `corepack: command not found` albo inna wersja Node niż 24 | Render nie odczytał `.node-version`: ustaw zmienną `NODE_VERSION` = `24` w **Environment** usługi |
+| `vite: not found` | Zainstalowały się tylko zależności produkcyjne: usuń `NODE_ENV=production` ze zmiennych usługi |
+| Build się udał, ale strona zwraca 404 | **Publish Directory** różne od `dist` |
+| Po pushu na `main` deploy nie startuje | `autoDeployTrigger: checksPass` czeka na zielone CI: sprawdź zakładkę **Actions**; zmiany tylko w `docs/`, `reports/`, `tests/` i plikach `.md` celowo nie budują strony (`buildFilter`) |
+| Strona działa, ale konsola przeglądarki pokazuje naruszenia CSP | Nagłówki w panelu różnią się od `render.yaml` (przy usłudze ręcznej): porównaj z tabelą w sekcji 3 |
 
 Ręczna weryfikacja nagłówków (to samo robi smoke check):
 
