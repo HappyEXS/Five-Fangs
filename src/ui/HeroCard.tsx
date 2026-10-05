@@ -1,11 +1,13 @@
-// Karta wybranego bohatera na ekranie składu: tylko do czytania. Statystyki z podglądem
+// Karta wybranego bohatera na ekranie składu: tylko do czytania. Miniaturka, statystyki z podglądem
 // następnego zakupu; wszystkie działania (runy, ulepszenia, ewolucja) są w polu bohatera
 // na scenie (HeroField.tsx).
+import type { StageControls } from '../game/battle-stage.ts';
 import type { Game } from '../game/game.ts';
 import { nextPurchase } from '../game/hero-options.ts';
 import { t } from '../game/i18n.ts';
 import type { HeroView } from '../game/progress.ts';
 import { StatTable, tierLabel, unitName } from './common.tsx';
+import { Portrait } from './Portrait.tsx';
 
 /** Nazwa bohatera z liczbą ulepszeń: odróżnia egzemplarze tej samej linii. */
 export function heroLabel(view: HeroView): string {
@@ -13,7 +15,7 @@ export function heroLabel(view: HeroView): string {
   return view.hero.upgrades > 0 ? `${name} +${view.hero.upgrades}` : name;
 }
 
-export function HeroCard(props: { game: Game; view: HeroView }) {
+export function HeroCard(props: { game: Game; stage: StageControls; view: HeroView }) {
   const { game, view } = props;
   const { content } = game;
   const save = game.save.value;
@@ -23,16 +25,21 @@ export function HeroCard(props: { game: Game; view: HeroView }) {
   const single = purchase !== null && purchase.options.length === 1 ? purchase.options[0] : null;
   return (
     <div class="hero-card" data-hero={heroId}>
-      <h3 class="hero-name">{unitName(view.unitId)}</h3>
-      <p class="hero-form">
-        <span>{tierLabel(view.line.forms.get(view.hero.form)?.tier ?? 0)}</span>
-        <span>
-          {t('heroes.upgrades', {
-            count: view.hero.upgrades,
-            max: content.progression.maxUpgrades,
-          })}
-        </span>
-      </p>
+      <header class="card-head">
+        <Portrait stage={props.stage} unit={view.unitId} />
+        <div>
+          <h3 class="hero-name">{unitName(view.unitId)}</h3>
+          <p class="hero-form">
+            <span>{tierLabel(view.line.forms.get(view.hero.form)?.tier ?? 0)}</span>
+            <span>
+              {t('heroes.upgrades', {
+                count: view.hero.upgrades,
+                max: content.progression.maxUpgrades,
+              })}
+            </span>
+          </p>
+        </div>
+      </header>
       {/* Przy kilku drogach ewolucji podgląd nie wie, którą gracz wybierze: porównanie jest
           w okienku wyboru drogi. */}
       <StatTable spec={view.spec} next={single?.spec ?? null} />

@@ -1,5 +1,5 @@
 // Elementy wspólne ekranów: nagłówek ekranu, sakiewka, tabela statystyk, nazwy z treści gry.
-import { unitNameKey } from '../content/i18n/keys.ts';
+import { lineNameKey, unitNameKey } from '../content/i18n/keys.ts';
 import type { Rune } from '../content/schema-progression.ts';
 import type { Game } from '../game/game.ts';
 import { t, tName } from '../game/i18n.ts';
@@ -8,6 +8,11 @@ import { Coin } from './icons.tsx';
 
 export function unitName(unitId: string): string {
   return tName(unitNameKey(unitId));
+}
+
+/** Nazwa szczepu, czyli linii bohaterów z jednym drzewem ewolucji. */
+export function lineName(lineId: string): string {
+  return tName(lineNameKey(lineId));
 }
 
 export function runeLabel(rune: Rune): string {

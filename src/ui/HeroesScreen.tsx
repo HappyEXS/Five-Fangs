@@ -1,4 +1,4 @@
-// Informacje o bohaterach: drzewo ewolucji wybranej linii (ADR 0016). U góry drzewo form
+// Informacje o bohaterach: zakładki szczepów i drzewo ewolucji wybranego (ADR 0016). U góry drzewo form
 // (kolumna to stopień, rozwidlenie to wybór drogi; każda forma ma swoją miniaturkę), na scenie
 // postacie drogi przez wybraną formę, z prawej jej karta. Tu niczego się nie kupuje: bohaterów
 // sprzedaje sklep, a ulepszenia i ewolucje ekran składu.
@@ -9,7 +9,7 @@ import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
 import { ownedCount } from '../game/progress.ts';
 import { formStands } from '../game/stage-stands.ts';
-import { Gold, ScreenHead, StatTable, tierLabel, unitName } from './common.tsx';
+import { Gold, lineName, ScreenHead, StatTable, tierLabel, unitName } from './common.tsx';
 import { Portrait } from './Portrait.tsx';
 
 /** Drzewo form linii jako siatka przycisków; wybrana forma jest wyróżniona. */
@@ -62,11 +62,14 @@ function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine;
   const parent = node.from === null ? undefined : game.content.heroes.get(node.from);
   return (
     <section class="sheet form-card" data-details={form}>
-      <header class="form-head">
+      <header class="card-head">
         <Portrait stage={props.stage} unit={form} />
         <div>
           <h3 class="hero-name">{unitName(form)}</h3>
-          <p class="note">{tierLabel(node.tier)}</p>
+          <p class="hero-form">
+            <span>{lineName(line.id)}</span>
+            <span>{tierLabel(node.tier)}</span>
+          </p>
         </div>
       </header>
       {node.from !== null && (
@@ -123,7 +126,7 @@ export function HeroesScreen(props: {
             aria-pressed={option.id === props.line}
             onClick={() => game.openHeroes(option.id)}
           >
-            {unitName(option.base)}
+            {lineName(option.id)}
           </button>
         ))}
       </nav>

@@ -30,6 +30,15 @@ function fieldAt(slot: number): number {
   return SQUAD_FIELD_AT[slot] ?? 0;
 }
 
+/** Kółko myszy przewija rząd miniaturek w bok; bez nadmiaru bohaterów nic nie robi. */
+function scrollSideways(event: WheelEvent): void {
+  const row = event.currentTarget;
+  if (!(row instanceof HTMLElement) || row.scrollWidth <= row.clientWidth) return;
+  if (event.deltaY === 0) return;
+  row.scrollLeft += event.deltaY;
+  event.preventDefault();
+}
+
 /** Bohater spoza składu: miniaturka, liczba ulepszeń i nazwa formy. */
 function ChipFace(props: { stage: StageControls; view: HeroView }) {
   const { view } = props;
@@ -125,15 +134,19 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
       <ScreenHead game={game} title={t('nav.squad')} />
 
       <section class={over === BENCH ? 'sheet reserve is-over' : 'sheet reserve'} data-drop={BENCH}>
-        {/* Podpowiedź stoi obok tytułu, żeby rząd miniaturek mieścił się w arkuszu bez przewijania. */}
+        {/* Podpowiedź stoi obok tytułu, a pod nią jest zawsze jeden rząd na miniaturki: arkusz
+            ma tę samą wysokość pusty i pełny. Gdy bohaterów jest więcej, rząd się przewija. */}
         <header class="reserve-head">
           <h3 class="sheet-title">{t('squad.bench')}</h3>
           <p class="note">{t(isSquadEmpty(save) ? 'squad.empty' : 'squad.hint')}</p>
         </header>
         {bench.length === 0 ? (
-          <p class="note">{t('squad.bench.empty')}</p>
+          // Klasa `note` na wewnętrznym elemencie: jej mniejsza czcionka zmieniłaby wysokość rzędu.
+          <div class="chips chips-empty">
+            <p class="note">{t('squad.bench.empty')}</p>
+          </div>
         ) : (
-          <div class="chips">
+          <div class="chips" onWheel={scrollSideways}>
             {bench.map((hero) => {
               const view = heroView(content, save, hero.id);
               return view === null ? null : (
@@ -162,7 +175,7 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
         {selectedView === null ? (
           <p class="note">{t('squad.details.none')}</p>
         ) : (
-          <HeroCard game={game} view={selectedView} />
+          <HeroCard game={game} stage={stage} view={selectedView} />
         )}
       </section>
 
@@ -261,7 +274,7 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
 
       {picking?.kind === 'rune' && <RunePicker game={game} pick={picking} onClose={closePick} />}
       {picking?.kind === 'evolve' && (
-        <EvolvePicker game={game} pick={picking} onClose={closePick} />
+        <EvolvePicker game={game} stage={stage} pick={picking} onClose={closePick} />
       )}
 
       {dragging !== null && draggedView !== null && (

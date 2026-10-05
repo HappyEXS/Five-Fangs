@@ -3,12 +3,12 @@
 // bo `content` może importować z `sim` tylko typy.
 import type { Dictionary } from '../core/i18n.ts';
 import { dictionaries, SOURCE_LANGUAGE } from './i18n/index.ts';
-import { levelNameKey, unitNameKey, worldNameKey } from './i18n/keys.ts';
+import { levelNameKey, lineNameKey, unitNameKey, worldNameKey } from './i18n/keys.ts';
 import { validateDictionaries } from './i18n/validate.ts';
 import type { ContentIssue } from './issues.ts';
 import { type GameContent, loadContent, type RawContent, rawContent } from './load.ts';
 
-export { levelNameKey, unitNameKey, worldNameKey };
+export { levelNameKey, lineNameKey, unitNameKey, worldNameKey };
 
 function missingNames(content: GameContent, source: Dictionary): ContentIssue[] {
   const issues: ContentIssue[] = [];
@@ -19,6 +19,7 @@ function missingNames(content: GameContent, source: Dictionary): ContentIssue[] 
   };
   for (const id of content.heroes.keys()) require('units/heroes.json', id, unitNameKey(id));
   for (const id of content.enemies.keys()) require('units/enemies.json', id, unitNameKey(id));
+  for (const id of content.lines.keys()) require('lines.json', id, lineNameKey(id));
   for (const world of content.worlds) require('worlds.json', world.id, worldNameKey(world.id));
   for (const level of content.levels.values()) {
     require(`levels/${level.world}.json`, level.id, levelNameKey(level.id));

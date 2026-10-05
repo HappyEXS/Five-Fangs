@@ -10,8 +10,6 @@
   display: grid;
   gap: 0.4em;
   width: 74%;
-  max-height: 25%;
-  overflow: auto;
   align-content: start;
 }
 
@@ -28,10 +26,33 @@
   gap: 0.1em 1em;
 }
 
+/* Jeden rząd miniaturek o stałej wysokości (miniaturka, nazwa w dwóch wierszach, miejsce na
+   suwak), także gdy nikogo w nim nie ma: arkusz nie zmienia wysokości przy wkładaniu
+   i wyjmowaniu bohaterów. Nadmiar przewija się w bok. */
 .chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em 0.3em;
+  gap: 0.3em;
+  height: 6.1em;
+  overflow: auto hidden;
+  padding-top: 0.2em;
+  scrollbar-color: var(--ink-soft) transparent;
+  scrollbar-width: thin;
+}
+
+/* Pusty rząd: przerywany zarys miejsca, w które można upuścić bohatera. */
+.chips-empty {
+  align-items: center;
+  gap: 0.9em;
+}
+
+.chips-empty::before {
+  flex: none;
+  width: 3.5em;
+  height: 3.5em;
+  margin-left: 0.85em;
+  border: 0.14em dashed var(--ink-soft);
+  border-radius: 0.3em;
+  content: "";
 }
 
 /* Bohater poza składem: miniaturka z nazwą formy pod spodem i liczbą ulepszeń na rogu. */
@@ -40,6 +61,7 @@
 
   position: relative;
   display: grid;
+  flex: none;
   gap: 0.3em;
   width: 4.9em;
   padding: 0.15em 0 0;
@@ -59,14 +81,20 @@
   cursor: grabbing;
 }
 
+/* Najwyżej dwa wiersze nazwy: rząd ma stałą wysokość, pełną nazwę podaje etykieta przycisku. */
 .chip-name {
+  display: -webkit-box;
   max-width: 100%;
+  overflow: hidden;
   padding: 0.05em 0.3em;
   border-radius: 0.22em;
   font-size: 0.8em;
   font-weight: 700;
   line-height: 1.05;
   overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 /* Liczba ulepszeń jak na mapie pod bohaterem: zielona plakietka „+N”. */
@@ -126,11 +154,15 @@
   gap: 0.6em;
 }
 
-.hero-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2em 0.8em;
-  margin-top: -0.3em;
+/* Karta jest wąska: mniejsza miniaturka i nazwa niż na karcie formy w zakładce Bohaterowie. */
+.hero-card .card-head {
+  --portrait: 3.4em;
+
+  gap: 0.55em;
+}
+
+.hero-card .hero-name {
+  font-size: 1.5em;
 }
 
 /* Pole bohatera */
@@ -337,6 +369,14 @@
 
 .evolve-option .stats {
   width: 100%;
+}
+
+.evolve-head {
+  --portrait: 2.8em;
+
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 
 .evolve-name {

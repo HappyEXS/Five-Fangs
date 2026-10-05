@@ -171,7 +171,14 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   await expect(info).toContainText('Miecznik');
   await expect(info).toContainText('Rycerz');
   await expect(info.locator('.tree-cost').first()).toContainText('250');
-  await info.getByRole('button', { name: 'Akolita' }).click();
+  await expect(info.locator('.line-tabs button')).toHaveText([
+    'Miecznicy',
+    'Łucznicy',
+    'Tarczownicy',
+    'Akolici',
+    'Beasts',
+  ]);
+  await info.getByRole('button', { name: 'Akolici' }).click();
   await expect(info).toContainText('Kapłan');
   await expect(info.locator('[data-action="buy"]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Wróć' }).click();
@@ -232,6 +239,7 @@ test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async
     .click();
   const picker = page.locator('.evolve-picker');
   await expect(picker.locator('.evolve-option')).toHaveCount(2);
+  await expect.poll(() => paintedPortraits(page, '.evolve-option .portrait-face')).toBe(2);
   await expect(picker).toContainText('Rycerz');
   await expect(picker).toContainText('Strażnik (kopia)');
   await picker
@@ -283,18 +291,27 @@ test('miniaturki: bohater poza składem i formy w drzewie ewolucji', async ({ pa
   await expect(chip.locator('.chip-name')).toHaveText('Strzelec wyborowy');
   await expect(chip.locator('.chip-level')).toHaveText('+3');
   await expect.poll(() => paintedPortraits(page, '.hero-chip .portrait-face')).toBe(1);
+  // Karta wybranego bohatera też zaczyna się od jego miniaturki.
+  await expect(page.locator('.hero-card .hero-name')).toHaveText('Miecznik');
+  await expect.poll(() => paintedPortraits(page, '.hero-card .portrait-face')).toBe(1);
+  const reserveHeight = async () => (await page.locator('.reserve').boundingBox())?.height ?? 0;
+  const withHero = await reserveHeight();
   // Miniaturkę łapie się jak postać: upuszczona na slocie wchodzi do składu.
   await chip.dragTo(page.locator('[data-drop="slot:1"]'));
   await expect(page.locator('[data-drop="slot:1"] .field-name')).toHaveText('Strzelec wyborowy +3');
   await expect(page.locator('.hero-chip')).toHaveCount(0);
   expect((await readSave(page)).squad).toEqual([1, 2, null, null, null]);
+  // Pusty pasek „Poza składem” ma tę samą wysokość co z bohaterem: nic nie skacze.
+  await expect(page.locator('.reserve')).toContainText('Wszyscy bohaterowie są w składzie.');
+  expect(withHero).toBeGreaterThan(0);
+  expect(await reserveHeight()).toBeCloseTo(withHero, 1);
 
   // Bohaterowie: każda forma w drzewie i karta wybranej formy mają miniaturkę.
   await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Bohaterowie' }).click();
   await expect(page.locator('.tree-node')).toHaveCount(5);
   await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(5);
-  await expect.poll(() => paintedPortraits(page, '.form-head .portrait-face')).toBe(1);
+  await expect.poll(() => paintedPortraits(page, '.form-card .portrait-face')).toBe(1);
   expect(errors).toEqual([]);
 });
 
@@ -325,7 +342,8 @@ test('szczep Beasts: zakup w sklepie, drzewo siedmiu form i walka Ignitixa', asy
 
   // Bohaterowie: drzewo o czterech formach końcowych z miniaturką przy każdej formie.
   await page.getByRole('button', { name: 'Bohaterowie' }).click();
-  await page.locator('[data-line="beasts"]').click();
+  await page.locator('.line-tabs').getByRole('button', { name: 'Beasts' }).click();
+  await expect(page.locator('.form-card .hero-form')).toContainText('Beasts');
   const tree = page.locator('.tree');
   await expect(tree.locator('.tree-node')).toHaveCount(7);
   await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(7);

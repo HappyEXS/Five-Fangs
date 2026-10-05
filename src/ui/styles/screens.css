@@ -176,14 +176,6 @@
   font-size: 0.95em;
 }
 
-.form-head {
-  --portrait: 4.2em;
-
-  display: flex;
-  align-items: center;
-  gap: 0.7em;
-}
-
 .form-origin {
   display: flex;
   align-items: center;

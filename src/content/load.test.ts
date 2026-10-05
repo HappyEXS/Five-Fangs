@@ -165,6 +165,22 @@ describe('validateContent', () => {
     expect(validateContent()).toEqual([]);
   });
 
+  it('wymaga nazwy każdego szczepu (linii) w słowniku', () => {
+    const nameless = [
+      {
+        id: 'nameless',
+        price: 100,
+        starter: true,
+        forms: [{ unit: 'swordsman', upgradeCosts: [1, 2, 3, 4] }],
+      },
+    ];
+    const issues = validateContent({ ...withHeroes([unit]), 'lines.json': nameless });
+    expect(issues).toContainEqual({
+      source: 'lines.json',
+      message: 'nameless: brak tekstu "line.nameless.name" w słowniku',
+    });
+  });
+
   it('wymaga nazwy każdej jednostki w słowniku i przynależności bohatera do linii', () => {
     const issues = validateContent(withHeroes([{ ...unit, id: 'nameless' }]));
     expect(issues).toEqual([

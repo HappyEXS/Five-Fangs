@@ -188,8 +188,9 @@ Zlecenie autora gry: zaprojektować wygląd siedmiu bohaterów szczepu Beasts we
 | M5h-2 | Wygląd siedmiu bestii: części na szkielecie humanoid, pociski, klipy `peck`, `gore`, `spit`, `volley` | 2 | Każda skórka ma komplet części i żadna nie jest ucięta; atlas w budżecie (128 KB); zrzuty z gry w czterech drogach ewolucji | gotowe |
 | M5h-3 | Treść: siedem jednostek ze statystykami ze szkiców, linia w sklepie, drzewo ewolucji, kadry miniaturek | 0,5 | Walidator treści przechodzi; test end-to-end: zakup, drzewo siedmiu form, Ignitix zabija najpierw tylnego wroga | gotowe |
 | M5h-4 | Renderer: pasek życia nad łbem wysokich postaci, wysokość wylotu pocisku, lot łukiem | 0,5 | Alokacje renderera bez zmian przy włączonym i wyłączonym łuku (297 B na klatkę w scenie z pociskami wycelowanymi) | gotowe |
-| M5h-5 | Ocena autora: wygląd bestii, wartości robocze (ataki na sekundę melee, zasięg strzelców, koszty), wolny ruch strzelców, nazwa zakładki linii | — | Decyzja autora | otwarte |
+| M5h-5 | Ocena autora: wygląd bestii, wartości robocze (ataki na sekundę melee, zasięg strzelców, koszty), wolny ruch strzelców | — | Decyzja autora | otwarte |
 | M5h-6 | Pozostałe trzy szczepy | — | Czeka na szkice autora | wstrzymane |
+| M5h-7 | Uwagi autora po obejrzeniu bestii: nazwy szczepów na zakładkach „Bohaterów”, miniaturka w wyborze ewolucji i na karcie bohatera w składzie, stała wysokość paska „Poza składem” | 0,5 | Test end-to-end: zakładki noszą nazwy szczepów, miniaturki są narysowane, pasek ma tę samą wysokość pusty i z bohaterem (zmierzone też przy dwunastu bohaterach: 150,7 px w każdym stanie) | gotowe |
 
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
