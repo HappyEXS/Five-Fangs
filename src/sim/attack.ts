@@ -8,7 +8,7 @@
 import type { Battle } from './battle.ts';
 import { isAlive } from './decide.ts';
 import { EVENT_ATTACK_HIT, pushEvent } from './events.ts';
-import { attackDamage, queueHit } from './hits.ts';
+import { nextAttackDamage, queueHit } from './hits.ts';
 import { spawnProjectile } from './projectiles.ts';
 import { TEAM_SIZE } from './types.ts';
 
@@ -18,7 +18,7 @@ function meleeHit(battle: Battle, unitId: number): void {
   // Cel mógł zginąć w trakcie zamachu: cios chybia, zamach dobiega końca.
   if (target < 0 || !isAlive(state.status[target] ?? 0)) return;
   pushEvent(battle.events, EVENT_ATTACK_HIT, unitId, target, 0);
-  const damage = attackDamage(battle, unitId);
+  const damage = nextAttackDamage(battle, unitId);
   queueHit(battle, unitId, target, damage, specs.knockback[unitId] ?? 0);
 
   // Cios obszarowy: pełne obrażenia dla pozostałych wrogów w promieniu od celu, bez odrzutu.

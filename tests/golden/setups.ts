@@ -89,6 +89,20 @@ export const GOLDEN_SETUPS: Readonly<Record<string, BattleSetup>> = {
     [brute(), brute(), melee(), ranged({ pierce: true })],
   ),
 
+  // Stały rytm: podwójne obrażenia, unik i tarcza po obu stronach, wręcz i z pocisków.
+  rhythm: setupOf(
+    [
+      melee({ doubleDamagePercent: 50, knockback: u(15) }),
+      melee({ dodgePercent: 70, attackInterval: 20 }),
+      ranged({ doubleDamagePercent: 20, pierce: true }),
+    ],
+    [
+      brute(),
+      melee({ shieldPercent: 50, doubleDamagePercent: 30, lifestealPercent: 25 }),
+      ranged({ dodgePercent: 40, shieldPercent: 10 }),
+    ],
+  ),
+
   // Celowanie w koniec szyku po obu stronach: pociski mijają front, strzelcy stoją w miejscu.
   'target-last': setupOf(
     [swordsman(), archer(), ranged({ targetLast: true, range: u(1000), attack: 60 })],

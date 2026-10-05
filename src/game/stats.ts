@@ -61,6 +61,21 @@ export function traitsOf(spec: UnitSpec): TraitView[] {
       params: { amount: spec.healAmount, seconds: tenths(spec.healInterval / TICKS_PER_SECOND) },
     });
   }
+  if (spec.doubleDamagePercent > 0) {
+    // Gdy rytm jest równy („co drugi”, „co piąty”), mówimy to wprost.
+    const percent = spec.doubleDamagePercent;
+    traits.push(
+      100 % percent === 0 && percent < 100
+        ? { key: 'trait.doubleDamage.every', params: { every: 100 / percent } }
+        : { key: 'trait.doubleDamage', params: { percent } },
+    );
+  }
+  if (spec.dodgePercent > 0) {
+    traits.push({ key: 'trait.dodge', params: { percent: spec.dodgePercent } });
+  }
+  if (spec.shieldPercent > 0) {
+    traits.push({ key: 'trait.shield', params: { percent: spec.shieldPercent } });
+  }
   if (spec.lifestealPercent > 0) {
     traits.push({ key: 'trait.lifesteal', params: { percent: spec.lifestealPercent } });
   }

@@ -73,6 +73,16 @@ export const traitSchema = z.discriminatedUnion('type', [
    * pole, żeby strzelała z miejsca.
    */
   z.strictObject({ type: z.literal('targetLast') }),
+  /**
+   * Podwójne obrażenia w stałym rytmie: `percent` na każde 100 ataków jest podwójnych, równo
+   * rozłożonych (50 to co drugi atak). Walka nie ma losowości, więc „szansa” ze szkicu postaci
+   * staje się rytmem (decyzja autora gry z 2026-10-05).
+   */
+  z.strictObject({ type: z.literal('doubleDamage'), percent: z.number().int().min(1).max(100) }),
+  /** Unik w stałym rytmie: `percent` na każde 100 trafień jednostka unika w całości. */
+  z.strictObject({ type: z.literal('dodge'), percent: z.number().int().min(1).max(99) }),
+  /** Tarcza: otrzymywane obrażenia są mniejsze o `percent` procent. */
+  z.strictObject({ type: z.literal('shield'), percent: z.number().int().min(1).max(99) }),
 ]);
 
 export const unitSchema = z.strictObject({

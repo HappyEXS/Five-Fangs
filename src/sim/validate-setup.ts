@@ -18,6 +18,9 @@ const INTEGER_FIELDS = [
   'enrageAttackPercent',
   'lifestealPercent',
   'splashRadius',
+  'doubleDamagePercent',
+  'dodgePercent',
+  'shieldPercent',
 ] as const;
 
 /** Problemy pojedynczej specyfikacji jednostki, niezależne od składu i areny. */
@@ -59,6 +62,14 @@ export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
   }
   if (spec.lifestealPercent > 100) {
     problems.push(`${label}: lifestealPercent musi być w przedziale 0..100`);
+  }
+  if (spec.doubleDamagePercent > 100) {
+    problems.push(`${label}: doubleDamagePercent musi być w przedziale 0..100`);
+  }
+  // Unik albo tarcza 100% dawałyby jednostkę, której nie da się zabić.
+  if (spec.dodgePercent > 99) problems.push(`${label}: dodgePercent musi być w przedziale 0..99`);
+  if (spec.shieldPercent > 99) {
+    problems.push(`${label}: shieldPercent musi być w przedziale 0..99`);
   }
   if (spec.targetLast && spec.projectileStep === 0) {
     problems.push(`${label}: targetLast wymaga ataku z pociskiem`);

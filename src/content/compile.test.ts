@@ -77,6 +77,9 @@ describe('compileUnit', () => {
         lifestealPercent: 0,
         splashRadius: 0,
         targetLast: false,
+        doubleDamagePercent: 0,
+        dodgePercent: 0,
+        shieldPercent: 0,
       },
       visual: {
         rig: 'humanoid',
@@ -193,6 +196,19 @@ describe('cechy pasywne', () => {
     const spitter: RawUnit = { ...archer, traits: [{ type: 'targetLast' }] };
     expect(compileUnit(spitter, shoot).base.targetLast).toBe(true);
     expect(compileUnit(archer, shoot).base.targetLast).toBe(false);
+  });
+
+  it('rytm podwójnych obrażeń, unik i tarcza trafiają do specyfikacji jako procenty', () => {
+    const fighter: RawUnit = {
+      ...swordsman,
+      traits: [
+        { type: 'doubleDamage', percent: 20 },
+        { type: 'dodge', percent: 70 },
+        { type: 'shield', percent: 10 },
+      ],
+    };
+    const { base } = compileUnit(fighter, slash);
+    expect([base.doubleDamagePercent, base.dodgePercent, base.shieldPercent]).toEqual([20, 70, 10]);
   });
 
   it('pierce ustawia flagę i łączy się z leczeniem', () => {

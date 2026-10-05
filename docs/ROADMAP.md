@@ -192,6 +192,14 @@ Zlecenie autora gry: zaprojektować wygląd siedmiu bohaterów szczepu Beasts we
 | M5h-6 | Pozostałe trzy szczepy | — | Czeka na szkice autora | wstrzymane |
 | M5h-7 | Uwagi autora po obejrzeniu bestii: nazwy szczepów na zakładkach „Bohaterów”, miniaturka w wyborze ewolucji i na karcie bohatera w składzie, stała wysokość paska „Poza składem” | 0,5 | Test end-to-end: zakładki noszą nazwy szczepów, miniaturki są narysowane, pasek ma tę samą wysokość pusty i z bohaterem (zmierzone też przy dwunastu bohaterach: 150,7 px w każdym stanie) | gotowe |
 
+## M5i – Szczepy Immortals, Plants i Robots; mroczniejszy styl postaci (2026-10-05)
+
+Zlecenie autora gry: skórki trzech kolejnych szczepów według szkiców (zdjęcia w `inspirations/`) i mniej dziecinna, „obskurna” grafika każdego bohatera. Ustalenia z autorem: szanse ze szkiców działają jako stały rytm bez losu; tarcza to mniejsze obrażenia; przyzwane krzaki Mother-tree mają osobne miejsca (do 5 naraz ponad skład); stojące postacie (Spd 0) strzelają przez całe pole; styl „mroczna baśń” (brud, poszarpane kontury, blizny, rdza, pleśń, małe świecące oczy, bez krwi) dla czterech szczepów, starzy ludzie bez zmian; nazwy Polaris i Xartix; pocisk Toxic Ivy przebija wszystkich.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5i-1 | Cechy `doubleDamage` i `dodge` w stałym rytmie oraz `shield`; znak uniku nad postacią | 1 | Testy rytmu (50, 20, 30, 70 na 100), łączenia z szałem, kradzieżą życia, pociskami i ciosem obszarowym; walka golden `rhythm`; w istniejących walkach zmienia się tylko hash stanu | gotowe |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

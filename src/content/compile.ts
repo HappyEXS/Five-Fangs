@@ -68,6 +68,9 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
   let lifestealPercent = 0;
   let splashRadius = 0;
   let targetLast = false;
+  let doubleDamagePercent = 0;
+  let dodgePercent = 0;
+  let shieldPercent = 0;
   for (const trait of raw.traits) {
     switch (trait.type) {
       case 'pierce':
@@ -90,6 +93,15 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
         break;
       case 'targetLast':
         targetLast = true;
+        break;
+      case 'doubleDamage':
+        doubleDamagePercent = trait.percent;
+        break;
+      case 'dodge':
+        dodgePercent = trait.percent;
+        break;
+      case 'shield':
+        shieldPercent = trait.percent;
         break;
     }
   }
@@ -118,6 +130,9 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       lifestealPercent,
       splashRadius,
       targetLast,
+      doubleDamagePercent,
+      dodgePercent,
+      shieldPercent,
     },
     visual: {
       rig: raw.rig,

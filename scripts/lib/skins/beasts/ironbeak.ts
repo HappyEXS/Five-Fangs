@@ -1,8 +1,8 @@
 // Ironbeak: druga ewolucja Batfanga, szybki i odrzucający. Ptak na długiej szyi z ogromnym,
 // zakrzywionym dziobem z nitowanego żelaza; za grzbietem sterczą długie pióra (szkic autora).
-import { intersect, union } from '../raster.ts';
-import { type BeastPalette, type PartCanvas, PUPIL, partCanvas } from './kit.ts';
-import { claws, fore, shin, thigh, upper } from './limbs.ts';
+import { intersect, union } from '../../raster.ts';
+import { type BeastPalette, type PartCanvas, PUPIL, partCanvas } from '../kit.ts';
+import { claws, fore, shin, thigh, upper } from '../limbs.ts';
 
 export const IRONBEAK: BeastPalette = {
   main: '#7c5330',

@@ -5,6 +5,7 @@ import type { UnitVisual } from '../content/compile.ts';
 import {
   type Battle,
   EVENT_DAMAGED,
+  EVENT_DODGED,
   EVENT_HEALED,
   type EventBuffer,
   MAX_UNITS,
@@ -19,6 +20,7 @@ import { drawUnit } from './draw-units.ts';
 import {
   clearFloatTexts,
   FLOAT_KIND_DAMAGE,
+  FLOAT_KIND_DODGE,
   FLOAT_KIND_HEAL,
   updateFloatTexts,
 } from './float-text.ts';
@@ -77,6 +79,10 @@ export function createCanvasRenderer(
       if (battle === null) return;
       for (let i = 0; i < events.count; i++) {
         const type = events.type[i];
+        if (type === EVENT_DODGED) {
+          spawnNumber(scene, battle, events.a[i] ?? 0, 0, FLOAT_KIND_DODGE);
+          continue;
+        }
         const value = events.b[i] ?? 0;
         if (value <= 0) continue;
         if (type === EVENT_DAMAGED) {

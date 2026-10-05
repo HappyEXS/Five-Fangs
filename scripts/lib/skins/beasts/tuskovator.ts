@@ -1,9 +1,9 @@
 // Tuskovator: druga ewolucja Reapera, najsilniejszy odrzut w szczepie. Masywny zwierz o długim,
 // płaskim pysku z zębami, kudłatej grzywie i ogromnym kle wygiętym jak łyżka koparki; na końcu
 // ogona ciemny chwost (szkic autora).
-import { intersect, union } from '../raster.ts';
-import { type BeastPalette, BONE, BONE_SHADE, type PartCanvas, PUPIL, partCanvas } from './kit.ts';
-import { claws, fore, shin, thigh, upper } from './limbs.ts';
+import { intersect, union } from '../../raster.ts';
+import { type BeastPalette, BONE, BONE_SHADE, type PartCanvas, PUPIL, partCanvas } from '../kit.ts';
+import { claws, fore, shin, thigh, upper } from '../limbs.ts';
 
 export const TUSKOVATOR: BeastPalette = {
   main: '#5e3d26',

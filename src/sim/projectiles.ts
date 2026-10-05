@@ -15,7 +15,7 @@ import {
   EVENT_PROJECTILE_SPAWNED,
   pushEvent,
 } from './events.ts';
-import { attackDamage, queueHit } from './hits.ts';
+import { nextAttackDamage, queueHit } from './hits.ts';
 import type { BattleState } from './state.ts';
 import {
   forwardOf,
@@ -42,7 +42,7 @@ export function spawnProjectile(battle: Battle, owner: number): void {
   state.projPrevX[p] = x;
   state.projStep[p] = forwardOf(teamOf(owner)) * (specs.projectileStep[owner] ?? 0);
   state.projOwner[p] = owner;
-  state.projDamage[p] = attackDamage(battle, owner);
+  state.projDamage[p] = nextAttackDamage(battle, owner);
   state.projKnockback[p] = specs.knockback[owner] ?? 0;
   state.projHitMask[p] = 0;
   if ((specs.targetLast[owner] ?? 0) !== 0) {

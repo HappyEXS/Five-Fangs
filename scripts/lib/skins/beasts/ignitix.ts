@@ -1,9 +1,9 @@
 // Ignitix: druga ewolucja Reapera, strzelec celujący w koniec szyku wroga. Gad na długiej,
 // łuskowatej szyi, z wydłużoną zębatą paszczą, w której tli się ogień (szkic autora: łeb
 // z długimi szczękami, oko wysoko z tyłu, zygzak łusek na szyi).
-import { intersect, union } from '../raster.ts';
-import { type BeastPalette, BONE, type PartCanvas, PUPIL, partCanvas } from './kit.ts';
-import { claws, fore, shin, thigh, upper } from './limbs.ts';
+import { intersect, union } from '../../raster.ts';
+import { type BeastPalette, BONE, type PartCanvas, PUPIL, partCanvas } from '../kit.ts';
+import { claws, fore, shin, thigh, upper } from '../limbs.ts';
 
 export const IGNITIX: BeastPalette = {
   main: '#8f4222',

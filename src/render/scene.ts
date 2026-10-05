@@ -36,6 +36,8 @@ export interface Scene {
   /** Cyfry 0..9 zestawu obrażeń, potem leczenia, potem liczby życia nad paskiem. */
   readonly digitSprites: (Sprite | null)[];
   readonly plusSprite: Sprite | null;
+  /** Znak uniku unoszący się nad postacią, która uniknęła trafienia. */
+  readonly dodgeSprite: Sprite | null;
   /** Jednostka rysowana na wierzchu pozostałych albo -1. */
   topUnit: number;
   /** Zasięg postaci per unitId (reach.ts): za plecami, przed sobą i w górę, w jednostkach sceny. */
@@ -83,6 +85,7 @@ export function createScene(
     jitter: createRng(1),
     digitSprites,
     plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
+    dodgeSprite: atlas.sprites.get('fx/dodge') ?? null,
     topUnit: -1,
     reachBack: new Float32Array(MAX_UNITS),
     reachFront: new Float32Array(MAX_UNITS),

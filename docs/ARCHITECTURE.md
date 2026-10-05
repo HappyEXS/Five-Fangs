@@ -99,6 +99,8 @@ interface BattleSetup {
 
 Cecha `targetLast` (flaga w `UnitSpec`) zmienia wybór celu i tryb pocisku; `validateSetup` wymaga dla niej ataku z pociskiem, braku `pierce` i `range ≥ width`, bo jednostka idąca do ostatniego wroga minęłaby bliższych i złamała gwarancję, że wrogie jednostki się nie mijają.
 
+Cechy `doubleDamage`, `dodge` i `shield` to procenty w `UnitSpec` (`doubleDamagePercent`, `dodgePercent`, `shieldPercent`). Dwie pierwsze działają w stałym rytmie (GAME_DESIGN.md §6): liczniki `doubleCharge` i `dodgeCharge` w stanie jednostki rosną o procent cechy i po osiągnięciu 100 wyzwalają zdarzenie. Podwojenie liczy `nextAttackDamage` (raz na atak), a unik i tarczę `queueHit` (`sim/hits.ts`), wspólnie dla ciosów i pocisków. Walka bez tych cech nie czyta ich pól (`battle.hasDoubleDamage`, `battle.hasGuards`).
+
 Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009). Poza polami z listingu specyfikacja ma: `enrageHpPercent` i `enrageAttackPercent` (szał), `lifestealPercent` (kradzież życia) oraz `splashRadius` w podjednostkach (cios obszarowy); zero oznacza brak cechy. Próg HP i obrażenia w szale symulacja liczy raz, przy tworzeniu walki, więc w tickach zostaje jedno porównanie. Wejście symulacji zapisane przez starszą wersję gry (bez tych pól) piaskownica wczytuje z wartościami zerowymi.
 
 `createBattle` sprawdza niezmienniki setupu (`validateSetup`) i rzuca błąd, gdy są złamane: wartości całkowite, zależności pól ataku, sloty gracza na lewo od slotów przeciwnika, największy `moveStep` nie większy niż najmniejszy `range`, pula pocisków wystarczająca dla składu.
@@ -110,7 +112,7 @@ Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009). Poza polami z listingu 
 | Grupa | Pola | Uwagi |
 |---|---|---|
 | Walka | `tick`, `outcome`, `reason` | `tick` to liczba wykonanych ticków |
-| Jednostki (10) | `status`, `x`, `prevX`, `hp`, `target`, `swingTick`, `sinceAttack`, `traitTimer` | `status`: Empty, Idle, Moving, Attacking, Dead; `target` i `swingTick` mają -1 dla „brak” |
+| Jednostki (10) | `status`, `x`, `prevX`, `hp`, `target`, `swingTick`, `sinceAttack`, `traitTimer`, `doubleCharge`, `dodgeCharge` | `status`: Empty, Idle, Moving, Attacking, Dead; `target` i `swingTick` mają -1 dla „brak” |
 | Pociski (pula 64) | `projCount`, `nextProjId`, `projId`, `projX`, `projPrevX`, `projStep`, `projOwner`, `projDamage`, `projKnockback`, `projMode`, `projHitMask`, `projTarget` | Aktywne zajmują indeksy `0..projCount-1` w kolejności wystrzelenia; `projId` rośnie przez całą walkę. `projMode`: pierwszy na drodze, przebijający albo wycelowany; `projTarget` to cel pocisku wycelowanego (dla pozostałych -1) |
 | Statystyki | `damageDealt`, `damageTaken`, `healingDone` | Per `unitId` |
 
@@ -159,6 +161,7 @@ Bufor o stałej pojemności (1024, co mieści najgorszy możliwy tick) w układz
 | `KnockedBack` | jednostka | faktyczne przesunięcie | |
 | `Died` | jednostka | | |
 | `BattleEnded` | wynik | powód | |
+| `Dodged` | jednostka, która uniknęła | źródło trafienia | |
 
 `Healed` powstaje w rozstrzygnięciu, po przycięciu do `maxHp`, więc zgłasza sumę leczenia jednostki w ticku, bez źródła. Przy prędkości x4 w jednej klatce wykonuje się kilka ticków, więc konsument wywołuje `drainEvents(battle, out)` po każdym `stepBattle` i sam zbiera zdarzenia do swojej klatki.
 
@@ -219,6 +222,8 @@ Zapas wobec budżetu walk na sekundę to ok. 15%, więc każda nowa faza ticka w
 
 Pomiar po dodaniu cechy `targetLast` (2026-10-05, sześć przebiegów przed i po, ta sama walka bez tej cechy): 2236–2322 walk na sekundę wobec 2269–2357 przed zmianą, czyli różnica w granicach rozrzutu. Pierwsza wersja czytała flagę cechy dla każdej jednostki i cel dla każdego pocisku i była o ok. 5% wolniejsza; teraz walka bez cechy nie czyta flagi (jedno sprawdzenie `hasTargetLast` na jednostkę), a cel pocisku czytany jest tylko w trybie wycelowanym.
 
+Pomiar po dodaniu cech `doubleDamage`, `dodge` i `shield` (2026-10-05, osiem przebiegów na przemian przed i po zmianie): mediana 2119 walk na sekundę wobec 2166 przed zmianą, czyli ok. 2% wolniej (tego dnia cały pomiar wypadał niżej niż rano). Sam tick nie czyta pól tych cech w walkach bez nich; koszt to pięć dodatkowych tablic tworzonych w `createBattle`. Zapas wobec budżetu 2000 spadł do ok. 6%.
+
 Dalsze przyspieszenie wymagałoby jednej wspólnej tablicy na wszystkie pola jednostek kosztem czytelności. Przy zerowej losowości skrypt balansu rozgrywa setki, a nie setki tysięcy walk, więc na razie nie jest to potrzebne.
 
 ## 4. Treść (`src/content`)
@@ -271,6 +276,9 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
 { "type": "lifesteal", "percent": 35 }
 { "type": "splash", "radius": 45 }                        // jednostki świata
 { "type": "targetLast" }                                  // celuje w koniec szyku wroga
+{ "type": "doubleDamage", "percent": 50 }                 // co drugi atak podwójny (stały rytm)
+{ "type": "dodge", "percent": 70 }                        // 70 na 100 trafień unikniętych
+{ "type": "shield", "percent": 10 }                       // o 10% mniejsze obrażenia
 
 // lines.json: drzewo form (ADR 0016); forma bez "from" jest bazowa
 { "id": "archer", "price": 200, "starter": true, "forms": [
@@ -322,6 +330,7 @@ function levelSetup(
 - największy `moveStep` ≤ najmniejszy `range` (gwarancja, że wrogie jednostki się nie miną);
 - `pierce` tylko przy ataku z pociskiem, `splash` tylko przy ataku wręcz;
 - `targetLast` tylko przy ataku z pociskiem, bez `pierce`, a `range` takiej jednostki obejmuje całą szerokość areny;
+- procenty cech w zakresach: `doubleDamage` 1–100, `dodge` i `shield` 1–99;
 - wróg na poziomie to dowolna jednostka: forma bohatera albo jednostka specjalna z `units/enemies.json`;
 - górne ograniczenie liczby żywych pocisków mieści się w puli;
 - każda linia ma dokładnie 2 formy i komplet kosztów, forma należy do jednej linii, a każdy bohater do jakiejś linii;
@@ -396,7 +405,7 @@ Scena nie ma perspektywy (decyzja autora gry z 2026-10-02). Symulacja jest jedno
 
 **Pociski.** Pocisk leci na wysokości podanej w typie ataku (`projectile.height`, razy skala postaci), więc kieł wychodzi z paszczy, a kolec z grzbietu. Pocisk wycelowany (`projMode` = wycelowany) leci łukiem od strzelca do bieżącej pozycji celu i obraca się wzdłuż toru; szczyt łuku to 30% odległości, najwyżej 210 jednostek. To tylko wygląd: w symulacji pocisk jest punktem na osi X.
 
-Nad głową każdej żywej postaci jest pasek życia, a nad nim bieżące życie jako liczba (`render/draw-units.ts`): pasek pokazuje ułamek, liczba skalę. Cyfry pochodzą z atlasu (zestaw `fx/hp_0..9`) i są wyliczane dzieleniem całkowitym, bez tworzenia napisów. Liczby obrażeń i leczenia startują nad liczbą życia.
+Nad głową każdej żywej postaci jest pasek życia, a nad nim bieżące życie jako liczba (`render/draw-units.ts`): pasek pokazuje ułamek, liczba skalę. Po zdarzeniu `Dodged` nad postacią unosi się znak uniku (`fx/dodge`), żeby chybiony cios nie wyglądał na błąd. Cyfry pochodzą z atlasu (zestaw `fx/hp_0..9`) i są wyliczane dzieleniem całkowitym, bez tworzenia napisów. Liczby obrażeń i leczenia startują nad liczbą życia.
 
 Tło (`render/background.ts`) to płaskie kolory palety interfejsu (ADR 0015): niebo, sylwetka linii drzew, ziemia i atramentowa linia podłogi. Linia drzew to jedna ścieżka `Path2D` zbudowana przy pierwszej klatce i potem tylko wypełniana. Tła poszczególnych światów dojdą w M6.
 

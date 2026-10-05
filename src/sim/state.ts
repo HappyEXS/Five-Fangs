@@ -25,6 +25,12 @@ export interface BattleState {
   readonly sinceAttack: Int32Array;
   /** Ticki od ostatniego zadziałania cechy okresowej. */
   readonly traitTimer: Int32Array;
+  /**
+   * Liczniki stałego rytmu: przy każdym ataku (trafieniu) rosną o procent cechy, a po
+   * przekroczeniu 100 atak jest podwójny (trafienie jest unikane) i licznik spada o 100.
+   */
+  readonly doubleCharge: Int32Array;
+  readonly dodgeCharge: Int32Array;
 
   // Pociski: aktywne zajmują indeksy 0..projCount-1, w kolejności wystrzelenia.
   projCount: number;
@@ -66,6 +72,8 @@ export function createState(): BattleState {
     swingTick: units().fill(-1),
     sinceAttack: units(),
     traitTimer: units(),
+    doubleCharge: units(),
+    dodgeCharge: units(),
     projCount: 0,
     nextProjId: 0,
     projId: projectiles(),
@@ -109,6 +117,9 @@ export interface UnitSpecs {
   readonly splashRadius: Int32Array;
   /** 1, gdy jednostka celuje w ostatniego wroga w szyku. */
   readonly targetLast: Int32Array;
+  readonly doubleDamagePercent: Int32Array;
+  readonly dodgePercent: Int32Array;
+  readonly shieldPercent: Int32Array;
 }
 
 export function createSpecs(): UnitSpecs {
@@ -132,6 +143,9 @@ export function createSpecs(): UnitSpecs {
     lifesteal: units(),
     splashRadius: units(),
     targetLast: units(),
+    doubleDamagePercent: units(),
+    dodgePercent: units(),
+    shieldPercent: units(),
   };
 }
 

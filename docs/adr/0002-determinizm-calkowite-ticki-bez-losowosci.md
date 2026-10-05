@@ -30,3 +30,9 @@ Brief startowy zakładał liczby zmiennoprzecinkowe z zakazem funkcji przestępn
 - Powtórka poziomu tym samym składem zawsze kończy się tak samo, co wpływa na projekt nagród za powtórki ([GAME_DESIGN.md §5.4](../GAME_DESIGN.md)).
 - Wprowadzenie losowości w przyszłości (krytyki, rozrzut) wymaga nowego ADR, przywrócenia ziarna w API i wymiany wszystkich hashy golden.
 - Maksymalna pozycja (1000 × 256) i iloczyny używane w sim mieszczą się z dużym zapasem w 32 bitach.
+
+## Uzupełnienie z 2026-10-05: szanse jako stały rytm
+
+Szkice kolejnych szczepów podają zdolności jako szanse (50% i 20% na podwójne obrażenia, 70% na unik). Autor gry miał do wyboru: stały rytm bez losu, losowanie z ziarna wyliczanego z walki albo prawdziwy los, i wybrał **stały rytm**. Zasada „sim nie używa losowości” zostaje bez wyjątków.
+
+Szansa `p`% to dokładnie `p` zdarzeń na każde 100, równo rozłożonych: licznik całkowity w stanie jednostki rośnie o `p` przy każdej okazji (atak, trafienie) i po osiągnięciu 100 wyzwala zdarzenie. To ten sam mechanizm co rozkład błędu w algorytmie Bresenhama; nie potrzebuje ziarna, mieści się w liczbach całkowitych i wchodzi do hasha stanu. Reguły: [GAME_DESIGN.md §6](../GAME_DESIGN.md).

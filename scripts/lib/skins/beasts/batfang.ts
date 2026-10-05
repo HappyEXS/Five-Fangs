@@ -1,8 +1,8 @@
 // Batfang: pierwsza ewolucja, strzelec. Kocio-nietoperzy łeb ze sterczącymi uszami i dwoma
 // długimi kłami, na grzbiecie błoniaste skrzydło z pazurami na końcach palców (szkic autora).
-import { intersect, subtract, union } from '../raster.ts';
-import { type BeastPalette, BONE, type PartCanvas, PUPIL, partCanvas } from './kit.ts';
-import { claws, fore, shin, thigh, upper } from './limbs.ts';
+import { intersect, subtract, union } from '../../raster.ts';
+import { type BeastPalette, BONE, type PartCanvas, PUPIL, partCanvas } from '../kit.ts';
+import { claws, fore, shin, thigh, upper } from '../limbs.ts';
 
 export const BATFANG: BeastPalette = {
   main: '#6f4b3a',

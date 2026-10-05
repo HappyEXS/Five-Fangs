@@ -20,6 +20,8 @@ export function hashState(state: BattleState): number {
   h = hashInts(h, state.swingTick);
   h = hashInts(h, state.sinceAttack);
   h = hashInts(h, state.traitTimer);
+  h = hashInts(h, state.doubleCharge);
+  h = hashInts(h, state.dodgeCharge);
 
   // Tylko aktywne pociski: zawartość zwolnionych miejsc nie wpływa na dalszy przebieg.
   const n = state.projCount;

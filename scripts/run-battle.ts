@@ -18,6 +18,7 @@ import {
   EVENT_BATTLE_ENDED,
   EVENT_DAMAGED,
   EVENT_DIED,
+  EVENT_DODGED,
   EVENT_HEALED,
   EVENT_KNOCKED_BACK,
   EVENT_PROJECTILE_EXPIRED,
@@ -120,6 +121,8 @@ function describe(type: number, a: number, b: number, c: number): string {
       return `${unit(a)} odrzucony o ${pos(b)}`;
     case EVENT_DIED:
       return `${unit(a)} ginie`;
+    case EVENT_DODGED:
+      return `${unit(a)} unika ataku ${unit(b)}`;
     case EVENT_BATTLE_ENDED:
       return 'koniec walki';
     default:

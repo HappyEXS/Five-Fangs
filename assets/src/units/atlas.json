@@ -63,6 +63,7 @@
     "fx/dmg_8": [3.5, 4.5],
     "fx/dmg_9": [3.5, 4.5],
     "fx/dmg_plus": [3.5, 4.5],
+    "fx/dodge": [9, 6],
     "fx/fang": [9, 4],
     "fx/fireball": [14, 7],
     "fx/heal_0": [3.5, 4.5],

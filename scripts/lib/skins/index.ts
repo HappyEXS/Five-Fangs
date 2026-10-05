@@ -2,15 +2,15 @@
 // Każda ma komplet części rigu (udo, goleń, tułów, ramię, przedramię, głowa, broń) we własnych
 // rozmiarach i z własnymi pivotami.
 import type { PlaceholderSprite } from '../part-spec.ts';
-import { batfangParts } from './batfang.ts';
+import { batfangParts } from './beasts/batfang.ts';
+import { ignitixParts } from './beasts/ignitix.ts';
+import { ironbeakParts } from './beasts/ironbeak.ts';
+import { monstrosityParts } from './beasts/monstrosity.ts';
+import { reaperParts } from './beasts/reaper.ts';
+import { spikerParts } from './beasts/spiker.ts';
+import { tuskovatorParts } from './beasts/tuskovator.ts';
 import { beastFx } from './fx.ts';
-import { ignitixParts } from './ignitix.ts';
-import { ironbeakParts } from './ironbeak.ts';
 import type { PartCanvas } from './kit.ts';
-import { monstrosityParts } from './monstrosity.ts';
-import { reaperParts } from './reaper.ts';
-import { spikerParts } from './spiker.ts';
-import { tuskovatorParts } from './tuskovator.ts';
 
 /** Skórki w kolejności drzewa ewolucji; id skórki równa się id jednostki. */
 const BEASTS: readonly (readonly [string, () => Record<string, PartCanvas>])[] = [

@@ -1,8 +1,8 @@
 // Spiker: druga ewolucja Batfanga, strzelec. Przygarbiony stwór o długim ryjku, z grzbietem
 // i łbem najeżonymi kolcami, którymi strzela (szkic autora: kolce na grzbiecie i przy stopach).
-import { intersect, union } from '../raster.ts';
-import { type BeastPalette, BONE, type PartCanvas, PUPIL, partCanvas } from './kit.ts';
-import { claws, fore, shin, thigh, upper } from './limbs.ts';
+import { intersect, union } from '../../raster.ts';
+import { type BeastPalette, BONE, type PartCanvas, PUPIL, partCanvas } from '../kit.ts';
+import { claws, fore, shin, thigh, upper } from '../limbs.ts';
 
 export const SPIKER: BeastPalette = {
   main: '#86704a',

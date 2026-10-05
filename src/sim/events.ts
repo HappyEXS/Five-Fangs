@@ -21,6 +21,8 @@ export const EVENT_KNOCKED_BACK = 8;
 export const EVENT_DIED = 9;
 /** wynik, powód */
 export const EVENT_BATTLE_ENDED = 10;
+/** jednostka, która uniknęła trafienia; źródło trafienia */
+export const EVENT_DODGED = 11;
 
 /**
  * Górne ograniczenie liczby zdarzeń jednego ticka: każdy z 64 pocisków może trafić

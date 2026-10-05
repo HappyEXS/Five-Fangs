@@ -1,9 +1,11 @@
-// Liczby obrażeń i leczenia unoszące się nad jednostkami. Pula stałej wielkości;
-// rysowanie z cyfr w atlasie, bez tworzenia napisów.
+// Liczby obrażeń i leczenia oraz znak uniku unoszące się nad jednostkami. Pula stałej wielkości;
+// rysowanie z cyfr i znaków w atlasie, bez tworzenia napisów.
 import { createPool, type Pool, poolAcquire, poolClear, poolReleaseAt } from '../core/pool.ts';
 
 export const FLOAT_KIND_DAMAGE = 0;
 export const FLOAT_KIND_HEAL = 1;
+/** Unik: zamiast liczby rysowany jest jeden znak (`fx/dodge`); `value` nie ma znaczenia. */
+export const FLOAT_KIND_DODGE = 2;
 
 /** Czas życia liczby. */
 export const FLOAT_LIFE_MS = 800;

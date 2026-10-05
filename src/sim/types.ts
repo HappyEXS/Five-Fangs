@@ -76,6 +76,18 @@ export interface UnitSpec {
    * obejmować całe pole, bo jednostka nie może iść do celu przez wrogów stojących bliżej.
    */
   readonly targetLast: boolean;
+  /**
+   * Podwójne obrażenia w stałym rytmie (bez losu): tyle na każde 100 ataków jest podwójnych,
+   * równo rozłożonych; 50 to co drugi atak, 20 co piąty. 0 oznacza brak cechy.
+   */
+  readonly doubleDamagePercent: number;
+  /**
+   * Unik w stałym rytmie: tylu na każde 100 trafień jednostka unika w całości (bez obrażeń
+   * i odrzutu). 0 oznacza brak cechy.
+   */
+  readonly dodgePercent: number;
+  /** Tarcza: o tyle procent mniejsze są obrażenia każdego trafienia. 0 oznacza brak cechy. */
+  readonly shieldPercent: number;
 }
 
 export interface ArenaSpec {

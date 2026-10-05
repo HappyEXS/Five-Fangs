@@ -1,10 +1,10 @@
 import { inflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { chooseAtlasWidth, composeAtlas } from './atlas-build.ts';
-import { BEAST_SKINS } from './beasts/index.ts';
 import { packShelves } from './pack.ts';
 import { PARTS, PIXELS_PER_UNIT, placeholderSprites, SKINS } from './placeholder-parts.ts';
 import { circle, createImage, encodePng, fill, hex, roundBox } from './raster.ts';
+import { BEAST_SKINS } from './skins/index.ts';
 
 /** Dekoduje PNG zapisany przez encodePng: zwraca wymiary i surowe piksele RGBA. */
 function decodePng(png: Buffer) {
@@ -124,8 +124,10 @@ describe('atlas placeholder', () => {
     expect(names).toContain('fx/hp_9');
     // Liczba życia nad paskiem nie ma znaku plus.
     expect(names).not.toContain('fx/hp_plus');
-    // Części skórek, cztery pociski, dwa zestawy po jedenaście znaków i dziesięć cyfr życia.
-    expect(names).toHaveLength(skins.length * 7 + 4 + 22 + 10);
+    expect(names).toContain('fx/dodge');
+    // Części skórek, cztery pociski, znak uniku, dwa zestawy po jedenaście znaków i dziesięć
+    // cyfr życia.
+    expect(names).toHaveLength(skins.length * 7 + 4 + 1 + 22 + 10);
   });
 
   it('każdy sprite ma rozmiar części w pikselach atlasu i nie jest pusty', () => {

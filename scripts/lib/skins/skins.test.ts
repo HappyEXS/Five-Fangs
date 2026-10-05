@@ -55,7 +55,8 @@ describe('skórki szczepu Beasts', () => {
       for (const part of RIG_PARTS)
         expect(byName.has(`${skin}/${part}`), `${skin}/${part}`).toBe(true);
     }
-    expect(sprites).toHaveLength(BEAST_SKINS.length * RIG_PARTS.length + 3);
+    // Części skórek, trzy pociski i znak uniku.
+    expect(sprites).toHaveLength(BEAST_SKINS.length * RIG_PARTS.length + 4);
   });
 
   it('każda forma bohatera z linii Beasts ma swoją skórkę i sprite pocisku', () => {

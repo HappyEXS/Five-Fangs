@@ -5,6 +5,7 @@ import { VARIANT_NORMAL } from './atlas.ts';
 import {
   digitAt,
   digitCount,
+  FLOAT_KIND_DODGE,
   FLOAT_KIND_HEAL,
   FLOAT_LIFE_MS,
   FLOAT_RISE,
@@ -110,6 +111,14 @@ export function drawNumbers(scene: Scene, viewport: Viewport): void {
     local[5] = text.y - FLOAT_RISE * (1 - (1 - progress) * (1 - progress));
     ctx.globalAlpha = progress < 0.6 ? 1 : 1 - (progress - 0.6) / 0.4;
 
+    if (text.kind === FLOAT_KIND_DODGE) {
+      const mark = scene.dodgeSprite;
+      if (mark !== null) {
+        local[4] = text.x;
+        blit(scene, image, mark, local, 0, viewport);
+      }
+      continue;
+    }
     const heal = text.kind === FLOAT_KIND_HEAL;
     const digits = digitCount(text.value);
     // Leczenie ma przed cyframi znak plus (glif o indeksie -1).

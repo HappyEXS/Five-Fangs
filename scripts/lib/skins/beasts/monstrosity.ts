@@ -1,8 +1,8 @@
 // Monstrosity: forma bazowa szczepu. Mały, okrągły, kudłaty stwór z rogami i szerokim
 // zębatym uśmiechem (szkic autora: sama głowa z rogami i wyszczerzonymi zębami).
-import { intersect, union } from '../raster.ts';
-import { type BeastPalette, BONE, BONE_SHADE, type PartCanvas, PUPIL, partCanvas } from './kit.ts';
-import { claws, fore, shin, thigh, upper } from './limbs.ts';
+import { intersect, union } from '../../raster.ts';
+import { type BeastPalette, BONE, BONE_SHADE, type PartCanvas, PUPIL, partCanvas } from '../kit.ts';
+import { claws, fore, shin, thigh, upper } from '../limbs.ts';
 
 export const MONSTROSITY: BeastPalette = {
   main: '#9a6238',

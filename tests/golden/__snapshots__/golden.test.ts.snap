@@ -6,7 +6,7 @@ exports[`walki golden > archer-vs-melee 1`] = `
   "finalHp": "-10 0 0 0 0 30 0 0 0 0",
   "outcome": "loss",
   "reason": "eliminated",
-  "stateHash": "4961825e",
+  "stateHash": "c9e7631e",
   "ticks": 332,
 }
 `;
@@ -17,7 +17,7 @@ exports[`walki golden > archers-focus 1`] = `
   "finalHp": "205 315 350 350 350 -10 -10 0 0 0",
   "outcome": "win",
   "reason": "eliminated",
-  "stateHash": "54db4b55",
+  "stateHash": "40a70c55",
   "ticks": 279,
 }
 `;
@@ -28,7 +28,7 @@ exports[`walki golden > duel-melee 1`] = `
   "finalHp": "120 0 0 0 0 -30 0 0 0 0",
   "outcome": "win",
   "reason": "eliminated",
-  "stateHash": "5f4d6e5f",
+  "stateHash": "2dc5351f",
   "ticks": 380,
 }
 `;
@@ -39,7 +39,7 @@ exports[`walki golden > enrage 1`] = `
   "finalHp": "-10 -40 0 0 0 -30 110 0 0 0",
   "outcome": "loss",
   "reason": "eliminated",
-  "stateHash": "5e801b74",
+  "stateHash": "635eae34",
   "ticks": 683,
 }
 `;
@@ -50,7 +50,7 @@ exports[`walki golden > full-5v5 1`] = `
   "finalHp": "0 -10 0 -30 0 -20 30 -20 350 350",
   "outcome": "loss",
   "reason": "eliminated",
-  "stateHash": "11ef2f5d",
+  "stateHash": "3996d3dd",
   "ticks": 888,
 }
 `;
@@ -61,7 +61,7 @@ exports[`walki golden > healers 1`] = `
   "finalHp": "-10 -27 -23 0 0 50 340 350 0 0",
   "outcome": "loss",
   "reason": "eliminated",
-  "stateHash": "c1df33f4",
+  "stateHash": "0fc055f4",
   "ticks": 615,
 }
 `;
@@ -72,7 +72,7 @@ exports[`walki golden > knockback-brawl 1`] = `
   "finalHp": "0 -5 20 0 0 -10 -30 -10 0 0",
   "outcome": "win",
   "reason": "eliminated",
-  "stateHash": "4654673a",
+  "stateHash": "52d514ba",
   "ticks": 1121,
 }
 `;
@@ -83,7 +83,7 @@ exports[`walki golden > lifesteal 1`] = `
   "finalHp": "0 -10 0 0 0 124 380 -10 0 0",
   "outcome": "loss",
   "reason": "eliminated",
-  "stateHash": "11718970",
+  "stateHash": "074abcf0",
   "ticks": 554,
 }
 `;
@@ -94,7 +94,7 @@ exports[`walki golden > mutual-kill 1`] = `
   "finalHp": "0 0 0 0 0 0 0 0 0 0",
   "outcome": "loss",
   "reason": "mutual",
-  "stateHash": "182e91cd",
+  "stateHash": "eaf6840d",
   "ticks": 37,
 }
 `;
@@ -105,8 +105,19 @@ exports[`walki golden > pierce-line 1`] = `
   "finalHp": "-25 -20 -15 0 0 -20 100 -10 -10 0",
   "outcome": "loss",
   "reason": "eliminated",
-  "stateHash": "b9ae2309",
+  "stateHash": "9c16bc09",
   "ticks": 487,
+}
+`;
+
+exports[`walki golden > rhythm 1`] = `
+{
+  "eventHash": "72b2b296",
+  "finalHp": "0 330 350 0 0 -20 -15 -28 0 0",
+  "outcome": "win",
+  "reason": "eliminated",
+  "stateHash": "d99bd692",
+  "ticks": 730,
 }
 `;
 
@@ -116,7 +127,7 @@ exports[`walki golden > splash 1`] = `
   "finalHp": "-4 54 350 0 0 -10 -30 -20 -10 0",
   "outcome": "win",
   "reason": "eliminated",
-  "stateHash": "ae0d1f51",
+  "stateHash": "30ade8d1",
   "ticks": 585,
 }
 `;
@@ -127,7 +138,7 @@ exports[`walki golden > stalemate 1`] = `
   "finalHp": "600 0 0 0 0 600 0 0 0 0",
   "outcome": "loss",
   "reason": "timeout",
-  "stateHash": "2ce0465e",
+  "stateHash": "497ba7de",
   "ticks": 300,
 }
 `;
@@ -138,7 +149,7 @@ exports[`walki golden > target-last 1`] = `
   "finalHp": "-35 -35 -5 0 0 300 40 -10 -10 0",
   "outcome": "loss",
   "reason": "eliminated",
-  "stateHash": "4f9951b2",
+  "stateHash": "757d66b2",
   "ticks": 575,
 }
 `;
@@ -149,7 +160,7 @@ exports[`walki golden > uneven-speeds 1`] = `
   "finalHp": "-10 -10 -20 0 0 40 350 200 0 0",
   "outcome": "loss",
   "reason": "eliminated",
-  "stateHash": "b911dad3",
+  "stateHash": "e6baf953",
   "ticks": 528,
 }
 `;

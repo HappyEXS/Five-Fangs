@@ -1,8 +1,8 @@
 // Reaper: pierwsza ewolucja, walczy wręcz. Lisi łeb o szpiczastych uszach i wąskim pysku,
 // kępka jasnej sierści na piersi i długie, zakrzywione pazury jak kosy (szkic autora).
-import { intersect, union } from '../raster.ts';
-import { type BeastPalette, type PartCanvas, PUPIL, partCanvas } from './kit.ts';
-import { claws, fore, shin, thigh, upper } from './limbs.ts';
+import { intersect, union } from '../../raster.ts';
+import { type BeastPalette, type PartCanvas, PUPIL, partCanvas } from '../kit.ts';
+import { claws, fore, shin, thigh, upper } from '../limbs.ts';
 
 export const REAPER: BeastPalette = {
   main: '#b65a2c',

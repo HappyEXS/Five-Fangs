@@ -30,6 +30,12 @@ export interface Battle {
   readonly healers: readonly number[];
   /** Czy którakolwiek jednostka celuje w ostatniego wroga; bez nich tick nie szuka końca szyku. */
   readonly hasTargetLast: boolean;
+  /**
+   * Czy którakolwiek jednostka ma podwójne obrażenia w rytmie albo unik lub tarczę. W walkach
+   * bez tych cech atak i trafienie nie czytają ich pól ani liczników.
+   */
+  readonly hasDoubleDamage: boolean;
+  readonly hasGuards: boolean;
   /** Narastający hash wszystkich zdarzeń walki. */
   eventHash: number;
 }
@@ -57,6 +63,9 @@ function placeUnit(battle: Battle, unitId: number, spec: UnitSpec, x: number): v
   specs.lifesteal[unitId] = spec.lifestealPercent;
   specs.splashRadius[unitId] = spec.splashRadius;
   specs.targetLast[unitId] = spec.targetLast ? 1 : 0;
+  specs.doubleDamagePercent[unitId] = spec.doubleDamagePercent;
+  specs.dodgePercent[unitId] = spec.dodgePercent;
+  specs.shieldPercent[unitId] = spec.shieldPercent;
 
   state.status[unitId] = STATUS_IDLE;
   state.x[unitId] = x;
@@ -73,9 +82,14 @@ export function createBattle(setup: BattleSetup): Battle {
 
   const healers: number[] = [];
   let hasTargetLast = false;
+  let hasDoubleDamage = false;
+  let hasGuards = false;
   for (let slot = 0; slot < TEAM_SIZE; slot++) {
-    if (setup.player[slot]?.targetLast === true || setup.enemy[slot]?.targetLast === true) {
-      hasTargetLast = true;
+    for (const spec of [setup.player[slot], setup.enemy[slot]]) {
+      if (spec == null) continue;
+      if (spec.targetLast) hasTargetLast = true;
+      if (spec.doubleDamagePercent > 0) hasDoubleDamage = true;
+      if (spec.dodgePercent > 0 || spec.shieldPercent > 0) hasGuards = true;
     }
   }
   const battle: Battle = {
@@ -87,6 +101,8 @@ export function createBattle(setup: BattleSetup): Battle {
     pending: createPending(),
     healers,
     hasTargetLast,
+    hasDoubleDamage,
+    hasGuards,
     eventHash: EVENT_HASH_SEED,
   };
   for (let slot = 0; slot < TEAM_SIZE; slot++) {

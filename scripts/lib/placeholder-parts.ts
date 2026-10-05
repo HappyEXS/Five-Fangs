@@ -1,7 +1,7 @@
 // Grafiki placeholder części postaci (załącznik A briefu: rozmiary i pivoty w jednostkach rigu).
 // Proste kształty w kolorach skórki, zapisywane jako źródła atlasu w assets/src/units/;
 // docelowe grafiki zastąpią je w M6.
-import { beastSprites } from './beasts/index.ts';
+
 import { type PartSpec, PIXELS_PER_UNIT, type PlaceholderSprite } from './part-spec.ts';
 import {
   below,
@@ -16,6 +16,7 @@ import {
   type Shape,
   union,
 } from './raster.ts';
+import { beastSprites } from './skins/index.ts';
 
 export { type PartSpec, PIXELS_PER_UNIT, type PlaceholderSprite };
 
