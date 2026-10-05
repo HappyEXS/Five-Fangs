@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   below,
+  blotches,
   capsule,
   circle,
   createImage,
@@ -9,12 +10,16 @@ import {
   hex,
   inset,
   intersect,
+  noise,
   polygon,
+  roughen,
   roundBox,
   type Shape,
   subtract,
   taper,
+  translate,
   union,
+  weather,
 } from './raster.ts';
 
 describe('kształty: odległość ze znakiem', () => {
@@ -144,5 +149,80 @@ describe('fill', () => {
       Array.from(image.data.subarray((y * 8 + x) * 4, (y * 8 + x) * 4 + 4));
     expect(pixel(1, 4)).toEqual([255, 128, 0, 255]);
     expect(pixel(6, 4)).toEqual([0, 0, 0, 0]);
+  });
+});
+
+describe('szum i postarzanie (styl „mroczna baśń”, ADR 0019)', () => {
+  it('szum jest powtarzalny, zależy od ziarna i mieści się w -1..1', () => {
+    let min = 1;
+    let max = -1;
+    for (let i = 0; i < 400; i++) {
+      const value = noise(i * 0.37, i * 0.91, 5);
+      expect(value).toBe(noise(i * 0.37, i * 0.91, 5));
+      min = Math.min(min, value);
+      max = Math.max(max, value);
+    }
+    expect(min).toBeGreaterThanOrEqual(-1);
+    expect(max).toBeLessThanOrEqual(1);
+    // Szum naprawdę się zmienia i inne ziarno daje inny wzór.
+    expect(max - min).toBeGreaterThan(1);
+    expect(noise(3.3, 7.7, 5)).not.toBe(noise(3.3, 7.7, 6));
+  });
+
+  it('poszarpany kształt odbiega od oryginału najwyżej o amplitudę', () => {
+    const shape = circle(20, 20, 10);
+    const rough = roughen(shape, 2, 5, 9);
+    let differs = false;
+    for (let y = 0; y < 40; y += 3) {
+      for (let x = 0; x < 40; x += 3) {
+        const delta = Math.abs(rough(x, y) - shape(x, y));
+        expect(delta).toBeLessThanOrEqual(2);
+        if (delta > 0.2) differs = true;
+      }
+    }
+    expect(differs).toBe(true);
+    // Prostokąt ograniczający rośnie o amplitudę, więc wypełnianie nie ucina krawędzi.
+    expect(rough.bounds).toEqual({ minX: 8, minY: 8, maxX: 32, maxY: 32 });
+  });
+
+  it('przesunięcie przenosi kształt razem z prostokątem ograniczającym', () => {
+    const moved = translate(circle(10, 10, 4), 5, -3);
+    expect(moved(15, 7)).toBeCloseTo(-4);
+    expect(moved.bounds).toEqual({ minX: 11, minY: 3, maxX: 19, maxY: 11 });
+  });
+
+  it('plamy zajmują mniej więcej zadaną część powierzchni', () => {
+    const share = (coverage: number): number => {
+      const shape = blotches(coverage, 6, 3);
+      let inside = 0;
+      for (let y = 0; y < 120; y++) {
+        for (let x = 0; x < 120; x++) if (shape(x, y) < 0) inside++;
+      }
+      return inside / (120 * 120);
+    };
+    expect(share(0)).toBe(0);
+    expect(share(0.2)).toBeGreaterThan(0.03);
+    expect(share(0.2)).toBeLessThan(share(0.5));
+    expect(share(0.5)).toBeGreaterThan(0.35);
+    expect(share(0.5)).toBeLessThan(0.65);
+  });
+
+  it('postarzanie zmienia kolory, nie rusza alfy i jest powtarzalne', () => {
+    const paint = (): ReturnType<typeof createImage> => {
+      const image = createImage(24, 24);
+      fill(image, circle(12, 12, 9), hex('#808080'));
+      weather(image, 4, { stain: 0.2, stainSize: 8, speck: 0.1, speckDepth: 0.3 });
+      return image;
+    };
+    const plain = createImage(24, 24);
+    fill(plain, circle(12, 12, 9), hex('#808080'));
+    const aged = paint();
+    let changed = 0;
+    for (let i = 0; i < aged.data.length; i += 4) {
+      expect(aged.data[i + 3]).toBe(plain.data[i + 3]);
+      if (aged.data[i] !== plain.data[i]) changed++;
+    }
+    expect(changed).toBeGreaterThan(50);
+    expect(Array.from(paint().data)).toEqual(Array.from(aged.data));
   });
 });

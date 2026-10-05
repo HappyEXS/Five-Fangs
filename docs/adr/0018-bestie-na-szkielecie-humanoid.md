@@ -31,3 +31,7 @@ Autor wybrał drogę 2. Bestie stoją na dwóch nogach i używają rigu `humanoi
 - **Atlas urósł** z 54 KB do 128 KB (49 części bestii i trzy pociski); pierwsze uruchomienie to 308 KB wobec budżetu 2 MB. Trzy kolejne szczepy w tym samym stylu dodadzą po ok. 70 KB; podział atlasu na światy (M6-2) pozostaje w planie.
 - **Kolejne szczepy** powstają tak samo: plik na postać w `scripts/lib/beasts/` (albo w katalogu szczepu), wpisy w `heroes.json` i `lines.json`, nazwy w słownikach, ewentualnie nowy klip ataku w rigu.
 - Docelowe grafiki rysowane ręcznie mogą zastąpić części jedna po drugiej: wystarczy zachować nazwy sprite'ów i podać pivoty w manifeście atlasu.
+
+## Uzupełnienie (2026-10-05, M5i)
+
+Generator przeniósł się do `scripts/lib/skins/` (katalog na szczep), a bestie zostały przerysowane w stylu „mroczna baśń” razem z trzema kolejnymi szczepami (ADR 0019). Szacunek „po ok. 70 KB na szczep” nie przetrwał zmiany stylu: atlas ma 543 KB, liczby i wnioski są w ADR 0019.

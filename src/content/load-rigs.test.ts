@@ -82,6 +82,11 @@ describe('rig humanoid z treści gry', () => {
       'gore',
       'spit',
       'volley',
+      // Ataki trzech kolejnych szczepów: rzut, uniesienie rąk, przyzwanie, dziobnięcie kulą.
+      'cast',
+      'flare',
+      'summon',
+      'jab',
     ]);
     expect(humanoid?.clips.slash?.markers.hit).toBe(0.5);
     expect(humanoid?.stances.sword).toEqual({ weapon: -75 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { requireContent } from '../../../src/content/load.ts';
 import { PIXELS_PER_UNIT } from '../part-spec.ts';
-import { BEAST_SKINS, beastSprites } from './index.ts';
+import { TRIBE_SKINS, tribeSprites } from './index.ts';
 import { partCanvas } from './kit.ts';
 
 const RIG_PARTS = ['thigh', 'shin', 'torso', 'upper', 'fore', 'head', 'weapon'];
@@ -37,37 +37,62 @@ describe('partCanvas', () => {
   });
 });
 
-describe('skórki szczepu Beasts', () => {
-  const sprites = beastSprites();
+describe('skórki szczepów', () => {
+  const sprites = tribeSprites();
   const byName = new Map(sprites.map((sprite) => [sprite.name, sprite]));
+  const skins = Object.values(TRIBE_SKINS).flat();
 
-  it('każda bestia ma komplet części rigu humanoid', () => {
-    expect(BEAST_SKINS).toEqual([
-      'monstrosity',
-      'batfang',
-      'reaper',
-      'spiker',
-      'ironbeak',
-      'tuskovator',
-      'ignitix',
-    ]);
-    for (const skin of BEAST_SKINS) {
+  it('cztery szczepy, każdy z siedmioma formami w kolejności drzewa ewolucji', () => {
+    expect(TRIBE_SKINS).toEqual({
+      beasts: ['monstrosity', 'batfang', 'reaper', 'spiker', 'ironbeak', 'tuskovator', 'ignitix'],
+      immortals: [
+        'orb',
+        'cardinal',
+        'guardian_of_hell',
+        'polaris',
+        'ultimus',
+        'xartix',
+        'enigmatix',
+      ],
+      // Ósma skórka to krzak przyzywany przez Mother-tree: nie jest formą bohatera.
+      plants: [
+        'bush',
+        'trunk',
+        'ivy',
+        'oak_warrior',
+        'mother_tree',
+        'ice_ivy',
+        'toxic_ivy',
+        'sprout',
+      ],
+      robots: ['bot', 'egzo_bot', 'holo_bot', 'thermobot', 'ax_bot', 'whirl_bot', 'titan_bot'],
+    });
+  });
+
+  it('każda skórka ma komplet części rigu humanoid', () => {
+    for (const skin of skins) {
       for (const part of RIG_PARTS)
         expect(byName.has(`${skin}/${part}`), `${skin}/${part}`).toBe(true);
     }
-    // Części skórek, trzy pociski i znak uniku.
-    expect(sprites).toHaveLength(BEAST_SKINS.length * RIG_PARTS.length + 4);
+    const fx = sprites.filter((sprite) => sprite.name.startsWith('fx/'));
+    // Dwanaście pocisków i znak uniku.
+    expect(fx).toHaveLength(13);
+    expect(sprites).toHaveLength(skins.length * RIG_PARTS.length + fx.length);
   });
 
-  it('każda forma bohatera z linii Beasts ma swoją skórkę i sprite pocisku', () => {
+  it('każda forma bohatera z linii szczepu ma swoją skórkę i sprite pocisku', () => {
     const content = requireContent();
-    const line = content.lines.get('beasts');
-    expect([...(line?.forms.keys() ?? [])]).toEqual(BEAST_SKINS);
-    for (const id of BEAST_SKINS) {
-      const unit = content.heroes.get(id);
-      expect(unit?.visual.skin).toBe(id);
-      const projectile = unit?.visual.projectileSprite ?? null;
-      if (projectile !== null) expect(byName.has(`fx/${projectile}`), projectile).toBe(true);
+    for (const [tribe, ids] of Object.entries(TRIBE_SKINS)) {
+      const line = content.lines.get(tribe);
+      // Szczep bez linii w treści gry ma na razie same skórki.
+      if (line === undefined) continue;
+      expect(ids.slice(0, line.forms.size), tribe).toEqual([...line.forms.keys()]);
+      for (const id of line.forms.keys()) {
+        const unit = content.heroes.get(id);
+        expect(unit?.visual.skin).toBe(id);
+        const projectile = unit?.visual.projectileSprite ?? null;
+        if (projectile !== null) expect(byName.has(`fx/${projectile}`), projectile).toBe(true);
+      }
     }
   });
 

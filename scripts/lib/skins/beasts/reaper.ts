@@ -1,101 +1,119 @@
-// Reaper: pierwsza ewolucja, walczy wręcz. Lisi łeb o szpiczastych uszach i wąskim pysku,
-// kępka jasnej sierści na piersi i długie, zakrzywione pazury jak kosy (szkic autora).
-import { intersect, union } from '../../raster.ts';
-import { type BeastPalette, type PartCanvas, PUPIL, partCanvas } from '../kit.ts';
-import { claws, fore, shin, thigh, upper } from '../limbs.ts';
+// Reaper: pierwsza ewolucja, walczy wręcz. Wyliniały lis o nadszarpniętym uchu i bliźnie przez
+// oko, z wąskim pyskiem pełnym zębów, kępką brudnej sierści na piersi i długimi pazurami jak kosy
+// (szkic autora).
+import { intersect, subtract, union } from '../../raster.ts';
+import { BONE, BONE_SHADE, MAW, type Palette, type PartCanvas, partCanvas } from '../kit.ts';
+import { claws, fleshFore, fleshShin, fleshThigh, fleshUpper } from '../limbs.ts';
 
-export const REAPER: BeastPalette = {
-  main: '#b65a2c',
-  dark: '#3a160a',
-  light: '#f1ddb6',
-  accent: '#2b1610',
-  eye: '#ffd34a',
+export const REAPER: Palette = {
+  main: '#7a3e20',
+  shade: '#452010',
+  light: '#b09a76',
+  dark: '#150a06',
+  accent: '#21120c',
+  glow: '#e8c640',
 };
 
-function head(p: BeastPalette): PartCanvas {
-  const c = partCanvas(-15, -37, 23, 5);
+function head(p: Palette): PartCanvas {
+  const c = partCanvas(-16, -39, 25, 7, 1);
+  const tip = { main: p.accent, shade: p.dark, dark: p.dark, light: p.shade };
   // Dalsze ucho.
-  c.ink(
+  c.form(
     c.poly([
       [-8, -15],
-      [-9, -33],
+      [-9.5, -34],
       [0, -19],
     ]),
-    p.accent,
-    p.dark,
+    tip,
   );
   // Czaszka przechodzi w długi, zwężający się pysk.
-  const skull = union(c.oval(0, -11, 9.6, 9.2), c.horn(3, -8.6, 18.5, -6.2, 6.2, 1.9));
-  c.ink(union(skull, c.horn(-6.5, -6.5, -11, -1.5, 2.4, 0.3)), p.main, p.dark);
-  const inside = c.inner(skull);
-  // Jasny spód pyska i policzek.
-  c.fill(intersect(inside, c.oval(9, -3.4, 13, 4.2)), p.light);
-  c.fill(c.line(8.5, -4.3, 18, -4.9, 0.4), p.dark);
-  c.fill(c.dot(19.2, -7, 1.6), p.accent);
-  // Bliższe ucho z ciemnym czubkiem.
-  c.ink(
-    c.poly([
-      [-3.5, -18],
-      [0.5, -36],
-      [6.5, -19],
-    ]),
-    p.main,
-    p.dark,
+  const skull = union(c.oval(0, -11, 9.4, 9), c.horn(3, -8.8, 19.5, -6.4, 6, 1.8));
+  const inside = c.form(
+    union(skull, c.horn(-6.5, -6.5, -12, -0.5, 2.5, 0.3), c.horn(-8, -12, -13.5, -10, 2.2, 0.3)),
+    p,
+  );
+  // Brudny, jasny spód pyska i policzek.
+  c.patches(intersect(inside, c.oval(9, -3.2, 13, 4)), p.light, 0.62, 3.4, 0.95);
+  // Wyszczerzone zęby wzdłuż pyska.
+  const snarl = intersect(inside, c.horn(7.5, -4.6, 18.6, -5, 1.5, 0.8));
+  c.fill(snarl, MAW);
+  for (const x of [8.6, 10.6, 12.6, 14.6, 16.6]) {
+    c.fill(intersect(snarl, c.horn(x, -6.2, x + 0.2, -3.6, 0.7, 0.12)), BONE);
+  }
+  c.fill(c.dot(20.2, -7.2, 1.7), p.accent);
+  // Bliższe ucho: nadszarpnięte, z ciemnym czubkiem.
+  c.form(
+    subtract(
+      c.poly([
+        [-3.5, -18],
+        [0.5, -37.5],
+        [6.8, -19],
+      ]),
+      c.dot(5.6, -28.5, 1.9),
+    ),
+    p,
   );
   c.fill(
     c.poly([
-      [-0.6, -30],
-      [0.5, -35],
-      [2.4, -30],
+      [-0.9, -30],
+      [0.5, -36.5],
+      [2.6, -30],
     ]),
     p.accent,
   );
-  c.fill(
-    c.poly([
-      [-0.5, -20],
-      [0.8, -28],
-      [4, -20],
-    ]),
-    p.light,
-  );
-  // Wąskie, skośne oko.
-  c.fill(c.oval(5, -12.8, 3, 1.9), p.dark);
-  c.fill(c.oval(5, -12.8, 2.4, 1.3), p.eye);
-  c.fill(c.oval(5.7, -12.8, 0.55, 1.2), PUPIL);
-  c.fill(c.line(1.4, -15.6, 8.6, -14.2, 0.75), p.dark);
-  return c;
+  // Wąskie, skośne oko; blizna biegnie przez łuk brwiowy na policzek.
+  c.eye(5, -12.8, 2.1, p, 1.3);
+  c.fill(c.horn(0.8, -16, 9, -14.2, 1.2, 0.6), p.dark);
+  c.scar([3, -18.5], [8.5, -8.5], p.dark, 3);
+  return c.finish();
 }
 
-function torso(p: BeastPalette): PartCanvas {
-  const c = partCanvas(-29, -40, 12, 6);
-  // Puszysty ogon uniesiony za plecami, z jasnym końcem.
-  const tail = c.arc([-4, -3], [-25, 0], [-22, -27], 4.6, 4);
-  c.ink(tail, p.main, p.dark);
-  c.fill(intersect(c.inner(tail), c.dot(-22.5, -29, 7)), p.light);
-  const body = c.oval(0, -11.5, 7.4, 13.3);
-  c.ink(body, p.main, p.dark);
-  c.fill(intersect(c.inner(body), c.oval(4.2, -8, 3.8, 9)), p.light);
-  // Kępka sierści na piersi w kształcie muszki.
-  c.ink(
-    union(c.horn(4.5, -17.5, 10.2, -21.5, 2.3, 0.4), c.horn(4.5, -17.5, 10.2, -13.5, 2.3, 0.4)),
-    p.light,
-    p.dark,
+function torso(p: Palette): PartCanvas {
+  const c = partCanvas(-31, -42, 13, 7, 2);
+  // Wyleniały ogon uniesiony za plecami, z jaśniejszym, postrzępionym końcem.
+  const tail = c.arc([-4, -3], [-26, 0.5], [-23, -28], 4.4, 3.4);
+  const tailInside = c.form(
+    union(
+      tail,
+      c.dot(-23, -29.5, 4.6),
+      c.horn(-23, -30, -25.5, -37, 2.6, 0.3),
+      c.horn(-22, -30, -20, -36, 2.2, 0.3),
+      c.horn(-25, -29, -29, -33, 2, 0.3),
+    ),
+    p,
   );
-  c.fill(c.line(-3, -19, -3.4, -9, 0.9), '#ffffff', 0.12);
-  return c;
+  c.patches(intersect(tailInside, c.dot(-22.5, -30, 8)), p.light, 0.6, 3, 0.9);
+  c.patches(tailInside, p.shade, 0.3, 2.6, 0.9);
+  const body = c.oval(0, -11.5, 7.2, 13.2);
+  const inside = c.form(body, p);
+  c.patches(intersect(inside, c.oval(4.2, -8, 3.6, 9)), p.light, 0.55, 3, 0.9);
+  for (const y of [-13, -9.5, -6]) {
+    c.fill(intersect(inside, c.arc([0.6, y], [3.8, y + 1.8], [6.6, y - 0.2], 0.3, 0.3)), p.shade);
+  }
+  // Skołtuniona kępka sierści na piersi.
+  c.form(
+    union(
+      c.horn(4.5, -17.5, 11, -22, 2.3, 0.3),
+      c.horn(4.5, -17.5, 11.4, -15.5, 2, 0.3),
+      c.horn(4.5, -17.5, 9.6, -11.5, 2.2, 0.3),
+    ),
+    { main: p.light, shade: BONE_SHADE, dark: p.dark, light: BONE },
+    { shadow: 0.6 },
+  );
+  return c.finish();
 }
 
 export function reaperParts(): Record<string, PartCanvas> {
   const p = REAPER;
   // Ciemne „skarpety” na kończynach, jak u lisa.
-  const socks: BeastPalette = { ...p, main: p.accent };
+  const socks: Palette = { ...p, main: p.accent, shade: p.dark, light: p.shade };
   return {
-    thigh: thigh(p, 0.95),
-    shin: shin(socks, 'paw', 0.9),
+    thigh: fleshThigh(p, 0.92),
+    shin: fleshShin(socks, 'paw', 0.88),
     torso: torso(p),
-    upper: upper(p, 0.9),
-    fore: fore(socks, 'paw', 0.9),
+    upper: fleshUpper(p, 0.88),
+    fore: fleshFore(socks, 'paw', 0.88),
     head: head(p),
-    weapon: claws({ ...p, main: p.accent }, 22, 1.9, 1.9),
+    weapon: claws(socks, 23, 1.9, 1.9),
   };
 }

@@ -105,6 +105,11 @@ describe('compileRig', () => {
       'gore',
       'spit',
       'volley',
+      // Ataki trzech kolejnych szczepów: rzut, uniesienie rąk, przyzwanie, dziobnięcie kulą.
+      'cast',
+      'flare',
+      'summon',
+      'jab',
     ]);
     // Każda kość ma rodzica wymienionego wcześniej.
     humanoid.parent.forEach((p, bone) => {

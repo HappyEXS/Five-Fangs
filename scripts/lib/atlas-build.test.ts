@@ -4,7 +4,7 @@ import { chooseAtlasWidth, composeAtlas } from './atlas-build.ts';
 import { packShelves } from './pack.ts';
 import { PARTS, PIXELS_PER_UNIT, placeholderSprites, SKINS } from './placeholder-parts.ts';
 import { circle, createImage, encodePng, fill, hex, roundBox } from './raster.ts';
-import { BEAST_SKINS } from './skins/index.ts';
+import { TRIBE_SKINS } from './skins/index.ts';
 
 /** Dekoduje PNG zapisany przez encodePng: zwraca wymiary i surowe piksele RGBA. */
 function decodePng(png: Buffer) {
@@ -109,14 +109,16 @@ describe('atlas placeholder', () => {
 
   it('zawiera komplet części każdej skórki i strzałę', () => {
     const names = Object.keys(built.meta.sprites);
-    const skins = [...SKINS.map((skin) => skin.id), ...BEAST_SKINS];
+    const tribes = Object.values(TRIBE_SKINS).flat();
+    const skins = [...SKINS.map((skin) => skin.id), ...tribes];
     for (const skin of skins) {
       for (const slot of ['thigh', 'shin', 'torso', 'upper', 'fore', 'head', 'weapon']) {
         expect(names).toContain(`${skin}/${slot}`);
       }
     }
-    expect(BEAST_SKINS).toHaveLength(7);
-    for (const projectile of ['arrow', 'fang', 'spike', 'fireball']) {
+    // Cztery szczepy po siedem form i krzak przyzywany przez Mother-tree.
+    expect(tribes).toHaveLength(4 * 7 + 1);
+    for (const projectile of ['arrow', 'fang', 'spike', 'fireball', 'gaze', 'thorn', 'glitch']) {
       expect(names).toContain(`fx/${projectile}`);
     }
     expect(names).toContain('fx/dmg_0');
@@ -125,9 +127,9 @@ describe('atlas placeholder', () => {
     // Liczba życia nad paskiem nie ma znaku plus.
     expect(names).not.toContain('fx/hp_plus');
     expect(names).toContain('fx/dodge');
-    // Części skórek, cztery pociski, znak uniku, dwa zestawy po jedenaście znaków i dziesięć
+    // Części skórek, trzynaście pocisków, znak uniku, dwa zestawy po jedenaście znaków i dziesięć
     // cyfr życia.
-    expect(names).toHaveLength(skins.length * 7 + 4 + 1 + 22 + 10);
+    expect(names).toHaveLength(skins.length * 7 + 13 + 1 + 22 + 10);
   });
 
   it('każdy sprite ma rozmiar części w pikselach atlasu i nie jest pusty', () => {

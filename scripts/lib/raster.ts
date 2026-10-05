@@ -305,3 +305,101 @@ export function encodePng(image: Image): Buffer {
     chunk('IEND', new Uint8Array(0)),
   ]);
 }
+
+/** Skrót pary liczb całkowitych do zakresu 0..1; ta sama para i ziarno dają zawsze to samo. */
+function latticeValue(ix: number, iy: number, seed: number): number {
+  let h = Math.imul(ix, 374761393) ^ Math.imul(iy, 668265263) ^ Math.imul(seed + 1, 1442695041);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+
+/**
+ * Gładki szum wartości w zakresie -1..1: wartości w węzłach siatki całkowitej, między nimi
+ * interpolacja smoothstep. Deterministyczny, bez `Math.random`: wygenerowane grafiki muszą być
+ * co do piksela takie same przy każdym uruchomieniu generatora.
+ */
+export function noise(x: number, y: number, seed = 0): number {
+  const ix = Math.floor(x);
+  const iy = Math.floor(y);
+  const fx = x - ix;
+  const fy = y - iy;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const a = latticeValue(ix, iy, seed);
+  const b = latticeValue(ix + 1, iy, seed);
+  const c = latticeValue(ix, iy + 1, seed);
+  const d = latticeValue(ix + 1, iy + 1, seed);
+  const top = a + (b - a) * sx;
+  const bottom = c + (d - c) * sx;
+  return (top + (bottom - top) * sy) * 2 - 1;
+}
+
+/**
+ * Kształt o poszarpanej krawędzi: odległość zaburzona szumem o amplitudzie `amplitude`
+ * i długości fali `wavelength` (w pikselach). Daje kontur jak wycięty nożem albo wyrwany,
+ * zamiast gładkiego.
+ */
+export function roughen(shape: Shape, amplitude: number, wavelength: number, seed = 0): Shape {
+  const distance = (x: number, y: number): number =>
+    shape(x, y) + amplitude * noise(x / wavelength, y / wavelength, seed);
+  const { bounds } = shape;
+  if (bounds === undefined) return distance;
+  return bounded(
+    distance,
+    bounds.minX - amplitude,
+    bounds.minY - amplitude,
+    bounds.maxX + amplitude,
+    bounds.maxY + amplitude,
+  );
+}
+
+/** Ten sam kształt przesunięty o (dx, dy). */
+export function translate(shape: Shape, dx: number, dy: number): Shape {
+  const distance = (x: number, y: number): number => shape(x - dx, y - dy);
+  const { bounds } = shape;
+  if (bounds === undefined) return distance;
+  return bounded(distance, bounds.minX + dx, bounds.minY + dy, bounds.maxX + dx, bounds.maxY + dy);
+}
+
+/**
+ * Plamy: obszary, w których szum przekracza próg. `coverage` 0..1 to w przybliżeniu część
+ * powierzchni zajęta przez plamy, `size` ich wielkość w pikselach. Nie jest dokładną odległością,
+ * ale wystarcza do wypełnienia z wygładzoną krawędzią; zwykle przycinany do innego kształtu.
+ */
+export function blotches(coverage: number, size: number, seed = 0): Shape {
+  const threshold = 1 - 2 * coverage;
+  return (x, y) => (threshold - noise(x / size, y / size, seed)) * size * 0.6;
+}
+
+export interface WeatherOptions {
+  /** Siła nierównych, dużych zacieków: 0..1 to zmiana jasności o tyle w górę i w dół. */
+  readonly stain: number;
+  /** Wielkość zacieków w pikselach. */
+  readonly stainSize: number;
+  /** Część pikseli pokryta drobnym brudem (0..1) i o ile go przyciemnia. */
+  readonly speck: number;
+  readonly speckDepth: number;
+}
+
+/**
+ * Postarza narysowany obraz: nierówne zacieki jasności i drobne ciemne plamki na wszystkim,
+ * co nieprzezroczyste. Kolor zmienia się tylko w stronę ciemniejszego i brudniejszego; alfa
+ * zostaje bez zmian, więc kontur części się nie rusza.
+ */
+export function weather(image: Image, seed: number, options: WeatherOptions): void {
+  const { stain, stainSize, speck, speckDepth } = options;
+  for (let py = 0; py < image.height; py++) {
+    for (let px = 0; px < image.width; px++) {
+      const i = (py * image.width + px) * 4;
+      if ((image.data[i + 3] ?? 0) === 0) continue;
+      // Zacieki: duże, miękkie plamy jaśniejsze i ciemniejsze.
+      let factor = 1 + stain * noise(px / stainSize, py / stainSize, seed);
+      // Brud: rzadkie, kilkupikselowe plamki.
+      if (speck > 0 && noise(px / 2.2, py / 2.2, seed + 17) > 1 - 2 * speck) factor -= speckDepth;
+      if (factor > 1.12) factor = 1.12;
+      image.data[i] = (image.data[i] ?? 0) * factor;
+      image.data[i + 1] = (image.data[i + 1] ?? 0) * factor;
+      image.data[i + 2] = (image.data[i + 2] ?? 0) * factor;
+    }
+  }
+}

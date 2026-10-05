@@ -16,7 +16,7 @@ import {
   type Shape,
   union,
 } from './raster.ts';
-import { beastSprites } from './skins/index.ts';
+import { tribeSprites } from './skins/index.ts';
 
 export { type PartSpec, PIXELS_PER_UNIT, type PlaceholderSprite };
 
@@ -375,8 +375,8 @@ export function placeholderSprites(): PlaceholderSprite[] {
       skin.weapon === 'sword' ? sword(skin.palette, evolved) : bow(skin.palette, evolved),
     );
   }
-  // Szczep Beasts: własne części na tym samym szkielecie i własne pociski.
-  sprites.push(...beastSprites());
+  // Szczepy: własne części na tym samym szkielecie i własne pociski.
+  sprites.push(...tribeSprites());
   sprites.push({ name: 'fx/arrow', part: PARTS.arrow, image: arrow() });
   for (const set of GLYPH_SETS) {
     for (const [name, rows] of Object.entries(GLYPHS)) {
