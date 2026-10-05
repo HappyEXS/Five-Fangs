@@ -51,7 +51,7 @@ Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo 
 src/core     narzędzia czyste: matematyka całkowita, hash, pętla stałego kroku, pule, i18n, RNG (tylko efekty w render)
 src/sim      symulacja walki – czysta logika
 src/content  dane JSON + schematy Zod + kompilacja do struktur runtime
-src/render   Canvas 2D, rig, animacje, atlas, efekty, debug overlay
+src/render   Canvas 2D, rig, animacje, atlas, efekty, miniaturki postaci, debug overlay
 src/game     sceny, progresja, zapis
 src/ui       Preact (ekran startowy, mapa jako ekran główny, skład, bohaterowie, sklep, HUD, wynik)
 src/tools    narzędzia dev (edytor animacji, piaskownica walki) – osobne wejście tools.html, nie trafiają do builda prod

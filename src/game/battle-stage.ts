@@ -11,6 +11,7 @@ import { TICKS_PER_SECOND } from '../core/units.ts';
 import { loadUnitsAtlas } from '../render/atlas.ts';
 import { drawBackground } from '../render/background.ts';
 import { createCanvasRenderer } from '../render/canvas-renderer.ts';
+import type { PortraitSheet } from '../render/portrait.ts';
 import type { Renderer } from '../render/renderer.ts';
 import {
   type Battle,
@@ -20,9 +21,11 @@ import {
   OUTCOME_IN_PROGRESS,
   TEAM_SIZE,
 } from '../sim/index.ts';
+import { aliveMask, type BattleFace, battleFaces, battleLineup } from './battle-faces.ts';
 import { type BattleRunner, createBattleRunner } from './battle-runner.ts';
 import { createFrameLoop } from './frame-loop.ts';
 import type { Game, Scene } from './game.ts';
+import { contentPortraits } from './portraits.ts';
 import { currentLevel, squadMembers } from './progress.ts';
 import { attachStage, get2dContext } from './stage.ts';
 import { formStands, shopStands, squadFieldSetup, standScene } from './stage-stands.ts';
@@ -41,6 +44,8 @@ const NO_ENEMIES: CompiledLevel = {
 /** Czas po rozstrzygnięciu walki, zanim pojawi się wynik: animacje śmierci i ostatnie liczby. */
 const END_DELAY_MS = 1400;
 
+const NO_FACES: readonly BattleFace[] = [];
+
 export interface StageControls {
   /** Grafiki walki: `loading` do pierwszego wczytania atlasu, `failed` po błędzie ładowania. */
   readonly assets: Signal<'idle' | 'loading' | 'ready' | 'failed'>;
@@ -52,6 +57,16 @@ export interface StageControls {
   readonly held: Signal<boolean>;
   /** Tick trwającej walki; sygnał zmienia się raz na sekundę gry, nie co klatkę. */
   readonly battleTick: Signal<number>;
+  /**
+   * Postacie trwającej walki w kolejności ze sceny, z informacją, kto żyje; pusta lista poza
+   * walką. Sygnał zmienia się na początku walki i gdy ktoś ginie, nie co klatkę.
+   */
+  readonly faces: Signal<readonly BattleFace[]>;
+  /**
+   * Rysuje miniaturkę jednostki o danym id z treści gry na canvasie interfejsu. Zwraca false,
+   * dopóki grafiki nie są wczytane (`assets` różne od `ready`) albo gdy takiej jednostki nie ma.
+   */
+  paintPortrait(canvas: HTMLCanvasElement, unitId: string): boolean;
   togglePause(): void;
   /**
    * Przesuwa postać ze slotu gracza w podglądzie (ekran składu: bohater jedzie za wskaźnikiem).
@@ -74,14 +89,19 @@ export function startStage(
   const paused = signal(false);
   const held = signal(false);
   const battleTick = signal(0);
+  const faces = signal(NO_FACES);
 
   let renderer: Renderer | null = null;
+  let portraits: PortraitSheet | null = null;
   let runner: BattleRunner | null = null;
   /** Nieruchoma walka w ticku 0, którą renderer pokazuje poza sceną walki. */
   let preview: Battle | null = null;
   /** Pozycje slotów gracza w podglądzie: tu wraca postać po przeciągnięciu. */
   let previewSlots: readonly number[] = [];
   let endedMs = -1;
+  /** Id jednostek trwającej walki i maska żywych, z której zbudowano `faces`. */
+  let lineup: readonly (string | null)[] = [];
+  let shownAlive = 0;
   /** Scena i skład, dla których zbudowano bieżącą zawartość canvasu. */
   let shownScene: Scene | null = null;
   let shownSquad = '';
@@ -92,6 +112,7 @@ export function startStage(
     guardedLoad('atlas:units', loadUnitsAtlas).then(
       (atlas) => {
         renderer = createCanvasRenderer(ctx, { atlas, rigs: content.rigs });
+        portraits = contentPortraits(content, atlas);
         assets.value = 'ready';
       },
       () => {
@@ -109,6 +130,9 @@ export function startStage(
     if (preview !== null) renderer?.endBattle();
     preview = null;
     endedMs = -1;
+    lineup = [];
+    // `peek`: efekt sceny woła `clear` i nie powinien zależeć od twarzy, które sam ustawia.
+    if (faces.peek().length > 0) faces.value = NO_FACES;
   }
 
   function showPreview(
@@ -185,6 +209,9 @@ export function startStage(
     runner.loop.speed = save.settings.battleSpeed;
     paused.value = false;
     battleTick.value = 0;
+    lineup = battleLineup(compiled, members);
+    shownAlive = aliveMask(runner.battle);
+    faces.value = battleFaces(lineup, shownAlive);
   });
 
   // Prędkość walki z ustawień działa od razu, bez tworzenia walki od nowa.
@@ -201,6 +228,12 @@ export function startStage(
       // Licznik czasu w HUD zmienia się co sekundę gry; sygnał ustawiamy tylko wtedy.
       const second = state.tick - (state.tick % TICKS_PER_SECOND);
       if (battleTick.value !== second) battleTick.value = second;
+      // Miniaturki w HUD: maska to liczba całkowita, a listę budujemy tylko po czyjejś śmierci.
+      const alive = aliveMask(runner.battle);
+      if (alive !== shownAlive) {
+        shownAlive = alive;
+        faces.value = battleFaces(lineup, alive);
+      }
       if (state.outcome !== OUTCOME_IN_PROGRESS) {
         endedMs = endedMs < 0 ? 0 : endedMs + frameMs;
         const scene = game.scene.value;
@@ -220,6 +253,10 @@ export function startStage(
     paused,
     held,
     battleTick,
+    faces,
+    paintPortrait(target, unitId) {
+      return portraits?.paint(target, unitId) ?? false;
+    },
     togglePause() {
       paused.value = !paused.value;
     },

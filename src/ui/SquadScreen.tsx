@@ -1,21 +1,23 @@
 // Zarządzanie składem. Każdy bohater ma na scenie swoje pole: nad nim gniazda run, pod nim
 // pasek ulepszeń i przycisk zakupu. Bohatera łapie się wprost za postać: jedzie za wskaźnikiem
 // po linii podłogi, a upuszczony na innym slocie zamienia się miejscami z tym, kto tam stoi.
-// Karta z prawej tylko pokazuje statystyki wybranego bohatera.
+// Karta z prawej tylko pokazuje statystyki wybranego bohatera. Bohaterowie spoza składu czekają
+// u góry jako miniaturki; łapie się ich tak samo.
 import { useSignal } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 import type { StageControls } from '../game/battle-stage.ts';
 import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
-import { heroView, isSquadEmpty } from '../game/progress.ts';
+import { type HeroView, heroView, isSquadEmpty } from '../game/progress.ts';
 import { SQUAD_SLOTS } from '../game/save-schema.ts';
 import { SQUAD_FIELD_AT } from '../game/stage-stands.ts';
-import { ScreenHead } from './common.tsx';
+import { ScreenHead, unitName } from './common.tsx';
 import { createDrag } from './drag.ts';
 import { type EvolvePick, EvolvePicker } from './EvolvePicker.tsx';
 import { HeroCard, heroLabel } from './HeroCard.tsx';
 import { BuyButton, RuneSockets, UpgradeBar } from './HeroField.tsx';
 import { FANG_PATH } from './icons.tsx';
+import { Portrait } from './Portrait.tsx';
 import { type RunePick, RunePicker } from './RunePicker.tsx';
 
 const BENCH = 'bench';
@@ -26,6 +28,18 @@ const VISUAL_ORDER = [...SLOTS].sort((a, b) => (SQUAD_FIELD_AT[a] ?? 0) - (SQUAD
 
 function fieldAt(slot: number): number {
   return SQUAD_FIELD_AT[slot] ?? 0;
+}
+
+/** Bohater spoza składu: miniaturka, liczba ulepszeń i nazwa formy. */
+function ChipFace(props: { stage: StageControls; view: HeroView }) {
+  const { view } = props;
+  return (
+    <>
+      <Portrait stage={props.stage} unit={view.unitId} />
+      {view.hero.upgrades > 0 && <span class="chip-level">+{view.hero.upgrades}</span>}
+      <span class="chip-name">{unitName(view.unitId)}</span>
+    </>
+  );
 }
 
 export function SquadScreen(props: { game: Game; stage: StageControls }) {
@@ -111,7 +125,11 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
       <ScreenHead game={game} title={t('nav.squad')} />
 
       <section class={over === BENCH ? 'sheet reserve is-over' : 'sheet reserve'} data-drop={BENCH}>
-        <h3 class="sheet-title">{t('squad.bench')}</h3>
+        {/* Podpowiedź stoi obok tytułu, żeby rząd miniaturek mieścił się w arkuszu bez przewijania. */}
+        <header class="reserve-head">
+          <h3 class="sheet-title">{t('squad.bench')}</h3>
+          <p class="note">{t(isSquadEmpty(save) ? 'squad.empty' : 'squad.hint')}</p>
+        </header>
         {bench.length === 0 ? (
           <p class="note">{t('squad.bench.empty')}</p>
         ) : (
@@ -125,19 +143,19 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
                   class="hero-chip"
                   data-hero={hero.id}
                   aria-pressed={selectedId === hero.id}
+                  aria-label={heroLabel(view)}
                   onPointerDown={(event) => drag.start(event, String(hero.id))}
                   // Klawiatura nie wysyła zdarzeń wskaźnika; Enter i spacja wybierają bohatera.
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') selected.value = hero.id;
                   }}
                 >
-                  {heroLabel(view)}
+                  <ChipFace stage={stage} view={view} />
                 </button>
               );
             })}
           </div>
         )}
-        <p class="note">{t(isSquadEmpty(save) ? 'squad.empty' : 'squad.hint')}</p>
       </section>
 
       <section class="sheet hero-sheet">
@@ -251,7 +269,7 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
           class="hero-chip drag-ghost"
           style={{ left: `${dragging.x}px`, top: `${dragging.y}px` }}
         >
-          {heroLabel(draggedView)}
+          <ChipFace stage={stage} view={draggedView} />
         </div>
       )}
     </div>

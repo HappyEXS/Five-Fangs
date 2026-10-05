@@ -315,7 +315,8 @@ function levelSetup(
 - górne ograniczenie liczby żywych pocisków mieści się w puli;
 - każda linia ma dokładnie 2 formy i komplet kosztów, forma należy do jednej linii, a każdy bohater do jakiejś linii;
 - każdy świat ma plik poziomów z wymaganą liczbą poziomów (`levelsPerWorld`); w poziomie sloty wrogów się nie powtarzają;
-- najwyżej jedna cecha danego typu na jednostkę.
+- najwyżej jedna cecha danego typu na jednostkę;
+- kadr miniaturki rigu (`portrait`) wskazuje istniejącą kość.
 
 Reguły zależne od kodu symulacji (niezmienniki `UnitSpec`, mijanie się, pula pocisków) sprawdza `scripts/lib/content-sim-checks.ts`, bo `content` może importować z `sim` tylko typy.
 
@@ -333,9 +334,10 @@ interface Renderer {
 }
 
 function createCanvasRenderer(ctx: CanvasRenderingContext2D, assets: RenderAssets): Renderer;
+function createPortraitSheet(assets: RenderAssets, visuals: Iterable<[string, UnitVisual]>): PortraitSheet;
 ```
 
-Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Jednostki rysowane są od najdalszego slotu do najbliższego; `setTopUnit` pozwala narysować jedną na wierzchu (ekran składu: bohater, którego gracz właśnie przeciąga). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`).
+Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Jednostki rysowane są od najdalszego slotu do najbliższego; `setTopUnit` pozwala narysować jedną na wierzchu (ekran składu: bohater, którego gracz właśnie przeciąga). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`). Zamianę `UnitVisual` na struktury renderera (`UnitLook`: skompilowany rig, postawa, klipy) robi `render/looks.ts`, wspólnie dla walki i miniaturek (§5.8).
 
 ### 5.2 Pętla
 
@@ -353,6 +355,7 @@ Rig z klipami leży w jednym pliku treści (`rigs/humanoid.json`: dane z załąc
 - **Klip**: klatki kluczowe `[czas 0..1, wartość]` per kanał, w `Float32Array`; interpolacja smoothstep; znaczniki (`hit`). Kanały, których klip nie animuje, biorą wartość z **postawy** typu ataku (np. kąt chwytu miecza albo łuku w idle i chodzie).
 - **Macierze**: 6 wartości na kość, liczone ręcznie (`computeBoneMatrices`). `blit` składa macierz kości z przesunięciem o pivot sprite'a i przekazuje wynik do `ctx.setTransform` (powód w §5.7). Dodatni kąt to obrót zgodny z ruchem wskazówek zegara. Macierz korzenia zawiera pozycję stóp, skalę (ujemna w osi X odbija przeciwnika) i obrót całej postaci przy śmierci.
 - Elementy dynamiczne (cięciwa) rysowane wektorowo między punktami kości.
+- **Kadr miniaturki** (`portrait`): kość, punkt względem jej pivota i bok kwadratu w jednostkach rigu; z niego powstają miniaturki postaci (§5.8).
 
 Skala postaci na scenie to `scale` rigu (wyjściowo 1,4 jednostki logicznej na jednostkę rigu) razy `scale` jednostki z treści.
 
@@ -419,7 +422,19 @@ Pomiar powtórzony 2026-10-02 po dodaniu linii drzew do tła (DPR 1): mediana kl
 
 Pomiar po dodaniu liczby życia nad paskiem (2026-10-03, DPR 1; w tej walce życie ma dziewięć cyfr, więc 257 zamiast 175 `drawImage` na klatkę): czas JS klatki przy odtwarzaniu 0,54 ms średnio, mediana klatki w pętli 0,40 ms, alokacje 279 B na klatkę. Pierwsza wersja przekazywała ułamkowe współrzędne liczby jako argumenty funkcji i alokowała 399 B na klatkę, czyli 12 B na jednostkę więcej; po przeniesieniu ich do `scene.local` narzut zniknął. To potwierdza przypuszczenie z poprzedniego akapitu dla tego jednego miejsca: ułamkowa liczba przekazana do funkcji, której silnik nie wbudował, trafia na stertę.
 
+Pomiar po dodaniu miniaturek postaci (2026-10-05, DPR 1, ta sama walka): mediana klatki w pętli 0,30 ms, alokacje 278 B na klatkę, czyli bez zmian. Miniaturki powstają raz, po wczytaniu atlasu, a w pętli klatek doszło tylko porównanie maski żywych jednostek (liczba całkowita).
+
 Jak mierzyć alokacje: przyrost sterty po długiej serii klatek nic nie mówi, bo silnik po drodze sam opróżnia młodą generację (tak wyszło „zero” przy 2350 B na klatkę). Narzędzie liczy więc krótkie serie zaczynane tuż po wymuszonym odśmieceniu, co wymaga Chromium z flagami `--enable-precise-memory-info --js-flags=--expose-gc`. Źródło alokacji wskazuje „Allocation sampling” w DevTools (Memory) na `ffPerfFrames(3000)` wywołanym z konsoli.
+
+### 5.8 Miniaturki postaci
+
+Miniaturka to popiersie wycięte z prawdziwej postaci (ADR 0017), bez osobnych grafik. `createPortraitSheet` (`render/portrait.ts`) rysuje raz, po wczytaniu atlasu, po jednej miniaturce na każdy wygląd (rig, skórka, postawa) na wspólnym arkuszu poza ekranem, 128 × 128 px na komórkę:
+
+- `posePortrait` ustawia rig w pierwszej klatce klipu idle, w jednostkach rigu i bez skali jednostki, tak że lewy górny róg kadru z danych rigu leży w (0, 0); kadr idzie za swoją kością, ale się z nią nie obraca;
+- części rysuje ten sam kod co w walce (`drawRigParts`, cięciwa przez `drawString`), każdą miniaturkę na canvasie roboczym, żeby broń wystająca poza kadr nie wchodziła w sąsiednią komórkę;
+- `PortraitSheet.paint(canvas, klucz)` kopiuje komórkę na canvas interfejsu. Kluczem jest id jednostki z treści; jednostki o tym samym wyglądzie dzielą komórkę.
+
+Moduł działa poza pętlą klatek, więc może alokować i woła `drawImage` wprost (z całkowitymi współrzędnymi), jak budowanie wariantów atlasu.
 
 ## 6. Gra (`src/game`)
 
@@ -440,6 +455,7 @@ Gra otwiera się ekranem startowym z jednym przyciskiem „Graj”. Dalej ekrane
 - **Bohaterowie są egzemplarzami**: zapis trzyma listę `heroes` z id nadawanym kolejno; reguły i akcje adresują bohatera po id, a skład to id bohaterów per slot. Kilku bohaterów tej samej linii to osobne wpisy.
 - **Akcje** `Game` wołają reguły i po każdej zmianie zapisują grę. UI czyta sygnały i wywołuje akcje; komponenty nie zawierają reguł.
 - **Canvas** obsługuje `game/battle-stage.ts`. Linia podłogi jest wspólna dla wszystkich ekranów, zmieniają się aktorzy. Podgląd to walka w ticku 0 bez kroków symulacji: na ekranie startowym i mapie skład gracza naprzeciw przeciwników poziomu, na ekranie składu sam skład, w sklepie bohaterowie na sprzedaż, w informacjach o bohaterach obie formy wybranej linii. `StageControls.movePreviewUnit(slot, pozycja)` przesuwa postać podglądu za wskaźnikiem przy przeciąganiu na ekranie składu i każe rendererowi rysować ją na wierzchu; zapis pozycji idzie wprost do stanu podglądu, który nigdy nie jest krokowany, więc nie dotyka żadnej walki. W scenie walki działa `BattleRunner`. Atlas ładuje się przy starcie gry, przez `guardedLoad`; po błędzie ekrany działają bez postaci na scenie, a z walki gracz wraca na mapę i widzi komunikat.
+- **Miniaturki i twarze walki.** Po wczytaniu atlasu `battle-stage.ts` tworzy arkusz miniaturek wszystkich jednostek z treści (`game/portraits.ts`, §5.8) i udostępnia go interfejsowi jako `StageControls.paintPortrait(canvas, unitId)`. Gdy arkusza nie da się narysować, błąd trafia do raportu, okienka zostają puste, a scena i walka działają dalej. `StageControls.faces` to lista postaci trwającej walki w kolejności ze sceny (tył składu gracza … front, front przeciwnika … tył) z flagą `alive`; poza walką jest pusta. `game/battle-faces.ts` buduje ją z tych samych danych co `levelSetup`; pętla klatek porównuje samą maskę bitową żywych (`aliveMask`), a nową listę tworzy na początku walki i gdy ktoś ginie.
 - **Stanowiska na scenie** (`game/stage-stands.ts`): `shopStands` rozstawia linie bohaterów wzdłuż sceny (do pięciu w jednym rzędzie, do dziesięciu w dwóch grupach zwróconych do siebie), `formStands` stawia formy jednej drogi ewolucji (od bazowej przez wybraną do końca drogi, `displayPath`), a `standScene` buduje ze stanowisk wejście symulacji z własnymi pozycjami slotów. `squadFieldSetup` rozstawia skład na ekranie zarządzania szerzej niż w walce (`SQUAD_FIELD_AT`), żeby pod każdym bohaterem zmieściło się jego pole; sloty przeciwnika odsuwa na prawą krawędź, bo symulacja wymaga, by sloty gracza leżały na lewo od nich. Z tych samych stanowisk UI wylicza położenie metek i drogi ulepszeń.
 - **Koniec walki**: po rozstrzygnięciu renderer rysuje jeszcze 1,4 s (animacje śmierci), potem `finishBattle` nalicza nagrody, zapisuje grę i przełącza na wynik. Pod arkuszem wyniku zostaje pole zakończonej walki. Wyjście ze sceny wyniku albo walki zwalnia `BattleRunner` i odpina walkę od renderera; sam renderer z atlasem żyje do końca sesji.
 
@@ -492,15 +508,16 @@ Preact jako nakładka DOM nad canvasem. Korzeń (`App.tsx`) pokazuje ekran bież
 |---|---|---|
 | Ekran startowy | `TitleScreen.tsx` | Nazwa gry ze znakiem pięciu kłów, scena ze składem naprzeciw najbliższych przeciwników, przycisk „Graj” prowadzący na mapę, wersja gry |
 | Mapa (ekran główny) | `MapScreen.tsx`, `Settings.tsx` | Nazwa gry w rogu, złoto, z boku małe przyciski Skład, Bohaterowie, Sklep, Ustawienia. Poziomy świata jako nieregularne kafle na krętym szlaku (zablokowany kafel to nieaktywny przycisk, ukończony ma odcisk kła). Tabliczka wybranego poziomu: nazwa, nagroda, najlepszy czas. Pod linią podłogi: podpis pod każdą postacią (nazwa i prostokąt z liczbą wzmocnień: zielony u bohaterów gracza, czerwony u przeciwników), przycisk walki. Bez zmiany składu. Ustawienia to okno nad mapą: język, eksport i import zapisu, reset z potwierdzeniem, raport błędu, wersja gry |
-| Skład | `SquadScreen.tsx`, `HeroField.tsx`, `RunePicker.tsx`, `HeroCard.tsx` | Każdy bohater ma pole na scenie: u góry nazwa i gniazda run (okrągłe żetony: zielony życie, czerwony atak, z premią), pod kłem slotu pasek ulepszeń bieżącej formy i przycisk „Kup” z kosztem ulepszenia albo „Ewolucja” z jej kosztem. Gniazdo otwiera okienko z paletą wolnych run. Bohatera łapie się za postać, nazwę albo kieł. Arkusz bohaterów poza składem z podpowiedzią; karta wybranego bohatera tylko do czytania: statystyki z podglądem następnego zakupu |
-| Bohaterowie | `HeroesScreen.tsx` | Zakładki linii; drzewo ewolucji jako siatka (kolumna to stopień, rozwidlenie zajmuje wiersze gałęzi) z kosztami ewolucji; postacie drogi przez wybraną formę na scenie, pod nimi nazwy i koszty; karta wybranej formy: stopień, skąd powstaje, w co ewoluuje, statystyki względem formy, z której powstaje, koszty ulepszeń; cena w sklepie i liczba posiadanych. Bez kupowania |
+| Skład | `SquadScreen.tsx`, `HeroField.tsx`, `RunePicker.tsx`, `HeroCard.tsx` | Każdy bohater ma pole na scenie: u góry nazwa i gniazda run (okrągłe żetony: zielony życie, czerwony atak, z premią), pod kłem slotu pasek ulepszeń bieżącej formy i przycisk „Kup” z kosztem ulepszenia albo „Ewolucja” z jej kosztem. Gniazdo otwiera okienko z paletą wolnych run. Bohatera łapie się za postać, nazwę albo kieł. Arkusz „Poza składem”: podpowiedź obok tytułu i bohaterowie jako miniaturki z nazwą formy i plakietką „+N” ulepszeń; karta wybranego bohatera tylko do czytania: statystyki z podglądem następnego zakupu |
+| Bohaterowie | `HeroesScreen.tsx` | Zakładki linii; drzewo ewolucji jako siatka (kolumna to stopień, rozwidlenie zajmuje wiersze gałęzi) z miniaturką każdej formy i kosztami ewolucji; postacie drogi przez wybraną formę na scenie, pod nimi nazwy i koszty; karta wybranej formy: miniaturka, stopień, skąd powstaje, w co ewoluuje, statystyki względem formy, z której powstaje, koszty ulepszeń; cena w sklepie i liczba posiadanych. Bez kupowania |
 | Sklep | `ShopScreen.tsx` | Samo kupowanie: bohaterowie na sprzedaż stoją na scenie, pod każdym metka z nazwą, ceną i liczbą posiadanych |
-| Walka | `BattleScreens.tsx` | Nazwa poziomu i czas w lewym rogu; pauza, prędkość x1/x2/x4 i wyjście w prawym; nic więcej, bo gracz nie wpływa na walkę |
+| Walka | `BattleScreens.tsx` | Nazwa poziomu i czas w lewym górnym rogu; pauza, prędkość x1/x2/x4 i wyjście w prawym; w dolnych rogach miniaturki żywych postaci (gracz z lewej, przeciwnik z prawej, w kolejności ze sceny). Nic więcej, bo gracz nie wpływa na walkę |
 | Wynik | `BattleScreens.tsx` | Arkusz nad polem zakończonej walki: wygrana albo powód przegranej, czas, nagrody, jeden przycisk OK wracający na mapę |
 
 - **Brama** (ADR 0015): `ui/gate.ts` to kolejność ruchów (fazy `open`, `closing`, `closed`, `opening`; `pass(zmiana)` zamyka, w zamknięciu zmienia scenę, czeka i otwiera; wywołanie w trakcie ruchu jest pomijane), `ui/Gate.tsx` to rysunek SVG i ruch na Web Animations API. Przejścia przez bramę zaczynają przyciski „Graj”, „Walcz”, „Wyjdź” i „OK”; koniec walki zamyka bramę z `App`, który obserwuje scenę. Pod bramą scena ma atrybut `inert`. Walkę wstrzymuje `StageControls.held` (osobno od pauzy gracza), dopóki brama nie jest otwarta.
 - **Szata graficzna** (ADR 0015): papierowe rekwizyty na jednej scenie. Okna, przyciski i kafle mają teksturę starego papieru z `ui/paper.ts` (szum SVG w adresie `data:`, ustawiany jako zmienne CSS `--paper-grain` i `--paper-stains`, a dla kafli jako wzór `#ff-paper` z `PaperDefs.tsx`). Style leżą w `ui/styles/`, po pliku na odpowiedzialność: `base.css` (czcionki, paleta, podstawy), `components.css` (wspólne klasy `btn`, `sheet`, kolory run, tabela statystyk), `map.css`, `squad.css`, `screens.css` (sklep, bohaterowie, ekran startowy, walka, wynik), `dialogs.css` (ustawienia, komunikaty); znaki SVG, w tym kształt kła, w `ui/icons.tsx`. Czcionki leżą w `src/assets/fonts/` i przechodzą przez Vite; licencje w `public/licenses/`.
-- Przeciąganie (`drag.ts`) działa na Pointer Events, więc mysz i dotyk idą tym samym kodem. Cel upuszczenia to element z atrybutem `data-drop`; stan przeciągania niesie cel pod wskaźnikiem, więc slot docelowy się podświetla. Bohater ze składu jedzie po scenie za wskaźnikiem (`movePreviewUnit`), bohater spoza składu ma tylko etykietę przy wskaźniku. Upuszczenie na zajęty slot zamienia bohaterów miejscami, na arkusz „Poza składem” zdejmuje bohatera ze składu.
+- **Miniaturka** (`Portrait.tsx`, ADR 0017) to mały canvas w okienku z kolorem nieba sceny; rysuje go `StageControls.paintPortrait`, gdy grafiki są wczytane, i ponownie przy zmianie jednostki. Jest ozdobą (`aria-hidden`): nazwę postaci podaje element, w którym siedzi. Przeciwnik w walce jest odbity w poziomie stylem, tak jak na scenie. Poległy w walce zostaje w drzewie z `data-alive="false"`: styl przewraca jego miniaturkę i zsuwa rząd do rogu, a przy ograniczonym ruchu miniaturka znika od razu.
+- Przeciąganie (`drag.ts`) działa na Pointer Events, więc mysz i dotyk idą tym samym kodem. Cel upuszczenia to element z atrybutem `data-drop`; stan przeciągania niesie cel pod wskaźnikiem, więc slot docelowy się podświetla. Bohater ze składu jedzie po scenie za wskaźnikiem (`movePreviewUnit`), bohater spoza składu ma przy wskaźniku swoją miniaturkę z nazwą. Upuszczenie na zajęty slot zamienia bohaterów miejscami, na arkusz „Poza składem” zdejmuje bohatera ze składu.
 - Bez przeciągania: kliknięcie postaci wybiera bohatera, kliknięcie pustego slotu stawia na nim wybranego, strzałki w lewo i w prawo przestawiają bohatera z fokusem o jeden slot, a Delete zdejmuje go ze składu.
 - Gdy z formy wychodzi kilka dróg ewolucji, przycisk zakupu otwiera `EvolvePicker.tsx`: drogi obok siebie z najważniejszymi statystykami po ewolucji i cechami. Okienka run i ewolucji dzielą zachowanie (`FieldPopup.tsx`).
 - Okienka nigdy nie wychodzą poza scenę: po wyświetleniu `useKeepInside` (`ui/keep-inside.ts`) mierzy okienko i jego ekran, wsuwa je do środka z marginesem, a gdy jest wyższe niż scena, ogranicza wysokość i przewija treść. Położenie zapisuje w procentach, więc zostaje poprawne przy skalowaniu sceny z oknem, i przelicza je przy każdej zmianie rozmiaru okienka (treść, język, czcionka). Okno ustawień (`<dialog>` w górnej warstwie przeglądarki) ma wysokość ograniczoną wysokością sceny.
@@ -510,7 +527,7 @@ Preact jako nakładka DOM nad canvasem. Korzeń (`App.tsx`) pokazuje ekran bież
 - Rozmiary są w `em` względem czcionki sceny, a położenie elementów stojących na scenie w procentach jej szerokości i wysokości (linia podłogi to zmienna `--floor`), więc UI skaluje się razem z canvasem i trafia pod postacie.
 - Style w wierszu ustawia tylko Preact przez CSSOM, co dopuszcza CSP `style-src 'self'`.
 - Ustawienia to natywne okno modalne `<dialog>`: przeglądarka trzyma w nim fokus, zamyka je na Escape i wyłącza resztę strony. Arkusz wyniku ustawia fokus na przycisku OK. Fokus z klawiatury ma widoczną obwódkę, a animacje wyłącza `prefers-reduced-motion`.
-- HUD odświeża się, gdy zmienia się sekunda walki, pauza albo prędkość, nie co klatkę.
+- HUD odświeża się, gdy zmienia się sekunda walki, pauza albo prędkość, a miniaturki w rogach, gdy ktoś ginie; nic nie odświeża się co klatkę.
 - UI nie importuje z `sim`; typ specyfikacji jednostki i wynik walki dostaje z `game`.
 
 ## 8. Narzędzia (`src/tools`, `scripts/`)
@@ -544,4 +561,4 @@ Wersję builda zapisuje wtyczka w `vite.config.ts` (logika w `scripts/lib/build-
 | Granice | `pnpm deps:check` | Sekcja 1 |
 | Build | `pnpm check:size`, test czystości `dist/` | Budżety rozmiaru, brak narzędzi dev |
 | Zapisy | `tests/saves/`, pliki w `tests/fixtures/saves/` | Przykładowy plik z każdej wersji zapisu wczytuje się w bieżącej wersji gry |
-| End-to-end | `tests/e2e/*.spec.ts`, `pnpm test:e2e` | Playwright na buildzie produkcyjnym z `vite preview` (te same nagłówki i CSP co na hostingu): nowa gra, walka do końca, nagroda w zapisie, postęp po przeładowaniu, ulepszenie, przeciąganie w składzie, zmiana języka, uszkodzony zapis; konsola bez błędów |
+| End-to-end | `tests/e2e/*.spec.ts`, `pnpm test:e2e` | Playwright na buildzie produkcyjnym z `vite preview` (te same nagłówki i CSP co na hostingu): nowa gra, walka do końca, nagroda w zapisie, postęp po przeładowaniu, ulepszenie, przeciąganie w składzie, zmiana języka, uszkodzony zapis, miniaturki postaci (narysowane poza składem i w drzewie, znikające po śmierci w walce); konsola bez błędów |

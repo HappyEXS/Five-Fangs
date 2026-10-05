@@ -21,40 +21,93 @@
   outline-offset: 0.17em;
 }
 
+.reserve-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1em 1em;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5em;
+  gap: 0.5em 0.3em;
 }
 
+/* Bohater poza składem: miniaturka z nazwą formy pod spodem i liczbą ulepszeń na rogu. */
 .hero-chip {
-  padding: 0.1em 0.6em;
-  border: var(--line) solid var(--ink);
-  border-radius: 0.28em;
-  background-color: var(--sheet);
-  background-image: var(--paper-grain, none);
-  box-shadow: 0.14em 0.14em 0 var(--ink);
+  --portrait: 3.2em;
+
+  position: relative;
+  display: grid;
+  gap: 0.3em;
+  width: 4.9em;
+  padding: 0.15em 0 0;
+  border: 0;
+  background: none;
   color: var(--ink);
   font: inherit;
-  font-weight: 700;
-  white-space: nowrap;
   cursor: grab;
   /* Przeciąganie obsługujemy sami; bez tego dotyk przewijałby stronę. */
   touch-action: none;
   user-select: none;
+  align-content: start;
+  justify-items: center;
 }
 
-.hero-chip[aria-pressed="true"] {
-  background-color: var(--marigold);
+.hero-chip:active {
+  cursor: grabbing;
 }
 
+.chip-name {
+  max-width: 100%;
+  padding: 0.05em 0.3em;
+  border-radius: 0.22em;
+  font-size: 0.8em;
+  font-weight: 700;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+/* Liczba ulepszeń jak na mapie pod bohaterem: zielona plakietka „+N”. */
+.chip-level {
+  position: absolute;
+  top: 0;
+  right: 0.25em;
+  padding: 0 0.3em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.22em;
+  background: var(--moss);
+  font-size: 0.75em;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* Przeciągany bohater: jego miniaturka jedzie pod wskaźnikiem, także nad niebem sceny, więc
+   nazwa dostaje własne tło. */
 .drag-ghost {
   position: fixed;
   z-index: 20;
-  background-color: var(--marigold);
   rotate: -4deg;
-  translate: -50% -120%;
+  translate: -50% -105%;
   pointer-events: none;
+}
+
+.drag-ghost .chip-name {
+  border: var(--line) solid var(--ink);
+  background: var(--marigold);
+}
+
+.hero-chip:hover .portrait {
+  translate: 0 -0.08em;
+}
+
+.hero-chip[aria-pressed="true"] .portrait {
+  outline: 0.17em solid var(--marigold);
+}
+
+.hero-chip[aria-pressed="true"] .chip-name {
+  background: var(--marigold);
 }
 
 /* Karta wybranego bohatera: tylko statystyki, bez przycisków. */

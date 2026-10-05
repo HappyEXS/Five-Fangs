@@ -37,6 +37,18 @@ async function play(page: Page): Promise<void> {
   await expect(page.locator('.map')).toBeVisible();
 }
 
+/** Liczba miniaturek pod selektorem (canvasy `.portrait-face`), na których coś narysowano. */
+async function paintedPortraits(page: Page, selector: string): Promise<number> {
+  return page.locator(selector).evaluateAll(
+    (nodes) =>
+      nodes.filter((node) => {
+        if (!(node instanceof HTMLCanvasElement)) return false;
+        const pixels = node.getContext('2d')?.getImageData(0, 0, node.width, node.height).data;
+        return pixels?.some((value, index) => index % 4 === 3 && value > 0) ?? false;
+      }).length,
+  );
+}
+
 const hero = (id: number, line: string) => ({
   id,
   line,
@@ -67,7 +79,22 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await expect(page.locator('.hero-chip')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Walcz' }).click();
+  // W dolnych rogach miniaturki żywych postaci: dwóch bohaterów z lewej, przeciwnik z prawej.
+  const allies = page.locator('.hud-faces-player .hud-face');
+  const foes = page.locator('.hud-faces-enemy .hud-face');
+  await expect(allies).toHaveCount(2);
+  await expect(foes).toHaveCount(1);
+  await expect(foes).toHaveAttribute('data-unit', 'brute');
+  await expect(page.locator('.hud-face[data-alive="true"]')).toHaveCount(3);
+  await expect.poll(() => paintedPortraits(page, '.hud-face .portrait-face')).toBe(3);
   await page.getByRole('button', { name: 'x4' }).click();
+  // Pokonany przeciwnik traci miniaturkę, zanim brama zamknie pole walki.
+  await expect
+    .poll(() => page.locator('.hud-faces-enemy .hud-face[data-alive="false"]').count(), {
+      intervals: [100],
+      timeout: 90_000,
+    })
+    .toBe(1);
   const result = page.locator('.result-sheet');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
   await expect(result).toContainText('Zwycięstwo');
@@ -228,6 +255,46 @@ test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async
     'Strażnik (kopia)',
     'Strażnik II (kopia)',
   ]);
+  expect(errors).toEqual([]);
+});
+
+test('miniaturki: bohater poza składem i formy w drzewie ewolucji', async ({ page }) => {
+  const errors = collectErrors(page);
+  await seedSave(page, {
+    saveVersion: 3,
+    gameVersion: '0.1.0',
+    gold: 0,
+    heroes: [
+      { id: 1, line: 'swordsman', form: 'swordsman_a', upgrades: 0, runes: [null, null] },
+      { id: 2, line: 'archer', form: 'archer_b', upgrades: 3, runes: [null, null] },
+    ],
+    nextHeroId: 3,
+    runes: [],
+    levels: {},
+    squad: [1, null, null, null, null],
+    settings: { lang: 'pl', battleSpeed: 1 },
+  });
+  await play(page);
+
+  // Skład: bohater spoza składu to miniaturka z nazwą formy i liczbą ulepszeń.
+  await page.getByRole('button', { name: 'Skład' }).click();
+  const chip = page.locator('.hero-chip');
+  await expect(chip).toHaveCount(1);
+  await expect(chip.locator('.chip-name')).toHaveText('Strzelec wyborowy');
+  await expect(chip.locator('.chip-level')).toHaveText('+3');
+  await expect.poll(() => paintedPortraits(page, '.hero-chip .portrait-face')).toBe(1);
+  // Miniaturkę łapie się jak postać: upuszczona na slocie wchodzi do składu.
+  await chip.dragTo(page.locator('[data-drop="slot:1"]'));
+  await expect(page.locator('[data-drop="slot:1"] .field-name')).toHaveText('Strzelec wyborowy +3');
+  await expect(page.locator('.hero-chip')).toHaveCount(0);
+  expect((await readSave(page)).squad).toEqual([1, 2, null, null, null]);
+
+  // Bohaterowie: każda forma w drzewie i karta wybranej formy mają miniaturkę.
+  await page.getByRole('button', { name: 'Wróć' }).click();
+  await page.getByRole('button', { name: 'Bohaterowie' }).click();
+  await expect(page.locator('.tree-node')).toHaveCount(5);
+  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(5);
+  await expect.poll(() => paintedPortraits(page, '.form-head .portrait-face')).toBe(1);
   expect(errors).toEqual([]);
 });
 

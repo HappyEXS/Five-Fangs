@@ -2,7 +2,6 @@
 // obiektów, tablic, domknięć ani napisów tworzonych co klatkę. Wszystkie bufory powstają raz,
 // w `createScene`; rysowanie jest w draw-units.ts, draw-rig.ts i draw-effects.ts.
 import type { UnitVisual } from '../content/compile.ts';
-import type { RawRig } from '../content/schema-rig.ts';
 import {
   type Battle,
   EVENT_DAMAGED,
@@ -11,8 +10,7 @@ import {
   MAX_UNITS,
   TEAM_SIZE,
 } from '../sim/index.ts';
-import { animatorOnEvents, resetAnimator, type UnitLook } from './animation.ts';
-import type { Atlas } from './atlas.ts';
+import { animatorOnEvents, resetAnimator } from './animation.ts';
 import { drawBackground } from './background.ts';
 import { fitCamera } from './camera.ts';
 import { debugOptions, debugOverlay, debugStats } from './debug.ts';
@@ -24,54 +22,20 @@ import {
   FLOAT_KIND_HEAL,
   updateFloatTexts,
 } from './float-text.ts';
+import { compileRigs, type RenderAssets, resolveLook, skinParts } from './looks.ts';
 import { measureReach } from './reach.ts';
 import type { Renderer } from './renderer.ts';
-import { type CompiledRig, compileRig } from './rig.ts';
 import { createScene } from './scene.ts';
 import type { Viewport } from './viewport.ts';
-
-export interface RenderAssets {
-  readonly atlas: Atlas;
-  readonly rigs: ReadonlyMap<string, RawRig>;
-}
 
 export function createCanvasRenderer(
   ctx: CanvasRenderingContext2D,
   assets: RenderAssets,
 ): Renderer {
   const { atlas } = assets;
-  const rigs = new Map<string, CompiledRig>();
-  let maxBones = 1;
-  let maxChannels = 1;
-  for (const [id, raw] of assets.rigs) {
-    const rig = compileRig(raw);
-    rigs.set(id, rig);
-    maxBones = Math.max(maxBones, rig.boneCount);
-    maxChannels = Math.max(maxChannels, rig.channelCount);
-  }
-
-  const scene = createScene(ctx, atlas, maxBones, maxChannels);
-
-  function resolveLook(visual: UnitVisual): UnitLook {
-    const rig = rigs.get(visual.rig);
-    if (rig === undefined) throw new Error(`Unknown rig "${visual.rig}"`);
-    const rest = rig.stances.get(visual.stance);
-    const idle = rig.clips.get('idle');
-    const walk = rig.clips.get('walk');
-    const attack = rig.clips.get(visual.attackClip);
-    if (rest === undefined || idle === undefined || walk === undefined || attack === undefined) {
-      throw new Error(`Rig "${visual.rig}" is missing clips or stance for skin "${visual.skin}"`);
-    }
-    return {
-      rig,
-      rest,
-      idle,
-      walk,
-      attack,
-      scale: rig.scale * visual.scale,
-      string: rig.strings.get(visual.stance) ?? null,
-    };
-  }
+  const rigs = compileRigs(assets.rigs);
+  const { maxBones } = rigs;
+  const scene = createScene(ctx, atlas, maxBones, rigs.maxChannels);
 
   return {
     beginBattle(battle: Battle, visuals: readonly (UnitVisual | null)[]): void {
@@ -88,11 +52,9 @@ export function createCanvasRenderer(
           scene.projectileSprites[unit] = null;
           continue;
         }
-        const look = resolveLook(visual);
+        const look = resolveLook(rigs, visual);
         scene.looks[unit] = look;
-        const parts = look.rig.sprites.map(
-          (part) => atlas.sprites.get(`${visual.skin}/${part}`) ?? null,
-        );
+        const parts = skinParts(atlas, look.rig, visual.skin);
         parts.forEach((sprite, bone) => {
           scene.boneSprites[unit * maxBones + bone] = sprite;
         });

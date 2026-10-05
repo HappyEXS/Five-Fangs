@@ -48,6 +48,16 @@ export const rigSchema = z.strictObject({
     .min(1),
   /** Kolejność rysowania: każda kość dokładnie raz. */
   drawOrder: z.array(id),
+  /**
+   * Kadr miniaturki („zdjęcia profilowego”) postaci: kwadrat o boku `size` jednostek rigu,
+   * którego środek leży w punkcie `center` kości `bone` (zwykle głowy) w pierwszej klatce
+   * klipu idle. Kadr się nie obraca; postać patrzy w prawo.
+   */
+  portrait: z.strictObject({
+    bone: id,
+    center: point,
+    size: z.number().positive(),
+  }),
   /** Postawy: kąty kości (w stopniach) dla kanałów, których klip nie animuje. */
   stances: z.record(id, z.record(id, z.number())),
   /**

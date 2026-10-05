@@ -29,6 +29,10 @@ function rigIssues(source: string, rig: RawRig): ContentIssue[] {
     report('drawOrder musi zawierać każdą kość dokładnie raz');
   }
 
+  if (!bones.has(rig.portrait.bone)) {
+    report(`miniaturka: nieznana kość "${rig.portrait.bone}"`);
+  }
+
   for (const [stance, angles] of Object.entries(rig.stances)) {
     for (const bone of Object.keys(angles)) {
       if (!bones.has(bone)) report(`postawa "${stance}": nieznana kość "${bone}"`);

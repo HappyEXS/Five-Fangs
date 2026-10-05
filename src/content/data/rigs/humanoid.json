@@ -88,6 +88,11 @@
     "weapon",
     "foreF"
   ],
+  "portrait": {
+    "bone": "head",
+    "center": [1, -7],
+    "size": 32
+  },
   "stances": {
     "sword": {
       "weapon": -75

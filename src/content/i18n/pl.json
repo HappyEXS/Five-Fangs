@@ -57,6 +57,8 @@
   "battle.speed": "x{speed}",
   "battle.loading": "Wczytywanie…",
   "battle.time": "{time} / {limit}",
+  "battle.faces.player": "Twoi bohaterowie",
+  "battle.faces.enemy": "Przeciwnicy",
   "result.win": "Zwycięstwo",
   "result.loss": "Porażka",
   "result.reason.eliminated": "Wszyscy bohaterowie polegli.",

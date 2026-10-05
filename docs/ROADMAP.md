@@ -167,6 +167,17 @@ Zlecenie autora gry: typowa animacja w postaci mechanicznej metalowej bramy oraz
 | M5f-1 | Brama: rysunek, ruch, przejścia po ekranie startowym, przed i po walce; walka stoi do otwarcia bramy; wynik na zamkniętej bramie | 1 | Testy kolejności ruchów; testy end-to-end przechodzą przez bramę; przy ograniczonym ruchu brak przesuwania | gotowe |
 | M5f-2 | Tekstura starego papieru dla okien, przycisków, kafli i metek | 0,5 | Brak żadnego pliku i zapytania; kontrast drobnego tekstu zachowany | gotowe |
 
+## M5g – Miniaturki postaci (2026-10-05)
+
+Zlecenie autora gry po pierwszym udanym deployu: każda postać ma miniaturkę („obrazek profilowy”); miniaturki pokazują bohaterów poza składem, są w zakładce „Bohaterowie” i w walce (żywe postacie gracza w lewym dolnym rogu, przeciwnika w prawym dolnym). Decyzja w ADR 0017, wygląd w uzupełnieniu ADR 0015.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5g-1 | Kadr miniaturki w danych rigu; arkusz miniaturek rysowany z rigu i atlasu | 0,5 | Walidator odrzuca kadr z nieznaną kością; test: głowa każdej jednostki z treści mieści się w kadrze | gotowe |
+| M5g-2 | Skład: bohaterowie poza składem jako miniaturki; Bohaterowie: miniaturki w drzewie i na karcie formy | 0,5 | Test end-to-end: miniaturki są narysowane, miniaturka przeciągnięta na slot wchodzi do składu; rząd miniaturek mieści się w arkuszu bez przewijania w czterech rozmiarach okna | gotowe |
+| M5g-3 | Walka: miniaturki żywych postaci w dolnych rogach ekranu | 0,5 | Testy listy twarzy i maski żywych; test end-to-end: pokonany przeciwnik traci miniaturkę; alokacje renderera bez zmian (278 B na klatkę) | gotowe |
+| M5g-4 | Ocena autora gry: wygląd okienek, brak paska życia przy miniaturkach w walce, miniaturki także w sklepie i na mapie | — | Decyzja autora | otwarte |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

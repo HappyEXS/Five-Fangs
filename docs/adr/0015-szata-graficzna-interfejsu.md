@@ -77,3 +77,14 @@ Autor gry poprosił o typową animację gry: mechaniczną metalową bramę zamyk
 - **Ruch mechaniczny:** skrzydła przyspieszają do uderzenia, scena drga, rygle z prawego skrzydła wsuwają się przez szczelinę. Przy otwieraniu najpierw odskakują rygle, potem skrzydła rozjeżdżają się z szarpnięciem. Przejście trwa ok. 1,3 s. Przy ustawieniu „ograniczony ruch” brama tylko pojawia się i znika (zmiana przezroczystości, bez przesuwania i drgań).
 - **Kiedy:** „Graj” na ekranie startowym, „Walcz” na mapie, „Wyjdź” z walki, koniec walki i „OK” po wyniku. Walka stoi, dopóki brama nie jest w pełni otwarta. Po walce brama zamyka się na polu bitwy, a arkusz wyniku wisi na zamkniętej bramie; „OK” otwiera ją na mapie. Inne przejścia (skład, sklep, bohaterowie) bramy nie używają.
 - **Papier:** okna, przyciski, kafle mapy i metki mają kolor starego papieru (#d9c29b) z ziarnem, krótkimi włóknami i plamami, a okna dodatkowo przypalone brzegi. Tekstura to szum SVG w adresie `data:` (`ui/paper.ts`), bez pliku graficznego i bez zapytań; kafle mapy używają jej przez wzór SVG. Kły i napisy na scenie zostają w kolorze kości słoniowej. Drobny tekst dostał ciemniejszy brąz i ciemniejszą marzannę, żeby kontrast na brązowym papierze nie spadł.
+
+### Miniaturki postaci (2026-10-05)
+
+Autor gry poprosił o miniaturkę („obrazek profilowy”) każdej postaci: dla bohaterów poza składem, w zakładce „Bohaterowie” i dla żywych postaci w walce. Skąd się biorą, opisuje ADR 0017; tu jest ich wygląd.
+
+- **Okienko na scenę.** Miniaturka to kwadrat z atramentowym konturem i twardym cieniem, jak przyciski, wypełniony kolorem nieba (zmierzch). To tło, na którym postacie są rysowane w walce, więc każda jest na nim czytelna, a paleta nie dostaje nowego koloru. W okienku stoi popiersie postaci patrzącej w prawo.
+- **Poza składem** bohater to miniaturka z nazwą formy pod spodem i zieloną plakietką „+N” ulepszeń na rogu (ta sama co pod bohaterem na mapie). Wybrany ma nagietkową obwódkę i nagietkowe tło nazwy. Łapie się go jak postać na scenie; przy wskaźniku jedzie wtedy jego miniaturka. Podpowiedź przeniosła się obok tytułu arkusza, żeby rząd miniaturek mieścił się bez przewijania; arkusze, które się przewijają, mają wąski atramentowy suwak.
+- **Bohaterowie:** każda forma w drzewie ewolucji ma miniaturkę przed nazwą, a karta wybranej formy większą obok nazwy.
+- **Walka:** w dolnych rogach, pod linią podłogi, stoją miniaturki żywych postaci: gracza w lewym rogu, przeciwnika w prawym, w tej kolejności, w jakiej postacie stają na scenie (fronty do środka). Przeciwnik patrzy w lewo, jak na scenie. Strony odróżnia miejsce i kierunek patrzenia, bez dodatkowego koloru.
+- **Trzeci moment ruchu:** miniaturka poległego przewraca się do tyłu i znika, a rząd zsuwa się do rogu (ok. 0,5 s). Przy ustawieniu „ograniczony ruch” znika od razu.
+- Miniaturki nie pokazują życia: paski i liczby życia są nad postaciami.

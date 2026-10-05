@@ -57,6 +57,8 @@
   "battle.speed": "x{speed}",
   "battle.loading": "Loading…",
   "battle.time": "{time} / {limit}",
+  "battle.faces.player": "Your heroes",
+  "battle.faces.enemy": "Enemies",
   "result.win": "Victory",
   "result.loss": "Defeat",
   "result.reason.eliminated": "All heroes have fallen.",
