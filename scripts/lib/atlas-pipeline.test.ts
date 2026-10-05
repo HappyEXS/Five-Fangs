@@ -144,8 +144,14 @@ describe('staleReasons', () => {
   });
 });
 
+// Oba testy rysują albo dekodują wszystkie grafiki; przy pomiarze pokrycia trwa to kilka razy
+// dłużej niż zwykle, stąd własny limit czasu.
+const HEAVY_TEST_MS = 30_000;
+
 describe('pliki w repozytorium', () => {
-  it('źródła placeholder w assets/src/units są aktualne względem generatora', () => {
+  it('źródła placeholder w assets/src/units są aktualne względem generatora', {
+    timeout: HEAVY_TEST_MS,
+  }, () => {
     const dir = join(REPO, SOURCE_ROOT, 'units');
     const sprites = placeholderSprites();
     const hint = 'uruchom: pnpm atlas:placeholder && pnpm atlas';
@@ -164,7 +170,9 @@ describe('pliki w repozytorium', () => {
     expect(onDisk, hint).toEqual(sprites.map((sprite) => sprite.name).sort());
   });
 
-  it('każdy atlas w src/assets/generated odpowiada swoim źródłom', async () => {
+  it('każdy atlas w src/assets/generated odpowiada swoim źródłom', {
+    timeout: HEAVY_TEST_MS,
+  }, async () => {
     const names = listAtlasNames(REPO);
     expect(names).toContain('units');
     for (const name of names) {

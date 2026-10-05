@@ -298,6 +298,72 @@ test('miniaturki: bohater poza składem i formy w drzewie ewolucji', async ({ pa
   expect(errors).toEqual([]);
 });
 
+test('szczep Beasts: zakup w sklepie, drzewo siedmiu form i walka Ignitixa', async ({ page }) => {
+  const errors = collectErrors(page);
+  await seedSave(page, {
+    saveVersion: 3,
+    gameVersion: '0.1.0',
+    gold: 500,
+    heroes: [
+      { id: 1, line: 'beasts', form: 'ignitix', upgrades: 0, runes: [null, null] },
+      { id: 2, line: 'beasts', form: 'tuskovator', upgrades: 0, runes: [null, null] },
+    ],
+    nextHeroId: 3,
+    runes: [],
+    levels: { w1_l1: { cleared: true, bestTicks: 420 } },
+    squad: [2, 1, null, null, null],
+    settings: { lang: 'pl', battleSpeed: 4 },
+  });
+  await play(page);
+
+  // Sklep sprzedaje formę bazową szczepu.
+  await page.getByRole('button', { name: 'Sklep' }).click();
+  await page.locator('[data-line="beasts"] [data-action="buy"]').click();
+  await expect(page.locator('[data-line="beasts"]')).toContainText('Masz: 3');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '300');
+  await page.getByRole('button', { name: 'Wróć' }).click();
+
+  // Bohaterowie: drzewo o czterech formach końcowych z miniaturką przy każdej formie.
+  await page.getByRole('button', { name: 'Bohaterowie' }).click();
+  await page.locator('[data-line="beasts"]').click();
+  const tree = page.locator('.tree');
+  await expect(tree.locator('.tree-node')).toHaveCount(7);
+  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(7);
+  await tree.getByRole('button', { name: 'Ignitix' }).click();
+  await expect(page.locator('.path-name')).toHaveText(['Monstrosity', 'Reaper', 'Ignitix']);
+  await expect(page.locator('.form-card')).toContainText(
+    'Strzela z miejsca w wroga stojącego najdalej',
+  );
+  // Drzewo kończy się nad głowami postaci stojących na scenie: nie zasłania najwyższej z nich.
+  const sheet = await page.locator('.tree-sheet').boundingBox();
+  const stage = await page.locator('#stage').boundingBox();
+  if (sheet === null || stage === null) throw new Error('layout not measured');
+  expect((sheet.y + sheet.height - stage.y) / stage.height).toBeLessThan(0.5);
+  await page.getByRole('button', { name: 'Wróć' }).click();
+
+  // Walka na poziomie 2 (miecznik z przodu, łucznik z tyłu): Ignitix zaczyna od łucznika.
+  await page.locator('[data-level="w1_l2"]').click();
+  await page.getByRole('button', { name: 'Walcz' }).click();
+  const foes = page.locator('.hud-faces-enemy .hud-face');
+  await expect(foes).toHaveCount(2);
+  let fallen: string[] = [];
+  await expect
+    .poll(
+      async () => {
+        fallen = await page
+          .locator('.hud-faces-enemy .hud-face[data-alive="false"]')
+          .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-unit') ?? ''));
+        return fallen.length;
+      },
+      { intervals: [50], timeout: 60_000 },
+    )
+    .toBeGreaterThan(0);
+  expect(fallen).toEqual(['archer_a']);
+  const result = page.locator('.result-sheet');
+  await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
+  expect(errors).toEqual([]);
+});
+
 test('zapis w wersji 1 wczytuje się przez migrację', async ({ page }) => {
   const errors = collectErrors(page);
   await seedSave(page, {

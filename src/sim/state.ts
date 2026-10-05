@@ -38,9 +38,12 @@ export interface BattleState {
   readonly projOwner: Int32Array;
   readonly projDamage: Int32Array;
   readonly projKnockback: Int32Array;
-  readonly projPierce: Int32Array;
+  /** Tryb trafiania: `PROJECTILE_FIRST`, `PROJECTILE_PIERCE` albo `PROJECTILE_AIMED`. */
+  readonly projMode: Int32Array;
   /** Bity `unitId` jednostek już trafionych przez pocisk przebijający. */
   readonly projHitMask: Int32Array;
+  /** `unitId` jedynej jednostki, którą może trafić pocisk wycelowany; dla pozostałych -1. */
+  readonly projTarget: Int32Array;
 
   // Statystyki do wyniku walki
   readonly damageDealt: Int32Array;
@@ -72,8 +75,9 @@ export function createState(): BattleState {
     projOwner: projectiles(),
     projDamage: projectiles(),
     projKnockback: projectiles(),
-    projPierce: projectiles(),
+    projMode: projectiles(),
     projHitMask: projectiles(),
+    projTarget: projectiles().fill(-1),
     damageDealt: units(),
     damageTaken: units(),
     healingDone: units(),
@@ -103,6 +107,8 @@ export interface UnitSpecs {
   readonly lifesteal: Int32Array;
   /** Promień ciosu obszarowego w podjednostkach. */
   readonly splashRadius: Int32Array;
+  /** 1, gdy jednostka celuje w ostatniego wroga w szyku. */
+  readonly targetLast: Int32Array;
 }
 
 export function createSpecs(): UnitSpecs {
@@ -125,6 +131,7 @@ export function createSpecs(): UnitSpecs {
     enragedAttack: units(),
     lifesteal: units(),
     splashRadius: units(),
+    targetLast: units(),
   };
 }
 

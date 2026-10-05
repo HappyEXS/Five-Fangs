@@ -25,7 +25,7 @@ import {
 import { compileRigs, type RenderAssets, resolveLook, skinParts } from './looks.ts';
 import { measureReach } from './reach.ts';
 import type { Renderer } from './renderer.ts';
-import { createScene } from './scene.ts';
+import { createScene, headHeightOf } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 export function createCanvasRenderer(
@@ -62,10 +62,12 @@ export function createCanvasRenderer(
         scene.reachBack[unit] = reach.back;
         scene.reachFront[unit] = reach.front;
         scene.reachHeight[unit] = reach.height;
+        scene.headHeight[unit] = headHeightOf(look, reach.stand);
         scene.projectileSprites[unit] =
           visual.projectileSprite === null
             ? null
             : (atlas.sprites.get(`fx/${visual.projectileSprite}`) ?? null);
+        scene.projectileHeights[unit] = visual.projectileHeight * look.scale;
       }
     },
 

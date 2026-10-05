@@ -70,7 +70,13 @@ describe('dane progresji gry', () => {
       tier: 2,
     });
     expect(content?.lines.get('guard')).toMatchObject({ price: 300, starter: false });
-    expect([...(content?.lines.keys() ?? [])]).toEqual(['swordsman', 'archer', 'guard', 'cleric']);
+    expect([...(content?.lines.keys() ?? [])]).toEqual([
+      'swordsman',
+      'archer',
+      'guard',
+      'cleric',
+      'beasts',
+    ]);
   });
 
   it('światy mają poziomy w kolejności, a poziom zna swój świat i nagrody', () => {

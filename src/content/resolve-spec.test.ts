@@ -103,6 +103,8 @@ describe('levelVisuals', () => {
       attackClip: 'slash',
       stance: 'sword',
       projectileSprite: null,
+      projectileHeight: 0,
+      portrait: null,
     });
     expect(visuals[1]).toBeNull();
     expect(visuals[2]?.skin).toBe('archer_b');

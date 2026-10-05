@@ -15,7 +15,7 @@ const shoot: RawAttackType = {
   hitFraction: 0.5,
   clip: 'shoot',
   stance: 'bow',
-  projectile: { speed: 400, sprite: 'arrow' },
+  projectile: { speed: 400, sprite: 'arrow', height: 43 },
 };
 
 const swordsman: RawUnit = {
@@ -76,6 +76,7 @@ describe('compileUnit', () => {
         enrageAttackPercent: 0,
         lifestealPercent: 0,
         splashRadius: 0,
+        targetLast: false,
       },
       visual: {
         rig: 'humanoid',
@@ -84,6 +85,8 @@ describe('compileUnit', () => {
         attackClip: 'slash',
         stance: 'sword',
         projectileSprite: null,
+        projectileHeight: 0,
+        portrait: null,
       },
     });
   });
@@ -103,6 +106,8 @@ describe('compileUnit', () => {
       attackClip: 'shoot',
       stance: 'bow',
       projectileSprite: 'arrow',
+      projectileHeight: 43,
+      portrait: null,
     });
   });
 
@@ -181,6 +186,13 @@ describe('cechy pasywne', () => {
   it('cios obszarowy przelicza promień na podjednostki', () => {
     const cleaver: RawUnit = { ...swordsman, traits: [{ type: 'splash', radius: 40 }] };
     expect(compileUnit(cleaver, slash).base.splashRadius).toBe(40 * 256);
+  });
+
+  it('targetLast ustawia flagę celowania w koniec szyku', () => {
+    const archer: RawUnit = { ...swordsman, kind: 'ranged', attackType: 'shoot' };
+    const spitter: RawUnit = { ...archer, traits: [{ type: 'targetLast' }] };
+    expect(compileUnit(spitter, shoot).base.targetLast).toBe(true);
+    expect(compileUnit(archer, shoot).base.targetLast).toBe(false);
   });
 
   it('pierce ustawia flagę i łączy się z leczeniem', () => {

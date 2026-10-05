@@ -178,6 +178,19 @@ Zlecenie autora gry po pierwszym udanym deployu: każda postać ma miniaturkę (
 | M5g-3 | Walka: miniaturki żywych postaci w dolnych rogach ekranu | 0,5 | Testy listy twarzy i maski żywych; test end-to-end: pokonany przeciwnik traci miniaturkę; alokacje renderera bez zmian (278 B na klatkę) | gotowe |
 | M5g-4 | Ocena autora gry: wygląd okienek, brak paska życia przy miniaturkach w walce, miniaturki także w sklepie i na mapie | — | Decyzja autora | otwarte |
 
+## M5h – Szczep Beasts (2026-10-05)
+
+Zlecenie autora gry: zaprojektować wygląd siedmiu bohaterów szczepu Beasts według szkiców z notesu (zdjęcia w folderze `inspirations/`) i wprowadzić ich statystyki do gry, bez usuwania dotychczasowych bohaterów. Ustalenia z autorem: „Ela” to odrzut; nazwy Tuskovator i Ignitix; „attacks the last enemy” to zawsze ostatni wróg w szyku, z zasięgiem na całe pole; bestie stoją na dwóch nogach na szkielecie ludzi. Decyzje w ADR 0018 i uzupełnieniach ADR 0007, 0009 i 0017.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5h-1 | Cecha `targetLast`: cel na końcu szyku, pocisk wycelowany, reguły walidacji | 1 | Testy wyboru celu, lotu nad bliższymi wrogami, śmierci celu i niezmienników; nowa walka golden; `pnpm bench` w granicach rozrzutu sprzed zmiany | gotowe |
+| M5h-2 | Wygląd siedmiu bestii: części na szkielecie humanoid, pociski, klipy `peck`, `gore`, `spit`, `volley` | 2 | Każda skórka ma komplet części i żadna nie jest ucięta; atlas w budżecie (128 KB); zrzuty z gry w czterech drogach ewolucji | gotowe |
+| M5h-3 | Treść: siedem jednostek ze statystykami ze szkiców, linia w sklepie, drzewo ewolucji, kadry miniaturek | 0,5 | Walidator treści przechodzi; test end-to-end: zakup, drzewo siedmiu form, Ignitix zabija najpierw tylnego wroga | gotowe |
+| M5h-4 | Renderer: pasek życia nad łbem wysokich postaci, wysokość wylotu pocisku, lot łukiem | 0,5 | Alokacje renderera bez zmian przy włączonym i wyłączonym łuku (297 B na klatkę w scenie z pociskami wycelowanymi) | gotowe |
+| M5h-5 | Ocena autora: wygląd bestii, wartości robocze (ataki na sekundę melee, zasięg strzelców, koszty), wolny ruch strzelców, nazwa zakładki linii | — | Decyzja autora | otwarte |
+| M5h-6 | Pozostałe trzy szczepy | — | Czeka na szkice autora | wstrzymane |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

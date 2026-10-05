@@ -28,4 +28,13 @@ Pełne reguły: [GAME_DESIGN.md §4.4](../GAME_DESIGN.md).
 - Pocisk może trafić wroga spoza zasięgu strzelca, jeśli bliżsi zginęli. To zamierzone.
 - Liczba żywych pocisków jest ograniczona z góry przez szerokość pola, prędkość pocisku i odstęp ataków; walidator treści sprawdza, że mieści się w puli.
 - Pocisk nie trafia sojuszników i nie zderza się z innymi pociskami.
+
+## Uzupełnienie z 2026-10-05: pocisk wycelowany
+
+Autor gry zaprojektował postać, która „atakuje ostatniego wroga” (Ignitix, szczep Beasts), i wybrał wariant: zawsze ostatni w szyku, z zasięgiem na całe pole. Pocisk „pierwszy na drodze” nie umie tego zrobić, bo zatrzymałby się na froncie.
+
+- Pocisk ma **tryb**: pierwszy na drodze, przebijający albo wycelowany (`projMode`). Wycelowany niesie `unitId` celu wybranego na początku zamachu i w teście trafienia sprawdza tylko tę jednostkę; pozostałych mija.
+- Dalej jest punktem lecącym ze stałą prędkością po osi do krawędzi pola i **nie skręca za celem**: test trafienia jest ten sam (położenie względne przed i po ticku), tylko ograniczony do jednej jednostki. Cel odrzucony albo idący naprzeciw zostaje trafiony wtedy, gdy pocisk do niego doleci.
+- Śmierć celu znów jest przypadkiem szczególnym, z prostą regułą: pocisk nikogo nie trafia i leci do krawędzi pola. Tak samo cios wręcz chybia, gdy cel zginął w trakcie zamachu.
+- Stan pocisku wchodzi do hasha. Dla walk bez tej cechy tryb ma te same wartości co dawna flaga przebicia, a cel to -1 dla każdego pocisku, więc hash stanu zmienił się tylko w walkach golden, które kończą się z pociskiem w locie (cztery migawki); hashe zdarzeń nie zmieniły się w żadnej.
 - Ewentualny zasięg maksymalny pocisku (krótszy niż do krawędzi pola) można dodać jako parametr typu ataku, jeśli balans tego wymaga; będzie to zmiana hashy golden.

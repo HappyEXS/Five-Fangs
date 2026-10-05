@@ -97,6 +97,8 @@ interface BattleSetup {
 }
 ```
 
+Cecha `targetLast` (flaga w `UnitSpec`) zmienia wybór celu i tryb pocisku; `validateSetup` wymaga dla niej ataku z pociskiem, braku `pierce` i `range ≥ width`, bo jednostka idąca do ostatniego wroga minęłaby bliższych i złamała gwarancję, że wrogie jednostki się nie mijają.
+
 Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009). Poza polami z listingu specyfikacja ma: `enrageHpPercent` i `enrageAttackPercent` (szał), `lifestealPercent` (kradzież życia) oraz `splashRadius` w podjednostkach (cios obszarowy); zero oznacza brak cechy. Próg HP i obrażenia w szale symulacja liczy raz, przy tworzeniu walki, więc w tickach zostaje jedno porównanie. Wejście symulacji zapisane przez starszą wersję gry (bez tych pól) piaskownica wczytuje z wartościami zerowymi.
 
 `createBattle` sprawdza niezmienniki setupu (`validateSetup`) i rzuca błąd, gdy są złamane: wartości całkowite, zależności pól ataku, sloty gracza na lewo od slotów przeciwnika, największy `moveStep` nie większy niż najmniejszy `range`, pula pocisków wystarczająca dla składu.
@@ -109,7 +111,7 @@ Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009). Poza polami z listingu 
 |---|---|---|
 | Walka | `tick`, `outcome`, `reason` | `tick` to liczba wykonanych ticków |
 | Jednostki (10) | `status`, `x`, `prevX`, `hp`, `target`, `swingTick`, `sinceAttack`, `traitTimer` | `status`: Empty, Idle, Moving, Attacking, Dead; `target` i `swingTick` mają -1 dla „brak” |
-| Pociski (pula 64) | `projCount`, `nextProjId`, `projId`, `projX`, `projPrevX`, `projStep`, `projOwner`, `projDamage`, `projKnockback`, `projPierce`, `projHitMask` | Aktywne zajmują indeksy `0..projCount-1` w kolejności wystrzelenia; `projId` rośnie przez całą walkę |
+| Pociski (pula 64) | `projCount`, `nextProjId`, `projId`, `projX`, `projPrevX`, `projStep`, `projOwner`, `projDamage`, `projKnockback`, `projMode`, `projHitMask`, `projTarget` | Aktywne zajmują indeksy `0..projCount-1` w kolejności wystrzelenia; `projId` rośnie przez całą walkę. `projMode`: pierwszy na drodze, przebijający albo wycelowany; `projTarget` to cel pocisku wycelowanego (dla pozostałych -1) |
 | Statystyki | `damageDealt`, `damageTaken`, `healingDone` | Per `unitId` |
 
 Specyfikacje jednostek są rozłożone na takie same tablice (`UnitSpecs`) i nie zmieniają się w trakcie walki.
@@ -125,10 +127,10 @@ Fazy w stałej kolejności; każda iteruje po `unitId` rosnąco, chyba że zazna
 | # | Faza | Uwagi implementacyjne |
 |---|---|---|
 | 0 | Początek | `prevX ← x`, `projPrevX ← projX`, wyczyszczenie kolejki zmian |
-| 1 | Decyzje | Tylko jednostki poza zamachem. Odczyt stanu z początku ticka. |
+| 1 | Decyzje | Tylko jednostki poza zamachem. Odczyt stanu z początku ticka. Cel: front szyku przeciwnika, a dla jednostek z `targetLast` jego koniec; oba wyznaczane raz na tick, koniec tylko w walkach, w których ktoś ma tę cechę (`battle.hasTargetLast`). |
 | 2 | Ruch | Każda jednostka niezależnie; sojusznicy się nie blokują. |
 | 3 | Ataki | W `hitTick`: melee dopisuje obrażenia i odrzut do kolejki, ranged tworzy pocisk. |
-| 4 | Pociski | Trafienie = wróg był przed pociskiem na początku ticka i nie jest przed nim po ruchu obu. Dopisuje obrażenia i odrzut do kolejki. |
+| 4 | Pociski | Trafienie = wróg był przed pociskiem na początku ticka i nie jest przed nim po ruchu obu. Dopisuje obrażenia i odrzut do kolejki. Pocisk wycelowany sprawdza w ten sposób tylko swój cel. |
 | 5 | Cechy okresowe | Leczenie dopisywane do kolejki. |
 | 6 | Rozstrzygnięcie | Dla wszystkich naraz: `hp = min(maxHp, hp − obrażenia + leczenie)`, potem przesunięcie o zsumowany odrzut w stronę własnej krawędzi, z przycięciem do pola. |
 | 7 | Śmierci i koniec | Zdarzenia `Died`, warunek końca, limit czasu. |
@@ -215,6 +217,8 @@ Zapas wobec budżetu walk na sekundę to ok. 15%, więc każda nowa faza ticka w
 - Najbliższy wróg jest wyznaczany raz na tick dla całej drużyny: wrogie jednostki się nie mijają, więc jest nim zawsze najbardziej wysunięta jednostka przeciwnika.
 - Kolejka zmian jest zerowana przy odczycie, bez osobnych `fill()`.
 
+Pomiar po dodaniu cechy `targetLast` (2026-10-05, sześć przebiegów przed i po, ta sama walka bez tej cechy): 2236–2322 walk na sekundę wobec 2269–2357 przed zmianą, czyli różnica w granicach rozrzutu. Pierwsza wersja czytała flagę cechy dla każdej jednostki i cel dla każdego pocisku i była o ok. 5% wolniejsza; teraz walka bez cechy nie czyta flagi (jedno sprawdzenie `hasTargetLast` na jednostkę), a cel pocisku czytany jest tylko w trybie wycelowanym.
+
 Dalsze przyspieszenie wymagałoby jednej wspólnej tablicy na wszystkie pola jednostek kosztem czytelności. Przy zerowej losowości skrypt balansu rozgrywa setki, a nie setki tysięcy walk, więc na razie nie jest to potrzebne.
 
 ## 4. Treść (`src/content`)
@@ -225,7 +229,7 @@ Dalsze przyspieszenie wymagałoby jednej wspólnej tablicy na wszystkie pola jed
 src/content/data/
   arena.json            szerokość pola, sloty, limit czasu
   attacks.json          typy ataków
-  units/heroes.json     formy bohaterów (12)
+  units/heroes.json     formy bohaterów
   units/enemies.json    wrogowie i bossowie
   progression.json      stałe progresji: liczba ulepszeń, procent na ulepszenie, sloty run, złoto za powtórkę
   lines.json            linie bohaterów: drzewo form, koszty ulepszeń i ewolucji, cena, linia startowa
@@ -255,12 +259,18 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
   "attackSpeed": 0.8, "range": 220, "knockback": 0, "attackType": "shoot",
   "traits": [{ "type": "pierce" }] }
 // pola "rig" i "skin" dojdą razem z rendererem w M2
+// opcjonalnie własny kadr miniaturki (ADR 0017): "portrait": { "center": [9, -27], "size": 38 }
+
+// pocisk może podać wysokość lotu nad stopami w jednostkach rigu (domyślnie 43): skąd wylatuje
+{ "id": "fire_spit", "swingDuration": 0.9, "hitFraction": 0.5, "clip": "spit", "stance": "beast",
+  "projectile": { "speed": 380, "sprite": "fireball", "height": 72 } }
 
 // cechy: okresowa, szał, kradzież życia, cios obszarowy
 { "type": "periodicHeal", "target": "team", "amount": 20, "interval": 2.0 }
 { "type": "enrage", "hpBelow": 50, "attackBonus": 60 }   // procenty
 { "type": "lifesteal", "percent": 35 }
 { "type": "splash", "radius": 45 }                        // jednostki świata
+{ "type": "targetLast" }                                  // celuje w koniec szyku wroga
 
 // lines.json: drzewo form (ADR 0016); forma bez "from" jest bazowa
 { "id": "archer", "price": 200, "starter": true, "forms": [
@@ -311,6 +321,7 @@ function levelSetup(
 - `attackInterval ≥ swingTicks` dla każdej jednostki;
 - największy `moveStep` ≤ najmniejszy `range` (gwarancja, że wrogie jednostki się nie miną);
 - `pierce` tylko przy ataku z pociskiem, `splash` tylko przy ataku wręcz;
+- `targetLast` tylko przy ataku z pociskiem, bez `pierce`, a `range` takiej jednostki obejmuje całą szerokość areny;
 - wróg na poziomie to dowolna jednostka: forma bohatera albo jednostka specjalna z `units/enemies.json`;
 - górne ograniczenie liczby żywych pocisków mieści się w puli;
 - każda linia ma dokładnie 2 formy i komplet kosztów, forma należy do jednej linii, a każdy bohater do jakiejś linii;
@@ -355,6 +366,7 @@ Rig z klipami leży w jednym pliku treści (`rigs/humanoid.json`: dane z załąc
 - **Klip**: klatki kluczowe `[czas 0..1, wartość]` per kanał, w `Float32Array`; interpolacja smoothstep; znaczniki (`hit`). Kanały, których klip nie animuje, biorą wartość z **postawy** typu ataku (np. kąt chwytu miecza albo łuku w idle i chodzie).
 - **Macierze**: 6 wartości na kość, liczone ręcznie (`computeBoneMatrices`). `blit` składa macierz kości z przesunięciem o pivot sprite'a i przekazuje wynik do `ctx.setTransform` (powód w §5.7). Dodatni kąt to obrót zgodny z ruchem wskazówek zegara. Macierz korzenia zawiera pozycję stóp, skalę (ujemna w osi X odbija przeciwnika) i obrót całej postaci przy śmierci.
 - Elementy dynamiczne (cięciwa) rysowane wektorowo między punktami kości.
+- Rig `humanoid` służy też bestiom (ADR 0018): skórka może mieć części innej wielkości i z innymi pivotami niż ludzie (pivot każdego sprite'a jest w atlasie), a klipy `peck`, `gore`, `spit` i `volley` z postawą `beast` animują ataki łbem, paszczą i grzbietem zamiast miecza i łuku.
 - **Kadr miniaturki** (`portrait`): kość, punkt względem jej pivota i bok kwadratu w jednostkach rigu; z niego powstają miniaturki postaci (§5.8).
 
 Skala postaci na scenie to `scale` rigu (wyjściowo 1,4 jednostki logicznej na jednostkę rigu) razy `scale` jednostki z treści.
@@ -380,6 +392,10 @@ Scena nie ma perspektywy (decyzja autora gry z 2026-10-02). Symulacja jest jedno
 
 **Krawędzie sceny.** Pole walki jest rysowane z marginesem `ARENA_MARGIN` (48 jednostek) po obu stronach (`render/camera.ts`), więc krawędź pola nie pokrywa się z krawędzią ekranu. Większe postacie sięgają jednak dalej: miecz w zamachu do ok. 100 jednostek za plecy, a postać padająca po śmierci obraca się do tyłu na swoją wysokość. Dlatego renderer przy `beginBattle` mierzy zasięg każdej postaci z prawdziwej geometrii rigu i atlasu we wszystkich klatkach klipów (`render/reach.ts`, `measureReach`) i co klatkę przesuwa ją tak, by mieściła się na scenie (`keepOnStage`). Przesunięcie dotyczy tylko rysowania i tylko przy samej krawędzi; symulacja o nim nie wie. Test w `render/reach.test.ts` sprawdza każdą postać z treści na obu krawędziach, w obu kierunkach i w każdej fazie padania. UI i stanowiska poza walką przeliczają pozycje tą samą drogą (`game/stage-geometry.ts`: `stageFraction`, `arenaXAt`), więc podpisy dalej trafiają pod postacie.
 
+**Wysokość postaci.** Pasek życia wisi nad `scene.headHeight[unit]`: dla postaci o ludzkiej budowie to wspólna wysokość z rigu (biodra + 48 jednostek), dla wyższych (długa szyja, rogi, uszy) zmierzony czubek stojącej postaci (`Reach.stand` z klipu idle). Dzięki temu paski ludzi stoją w jednej linii, a pasek Ironbeaka nie przecina mu szyi.
+
+**Pociski.** Pocisk leci na wysokości podanej w typie ataku (`projectile.height`, razy skala postaci), więc kieł wychodzi z paszczy, a kolec z grzbietu. Pocisk wycelowany (`projMode` = wycelowany) leci łukiem od strzelca do bieżącej pozycji celu i obraca się wzdłuż toru; szczyt łuku to 30% odległości, najwyżej 210 jednostek. To tylko wygląd: w symulacji pocisk jest punktem na osi X.
+
 Nad głową każdej żywej postaci jest pasek życia, a nad nim bieżące życie jako liczba (`render/draw-units.ts`): pasek pokazuje ułamek, liczba skalę. Cyfry pochodzą z atlasu (zestaw `fx/hp_0..9`) i są wyliczane dzieleniem całkowitym, bez tworzenia napisów. Liczby obrażeń i leczenia startują nad liczbą życia.
 
 Tło (`render/background.ts`) to płaskie kolory palety interfejsu (ADR 0015): niebo, sylwetka linii drzew, ziemia i atramentowa linia podłogi. Linia drzew to jedna ścieżka `Path2D` zbudowana przy pierwszej klatce i potem tylko wypełniana. Tła poszczególnych światów dojdą w M6.
@@ -390,6 +406,7 @@ Tło (`render/background.ts`) to płaskie kolory palety interfejsu (ADR 0015): n
 - **Źródła** leżą w `assets/src/<atlas>/`: pliki PNG (nazwa sprite'a to ścieżka względem katalogu atlasu, np. `swordsman_a/torso`) i manifest `atlas.json` z gęstością `pixelsPerUnit`, ustawieniami kodowania (`lossless`, `quality`) i pivotami w jednostkach rigu. Klucz pivota to nazwa sprite'a albo wzorzec `*/<część>` dla tej części we wszystkich skórkach; dokładna nazwa wygrywa.
 - **`pnpm atlas`** (`scripts/atlas.ts`) pakuje każdy katalog metodą półek do `src/assets/generated/<atlas>.webp` i `<atlas>.json` (prostokąty w pikselach, pivoty). Szerokość atlasu to najmniejsza potęga dwójki dająca mniej więcej kwadrat. Odrzuca sprite bez pivota, pivot bez pliku, nazwy spoza `[a-z0-9_/]` i atlas powyżej 1 MB. Obrazów nie przycina, więc przezroczyste marginesy w źródle trafiają do atlasu. Kodowanie WebP robi sharp (ADR 0014); wygenerowane pliki są w repozytorium, więc build ich nie odtwarza.
 - `pnpm atlas --check` i test w `scripts/lib/atlas-pipeline.test.ts` sprawdzają, że wygenerowane pliki odpowiadają źródłom (metadane bajt w bajt, obraz po zdekodowaniu).
+- Generator rysuje kształtami opisanymi odległością ze znakiem (`scripts/lib/raster.ts`: koło, elipsa, prostokąt, odcinek, odcinek zwężany, wielokąt, suma, różnica, część wspólna). Kształt niesie prostokąt ograniczający, więc wypełnianie liczy tylko piksele w jego obrębie. Ludzie to proste bryły (`placeholder-parts.ts`); bestie mają własne części rysowane w układzie stawu (`scripts/lib/beasts/`: `kit.ts` z płótnem części, `limbs.ts` z kończynami, po pliku na postać, `fx.ts` z pociskami).
 - Do M6 źródłami atlasu `units` są grafiki placeholder z generatora `pnpm atlas:placeholder`. Generator nadpisuje tylko katalog oznaczony w manifeście jako `"generator": "placeholder"`. Vite nadaje nazwom plików hash treści.
 - Docelowy podział: atlas bohaterów, atlas wrogów i tło per świat (ładowane leniwie przy wejściu do świata).
 - Warianty atlasu (przyciemniony dla tylnych kończyn, biała sylwetka) powstają raz przy ładowaniu na osobnych canvasach (`render/atlas.ts`). Bez `ctx.filter`.
@@ -424,13 +441,16 @@ Pomiar po dodaniu liczby życia nad paskiem (2026-10-03, DPR 1; w tej walce życ
 
 Pomiar po dodaniu miniaturek postaci (2026-10-05, DPR 1, ta sama walka): mediana klatki w pętli 0,30 ms, alokacje 278 B na klatkę, czyli bez zmian. Miniaturki powstają raz, po wczytaniu atlasu, a w pętli klatek doszło tylko porównanie maski żywych jednostek (liczba całkowita).
 
+Pomiar po dodaniu pocisków wycelowanych (2026-10-05, DPR 1): scena pomiaru ma teraz po jednym strzelcu z cechą `targetLast` na stronę, więc lot łukiem jest mierzony razem z resztą. Wynik: 297 B na klatkę, 258 `drawImage`. Ta sama scena z wyłączonym rysowaniem łuku daje te same 297 B, więc łuk nie alokuje; różnica wobec 280 B to inny przebieg walki (trafienia w tylne jednostki, więcej liczb naraz).
+
 Jak mierzyć alokacje: przyrost sterty po długiej serii klatek nic nie mówi, bo silnik po drodze sam opróżnia młodą generację (tak wyszło „zero” przy 2350 B na klatkę). Narzędzie liczy więc krótkie serie zaczynane tuż po wymuszonym odśmieceniu, co wymaga Chromium z flagami `--enable-precise-memory-info --js-flags=--expose-gc`. Źródło alokacji wskazuje „Allocation sampling” w DevTools (Memory) na `ffPerfFrames(3000)` wywołanym z konsoli.
 
 ### 5.8 Miniaturki postaci
 
 Miniaturka to popiersie wycięte z prawdziwej postaci (ADR 0017), bez osobnych grafik. `createPortraitSheet` (`render/portrait.ts`) rysuje raz, po wczytaniu atlasu, po jednej miniaturce na każdy wygląd (rig, skórka, postawa) na wspólnym arkuszu poza ekranem, 128 × 128 px na komórkę:
 
-- `posePortrait` ustawia rig w pierwszej klatce klipu idle, w jednostkach rigu i bez skali jednostki, tak że lewy górny róg kadru z danych rigu leży w (0, 0); kadr idzie za swoją kością, ale się z nią nie obraca;
+- kadr to `portraitFrame(rig, visual)`: własny kadr jednostki z treści (`portrait` w danych jednostki), a bez niego kadr rigu. Bestie mają własne kadry, bo ich łby są większe albo siedzą na długiej szyi;
+- `posePortrait` ustawia rig w pierwszej klatce klipu idle, w jednostkach rigu i bez skali jednostki, tak że lewy górny róg kadru leży w (0, 0); kadr idzie za swoją kością, ale się z nią nie obraca;
 - części rysuje ten sam kod co w walce (`drawRigParts`, cięciwa przez `drawString`), każdą miniaturkę na canvasie roboczym, żeby broń wystająca poza kadr nie wchodziła w sąsiednią komórkę;
 - `PortraitSheet.paint(canvas, klucz)` kopiuje komórkę na canvas interfejsu. Kluczem jest id jednostki z treści; jednostki o tym samym wyglądzie dzielą komórkę.
 
@@ -509,7 +529,7 @@ Preact jako nakładka DOM nad canvasem. Korzeń (`App.tsx`) pokazuje ekran bież
 | Ekran startowy | `TitleScreen.tsx` | Nazwa gry ze znakiem pięciu kłów, scena ze składem naprzeciw najbliższych przeciwników, przycisk „Graj” prowadzący na mapę, wersja gry |
 | Mapa (ekran główny) | `MapScreen.tsx`, `Settings.tsx` | Nazwa gry w rogu, złoto, z boku małe przyciski Skład, Bohaterowie, Sklep, Ustawienia. Poziomy świata jako nieregularne kafle na krętym szlaku (zablokowany kafel to nieaktywny przycisk, ukończony ma odcisk kła). Tabliczka wybranego poziomu: nazwa, nagroda, najlepszy czas. Pod linią podłogi: podpis pod każdą postacią (nazwa i prostokąt z liczbą wzmocnień: zielony u bohaterów gracza, czerwony u przeciwników), przycisk walki. Bez zmiany składu. Ustawienia to okno nad mapą: język, eksport i import zapisu, reset z potwierdzeniem, raport błędu, wersja gry |
 | Skład | `SquadScreen.tsx`, `HeroField.tsx`, `RunePicker.tsx`, `HeroCard.tsx` | Każdy bohater ma pole na scenie: u góry nazwa i gniazda run (okrągłe żetony: zielony życie, czerwony atak, z premią), pod kłem slotu pasek ulepszeń bieżącej formy i przycisk „Kup” z kosztem ulepszenia albo „Ewolucja” z jej kosztem. Gniazdo otwiera okienko z paletą wolnych run. Bohatera łapie się za postać, nazwę albo kieł. Arkusz „Poza składem”: podpowiedź obok tytułu i bohaterowie jako miniaturki z nazwą formy i plakietką „+N” ulepszeń; karta wybranego bohatera tylko do czytania: statystyki z podglądem następnego zakupu |
-| Bohaterowie | `HeroesScreen.tsx` | Zakładki linii; drzewo ewolucji jako siatka (kolumna to stopień, rozwidlenie zajmuje wiersze gałęzi) z miniaturką każdej formy i kosztami ewolucji; postacie drogi przez wybraną formę na scenie, pod nimi nazwy i koszty; karta wybranej formy: miniaturka, stopień, skąd powstaje, w co ewoluuje, statystyki względem formy, z której powstaje, koszty ulepszeń; cena w sklepie i liczba posiadanych. Bez kupowania |
+| Bohaterowie | `HeroesScreen.tsx` | Zakładki linii; drzewo ewolucji jako siatka (kolumna to stopień, rozwidlenie zajmuje wiersze gałęzi) z miniaturką każdej formy i kosztami ewolucji; postacie drogi przez wybraną formę na scenie, pod nimi nazwy i koszty; pod nimi cena linii i zasady ulepszeń (drzewo o czterech końcowych formach musi kończyć się nad głowami postaci, więc w arkuszu jest samo drzewo); karta wybranej formy: miniaturka, stopień, skąd powstaje, w co ewoluuje, statystyki względem formy, z której powstaje, koszty ulepszeń; cena w sklepie i liczba posiadanych. Bez kupowania |
 | Sklep | `ShopScreen.tsx` | Samo kupowanie: bohaterowie na sprzedaż stoją na scenie, pod każdym metka z nazwą, ceną i liczbą posiadanych |
 | Walka | `BattleScreens.tsx` | Nazwa poziomu i czas w lewym górnym rogu; pauza, prędkość x1/x2/x4 i wyjście w prawym; w dolnych rogach miniaturki żywych postaci (gracz z lewej, przeciwnik z prawej, w kolejności ze sceny). Nic więcej, bo gracz nie wpływa na walkę |
 | Wynik | `BattleScreens.tsx` | Arkusz nad polem zakończonej walki: wygrana albo powód przegranej, czas, nagrody, jeden przycisk OK wracający na mapę |

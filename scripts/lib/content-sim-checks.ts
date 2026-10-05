@@ -37,6 +37,14 @@ export function contentSimIssues(content: GameContent): ContentIssue[] {
     for (const unit of units.values()) {
       all.push(unit);
       for (const message of validateUnitSpec(unit.id, unit.base)) issues.push({ source, message });
+      // Jednostka celująca w koniec szyku strzela z miejsca: idąc do celu, minęłaby bliższych
+      // wrogów. Ten sam warunek sprawdza `validateSetup` przy tworzeniu walki.
+      if (unit.base.targetLast && unit.base.range < content.arena.width) {
+        issues.push({
+          source,
+          message: `${unit.id}: cecha "targetLast" wymaga zasięgu na całe pole (range ≥ szerokość areny)`,
+        });
+      }
     }
   }
   if (issues.length > 0 || all.length === 0) return issues;

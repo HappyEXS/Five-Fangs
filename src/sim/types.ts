@@ -16,6 +16,13 @@ export const STATUS_MOVING = 2;
 export const STATUS_ATTACKING = 3;
 export const STATUS_DEAD = 4;
 
+/** Tryb pocisku: trafia pierwszego wroga na drodze. */
+export const PROJECTILE_FIRST = 0;
+/** Trafia każdego wroga, którego minie (cecha pierce). */
+export const PROJECTILE_PIERCE = 1;
+/** Trafia tylko jednostkę, w którą celował strzelec (cecha targetLast). */
+export const PROJECTILE_AIMED = 2;
+
 export const OUTCOME_IN_PROGRESS = 0;
 export const OUTCOME_WIN = 1;
 export const OUTCOME_LOSS = 2;
@@ -63,6 +70,12 @@ export interface UnitSpec {
    * pozostali wrogowie; 0 oznacza brak cechy. Tylko dla ataku wręcz.
    */
   readonly splashRadius: number;
+  /**
+   * Celuje w żywego wroga stojącego na końcu szyku przeciwnika zamiast w najbliższego, a jej
+   * pocisk mija pozostałych i trafia tylko ten cel. Tylko dla ataku z pociskiem; zasięg musi
+   * obejmować całe pole, bo jednostka nie może iść do celu przez wrogów stojących bliżej.
+   */
+  readonly targetLast: boolean;
 }
 
 export interface ArenaSpec {

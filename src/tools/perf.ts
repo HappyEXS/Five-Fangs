@@ -54,8 +54,9 @@ function mean(values: Float64Array): number {
 
 /**
  * Dziesięć jednostek, które walczą bez końca: ogromne HP i brak limitu czasu. Pracują wszystkie
- * ścieżki renderera: chód, zamachy, pociski zwykłe i przebijające, cięciwy, błyski, liczby
- * obrażeń i leczenia, odrzut (różne wartości po obu stronach, żeby front się przesuwał).
+ * ścieżki renderera: chód, zamachy, pociski zwykłe, przebijające i wycelowane (lot łukiem),
+ * cięciwy, błyski, liczby obrażeń i leczenia, odrzut (różne wartości po obu stronach, żeby
+ * front się przesuwał).
  */
 function endlessSetup(arena: BattleSetup['arena']): BattleSetup {
   const tank = { maxHp: 100_000_000, attack: 37 };
@@ -64,7 +65,14 @@ function endlessSetup(arena: BattleSetup['arena']): BattleSetup {
     melee({ ...tank, knockback }),
     ranged(tank),
     ranged({ ...tank, pierce: true }),
-    ranged({ ...tank, healAmount: 25, healInterval: 20, healTeam: true }),
+    ranged({
+      ...tank,
+      healAmount: 25,
+      healInterval: 20,
+      healTeam: true,
+      targetLast: true,
+      range: arena.width,
+    }),
   ];
   return {
     arena: { ...arena, timeLimitTicks: 100_000_000 },

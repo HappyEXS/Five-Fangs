@@ -7,7 +7,13 @@ import type { UnitLook } from './animation.ts';
 import { sampleClip } from './clips.ts';
 import { drawRigParts, drawString } from './draw-rig.ts';
 import { compileRigs, type RenderAssets, resolveLook, skinParts } from './looks.ts';
-import { computeBoneMatrices, MATRIX_SIZE, rootMatrix } from './rig.ts';
+import {
+  type CompiledPortrait,
+  type CompiledRig,
+  computeBoneMatrices,
+  MATRIX_SIZE,
+  rootMatrix,
+} from './rig.ts';
 import { createScene } from './scene.ts';
 import { createViewport } from './viewport.ts';
 
@@ -27,19 +33,29 @@ export interface PortraitSheet {
 }
 
 /**
+ * Kadr miniaturki jednostki: własny z treści (`visual.portrait`), a bez niego kadr rigu.
+ * Własny kadr liczy się od tej samej kości co kadr rigu.
+ */
+export function portraitFrame(rig: CompiledRig, visual: UnitVisual): CompiledPortrait {
+  const own = visual.portrait;
+  if (own === null) return rig.portrait;
+  return { bone: rig.portrait.bone, x: own.x, y: own.y, size: own.size };
+}
+
+/**
  * Ustawia w `matrices` kości postaci w pozie miniaturki: pierwsza klatka klipu idle, postać
  * patrzy w prawo, jednostką jest jednostka rigu, a lewy górny róg kadru leży w punkcie (0, 0).
- * Kadr (bok `look.rig.portrait.size`) jest wyśrodkowany na punkcie kości z danych rigu, ale się
- * z nią nie obraca. `pose` i `root` to bufory robocze.
+ * Kadr (bok `portrait.size`) jest wyśrodkowany na punkcie swojej kości, ale się z nią nie
+ * obraca. `pose` i `root` to bufory robocze.
  */
 export function posePortrait(
   look: UnitLook,
+  portrait: CompiledPortrait,
   pose: Float32Array,
   root: Float32Array,
   matrices: Float32Array,
 ): void {
   const { rig } = look;
-  const { portrait } = rig;
   sampleClip(look.idle, 0, look.rest, pose, 0);
   const bob = pose[rig.boneCount] ?? 0;
   const dx = pose[rig.boneCount + 1] ?? 0;
@@ -71,7 +87,7 @@ function context(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
 
 /**
  * Rysuje miniaturki jednostek z `visuals` (klucz, zwykle id jednostki, i jej wygląd). Jednostki
- * o tym samym rigu, skórce i postawie dzielą jedną miniaturkę. Wymaga DOM; rzuca, gdy wygląd
+ * o tym samym rigu, skórce, postawie i kadrze dzielą jedną miniaturkę. Wymaga DOM; rzuca, gdy wygląd
  * odwołuje się do czegoś, czego rig nie ma.
  */
 export function createPortraitSheet(
@@ -84,7 +100,9 @@ export function createPortraitSheet(
   const cellOfLook = new Map<string, number>();
   const cellOf = new Map<string, number>();
   for (const [key, visual] of visuals) {
-    const lookKey = `${visual.rig}/${visual.skin}/${visual.stance}`;
+    const frame = visual.portrait;
+    const frameKey = frame === null ? '' : `${frame.x},${frame.y},${frame.size}`;
+    const lookKey = `${visual.rig}/${visual.skin}/${visual.stance}/${frameKey}`;
     let at = cellOfLook.get(lookKey);
     if (at === undefined) {
       at = looks.length;
@@ -111,12 +129,13 @@ export function createPortraitSheet(
 
   looks.forEach((visual, at) => {
     const look = resolveLook(rigs, visual);
-    posePortrait(look, scene.animator.target, scene.root, scene.matrices);
+    const portrait = portraitFrame(look.rig, visual);
+    posePortrait(look, portrait, scene.animator.target, scene.root, scene.matrices);
     scene.boneSprites.fill(null);
     skinParts(assets.atlas, look.rig, visual.skin).forEach((sprite, bone) => {
       scene.boneSprites[bone] = sprite;
     });
-    viewport.scale = PORTRAIT_PIXELS / look.rig.portrait.size;
+    viewport.scale = PORTRAIT_PIXELS / portrait.size;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, PORTRAIT_PIXELS, PORTRAIT_PIXELS);
     drawRigParts(scene, 0, look, viewport, false);

@@ -1,17 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import unitsMeta from '../assets/generated/units.json' with { type: 'json' };
+import type { UnitVisual } from '../content/compile.ts';
 import { requireContent } from '../content/load.ts';
 import type { RawRig } from '../content/schema-rig.ts';
 import type { UnitLook } from './animation.ts';
 import { parseAtlasMeta } from './atlas.ts';
 import { compileRigs, resolveLook } from './looks.ts';
-import { posePortrait } from './portrait.ts';
-import { compileRig, MATRIX_SIZE } from './rig.ts';
+import { portraitFrame, posePortrait } from './portrait.ts';
+import { type CompiledPortrait, compileRig, MATRIX_SIZE } from './rig.ts';
 
-function posed(look: UnitLook): Float32Array {
+function posed(look: UnitLook, portrait: CompiledPortrait = look.rig.portrait): Float32Array {
   const { rig } = look;
   const matrices = new Float32Array(rig.boneCount * MATRIX_SIZE);
-  posePortrait(look, new Float32Array(rig.channelCount), new Float32Array(MATRIX_SIZE), matrices);
+  posePortrait(
+    look,
+    portrait,
+    new Float32Array(rig.channelCount),
+    new Float32Array(MATRIX_SIZE),
+    matrices,
+  );
   return matrices;
 }
 
@@ -85,21 +92,51 @@ describe('posePortrait', () => {
   });
 });
 
+describe('portraitFrame', () => {
+  const look = stickLook(0);
+  const visual: UnitVisual = {
+    rig: 'stick',
+    skin: 'any',
+    scale: 1,
+    attackClip: 'walk',
+    stance: 'plain',
+    projectileSprite: null,
+    projectileHeight: 0,
+    portrait: null,
+  };
+
+  it('bez własnego kadru jednostki bierze kadr rigu', () => {
+    expect(portraitFrame(look.rig, visual)).toBe(look.rig.portrait);
+  });
+
+  it('własny kadr jednostki liczy się od tej samej kości i przesuwa postać inaczej', () => {
+    const own = portraitFrame(look.rig, { ...visual, portrait: { x: 3, y: -8, size: 20 } });
+    expect(own).toEqual({ bone: 1, x: 3, y: -8, size: 20 });
+    // Środek własnego kadru trafia w środek kwadratu o boku 20.
+    expect(pointOf(posed(look, own), 1, 3, -8)).toEqual([10, 10]);
+  });
+});
+
 describe('kadr miniaturki w treści gry', () => {
   const content = requireContent();
   const sprites = parseAtlasMeta(unitsMeta);
   const rigs = compileRigs(content.rigs);
   const units = [...content.heroes.values(), ...content.enemies.values()];
 
-  it('mieści całą głowę każdej jednostki', () => {
+  it('leży na głowie każdej jednostki i obejmuje co najmniej połowę jej sprite’a', () => {
     expect(units.length).toBeGreaterThan(0);
     for (const unit of units) {
       const look = resolveLook(rigs, unit.visual);
-      const { portrait } = look.rig;
+      const portrait = portraitFrame(look.rig, unit.visual);
       const part = look.rig.sprites[portrait.bone];
       const sprite = sprites.get(`${unit.visual.skin}/${part}`);
       if (sprite === undefined) throw new Error(`${unit.id}: no sprite for the portrait bone`);
-      const matrices = posed(look);
+      const matrices = posed(look, portrait);
+      // Prostokąt ograniczający głowę w układzie kadru (0..size).
+      let left = Number.POSITIVE_INFINITY;
+      let top = Number.POSITIVE_INFINITY;
+      let right = Number.NEGATIVE_INFINITY;
+      let bottom = Number.NEGATIVE_INFINITY;
       for (let corner = 0; corner < 4; corner++) {
         const [x, y] = pointOf(
           matrices,
@@ -107,10 +144,42 @@ describe('kadr miniaturki w treści gry', () => {
           sprite.offsetX + (corner & 1 ? sprite.width : 0),
           sprite.offsetY + (corner & 2 ? sprite.height : 0),
         );
-        for (const value of [x, y]) {
-          expect(value, unit.id).toBeGreaterThanOrEqual(0);
-          expect(value, unit.id).toBeLessThanOrEqual(portrait.size);
-        }
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+      }
+      const { size } = portrait;
+      const center = size / 2;
+      expect(left, unit.id).toBeLessThan(center);
+      expect(right, unit.id).toBeGreaterThan(center);
+      expect(top, unit.id).toBeLessThan(center);
+      expect(bottom, unit.id).toBeGreaterThan(center);
+      const seen =
+        Math.max(0, Math.min(right, size) - Math.max(left, 0)) *
+        Math.max(0, Math.min(bottom, size) - Math.max(top, 0));
+      expect(seen / ((right - left) * (bottom - top)), unit.id).toBeGreaterThanOrEqual(0.5);
+    }
+  });
+
+  it('ludzie mieszczą w kadrze całą głowę', () => {
+    const swordsman = content.heroes.get('swordsman_a');
+    if (swordsman === undefined) throw new Error('no swordsman');
+    const look = resolveLook(rigs, swordsman.visual);
+    const { portrait } = look.rig;
+    const sprite = sprites.get('swordsman_a/head');
+    if (sprite === undefined) throw new Error('no head sprite');
+    const matrices = posed(look);
+    for (let corner = 0; corner < 4; corner++) {
+      const point = pointOf(
+        matrices,
+        portrait.bone,
+        sprite.offsetX + (corner & 1 ? sprite.width : 0),
+        sprite.offsetY + (corner & 2 ? sprite.height : 0),
+      );
+      for (const value of point) {
+        expect(value).toBeGreaterThanOrEqual(0);
+        expect(value).toBeLessThanOrEqual(portrait.size);
       }
     }
   });

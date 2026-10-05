@@ -129,6 +129,17 @@ function compileUnits(
       issues.push({ source, message: `${unit.id}: cecha "splash" wymaga ataku wręcz` });
       continue;
     }
+    if (traitTypes.includes('targetLast') && !hasProjectile) {
+      issues.push({ source, message: `${unit.id}: cecha "targetLast" wymaga ataku z pociskiem` });
+      continue;
+    }
+    if (traitTypes.includes('targetLast') && traitTypes.includes('pierce')) {
+      issues.push({
+        source,
+        message: `${unit.id}: cechy "targetLast" i "pierce" wykluczają się`,
+      });
+      continue;
+    }
     for (const message of animationIssues(unit, attack, rigs)) issues.push({ source, message });
     compiled.set(unit.id, compileUnit(unit, attack));
   }

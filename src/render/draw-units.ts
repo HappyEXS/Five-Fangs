@@ -16,7 +16,7 @@ import { drawRigParts, drawString } from './draw-rig.ts';
 import { digitAt, digitCount } from './float-text.ts';
 import { keepOnStage } from './reach.ts';
 import { computeBoneMatrices, rootMatrix } from './rig.ts';
-import { blit, FEET_Y, type Scene, UPPER_BODY, unitFacing } from './scene.ts';
+import { blit, FEET_Y, type Scene, unitFacing } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 const HP_BACK = '#241f3d';
@@ -162,7 +162,7 @@ export function drawUnit(
   if (!isAlive(status)) return;
   const s = viewport.scale;
   ctx.setTransform(s, 0, 0, s, 0, 0);
-  const barTop = feetY - (rig.hipHeight + UPPER_BODY) * scale - HP_BAR_RISE;
+  const barTop = feetY - (scene.headHeight[unit] ?? 0) - HP_BAR_RISE;
   drawHpBar(scene, battle, unit, x, barTop);
   scene.local[4] = x;
   scene.local[5] = barTop - HP_NUMBER_RISE;

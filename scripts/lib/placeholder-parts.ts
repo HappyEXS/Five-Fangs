@@ -1,6 +1,8 @@
 // Grafiki placeholder części postaci (załącznik A briefu: rozmiary i pivoty w jednostkach rigu).
 // Proste kształty w kolorach skórki, zapisywane jako źródła atlasu w assets/src/units/;
 // docelowe grafiki zastąpią je w M6.
+import { beastSprites } from './beasts/index.ts';
+import { type PartSpec, PIXELS_PER_UNIT, type PlaceholderSprite } from './part-spec.ts';
 import {
   below,
   capsule,
@@ -15,17 +17,7 @@ import {
   union,
 } from './raster.ts';
 
-/** Piksele atlasu na jednostkę rigu. Postać ma skalę ok. 1,4, więc to ponad 2× rozdzielczości logicznej. */
-export const PIXELS_PER_UNIT = 3;
-
-export interface PartSpec {
-  /** Rozmiar w jednostkach rigu. */
-  readonly width: number;
-  readonly height: number;
-  /** Punkt obrotu względem lewego górnego rogu, w jednostkach rigu. */
-  readonly pivotX: number;
-  readonly pivotY: number;
-}
+export { type PartSpec, PIXELS_PER_UNIT, type PlaceholderSprite };
 
 export const PARTS = {
   thigh: { width: 10, height: 16, pivotX: 5, pivotY: 3 },
@@ -349,13 +341,6 @@ const GLYPH_SETS = [
   { id: 'hp', color: '#efe6cf', outline: '#241f3d', plus: false },
 ] as const;
 
-export interface PlaceholderSprite {
-  /** Nazwa w atlasie: `<skórka>/<kość lub slot>` albo `fx/<nazwa>`. */
-  readonly name: string;
-  readonly part: PartSpec;
-  readonly image: Image;
-}
-
 /** Manifest źródeł atlasu (assets/src/units/atlas.json) dla sprite'ów placeholder. */
 export function placeholderManifest(sprites: readonly PlaceholderSprite[]) {
   const pivots: Record<string, [number, number]> = {};
@@ -389,6 +374,8 @@ export function placeholderSprites(): PlaceholderSprite[] {
       skin.weapon === 'sword' ? sword(skin.palette, evolved) : bow(skin.palette, evolved),
     );
   }
+  // Szczep Beasts: własne części na tym samym szkielecie i własne pociski.
+  sprites.push(...beastSprites());
   sprites.push({ name: 'fx/arrow', part: PARTS.arrow, image: arrow() });
   for (const set of GLYPH_SETS) {
     for (const [name, rows] of Object.entries(GLYPHS)) {

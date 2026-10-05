@@ -8,7 +8,7 @@
 import { hashInt32 } from '../core/hash.ts';
 import { progressAttack } from './attack.ts';
 import type { Battle } from './battle.ts';
-import { decideUnit, frontUnit, isAlive } from './decide.ts';
+import { backUnit, decideUnit, frontUnit, isAlive } from './decide.ts';
 import { clearEvents } from './events.ts';
 import { hashEvents } from './hash.ts';
 import { moveUnit } from './move.ts';
@@ -28,6 +28,7 @@ export function stepBattle(battle: Battle): void {
   const { state } = battle;
   if (state.outcome !== OUTCOME_IN_PROGRESS) return;
   const { status, x, prevX, projX, projPrevX } = state;
+  const { targetLast } = battle.specs;
 
   // Faza 0: zapamiętanie pozycji z początku ticka i wyczyszczenie zdarzeń.
   // Pętle zamiast TypedArray.set(): przy 10 elementach wywołanie wbudowane kosztuje więcej.
@@ -38,9 +39,16 @@ export function stepBattle(battle: Battle): void {
   // Fazy 1–3: decyzja, ruch i postęp ataku każdej żywej jednostki.
   const frontPlayer = frontUnit(state, 0);
   const frontEnemy = frontUnit(state, TEAM_SIZE);
+  // Koniec szyku liczymy tylko w walkach, w których ktoś w niego celuje (cecha targetLast);
+  // pozostałe walki nie czytają nawet flagi jednostki.
+  const aimsLast = battle.hasTargetLast;
+  const backPlayer = aimsLast ? backUnit(state, 0) : -1;
+  const backEnemy = aimsLast ? backUnit(state, TEAM_SIZE) : -1;
   for (let i = 0; i < MAX_UNITS; i++) {
     if (!isAlive(status[i] ?? 0)) continue;
-    const action = decideUnit(battle, i, i < TEAM_SIZE ? frontEnemy : frontPlayer);
+    let enemy = i < TEAM_SIZE ? frontEnemy : frontPlayer;
+    if (aimsLast && (targetLast[i] ?? 0) !== 0) enemy = i < TEAM_SIZE ? backEnemy : backPlayer;
+    const action = decideUnit(battle, i, enemy);
     if (action === STATUS_MOVING) moveUnit(battle, i);
     else if (action === STATUS_ATTACKING) progressAttack(battle, i);
   }

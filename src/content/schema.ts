@@ -30,6 +30,11 @@ export const attackTypeSchema = z.strictObject({
       speed: z.number().positive(),
       /** Sprite pocisku w atlasie: `fx/<sprite>`. */
       sprite: z.string().min(1),
+      /**
+       * Wysokość lotu nad stopami strzelca w jednostkach rigu: skąd pocisk wychodzi (łuk, paszcza,
+       * grzbiet). Tylko wygląd; symulacja liczy pociski na osi X.
+       */
+      height: z.number().positive().default(43),
     })
     .optional(),
 });
@@ -62,6 +67,12 @@ export const traitSchema = z.discriminatedUnion('type', [
    * (jednostki świata) od celu. Odrzut dostaje tylko cel. Tylko dla ataku wręcz.
    */
   z.strictObject({ type: z.literal('splash'), radius: z.number().positive() }),
+  /**
+   * Celuje w wroga stojącego na końcu szyku przeciwnika; pocisk mija pozostałych i trafia tylko
+   * ten cel. Tylko dla ataku z pociskiem, bez `pierce`; `range` jednostki musi obejmować całe
+   * pole, żeby strzelała z miejsca.
+   */
+  z.strictObject({ type: z.literal('targetLast') }),
 ]);
 
 export const unitSchema = z.strictObject({
@@ -85,6 +96,16 @@ export const unitSchema = z.strictObject({
   skin: id,
   /** Mnożnik wielkości postaci względem skali rigu. Tylko wygląd; nie wpływa na walkę. */
   scale: z.number().positive().default(1),
+  /**
+   * Własny kadr miniaturki, gdy twarz postaci nie leży tam, gdzie zakłada rig (długa szyja,
+   * wielki łeb): środek względem kości miniaturki rigu i bok kwadratu, w jednostkach rigu.
+   */
+  portrait: z
+    .strictObject({
+      center: z.tuple([z.number(), z.number()]),
+      size: z.number().positive(),
+    })
+    .optional(),
 });
 
 export const attackTypesSchema = z.array(attackTypeSchema);

@@ -136,5 +136,51 @@
       }
     ],
     "price": 300
+  },
+  {
+    "id": "beasts",
+    "forms": [
+      {
+        "unit": "monstrosity",
+        "upgradeCosts": [50, 80, 120, 180]
+      },
+      {
+        "unit": "batfang",
+        "from": "monstrosity",
+        "evolveCost": 250,
+        "upgradeCosts": [300, 400, 550, 750]
+      },
+      {
+        "unit": "reaper",
+        "from": "monstrosity",
+        "evolveCost": 250,
+        "upgradeCosts": [300, 400, 550, 750]
+      },
+      {
+        "unit": "spiker",
+        "from": "batfang",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "ironbeak",
+        "from": "batfang",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "tuskovator",
+        "from": "reaper",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "ignitix",
+        "from": "reaper",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      }
+    ],
+    "price": 200
   }
 ]

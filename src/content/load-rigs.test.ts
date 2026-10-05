@@ -77,6 +77,11 @@ describe('rig humanoid z treści gry', () => {
       'shoot',
       'cleave',
       'snipe',
+      // Ataki bestii: dziobnięcie, cios kłem, plucie, salwa kolców.
+      'peck',
+      'gore',
+      'spit',
+      'volley',
     ]);
     expect(humanoid?.clips.slash?.markers.hit).toBe(0.5);
     expect(humanoid?.stances.sword).toEqual({ weapon: -75 });

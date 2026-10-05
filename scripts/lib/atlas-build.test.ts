@@ -1,6 +1,7 @@
 import { inflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { chooseAtlasWidth, composeAtlas } from './atlas-build.ts';
+import { BEAST_SKINS } from './beasts/index.ts';
 import { packShelves } from './pack.ts';
 import { PARTS, PIXELS_PER_UNIT, placeholderSprites, SKINS } from './placeholder-parts.ts';
 import { circle, createImage, encodePng, fill, hex, roundBox } from './raster.ts';
@@ -108,19 +109,23 @@ describe('atlas placeholder', () => {
 
   it('zawiera komplet części każdej skórki i strzałę', () => {
     const names = Object.keys(built.meta.sprites);
-    for (const skin of SKINS) {
+    const skins = [...SKINS.map((skin) => skin.id), ...BEAST_SKINS];
+    for (const skin of skins) {
       for (const slot of ['thigh', 'shin', 'torso', 'upper', 'fore', 'head', 'weapon']) {
-        expect(names).toContain(`${skin.id}/${slot}`);
+        expect(names).toContain(`${skin}/${slot}`);
       }
     }
-    expect(names).toContain('fx/arrow');
+    expect(BEAST_SKINS).toHaveLength(7);
+    for (const projectile of ['arrow', 'fang', 'spike', 'fireball']) {
+      expect(names).toContain(`fx/${projectile}`);
+    }
     expect(names).toContain('fx/dmg_0');
     expect(names).toContain('fx/heal_plus');
     expect(names).toContain('fx/hp_9');
     // Liczba życia nad paskiem nie ma znaku plus.
     expect(names).not.toContain('fx/hp_plus');
-    // Części skórek, strzała, dwa zestawy po jedenaście znaków i dziesięć cyfr życia.
-    expect(names).toHaveLength(SKINS.length * 7 + 1 + 22 + 10);
+    // Części skórek, cztery pociski, dwa zestawy po jedenaście znaków i dziesięć cyfr życia.
+    expect(names).toHaveLength(skins.length * 7 + 4 + 22 + 10);
   });
 
   it('każdy sprite ma rozmiar części w pikselach atlasu i nie jest pusty', () => {

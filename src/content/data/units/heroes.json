@@ -371,5 +371,136 @@
     ],
     "skin": "archer_b",
     "scale": 1.19
+  },
+  {
+    "id": "monstrosity",
+    "kind": "melee",
+    "maxHp": 200,
+    "attack": 30,
+    "moveSpeed": 25,
+    "attackSpeed": 1,
+    "range": 30,
+    "knockback": 50,
+    "attackType": "slash",
+    "skin": "monstrosity",
+    "scale": 0.9,
+    "portrait": {
+      "center": [2, -13],
+      "size": 34
+    }
+  },
+  {
+    "id": "batfang",
+    "kind": "ranged",
+    "maxHp": 350,
+    "attack": 35,
+    "moveSpeed": 10,
+    "attackSpeed": 1.2,
+    "range": 220,
+    "knockback": 30,
+    "attackType": "fang_spit",
+    "skin": "batfang",
+    "portrait": {
+      "center": [2, -15],
+      "size": 38
+    }
+  },
+  {
+    "id": "reaper",
+    "kind": "melee",
+    "maxHp": 400,
+    "attack": 50,
+    "moveSpeed": 30,
+    "attackSpeed": 1.2,
+    "range": 30,
+    "knockback": 10,
+    "attackType": "slash",
+    "skin": "reaper",
+    "scale": 1.05,
+    "portrait": {
+      "center": [4, -14],
+      "size": 38
+    }
+  },
+  {
+    "id": "spiker",
+    "kind": "ranged",
+    "maxHp": 700,
+    "attack": 40,
+    "moveSpeed": 15,
+    "attackSpeed": 1,
+    "range": 240,
+    "knockback": 10,
+    "attackType": "spike_volley",
+    "traits": [
+      {
+        "type": "periodicHeal",
+        "target": "self",
+        "amount": 25,
+        "interval": 1
+      }
+    ],
+    "skin": "spiker",
+    "scale": 1.1,
+    "portrait": {
+      "center": [2, -11],
+      "size": 36
+    }
+  },
+  {
+    "id": "ironbeak",
+    "kind": "melee",
+    "maxHp": 900,
+    "attack": 80,
+    "moveSpeed": 100,
+    "attackSpeed": 1,
+    "range": 30,
+    "knockback": 180,
+    "attackType": "peck",
+    "skin": "ironbeak",
+    "scale": 1.15,
+    "portrait": {
+      "center": [9, -27],
+      "size": 38
+    }
+  },
+  {
+    "id": "tuskovator",
+    "kind": "melee",
+    "maxHp": 800,
+    "attack": 90,
+    "moveSpeed": 30,
+    "attackSpeed": 0.7,
+    "range": 30,
+    "knockback": 225,
+    "attackType": "gore",
+    "skin": "tuskovator",
+    "scale": 1.25,
+    "portrait": {
+      "center": [9, -7],
+      "size": 46
+    }
+  },
+  {
+    "id": "ignitix",
+    "kind": "ranged",
+    "maxHp": 1000,
+    "attack": 100,
+    "moveSpeed": 5,
+    "attackSpeed": 0.8,
+    "range": 1000,
+    "knockback": 50,
+    "attackType": "fire_spit",
+    "traits": [
+      {
+        "type": "targetLast"
+      }
+    ],
+    "skin": "ignitix",
+    "scale": 1.2,
+    "portrait": {
+      "center": [11, -27],
+      "size": 40
+    }
   }
 ]

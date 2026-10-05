@@ -27,6 +27,8 @@ export interface Scene {
   readonly looks: (UnitLook | null)[];
   readonly boneSprites: (Sprite | null)[];
   readonly projectileSprites: (Sprite | null)[];
+  /** Wysokość lotu pocisków jednostki nad linią stóp, w jednostkach logicznych sceny. */
+  readonly projectileHeights: Float32Array;
   /** Liczby obrażeń i leczenia. */
   readonly floatTexts: Pool<FloatText>;
   /** RNG wyłącznie dla efektów kosmetycznych. */
@@ -40,6 +42,11 @@ export interface Scene {
   readonly reachBack: Float32Array;
   readonly reachFront: Float32Array;
   readonly reachHeight: Float32Array;
+  /**
+   * Wysokość, nad którą wisi pasek życia jednostki, w jednostkach sceny: czubek stojącej postaci,
+   * ale nie niżej niż u człowieka o tej samej skali, żeby paski ludzi stały w jednej linii.
+   */
+  readonly headHeight: Float32Array;
   battle: Battle | null;
 }
 
@@ -71,6 +78,7 @@ export function createScene(
     looks: new Array<UnitLook | null>(MAX_UNITS).fill(null),
     boneSprites: new Array<Sprite | null>(MAX_UNITS * maxBones).fill(null),
     projectileSprites: new Array<Sprite | null>(MAX_UNITS).fill(null),
+    projectileHeights: new Float32Array(MAX_UNITS),
     floatTexts: createFloatTexts(),
     jitter: createRng(1),
     digitSprites,
@@ -79,6 +87,7 @@ export function createScene(
     reachBack: new Float32Array(MAX_UNITS),
     reachFront: new Float32Array(MAX_UNITS),
     reachHeight: new Float32Array(MAX_UNITS),
+    headHeight: new Float32Array(MAX_UNITS),
     battle: null,
   };
 }
@@ -98,9 +107,13 @@ export function unitFacing(unit: number): number {
   return unit < TEAM_SIZE ? 1 : -1;
 }
 
-/** Wysokość czubka głowy jednostki na scenie. */
-export function unitHeadY(look: UnitLook): number {
-  return FEET_Y - (look.rig.hipHeight + UPPER_BODY) * look.scale;
+/**
+ * Wysokość nad stopami, nad którą wisi pasek życia: `stand` to zmierzony czubek stojącej
+ * postaci (reach.ts). Postacie o ludzkiej budowie dostają wspólną wysokość z rigu, wyższe
+ * (długa szyja, rogi, uszy) własną.
+ */
+export function headHeightOf(look: UnitLook, stand: number): number {
+  return Math.max((look.rig.hipHeight + UPPER_BODY) * look.scale, stand);
 }
 
 /**

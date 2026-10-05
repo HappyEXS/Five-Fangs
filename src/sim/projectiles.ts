@@ -1,6 +1,7 @@
 // Faza 4: pociski fizyczne (ADR 0007). Pocisk to punkt lecący ze stałym krokiem aż do
 // krawędzi pola; nie śledzi celu. Zwykły trafia pierwszego wroga na drodze, przebijający
-// każdego, którego minie.
+// każdego, którego minie, a wycelowany (cecha targetLast) tylko jednostkę, w którą celował
+// strzelec: pozostałych mija, a gdy cel zginął, leci do krawędzi pola.
 //
 // Trafienie wykrywamy przez położenie względne: wróg był przed pociskiem na początku ticka
 // i nie jest przed nim po ruchu obu. Sam przedział przebyty przez pocisk nie wystarcza,
@@ -16,7 +17,15 @@ import {
 } from './events.ts';
 import { attackDamage, queueHit } from './hits.ts';
 import type { BattleState } from './state.ts';
-import { forwardOf, MAX_PROJECTILES, TEAM_SIZE, teamOf } from './types.ts';
+import {
+  forwardOf,
+  MAX_PROJECTILES,
+  PROJECTILE_AIMED,
+  PROJECTILE_FIRST,
+  PROJECTILE_PIERCE,
+  TEAM_SIZE,
+  teamOf,
+} from './types.ts';
 
 /** Tworzy pocisk w pozycji strzelca, z jego obrażeniami z chwili wystrzału (także premią szału). */
 export function spawnProjectile(battle: Battle, owner: number): void {
@@ -35,8 +44,15 @@ export function spawnProjectile(battle: Battle, owner: number): void {
   state.projOwner[p] = owner;
   state.projDamage[p] = attackDamage(battle, owner);
   state.projKnockback[p] = specs.knockback[owner] ?? 0;
-  state.projPierce[p] = specs.pierce[owner] ?? 0;
   state.projHitMask[p] = 0;
+  if ((specs.targetLast[owner] ?? 0) !== 0) {
+    // Cel jest zablokowany od początku zamachu; mógł już zginąć, wtedy pocisk nikogo nie trafi.
+    state.projMode[p] = PROJECTILE_AIMED;
+    state.projTarget[p] = state.target[owner] ?? -1;
+  } else {
+    state.projMode[p] = (specs.pierce[owner] ?? 0) !== 0 ? PROJECTILE_PIERCE : PROJECTILE_FIRST;
+    state.projTarget[p] = -1;
+  }
   state.projCount = p + 1;
   pushEvent(battle.events, EVENT_PROJECTILE_SPAWNED, id, owner, x);
 }
@@ -49,8 +65,9 @@ function copyProjectile(state: BattleState, from: number, to: number): void {
   state.projOwner[to] = state.projOwner[from] ?? 0;
   state.projDamage[to] = state.projDamage[from] ?? 0;
   state.projKnockback[to] = state.projKnockback[from] ?? 0;
-  state.projPierce[to] = state.projPierce[from] ?? 0;
+  state.projMode[to] = state.projMode[from] ?? 0;
   state.projHitMask[to] = state.projHitMask[from] ?? 0;
+  state.projTarget[to] = state.projTarget[from] ?? -1;
 }
 
 function hit(battle: Battle, p: number, target: number): void {
@@ -84,7 +101,18 @@ function advance(battle: Battle, p: number): boolean {
   const firstEnemy = (state.projOwner[p] ?? 0) < TEAM_SIZE ? TEAM_SIZE : 0;
   state.projX[p] = to;
 
-  if ((state.projPierce[p] ?? 0) !== 0) {
+  const mode = state.projMode[p] ?? PROJECTILE_FIRST;
+  if (mode === PROJECTILE_AIMED) {
+    const aimed = state.projTarget[p] ?? -1;
+    if (aimed >= 0 && isAlive(status[aimed] ?? 0)) {
+      const before = ((prevX[aimed] ?? 0) - from) * direction;
+      const after = ((x[aimed] ?? 0) - to) * direction;
+      if (before >= 0 && after <= 0) {
+        hit(battle, p, aimed);
+        return false;
+      }
+    }
+  } else if (mode === PROJECTILE_PIERCE) {
     let mask = state.projHitMask[p] ?? 0;
     for (let enemy = firstEnemy; enemy < firstEnemy + TEAM_SIZE; enemy++) {
       if (!isAlive(status[enemy] ?? 0) || (mask & (1 << enemy)) !== 0) continue;

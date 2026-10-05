@@ -22,6 +22,10 @@ export interface UnitVisual {
   readonly stance: string;
   /** Sprite pocisku (`fx/<nazwa>`) albo null dla ataku wręcz. */
   readonly projectileSprite: string | null;
+  /** Wysokość lotu pocisku nad stopami w jednostkach rigu; 0 dla ataku wręcz. */
+  readonly projectileHeight: number;
+  /** Własny kadr miniaturki (środek względem kości miniaturki rigu, bok) albo null: kadr rigu. */
+  readonly portrait: { readonly x: number; readonly y: number; readonly size: number } | null;
 }
 
 export interface CompiledUnit {
@@ -63,6 +67,7 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
   let enrageAttackPercent = 0;
   let lifestealPercent = 0;
   let splashRadius = 0;
+  let targetLast = false;
   for (const trait of raw.traits) {
     switch (trait.type) {
       case 'pierce':
@@ -82,6 +87,9 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
         break;
       case 'splash':
         splashRadius = unitsToSubunits(trait.radius);
+        break;
+      case 'targetLast':
+        targetLast = true;
         break;
     }
   }
@@ -109,6 +117,7 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       enrageAttackPercent,
       lifestealPercent,
       splashRadius,
+      targetLast,
     },
     visual: {
       rig: raw.rig,
@@ -117,6 +126,11 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       attackClip: attack.clip,
       stance: attack.stance,
       projectileSprite: attack.projectile === undefined ? null : attack.projectile.sprite,
+      projectileHeight: attack.projectile === undefined ? 0 : attack.projectile.height,
+      portrait:
+        raw.portrait === undefined
+          ? null
+          : { x: raw.portrait.center[0], y: raw.portrait.center[1], size: raw.portrait.size },
     },
   };
 }

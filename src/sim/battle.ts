@@ -28,6 +28,8 @@ export interface Battle {
    * a wtedy faza cech nie kosztuje nic.
    */
   readonly healers: readonly number[];
+  /** Czy którakolwiek jednostka celuje w ostatniego wroga; bez nich tick nie szuka końca szyku. */
+  readonly hasTargetLast: boolean;
   /** Narastający hash wszystkich zdarzeń walki. */
   eventHash: number;
 }
@@ -54,6 +56,7 @@ function placeUnit(battle: Battle, unitId: number, spec: UnitSpec, x: number): v
     spec.attack + mulDivFloor(spec.attack, spec.enrageAttackPercent, 100);
   specs.lifesteal[unitId] = spec.lifestealPercent;
   specs.splashRadius[unitId] = spec.splashRadius;
+  specs.targetLast[unitId] = spec.targetLast ? 1 : 0;
 
   state.status[unitId] = STATUS_IDLE;
   state.x[unitId] = x;
@@ -69,6 +72,12 @@ export function createBattle(setup: BattleSetup): Battle {
   if (problems.length > 0) throw new Error(`Invalid battle setup:\n${problems.join('\n')}`);
 
   const healers: number[] = [];
+  let hasTargetLast = false;
+  for (let slot = 0; slot < TEAM_SIZE; slot++) {
+    if (setup.player[slot]?.targetLast === true || setup.enemy[slot]?.targetLast === true) {
+      hasTargetLast = true;
+    }
+  }
   const battle: Battle = {
     width: setup.arena.width,
     timeLimitTicks: setup.arena.timeLimitTicks,
@@ -77,6 +86,7 @@ export function createBattle(setup: BattleSetup): Battle {
     events: createEventBuffer(),
     pending: createPending(),
     healers,
+    hasTargetLast,
     eventHash: EVENT_HASH_SEED,
   };
   for (let slot = 0; slot < TEAM_SIZE; slot++) {

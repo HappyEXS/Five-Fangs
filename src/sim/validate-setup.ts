@@ -60,6 +60,12 @@ export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
   if (spec.lifestealPercent > 100) {
     problems.push(`${label}: lifestealPercent musi być w przedziale 0..100`);
   }
+  if (spec.targetLast && spec.projectileStep === 0) {
+    problems.push(`${label}: targetLast wymaga ataku z pociskiem`);
+  }
+  if (spec.targetLast && spec.pierce) {
+    problems.push(`${label}: targetLast nie łączy się z pierce`);
+  }
   return problems;
 }
 
@@ -99,15 +105,21 @@ export function validateSetup(setup: BattleSetup): string[] {
   }
 
   const units: UnitSpec[] = [];
-  setup.player.forEach((spec, slot) => {
+  const check = (label: string, spec: UnitSpec | null): void => {
     if (spec === null) return;
     units.push(spec);
-    problems.push(...validateUnitSpec(`gracz, slot ${slot}`, spec));
+    problems.push(...validateUnitSpec(label, spec));
+    // Jednostka idąca do ostatniego wroga minęłaby tych, którzy stoją bliżej, więc musi
+    // sięgać go z każdego miejsca pola.
+    if (spec.targetLast && spec.range < arena.width) {
+      problems.push(`${label}: targetLast wymaga zasięgu na całe pole (range ≥ ${arena.width})`);
+    }
+  };
+  setup.player.forEach((spec, slot) => {
+    check(`gracz, slot ${slot}`, spec);
   });
   setup.enemy.forEach((spec, slot) => {
-    if (spec === null) return;
-    units.push(spec);
-    problems.push(...validateUnitSpec(`przeciwnik, slot ${slot}`, spec));
+    check(`przeciwnik, slot ${slot}`, spec);
   });
   if (problems.length > 0 || units.length === 0) return problems;
 

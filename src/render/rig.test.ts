@@ -100,6 +100,11 @@ describe('compileRig', () => {
       'shoot',
       'cleave',
       'snipe',
+      // Ataki bestii: dziobnięcie, cios kłem, plucie, salwa kolców.
+      'peck',
+      'gore',
+      'spit',
+      'volley',
     ]);
     // Każda kość ma rodzica wymienionego wcześniej.
     humanoid.parent.forEach((p, bone) => {

@@ -65,6 +65,21 @@ describe('contentSimIssues', () => {
     expect(issues.at(-1)).toContain('pocisków w locie');
   });
 
+  it('jednostka celująca w koniec szyku musi sięgać całego pola', () => {
+    const spitter = {
+      ...unit,
+      id: 'spitter',
+      kind: 'ranged',
+      attackSpeed: 0.8,
+      attackType: 'shoot',
+      traits: [{ type: 'targetLast' }],
+    };
+    expect(issuesFor({ 'units/heroes.json': [{ ...spitter, range: 1000 }] })).toEqual([]);
+    expect(issuesFor({ 'units/heroes.json': [{ ...spitter, range: 400 }] })).toEqual([
+      'units/heroes.json: spitter: cecha "targetLast" wymaga zasięgu na całe pole (range ≥ szerokość areny)',
+    ]);
+  });
+
   it('sprawdza arenę', () => {
     const issues = issuesFor({
       'arena.json': {

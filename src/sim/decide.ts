@@ -33,6 +33,27 @@ export function frontUnit(state: BattleState, firstId: number): number {
 }
 
 /**
+ * Żywa jednostka drużyny stojąca najdalej od przeciwnika (koniec szyku), albo -1: lustrzane
+ * odbicie `frontUnit`. Przy równej pozycji wygrywa niższe `unitId`. To cel jednostek z cechą
+ * targetLast.
+ */
+export function backUnit(state: BattleState, firstId: number): number {
+  const { status, x } = state;
+  const sign = firstId === 0 ? -1 : 1;
+  let back = -1;
+  let backX = 0;
+  for (let i = firstId; i < firstId + TEAM_SIZE; i++) {
+    if (!isAlive(status[i] ?? 0)) continue;
+    const position = (x[i] ?? 0) * sign;
+    if (back === -1 || position > backX) {
+      back = i;
+      backX = position;
+    }
+  }
+  return back;
+}
+
+/**
  * Najbliższy żywy wróg jednostki albo -1; przy równej odległości niższe `unitId`.
  *
  * Wrogie jednostki nigdy się nie mijają (gwarantuje to walidacja setupu), więc wszyscy
@@ -44,8 +65,8 @@ export function nearestEnemy(state: BattleState, unitId: number): number {
 }
 
 /**
- * Decyzja żywej jednostki `i`; `enemy` to najbliższy żywy wróg z początku ticka albo -1.
- * Zwraca status jednostki na ten tick.
+ * Decyzja żywej jednostki `i`; `enemy` to jej cel z początku ticka albo -1: najbliższy żywy
+ * wróg, a dla jednostki z cechą targetLast ostatni w szyku. Zwraca status jednostki na ten tick.
  */
 export function decideUnit(battle: Battle, i: number, enemy: number): number {
   const { state, specs } = battle;

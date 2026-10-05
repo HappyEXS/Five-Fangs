@@ -72,6 +72,36 @@ Typy ataku:
 
 Forma po ewolucji ma inny typ ataku niż forma bazowa: Rycerz bije wolniej, mocniej i obszarowo, Strzelec wyborowy celuje dłużej, a jego strzały lecą szybciej i przebijają.
 
+### Szczep Beasts
+
+Pierwszy z czterech szczepów autora gry (szkice z 2026-10-05; kolor szczepu: brąz, świat: „Jungle of doom”). Szczep to jedna linia bohaterów z drzewem siedmiu form: Monstrosity → Batfang albo Reaper; Batfang → Spiker albo Ironbeak; Reaper → Tuskovator albo Ignitix. Nazwy są własne i takie same w obu językach.
+
+Życie, atak, szybkość ruchu („Spd”), odrzut („Ela”), rodzaj ataku, ataki strzelców na sekundę i cechy pochodzą ze szkiców. **Wartości robocze** (kursywa), których szkice nie podają: ataki na sekundę form walczących wręcz, zasięg strzelców, cena i koszty linii (te same co u pozostałych linii).
+
+| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
+|---|---|---|---|---|---|---|---|---|
+| Monstrosity (melee) | bazowa | 200 | 30 | 25 | *1,0* | 30 | 50 | `slash` |
+| Batfang (ranged) | 1 | 350 | 35 | 10 | 1,2 | *220* | 30 | `fang_spit` |
+| Reaper (melee) | 1 | 400 | 50 | 30 | *1,2* | 30 | 10 | `slash` |
+| Spiker (ranged) | 2, z Batfanga | 700 | 40 | 15 | 1,0 | *240* | 10 | `spike_volley`, `periodicHeal` siebie: 25 co 1 s |
+| Ironbeak (melee) | 2, z Batfanga | 900 | 80 | 100 | *1,0* | 30 | 180 | `peck` |
+| Tuskovator (melee) | 2, z Reapera | 800 | 90 | 30 | *0,7* | 30 | 225 | `gore` |
+| Ignitix (ranged) | 2, z Reapera | 1000 | 100 | 5 | 0,8 | 1000 (całe pole) | 50 | `fire_spit`, `targetLast` |
+
+| Typ | Zamach | Trafienie | Klip, postawa | Pocisk |
+|---|---|---|---|---|
+| `peck` | 0,45 s | 0,5 | `peck`, `beast` | brak |
+| `gore` | 0,8 s | 0,6 | `gore`, `beast` | brak |
+| `fang_spit` | 0,5 s | 0,5 | `spit`, `beast` | kieł, 420 jedn./s |
+| `spike_volley` | 0,6 s | 0,5 | `volley`, `beast` | kolec, 450 jedn./s |
+| `fire_spit` | 0,9 s | 0,5 | `spit`, `beast` | kula ognia, 380 jedn./s |
+
+Wygląd: bestie stoją na dwóch nogach na szkielecie ludzi (wybór autora), z własnymi częściami i czterema nowymi klipami ataku (ADR 0018). Obserwacje z walk próbnych, do decyzji autora przy balansie:
+
+- Bestie chodzą 2–12 razy wolniej niż ludzie (45–60). Strzelcy o szybkości 10–15 często nie dochodzą na zasięg, zanim walka się rozstrzygnie, zwłaszcza gdy Ironbeak albo Tuskovator odrzucają wroga coraz dalej.
+- Odrzut 180 i 225 przesuwa trafionego o jedną piątą pola; Tuskovator o szybkości 30 długo dochodzi potem do odrzuconego wroga, więc bije rzadziej, niż wynika z 0,7 ataku na sekundę.
+- Monstrosity (200 życia) przegrywa w pojedynkę z Osiłkiem z pierwszego poziomu.
+
 ## 4. Przebieg walki
 
 Symulacja działa w stałym kroku 30 ticków na sekundę. Każdy tick ma te same fazy, w tej kolejności.
@@ -80,7 +110,7 @@ Symulacja działa w stałym kroku 30 ticków na sekundę. Każdy tick ma te same
 
 Każda żywa jednostka, która nie jest w trakcie zamachu:
 
-- wybiera cel: **najbliższego żywego wroga**; przy równej odległości wygrywa niższe `unitId`;
+- wybiera cel: **najbliższego żywego wroga**; przy równej odległości wygrywa niższe `unitId`. Jednostka z cechą `targetLast` wybiera zamiast tego **ostatniego żywego wroga w szyku** (stojącego najdalej; remis pozycji → niższe `unitId`);
 - jeśli cel jest w zasięgu i minął odstęp od poprzedniego ataku, zaczyna atak;
 - jeśli cel jest w zasięgu, ale odstęp jeszcze trwa, stoi;
 - w przeciwnym razie idzie w stronę celu.
@@ -104,6 +134,7 @@ Pocisk jest **fizyczny**: to punkt lecący ze stałą prędkością po osi, aż 
 
 - Zwykły pocisk trafia **pierwszego żywego wroga na drodze** (remis pozycji → niższe `unitId`) i znika.
 - Pocisk z cechą `pierce` trafia **każdego wroga, którego minie**, każdego najwyżej raz, i leci dalej.
+- Pocisk jednostki z cechą `targetLast` jest **wycelowany**: mija wszystkich wrogów poza tym, w którego strzelec celował na początku zamachu, i trafia tylko jego. Jeśli ten cel zginął (w trakcie zamachu albo lotu), pocisk nikogo nie trafia i leci do krawędzi pola. Na ekranie taki pocisk leci łukiem nad mijanymi wrogami.
 - Jeśli pierwotny cel zginie w locie, pocisk po prostu leci dalej i trafia następnego wroga na drodze.
 - Pocisk żyje dalej po śmierci strzelca.
 - Pocisk wystrzelony w danym ticku porusza się już w tym samym ticku.
@@ -160,6 +191,7 @@ Pociski w locie w chwili końca walki nie mają znaczenia.
 - Forma po ewolucji to **inny bohater**: własne części graficzne, własne statystyki bazowe, może mieć inny typ ataku i inne cechy. Wszystkie formy linii dzielą rig i klipy animacji.
 - Gracz posiada **egzemplarze** bohaterów (decyzja autora z 2026-10-02). Każdy egzemplarz ma własne ulepszenia, formę i runy. Tej samej linii można mieć kilka egzemplarzy i wystawić ich w składzie obok siebie.
 - Gracz zaczyna z dwoma bohaterami: po jednym z każdej linii startowej (Miecznik i Łucznik). Kolejnych kupuje w sklepie (sekcja 5.5).
+- **Szczepy** (decyzja autora z 2026-10-05): docelowy roster to cztery szczepy, każdy jako jedna linia z drzewem siedmiu form (forma bazowa, dwie pierwsze ewolucje, po dwie drugie ewolucje z każdej). Pierwszy, Beasts, jest w grze (sekcja 3); dotychczasowe linie zostają obok niego, dopóki autor ich nie wycofa.
 - **Stan na teraz:** linie startowe to miecznik i łucznik; w sklepie są dodatkowo dwie linie testowe, Tarczownik → Strażnik (dużo życia i odrzutu; Strażnik leczy sam siebie) oraz Akolita → Kapłan (leczenie drużyny). Docelowy roster autor uzupełni przy wykańczaniu gry. Forma po ewolucji miecznika i łucznika ma inny typ ataku niż forma bazowa.
 - **Drzewa testowe** (z kopii obecnych bohaterów, do sprawdzenia rozgałęzień): każda linia ma drogę przez swoją dotychczasową formę po ewolucji i drugą drogę przez kopię formy po ewolucji innej linii (Miecznik → Rycerz albo Strażnik (kopia); Łucznik → Strzelec wyborowy albo Kapłan (kopia); Tarczownik → Strażnik albo Rycerz (kopia); Akolita → Kapłan albo Strzelec wyborowy (kopia)). Każda z tych form ma jeszcze jeden stopień: tę samą postać z życiem i atakiem ×1,35 („… II”).
 
@@ -216,6 +248,7 @@ Jednostka może mieć kilka cech różnych typów, najwyżej jedną danego typu.
 | `pierce` | brak | Pociski tej jednostki przebijają: trafiają każdego wroga na drodze. Tylko dla ranged. |
 | `splash` | `radius` (jednostki świata) | Cios wręcz zadaje pełne obrażenia także każdemu innemu żywemu wrogowi, który stoi nie dalej niż `radius` od celu. Odrzut dostaje tylko cel. Jeśli cel zginął w trakcie zamachu, cios chybia w całości. Tylko dla melee. |
 | `lifesteal` | `percent` (1–100) | Po każdym trafieniu, wręcz albo pociskiem, jednostka leczy się o `percent` procent obrażeń ciosu (zaokrąglenie w dół). Liczą się obrażenia ciosu, nie HP, które cel jeszcze miał. Leczenie wchodzi w rozstrzygnięcie tego samego ticka, więc może uratować przed śmiercią. Martwy strzelec nie leczy się z pocisków, które jeszcze lecą. |
+| `targetLast` | brak | Jednostka celuje w ostatniego żywego wroga w szyku zamiast w najbliższego, a jej pocisk mija pozostałych i trafia tylko ten cel (sekcje 4.1 i 4.4). Strzela z miejsca: jej `range` musi obejmować całe pole, bo idąc do celu, minęłaby bliższych wrogów. Tylko dla ranged; nie łączy się z `pierce`. |
 | `enrage` | `hpBelow` (1–99, procent życia), `attackBonus` (procent) | Gdy HP jednostki jest niższe niż `hpBelow` procent `maxHp`, jej ataki zadają o `attackBonus` procent więcej (zaokrąglenie w dół). Liczy się HP z chwili trafienia wręcz albo wystrzału; pocisk niesie obrażenia z chwili wystrzału. Uleczenie powyżej progu kończy szał. |
 
 Cechy się łączą: cios obszarowy jednostki w szale zadaje powiększone obrażenia wszystkim trafionym, a kradzież życia leczy za każdego z nich. Odległości ciosu obszarowego liczone są z pozycji z początku ticka.

@@ -84,6 +84,9 @@ describe('statystyki dla gracza', () => {
     if (sniper === undefined || sword === undefined) throw new Error('missing unit');
     expect(traitsOf(sniper.base)).toEqual([{ key: 'trait.pierce', params: {} }]);
     expect(traitsOf(sword.base)).toEqual([]);
+    expect(traitsOf({ ...sniper.base, pierce: false, targetLast: true })).toEqual([
+      { key: 'trait.targetLast', params: {} },
+    ]);
     expect(traitsOf({ ...sword.base, healAmount: 20, healInterval: 45, healTeam: true })).toEqual([
       { key: 'trait.heal.team', params: { amount: 20, seconds: 1.5 } },
     ]);

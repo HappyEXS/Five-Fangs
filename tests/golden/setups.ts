@@ -88,4 +88,15 @@ export const GOLDEN_SETUPS: Readonly<Record<string, BattleSetup>> = {
     [swordsman(), ranged({ pierce: true, knockback: u(6) }), ranged({ pierce: true })],
     [brute(), brute(), melee(), ranged({ pierce: true })],
   ),
+
+  // Celowanie w koniec szyku po obu stronach: pociski mijają front, strzelcy stoją w miejscu.
+  'target-last': setupOf(
+    [swordsman(), archer(), ranged({ targetLast: true, range: u(1000), attack: 60 })],
+    [
+      brute(),
+      melee({ maxHp: 300 }),
+      archer(),
+      ranged({ targetLast: true, range: u(1000), knockback: u(20) }),
+    ],
+  ),
 };

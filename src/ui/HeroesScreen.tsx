@@ -132,16 +132,21 @@ export function HeroesScreen(props: {
         <>
           <section class="sheet tree-sheet">
             <Tree game={game} stage={stage} line={line} form={form} />
-            <p class="note">
-              {t('heroes.info.upgrade', { percent: upgradePercent })}{' '}
-              {t('heroes.info.evolve', { max: maxUpgrades })} {t('heroes.info.where')}
-            </p>
+          </section>
+
+          {/* Cena i zasady stoją pod sceną: drzewo o czterech końcowych formach musi zmieścić się
+              nad głowami postaci, więc w arkuszu zostaje samo drzewo. */}
+          <div class="heroes-foot">
             <p class="tree-price">
               <span>{t('heroes.info.price')}</span>
               <Gold amount={line.price} />
               <span>{t('shop.owned', { count: ownedCount(game.save.value, line.id) })}</span>
             </p>
-          </section>
+            <p>
+              {t('heroes.info.upgrade', { percent: upgradePercent })}{' '}
+              {t('heroes.info.evolve', { max: maxUpgrades })} {t('heroes.info.where')}
+            </p>
+          </div>
 
           <FormCard game={game} stage={stage} line={line} form={form} />
 

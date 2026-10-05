@@ -51,6 +51,7 @@ function tenths(value: number): number {
 export function traitsOf(spec: UnitSpec): TraitView[] {
   const traits: TraitView[] = [];
   if (spec.pierce) traits.push({ key: 'trait.pierce', params: {} });
+  if (spec.targetLast) traits.push({ key: 'trait.targetLast', params: {} });
   if (spec.splashRadius > 0) {
     traits.push({ key: 'trait.splash', params: { radius: subunitsToUnits(spec.splashRadius) } });
   }

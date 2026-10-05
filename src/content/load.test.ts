@@ -130,6 +130,18 @@ describe('loadContent', () => {
     ]);
   });
 
+  it('targetLast wymaga pocisku i wyklucza się z pierce', () => {
+    const archer = { ...unit, kind: 'ranged', attackType: 'shoot' };
+    expect(messages(withHeroes([{ ...unit, traits: [{ type: 'targetLast' }] }]))).toEqual([
+      'units/heroes.json: swordsman: cecha "targetLast" wymaga ataku z pociskiem',
+    ]);
+    const both = [{ type: 'targetLast' }, { type: 'pierce' }];
+    expect(messages(withHeroes([{ ...archer, traits: both }]))).toEqual([
+      'units/heroes.json: swordsman: cechy "targetLast" i "pierce" wykluczają się',
+    ]);
+    expect(messages(withHeroes([{ ...archer, traits: [{ type: 'targetLast' }] }]))).toEqual([]);
+  });
+
   it('odrzuca nieznaną cechę i błędne parametry', () => {
     expect(
       loadContent(withHeroes([{ ...unit, traits: [{ type: 'lifesteal' }] }])).content,

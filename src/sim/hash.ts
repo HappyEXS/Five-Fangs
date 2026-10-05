@@ -32,8 +32,9 @@ export function hashState(state: BattleState): number {
   h = hashInts(h, state.projOwner, n);
   h = hashInts(h, state.projDamage, n);
   h = hashInts(h, state.projKnockback, n);
-  h = hashInts(h, state.projPierce, n);
+  h = hashInts(h, state.projMode, n);
   h = hashInts(h, state.projHitMask, n);
+  h = hashInts(h, state.projTarget, n);
 
   h = hashInts(h, state.damageDealt);
   h = hashInts(h, state.damageTaken);

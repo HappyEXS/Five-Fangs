@@ -28,5 +28,43 @@
     "clip": "snipe",
     "stance": "longbow",
     "projectile": { "speed": 700, "sprite": "arrow" }
+  },
+  {
+    "id": "peck",
+    "swingDuration": 0.45,
+    "hitFraction": 0.5,
+    "clip": "peck",
+    "stance": "beast"
+  },
+  {
+    "id": "gore",
+    "swingDuration": 0.8,
+    "hitFraction": 0.6,
+    "clip": "gore",
+    "stance": "beast"
+  },
+  {
+    "id": "fang_spit",
+    "swingDuration": 0.5,
+    "hitFraction": 0.5,
+    "clip": "spit",
+    "stance": "beast",
+    "projectile": { "speed": 420, "sprite": "fang", "height": 50 }
+  },
+  {
+    "id": "spike_volley",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "volley",
+    "stance": "beast",
+    "projectile": { "speed": 450, "sprite": "spike", "height": 38 }
+  },
+  {
+    "id": "fire_spit",
+    "swingDuration": 0.9,
+    "hitFraction": 0.5,
+    "clip": "spit",
+    "stance": "beast",
+    "projectile": { "speed": 380, "sprite": "fireball", "height": 72 }
   }
 ]
