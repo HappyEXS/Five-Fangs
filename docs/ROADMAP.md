@@ -203,6 +203,14 @@ Zlecenie autora gry: skórki trzech kolejnych szczepów według szkiców (zdjęc
 | M5i-3 | Treść trzech szczepów: 20 bohaterów ze statystykami ze szkiców, 12 typów ataków, linie `immortals`, `plants` (bez Mother-tree), `robots`, nazwy, kadry miniaturek; szybkość 0 z zasięgiem na całe pole; sklep mieści osiem linii | 1 | Testy treści (drzewa, statystyki, cechy, pociski), reguła walidatora dla jednostek bez ruchu; zrzuty sklepu, drzew i walk każdego szczepu | gotowe |
 | M5i-4 | Przyzywanie (ADR 0020): pięć miejsc na przyzwanych na stronę, przyzywacz w symulacji, treści, rendererze i narzędziach; Mother-tree i „Bush ver. 2”; tańsze tworzenie walki (tablice z jednego bufora) | 3 | 32 testy przyzywania w sim, walka golden `summon`, 17 starszych walk golden bez zmiany hashy; pomiar A/B (zwykła walka nie wolniejsza niż przed zmianą); test end-to-end: Mother-tree wygrywa poziom samymi krzakami | gotowe |
 
+## M5j – Poprawka tempa ataków ze szkiców; Miecznicy i Łucznicy jako szczepy po siedem form (2026-10-06)
+
+Odpowiedzi autora gry po obejrzeniu M5i: „Atk: 3,0” na szkicu to jeden atak co 3 sekundy (wcześniej odczytane odwrotnie); cztery dawne linie ludzi (Miecznicy, Łucznicy, Tarczownicy, Akolici) mają stać się dwoma szczepami po siedem form, w których dotychczasowe warianty są różnymi ewolucjami. Ustalenia: Rycerz, Strażnik, Strzelec wyborowy i Kapłan zostają formami końcowymi; brakujące formy proponuje wykonawca; ludzie zachowują prosty styl graficzny.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5j-1 | Tempo ataków ze szkiców jako odstęp w sekundach: pole `attackInterval` w danych jednostek, 14 form czterech szczepów przepisanych ze szkiców, zamachy Ignitixa i Ultimusa dopasowane do nowych odstępów | 0,5 | Testy treści (odstępy w tickach, zamach mieści się w odstępie), schemat wymaga dokładnie jednego pola tempa; obserwacje z walk próbnych w GAME_DESIGN.md przeliczone | gotowe |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

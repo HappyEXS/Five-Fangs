@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ratePerSecondToInterval } from '../core/units.ts';
+import { secondsToTicks } from '../core/units.ts';
 import { requireContent } from './load.ts';
 
 const content = requireContent();
@@ -25,12 +25,12 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     expect(next('plants', 'ivy')).toEqual(['ice_ivy', 'toxic_ivy']);
   });
 
-  it('Mother-tree nie atakuje: co pół sekundy przyzywa krzak z 100 życia i 20 ataku', () => {
+  it('Mother-tree nie atakuje: co 2 sekundy przyzywa krzak z 100 życia i 20 ataku', () => {
     const tree = unit('mother_tree');
     expect(tree.kind).toBe('summoner');
     expect(tree.summon).toBe('sprout');
     expect([tree.base.maxHp, tree.base.attack, tree.base.moveStep]).toEqual([10_000, 0, 0]);
-    expect(tree.base.attackInterval).toBe(ratePerSecondToInterval(2));
+    expect(tree.base.attackInterval).toBe(secondsToTicks(2));
     expect(tree.base.projectileStep).toBe(0);
     const sprout = content.summons.get('sprout');
     expect(tree.base.summon).toBe(sprout?.base);
@@ -110,8 +110,8 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     });
   });
 
-  it('ataki strzelców na sekundę zgadzają się ze szkicami', () => {
-    const rates: Record<string, number> = {
+  it('odstęp między atakami strzelców to liczba „Atk:” ze szkicu, w sekundach', () => {
+    const seconds: Record<string, number> = {
       orb: 1.5,
       cardinal: 1,
       ultimus: 3,
@@ -123,9 +123,15 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
       holo_bot: 1,
       thermobot: 1,
     };
-    for (const [id, rate] of Object.entries(rates)) {
+    for (const [id, interval] of Object.entries(seconds)) {
       expect(unit(id).kind, id).toBe('ranged');
-      expect(unit(id).base.attackInterval, id).toBe(ratePerSecondToInterval(rate));
+      expect(unit(id).base.attackInterval, id).toBe(secondsToTicks(interval));
+    }
+    // Ultimus bije najmocniej i najrzadziej: 250 obrażeń co 3 sekundy.
+    expect(unit('ultimus').base.attackInterval).toBe(90);
+    // Zamach zawsze mieści się w odstępie, także u najszybszych.
+    for (const hero of content.heroes.values()) {
+      expect(hero.base.attackInterval, hero.id).toBeGreaterThanOrEqual(hero.base.swingTicks);
     }
   });
 

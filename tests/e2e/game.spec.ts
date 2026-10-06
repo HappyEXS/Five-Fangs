@@ -462,7 +462,7 @@ test('szczepy Immortals, Plants i Robots: sklep ośmiu linii, drzewa i walka', a
   await tree.getByRole('button', { name: 'Mother-tree' }).click();
   await expect(page.locator('.path-name')).toHaveText(['Bush', 'Trunk', 'Mother-tree']);
   await expect(page.locator('.form-card')).toContainText(
-    'Nie atakuje. Co 0.5 s przyzywa sojusznika (życie 100, atak 20); najwyżej 5 naraz.',
+    'Nie atakuje. Co 2 s przyzywa sojusznika (życie 100, atak 20); najwyżej 5 naraz.',
   );
   await tree.getByRole('button', { name: 'Ice Ivy' }).click();
   await expect(page.locator('.form-card')).toContainText('Co 1 s leczy całą drużynę o 50');

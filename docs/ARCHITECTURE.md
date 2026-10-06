@@ -288,10 +288,15 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
 // pola "rig" i "skin" dojdą razem z rendererem w M2
 // opcjonalnie własny kadr miniaturki (ADR 0017): "portrait": { "center": [9, -27], "size": 38 }
 
-// przyzywacz (ADR 0020): nie atakuje, attackSpeed to przyzwania na sekundę,
+// tempo ataków: "attackSpeed" (ataki na sekundę) albo "attackInterval" (sekundy między atakami,
+// tak jak na szkicach autora: „Atk: 3,0” to atak co 3 s); dokładnie jedno z dwóch pól
+{ "id": "ultimus", "kind": "ranged", "maxHp": 1250, "attack": 250, "moveSpeed": 30,
+  "attackInterval": 3, "range": 260, "knockback": 50, "attackType": "ray_flare" }
+
+// przyzywacz (ADR 0020): nie atakuje, tempo ataków to tempo przyzwań,
 // "summon" wskazuje jednostkę z units/summons.json
 { "id": "mother_tree", "kind": "summoner", "maxHp": 10000, "attack": 0, "moveSpeed": 0,
-  "attackSpeed": 2, "range": 1000, "knockback": 40, "attackType": "summon", "summon": "sprout" }
+  "attackInterval": 2, "range": 1000, "knockback": 40, "attackType": "summon", "summon": "sprout" }
 
 // pocisk może podać wysokość lotu nad stopami w jednostkach rigu (domyślnie 43): skąd wylatuje
 { "id": "fire_spit", "swingDuration": 0.9, "hitFraction": 0.5, "clip": "spit", "stance": "beast",
@@ -328,7 +333,7 @@ Jedyne miejsce konwersji jednostek czytelnych dla człowieka na runtime:
 | `moveStep` | `round(moveSpeed × 256 / 30)` |
 | `range` | `range × 256` |
 | `knockback` | `knockback × 256` |
-| `attackInterval` | `round(30 / attackSpeed)` |
+| `attackInterval` | `round(30 / attackSpeed)` albo `round(30 × attackInterval)` dla odstępu w sekundach; co najmniej 1 |
 | `swingTicks` | `max(2, round(swingDuration × 30))` |
 | `hitTick` | `clamp(round(hitFraction × swingTicks), 1, swingTicks − 1)` |
 | `projectileStep` | `round(projectile.speed × 256 / 30)` |

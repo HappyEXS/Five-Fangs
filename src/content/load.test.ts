@@ -68,6 +68,20 @@ describe('loadContent', () => {
     expect(text).toContain('extra');
   });
 
+  it('wymaga dokładnie jednego z pól tempa ataków', () => {
+    const { attackSpeed: _, ...noRate } = unit;
+    expect(messages(withHeroes([{ ...noRate, attackInterval: 1.5 }]))).toEqual([]);
+    expect(messages(withHeroes([noRate]))).toEqual([
+      'units/heroes.json: 0.attackSpeed: podaj dokładnie jedno z pól: attackSpeed albo attackInterval',
+    ]);
+    expect(messages(withHeroes([{ ...unit, attackInterval: 1.5 }]))).toEqual([
+      'units/heroes.json: 0.attackSpeed: podaj dokładnie jedno z pól: attackSpeed albo attackInterval',
+    ]);
+    expect(messages(withHeroes([{ ...noRate, attackInterval: 0 }]))[0]).toContain(
+      '0.attackInterval',
+    );
+  });
+
   it('wymaga ułamka trafienia wewnątrz zamachu', () => {
     const raw: RawContent = {
       ...rawContent,

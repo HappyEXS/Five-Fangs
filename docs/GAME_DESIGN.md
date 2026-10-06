@@ -31,7 +31,7 @@ W walce **nie ma losowości**: ten sam skład na tym samym poziomie zawsze daje 
 | `maxHp` | punkty | Życie |
 | `attack` | punkty | Obrażenia jednego trafienia |
 | `moveSpeed` | jednostki świata / s | Szybkość ruchu |
-| `attackSpeed` | ataki / s | Wyznacza odstęp między początkami ataków |
+| `attackSpeed` albo `attackInterval` | ataki / s albo sekundy między atakami | Tempo ataków: odstęp między początkami kolejnych ataków. Dane podają jedno z dwóch pól; szkice autora podają odstęp („Atk: 3,0” to atak co 3 s) |
 | `range` | jednostki świata | Odległość, z której jednostka może zacząć atak; melee ok. 30, ranged ok. 150–250 |
 | `knockback` | jednostki świata | Odrzut: siła odpychania trafionego wroga i zarazem opór przed byciem odepchniętym (sekcja 4.6); ranged zwykle mało albo 0 |
 | `kind` | `melee` \| `ranged` | Ranged wystrzeliwuje pocisk zamiast trafiać bezpośrednio |
@@ -76,17 +76,17 @@ Forma po ewolucji ma inny typ ataku niż forma bazowa: Rycerz bije wolniej, mocn
 
 Pierwszy z czterech szczepów autora gry (szkice z 2026-10-05; kolor szczepu: brąz, świat: „Jungle of doom”). Szczep to jedna linia bohaterów z drzewem siedmiu form: Monstrosity → Batfang albo Reaper; Batfang → Spiker albo Ironbeak; Reaper → Tuskovator albo Ignitix. Nazwy są własne i takie same w obu językach.
 
-Życie, atak, szybkość ruchu („Spd”), odrzut („Ela”), rodzaj ataku, ataki strzelców na sekundę i cechy pochodzą ze szkiców. **Wartości robocze** (kursywa), których szkice nie podają: ataki na sekundę form walczących wręcz, zasięg strzelców, cena i koszty linii (te same co u pozostałych linii).
+Życie, atak, szybkość ruchu („Spd”), odrzut („Ela”), rodzaj ataku, odstęp między atakami strzelców („Atk: 1,2” to atak co 1,2 s; odpowiedź autora z 2026-10-06, wcześniej odczytane odwrotnie) i cechy pochodzą ze szkiców. **Wartości robocze** (kursywa), których szkice nie podają: ataki na sekundę form walczących wręcz, zasięg strzelców, cena i koszty linii (te same co u pozostałych linii).
 
-| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
+| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Monstrosity (melee) | bazowa | 200 | 30 | 25 | *1,0* | 30 | 50 | `slash` |
-| Batfang (ranged) | 1 | 350 | 35 | 10 | 1,2 | *220* | 30 | `fang_spit` |
-| Reaper (melee) | 1 | 400 | 50 | 30 | *1,2* | 30 | 10 | `slash` |
-| Spiker (ranged) | 2, z Batfanga | 700 | 40 | 15 | 1,0 | *240* | 10 | `spike_volley`, `periodicHeal` siebie: 25 co 1 s |
-| Ironbeak (melee) | 2, z Batfanga | 900 | 80 | 100 | *1,0* | 30 | 180 | `peck` |
-| Tuskovator (melee) | 2, z Reapera | 800 | 90 | 30 | *0,7* | 30 | 225 | `gore` |
-| Ignitix (ranged) | 2, z Reapera | 1000 | 100 | 5 | 0,8 | 1000 (całe pole) | 50 | `fire_spit`, `targetLast` |
+| Monstrosity (melee) | bazowa | 200 | 30 | 25 | *1,0 na s* | 30 | 50 | `slash` |
+| Batfang (ranged) | 1 | 350 | 35 | 10 | co 1,2 s | *220* | 30 | `fang_spit` |
+| Reaper (melee) | 1 | 400 | 50 | 30 | *1,2 na s* | 30 | 10 | `slash` |
+| Spiker (ranged) | 2, z Batfanga | 700 | 40 | 15 | co 1,0 s | *240* | 10 | `spike_volley`, `periodicHeal` siebie: 25 co 1 s |
+| Ironbeak (melee) | 2, z Batfanga | 900 | 80 | 100 | *1,0 na s* | 30 | 180 | `peck` |
+| Tuskovator (melee) | 2, z Reapera | 800 | 90 | 30 | *0,7 na s* | 30 | 225 | `gore` |
+| Ignitix (ranged) | 2, z Reapera | 1000 | 100 | 5 | co 0,8 s | 1000 (całe pole) | 50 | `fire_spit`, `targetLast` |
 
 | Typ | Zamach | Trafienie | Klip, postawa | Pocisk |
 |---|---|---|---|---|
@@ -94,20 +94,21 @@ Pierwszy z czterech szczepów autora gry (szkice z 2026-10-05; kolor szczepu: br
 | `gore` | 0,8 s | 0,6 | `gore`, `beast` | brak |
 | `fang_spit` | 0,5 s | 0,5 | `spit`, `beast` | kieł, 420 jedn./s |
 | `spike_volley` | 0,6 s | 0,5 | `volley`, `beast` | kolec, 450 jedn./s |
-| `fire_spit` | 0,9 s | 0,5 | `spit`, `beast` | kula ognia, 380 jedn./s |
+| `fire_spit` | 0,7 s | 0,5 | `spit`, `beast` | kula ognia, 380 jedn./s |
 
 Wygląd: bestie stoją na dwóch nogach na szkielecie ludzi (wybór autora), z własnymi częściami i czterema nowymi klipami ataku (ADR 0018). Obserwacje z walk próbnych, do decyzji autora przy balansie:
 
 - Bestie chodzą 2–12 razy wolniej niż ludzie (45–60). Strzelcy o szybkości 10–15 często nie dochodzą na zasięg, zanim walka się rozstrzygnie, zwłaszcza gdy Ironbeak albo Tuskovator odrzucają wroga coraz dalej.
 - Odrzut 180 i 225 przesuwa trafionego o jedną piątą pola; Tuskovator o szybkości 30 długo dochodzi potem do odrzuconego wroga, więc bije rzadziej, niż wynika z 0,7 ataku na sekundę.
-- Monstrosity (200 życia) przegrywa w pojedynkę z Osiłkiem z pierwszego poziomu.
+- Monstrosity (200 życia) i Batfang przegrywają w pojedynkę z Osiłkiem z pierwszego poziomu. Ignitix sam pokonuje Herszta w 17 s; Spiker przegrywa z nim po 40 s.
 
 ### Szczepy Immortals, Plants i Robots
 
-Trzy kolejne szczepy autora gry (szkice z 2026-10-05). Każdy to jedna linia z drzewem siedmiu form; nazwy są własne i takie same w obu językach. Zasady odczytu szkiców są te same co u bestii: życie, atak, szybkość ruchu, odrzut, rodzaj ataku, ataki strzelców na sekundę i zdolności pochodzą ze szkiców, a **wartości robocze** (kursywa) to ataki na sekundę form walczących wręcz, zasięg strzelców, cena i koszty linii.
+Trzy kolejne szczepy autora gry (szkice z 2026-10-05). Każdy to jedna linia z drzewem siedmiu form; nazwy są własne i takie same w obu językach. Zasady odczytu szkiców są te same co u bestii: życie, atak, szybkość ruchu, odrzut, rodzaj ataku, odstęp między atakami strzelców i zdolności pochodzą ze szkiców, a **wartości robocze** (kursywa) to ataki na sekundę form walczących wręcz, zasięg strzelców, cena i koszty linii.
 
 Ustalenia z autorem (2026-10-05):
 
+- **„Atk: X” to sekundy między atakami** (odpowiedź z 2026-10-06): Ultimus z „Atk: 3,0” atakuje raz na 3 sekundy, Mother-tree z „Atk: 2,0” przyzywa co 2 sekundy.
 - **Szansa to rytm.** „50% chance of dealing double damage” to cecha `doubleDamage` 50 (co drugi atak), „70% chance of avoiding enemy attack” to `dodge` 70 (§6).
 - **Tarcza to mniejsze obrażenia:** „50% shield” to `shield` 50.
 - **Postać o szybkości 0 strzela przez całe pole** (`range` 1000) i przez całą walkę stoi w swoim slocie; odrzut dalej ją przesuwa. Walidator treści odrzuca jednostkę bez ruchu o krótszym zasięgu.
@@ -116,40 +117,40 @@ Ustalenia z autorem (2026-10-05):
 
 **Immortals** (kolor szczepu: złoto, świat: „Tower of time”). Orb → Cardinal albo Guardian of hell; Cardinal → Polaris albo Ultimus; Guardian of hell → Xartix albo Enigmatix.
 
-| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
+| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Orb (ranged) | bazowa | 350 | 35 | 15 | 1,5 | *240* | 10 | `orb_gaze` |
-| Cardinal (ranged) | 1 | 450 | 45 | 10 | 1,0 | *260* | 20 | `cardinal_gaze` |
-| Guardian of hell (melee) | 1 | 400 | 60 | 30 | *1,0* | 30 | 10 | `gore` |
-| Polaris (ranged) | 2, z Cardinala | 1100 | 50 | 0 | *1,0* | 1000 (całe pole) | 30 | `star_cast` |
-| Ultimus (ranged) | 2, z Cardinala | 1250 | 250 | 30 | 3,0 | *260* | 50 | `ray_flare` |
-| Xartix (melee) | 2, z Guardiana | 850 | 90 | 75 | *1,2* | 30 | 75 | `slash`, `doubleDamage` 50 |
-| Enigmatix (melee) | 2, z Guardiana | 1000 | 160 | 65 | *0,8* | 30 | 100 | `cleave`, `shield` 50 |
+| Orb (ranged) | bazowa | 350 | 35 | 15 | co 1,5 s | *240* | 10 | `orb_gaze` |
+| Cardinal (ranged) | 1 | 450 | 45 | 10 | co 1,0 s | *260* | 20 | `cardinal_gaze` |
+| Guardian of hell (melee) | 1 | 400 | 60 | 30 | *1,0 na s* | 30 | 10 | `gore` |
+| Polaris (ranged) | 2, z Cardinala | 1100 | 50 | 0 | *1,0 na s* | 1000 (całe pole) | 30 | `star_cast` |
+| Ultimus (ranged) | 2, z Cardinala | 1250 | 250 | 30 | co 3,0 s | *260* | 50 | `ray_flare` |
+| Xartix (melee) | 2, z Guardiana | 850 | 90 | 75 | *1,2 na s* | 30 | 75 | `slash`, `doubleDamage` 50 |
+| Enigmatix (melee) | 2, z Guardiana | 1000 | 160 | 65 | *0,8 na s* | 30 | 100 | `cleave`, `shield` 50 |
 
 **Plants** (kolor szczepu: jasna zieleń, świat: „Living swamps”). Bush → Trunk albo Ivy; Trunk → Oak warrior albo Mother-tree; Ivy → Ice Ivy albo Toxic Ivy.
 
-| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
+| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Bush (ranged) | bazowa | 400 | 15 | 0 | 1,5 | 1000 (całe pole) | 10 | `bush_thorn` |
-| Trunk (ranged) | 1 | 600 | 30 | 25 | 1,5 | *240* | 10 | `seed_cast` |
-| Ivy (ranged) | 1 | 500 | 40 | 0 | 1,7 | 1000 (całe pole) | 30 | `ivy_thorn` |
-| Oak warrior (melee) | 2, z Trunka | 1250 | 150 | 40 | *0,6* | 30 | 300 | `cleave` |
-| Mother-tree (summoning) | 2, z Trunka | 10 000 | 0 | 0 | 2,0 (przyzwania) | 1000 (całe pole) | 40 | `summon`: przyzywa „Bush ver. 2” |
-| Bush ver. 2 (melee, przyzywany) | – | 100 | 20 | 30 | *1,0* | 30 | 0 | `peck`; nie jest bohaterem |
-| Ice Ivy (ranged) | 2, z Ivy | 900 | 20 | 0 | 2,0 | 1000 (całe pole) | 10 | `frost_spit`, `periodicHeal` drużyny: 50 co 1 s |
-| Toxic Ivy (ranged) | 2, z Ivy | 800 | 10 | 0 | 1,0 | 1000 (całe pole) | 30 | `spore_spit`, `pierce` |
+| Bush (ranged) | bazowa | 400 | 15 | 0 | co 1,5 s | 1000 (całe pole) | 10 | `bush_thorn` |
+| Trunk (ranged) | 1 | 600 | 30 | 25 | co 1,5 s | *240* | 10 | `seed_cast` |
+| Ivy (ranged) | 1 | 500 | 40 | 0 | co 1,7 s | 1000 (całe pole) | 30 | `ivy_thorn` |
+| Oak warrior (melee) | 2, z Trunka | 1250 | 150 | 40 | *0,6 na s* | 30 | 300 | `cleave` |
+| Mother-tree (summoning) | 2, z Trunka | 10 000 | 0 | 0 | co 2,0 s (przyzwanie) | 1000 (całe pole) | 40 | `summon`: przyzywa „Bush ver. 2” |
+| Bush ver. 2 (melee, przyzywany) | – | 100 | 20 | 30 | *1,0 na s* | 30 | 0 | `peck`; nie jest bohaterem |
+| Ice Ivy (ranged) | 2, z Ivy | 900 | 20 | 0 | co 2,0 s | 1000 (całe pole) | 10 | `frost_spit`, `periodicHeal` drużyny: 50 co 1 s |
+| Toxic Ivy (ranged) | 2, z Ivy | 800 | 10 | 0 | co 1,0 s | 1000 (całe pole) | 30 | `spore_spit`, `pierce` |
 
 **Robots** (kolor szczepu: niebieski, świat: „Mechanus town”). Bot → Egzo-bot albo Holo-bot; Egzo-bot → Thermobot albo Ax-bot; Holo-bot → Whirl-bot albo Titan-bot.
 
-| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
+| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Bot (melee) | bazowa | 200 | 25 | 50 | *1,0* | 30 | 15 | `jab` |
-| Egzo-bot (melee) | 1 | 400 | 40 | 70 | *1,2* | 30 | 25 | `slash` |
-| Holo-bot (ranged) | 1 | 300 | 30 | 0 | 1,0 | 1000 (całe pole) | 30 | `glitch_spit` |
-| Thermobot (ranged) | 2, z Egzo-bota | 900 | 100 | 80 | 1,0 | *220* | 25 | `slag_cast` |
-| Ax-bot (melee) | 2, z Egzo-bota | 750 | 75 | 80 | *0,8* | 30 | 40 | `cleave`, `doubleDamage` 20 |
-| Whirl-bot (melee) | 2, z Holo-bota | 700 | 70 | 175 | *1,5* | 30 | 30 | `slash`, `dodge` 70 |
-| Titan-bot (melee) | 2, z Holo-bota | 1200 | 75 | 40 | *0,7* | 30 | 70 | `gore`, `shield` 10 |
+| Bot (melee) | bazowa | 200 | 25 | 50 | *1,0 na s* | 30 | 15 | `jab` |
+| Egzo-bot (melee) | 1 | 400 | 40 | 70 | *1,2 na s* | 30 | 25 | `slash` |
+| Holo-bot (ranged) | 1 | 300 | 30 | 0 | co 1,0 s | 1000 (całe pole) | 30 | `glitch_spit` |
+| Thermobot (ranged) | 2, z Egzo-bota | 900 | 100 | 80 | co 1,0 s | *220* | 25 | `slag_cast` |
+| Ax-bot (melee) | 2, z Egzo-bota | 750 | 75 | 80 | *0,8 na s* | 30 | 40 | `cleave`, `doubleDamage` 20 |
+| Whirl-bot (melee) | 2, z Holo-bota | 700 | 70 | 175 | *1,5 na s* | 30 | 30 | `slash`, `dodge` 70 |
+| Titan-bot (melee) | 2, z Holo-bota | 1200 | 75 | 40 | *0,7 na s* | 30 | 70 | `gore`, `shield` 10 |
 
 Nowe typy ataków (wszystkie z postawą `beast`, trafienie w połowie zamachu):
 
@@ -159,7 +160,7 @@ Nowe typy ataków (wszystkie z postawą `beast`, trafienie w połowie zamachu):
 | `orb_gaze` | 0,5 s | `spit` | spojrzenie, 420 jedn./s |
 | `cardinal_gaze` | 0,6 s | `cast` | spojrzenie, 440 jedn./s |
 | `star_cast` | 0,6 s | `cast` | odłamek gwiazdy, 480 jedn./s |
-| `ray_flare` | 0,3 s | `flare` | promień, 700 jedn./s |
+| `ray_flare` | 0,9 s | `flare` | promień, 700 jedn./s |
 | `bush_thorn`, `ivy_thorn` | 0,5 s | `spit` | cierń, 420 i 440 jedn./s (różnią się wysokością wylotu) |
 | `seed_cast` | 0,6 s | `cast` | kolczaste nasiono, 400 jedn./s |
 | `frost_spit` | 0,45 s | `spit` | odłamek lodu, 460 jedn./s |
@@ -170,10 +171,10 @@ Nowe typy ataków (wszystkie z postawą `beast`, trafienie w połowie zamachu):
 
 Wygląd: wszystkie trzy szczepy i przerysowane bestie mają styl „mroczna baśń” (ADR 0019). Obserwacje z walk próbnych, do decyzji autora przy balansie:
 
-- **Ultimus zadaje 750 obrażeń na sekundę** (250 × 3 ataki), dziesięć razy więcej niż inne formy końcowe (Thermobot 100, Enigmatix 128, Xartix średnio 162). Sam wygrywa poziom Herszta w 7,5 s, tracąc 36 życia. Liczba „Atk: 3,0” jest ze szkicu i została odczytana tak jak u bestii, jako ataki na sekundę. Jeśli autor miał na myśli odstęp między atakami w sekundach (250 obrażeń co 3 s to 83 na sekundę, w zgodzie z resztą szczepu), trzeba odwrócić wszystkie liczby „Atk:” strzelców, także u bestii.
-- Mother-tree ma „Atk: 2,0”: przy atakach na sekundę rodzi krzak co pół sekundy i limit pięciu krzaków jest stale pełny; przy odstępie w sekundach krzak co 2 s. Sama pokonuje dwóch Osiłków i Zbója w 32 s, nie tracąc życia: krzaki giną po kilku ciosach, ale wracają szybciej, niż wróg je zabija, więc wróg nigdy do niej nie dochodzi. Z 10 000 życia jest też praktycznie nie do zabicia w czasie walki (90 s).
-- Postacie stojące (Bush, Ivy, obie formy końcowe Ivy, Holo-bot, Polaris) strzelają od pierwszej sekundy, więc mimo małego ataku zadają dużo: Ivy 1600 obrażeń w walce z Hersztem, najwięcej w składzie samych roślin. Giną, gdy wróg do nich dojdzie: Polaris sam przegrywa z Hersztem i Osiłkiem.
-- Formy bazowe: Bot (200 życia) i Bush przegrywają w pojedynkę z Osiłkiem, Orb wygrywa z 70 życia.
+- **Strzelcy biją rzadko.** Po poprawce odczytu „Atk:” obrażenia na sekundę strzelców to m.in.: Bush 10, Orb 23, Ivy 24, Holo-bot 30, Cardinal 45, Ultimus 83, Thermobot 100. Ultimus sam pokonuje Herszta w 25 s (zostaje mu 278 z 1250 życia), ale z całym poziomem Herszta przegrywa.
+- **Mother-tree** przyzywa krzak co 2 s, więc pięć miejsc zapełnia się po ok. 8 s. Sama pokonuje dwóch Osiłków i Zbója w 31 s, tracąc 1600 z 10 000 życia; z poziomem Herszta przegrywa po 78 s, bo wróg przebija się przez krzaki szybciej, niż ona je rodzi.
+- Postacie stojące (Bush, Ivy, obie formy końcowe Ivy, Holo-bot, Polaris) strzelają od pierwszej sekundy. Skład samych roślin wygrywa poziom Herszta w 41 s: najwięcej zadaje Oak warrior (2850), z pnączy Toxic Ivy (1530, bo jej pocisk trafia wszystkich). Stojące giną, gdy wróg do nich dojdzie: Polaris sam przegrywa z Hersztem i Osiłkiem.
+- **Formy bazowe trzech szczepów przegrywają w pojedynkę z Osiłkiem** z pierwszego poziomu: Orb, Bush i Bot; tak samo pierwsze ewolucje Ivy, Trunk i Holo-bot. Cardinal wygrywa.
 - Whirl-bot z unikiem 70 na 100 wygrywa sam z dwoma Osiłkami i Zbójem, tracąc 405 z 700 życia. Titan-bot z tarczą 10% przegrywa z Hersztem (zadaje 1725 z jego 2200 życia).
 - Oak warrior odrzuca o 300 jednostek, prawie jedną trzecią pola: po każdym ciosie idzie do wroga od nowa.
 
@@ -261,7 +262,7 @@ Pociski w locie w chwili końca walki nie mają znaczenia.
 
 ### 4.8 Przyzywanie
 
-Przyzywacz (na razie tylko Mother-tree) nie atakuje. Jego „ataki na sekundę” to przyzwania: co odstęp zaczyna zamach i w chwili, w której zwykła jednostka zadałaby cios, przyzywa sojusznika (ADR 0020).
+Przyzywacz (na razie tylko Mother-tree) nie atakuje. Jego tempo ataków to tempo przyzwań: co odstęp zaczyna zamach i w chwili, w której zwykła jednostka zadałaby cios, przyzywa sojusznika (ADR 0020).
 
 - **Gdzie.** Przyzwany staje w miejscu przyzywacza i od następnego ticka zachowuje się jak każda jednostka: wybiera cel, idzie, bije.
 - **Ilu.** Każda strona ma pięć miejsc na przyzwanych, ponad pięć slotów składu i wspólnych dla wszystkich jej przyzywaczy. Gdy wszystkie są zajęte, przyzywacz czeka; gdy któryś przyzwany zginie, następny pojawia się po samym zamachu (odstęp biegnie także podczas czekania).

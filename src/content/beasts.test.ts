@@ -59,6 +59,15 @@ describe('szczep Beasts w treści gry', () => {
     }
   });
 
+  it('odstęp między atakami strzelców to liczba „Atk:” ze szkicu, w sekundach', () => {
+    // Batfang 1,2 s, Spiker 1,0 s, Ignitix 0,8 s; przy 30 tickach na sekundę.
+    expect(['batfang', 'spiker', 'ignitix'].map((id) => unit(id).base.attackInterval)).toEqual([
+      36, 30, 24,
+    ]);
+    // Zamach Ignitixa mieści się w jego krótkim odstępie.
+    expect(unit('ignitix').base.swingTicks).toBeLessThanOrEqual(24);
+  });
+
   it('strzelcy mają własne pociski, każdy z innej wysokości', () => {
     const shots = ['batfang', 'spiker', 'ignitix'].map((id) => {
       const { visual } = unit(id);

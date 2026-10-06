@@ -75,7 +75,7 @@
   },
   {
     "id": "fire_spit",
-    "swingDuration": 0.9,
+    "swingDuration": 0.7,
     "hitFraction": 0.5,
     "clip": "spit",
     "stance": "beast",
@@ -130,7 +130,7 @@
   },
   {
     "id": "ray_flare",
-    "swingDuration": 0.3,
+    "swingDuration": 0.9,
     "hitFraction": 0.5,
     "clip": "flare",
     "stance": "beast",

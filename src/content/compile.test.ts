@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compileArena, compileUnit, hitTickOf, swingTicksOf } from './compile.ts';
+import { attackIntervalOf, compileArena, compileUnit, hitTickOf, swingTicksOf } from './compile.ts';
 import type { RawAttackType, RawUnit } from './schema.ts';
 
 const slash: RawAttackType = {
@@ -95,6 +95,18 @@ describe('compileUnit', () => {
         summon: null,
       },
     });
+  });
+
+  it('tempo ataków: ataki na sekundę albo sekundy między atakami', () => {
+    const { attackSpeed: _, ...noRate } = swordsman;
+    // „Atk: 3,0” ze szkicu: atak co 3 sekundy, czyli co 90 ticków.
+    expect(compileUnit({ ...noRate, attackInterval: 3 }, slash).base.attackInterval).toBe(90);
+    expect(compileUnit({ ...noRate, attackInterval: 1.7 }, slash).base.attackInterval).toBe(51);
+    expect(compileUnit({ ...noRate, attackSpeed: 0.8 }, slash).base.attackInterval).toBe(38);
+    // Odstęp krótszy niż tick zaokrągla się do jednego ticka.
+    expect(compileUnit({ ...noRate, attackInterval: 0.001 }, slash).base.attackInterval).toBe(1);
+    expect(attackIntervalOf({ attackInterval: 2 })).toBe(60);
+    expect(attackIntervalOf({ attackSpeed: 2 })).toBe(15);
   });
 
   it('przyzywacz niesie specyfikację i wygląd jednostki, którą przyzywa', () => {

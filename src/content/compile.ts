@@ -61,6 +61,15 @@ export function hitTickOf(attack: RawAttackType): number {
   return clampInt(Math.round(attack.hitFraction * swingTicks), 1, swingTicks - 1);
 }
 
+/**
+ * Odstęp między początkami ataków w tickach, co najmniej 1. Treść podaje tempo jako ataki na
+ * sekundę albo jako sekundy między atakami; schemat pilnuje, że jest dokładnie jedno z nich.
+ */
+export function attackIntervalOf(raw: Pick<RawUnit, 'attackSpeed' | 'attackInterval'>): number {
+  if (raw.attackInterval !== undefined) return Math.max(1, secondsToTicks(raw.attackInterval));
+  return ratePerSecondToInterval(raw.attackSpeed ?? 1);
+}
+
 /** `summon` to skompilowana jednostka przyzywana przez tę jednostkę, gdy jest przyzywaczem. */
 export function compileUnit(
   raw: RawUnit,
@@ -126,7 +135,7 @@ export function compileUnit(
       moveStep: unitsPerSecondToStep(raw.moveSpeed),
       range: unitsToSubunits(raw.range),
       knockback: unitsToSubunits(raw.knockback),
-      attackInterval: ratePerSecondToInterval(raw.attackSpeed),
+      attackInterval: attackIntervalOf(raw),
       swingTicks: swingTicksOf(attack),
       hitTick: hitTickOf(attack),
       projectileStep:

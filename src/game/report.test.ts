@@ -88,7 +88,7 @@ describe('statystyki dla gracza', () => {
     const tree = content.heroes.get('mother_tree');
     if (tree === undefined) throw new Error('no mother_tree');
     expect(traitsOf(tree.base)).toEqual([
-      { key: 'trait.summon', params: { seconds: 0.5, hp: 100, attack: 20, limit: 5 } },
+      { key: 'trait.summon', params: { seconds: 2, hp: 100, attack: 20, limit: 5 } },
     ]);
     expect(traitsOf({ ...sniper.base, pierce: false, targetLast: true })).toEqual([
       { key: 'trait.targetLast', params: {} },
