@@ -25,8 +25,8 @@ export interface ShopStand extends Stand {
 
 /** Margines sceny po bokach, żeby skrajne postacie i ich metki nie wychodziły poza ekran. */
 const EDGE = 0.12;
-/** Odstęp między lewą a prawą grupą, gdy linii jest więcej niż slotów jednej strony. */
-const MIDDLE_GAP = 0.04;
+/** Węższy margines, gdy linie stoją po obu stronach sceny: metki potrzebują każdego procentu. */
+const EDGE_CROWDED = 0.08;
 /**
  * Droga ewolucji na ekranie informacji o bohaterach stoi w lewej części sceny (prawą zajmuje
  * karta formy): od PATH_FROM do PATH_TO_SHORT dla trzech stopni, szerzej dla dłuższych dróg.
@@ -67,34 +67,24 @@ function spread(count: number, from: number, to: number): number[] {
 }
 
 /**
- * Stanowiska sklepu w kolejności linii z treści gry. Do pięciu linii stoi w jednym rzędzie;
- * przy większej liczbie druga połowa staje po prawej stronie sceny, zwrócona do pierwszej.
- * Scena mieści dziesięć postaci, więc linie ponad ten limit nie dostają stanowiska.
+ * Stanowiska sklepu w kolejności linii z treści gry, w równych odstępach przez całą scenę.
+ * Do pięciu linii to jeden rząd; przy większej liczbie druga połowa trafia do slotów prawej
+ * strony sceny i stoi zwrócona do pierwszej. Scena mieści dziesięć postaci, więc linie ponad
+ * ten limit nie dostają stanowiska.
  */
 export function shopStands(content: GameContent): ShopStand[] {
   const lines = [...content.lines.values()].slice(0, SQUAD_SLOTS * 2);
-  const split = lines.length <= SQUAD_SLOTS ? lines.length : Math.ceil(lines.length / 2);
-  const left = lines.slice(0, split);
-  const right = lines.slice(split);
-  const leftTo = right.length === 0 ? 1 - EDGE : 0.5 - MIDDLE_GAP;
-  const leftAt = spread(left.length, EDGE, leftTo);
-  const rightAt = spread(right.length, 0.5 + MIDDLE_GAP, 1 - EDGE);
-  return [
-    ...left.map((line, slot) => ({
-      line: line.id,
-      unitId: line.base,
-      position: leftAt[slot] ?? EDGE,
-      side: 0 as const,
-      slot,
-    })),
-    ...right.map((line, slot) => ({
-      line: line.id,
-      unitId: line.base,
-      position: rightAt[slot] ?? 1 - EDGE,
-      side: 1 as const,
-      slot,
-    })),
-  ];
+  const crowded = lines.length > SQUAD_SLOTS;
+  const split = crowded ? Math.ceil(lines.length / 2) : lines.length;
+  const edge = crowded ? EDGE_CROWDED : EDGE;
+  const at = spread(lines.length, edge, 1 - edge);
+  return lines.map((line, index) => ({
+    line: line.id,
+    unitId: line.base,
+    position: at[index] ?? edge,
+    side: index < split ? (0 as const) : (1 as const),
+    slot: index < split ? index : index - split,
+  }));
 }
 
 /**

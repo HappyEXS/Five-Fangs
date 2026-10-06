@@ -1,18 +1,21 @@
-// Informacje o bohaterach: drzewo ewolucji wybranej linii (ADR 0016). U góry drzewo form
-// (kolumna to stopień, rozwidlenie to wybór drogi), na scenie postacie drogi przez wybraną
-// formę, z prawej jej karta. Tu niczego się nie kupuje: bohaterów sprzedaje sklep, a ulepszenia
-// i ewolucje ekran składu.
+// Informacje o bohaterach: zakładki szczepów i drzewo ewolucji wybranego (ADR 0016). U góry drzewo form
+// (kolumna to stopień, rozwidlenie to wybór drogi; każda forma ma swoją miniaturkę), na scenie
+// postacie drogi przez wybraną formę, z prawej jej karta. Tu niczego się nie kupuje: bohaterów
+// sprzedaje sklep, a ulepszenia i ewolucje ekran składu. Zasady ulepszeń i ewolucji są pod
+// przyciskiem „i” przy tytule.
 import type { CompiledLine } from '../content/load-progression.ts';
+import type { StageControls } from '../game/battle-stage.ts';
 import { formPath, treeLayout } from '../game/evolution.ts';
 import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
-import { ownedCount } from '../game/progress.ts';
 import { formStands } from '../game/stage-stands.ts';
-import { Gold, ScreenHead, StatTable, tierLabel, unitName } from './common.tsx';
+import { Gold, lineName, ScreenHead, StatTable, tierLabel, unitName } from './common.tsx';
+import { InfoButton } from './InfoButton.tsx';
+import { Portrait } from './Portrait.tsx';
 
 /** Drzewo form linii jako siatka przycisków; wybrana forma jest wyróżniona. */
-function Tree(props: { game: Game; line: CompiledLine; form: string }) {
-  const { game, line, form } = props;
+function Tree(props: { game: Game; stage: StageControls; line: CompiledLine; form: string }) {
+  const { game, stage, line, form } = props;
   const onPath = new Set(formPath(line, form));
   return (
     <ol class="tree" aria-label={t('heroes.tree')}>
@@ -41,7 +44,8 @@ function Tree(props: { game: Game; line: CompiledLine; form: string }) {
               aria-pressed={cell.unit === form}
               onClick={() => game.openHeroes(line.id, cell.unit)}
             >
-              {unitName(cell.unit)}
+              <Portrait stage={stage} unit={cell.unit} />
+              <span class="tree-name">{unitName(cell.unit)}</span>
             </button>
           </li>
         );
@@ -50,8 +54,11 @@ function Tree(props: { game: Game; line: CompiledLine; form: string }) {
   );
 }
 
-/** Karta formy: stopień, skąd się bierze, dokąd prowadzi, statystyki i koszty ulepszeń. */
-function FormCard(props: { game: Game; line: CompiledLine; form: string }) {
+/**
+ * Karta formy: stopień, skąd się bierze (forma bazowa ze sklepu, pozostałe z ewolucji) i za ile,
+ * dokąd prowadzi, statystyki i koszty ulepszeń.
+ */
+function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine; form: string }) {
   const { game, line, form } = props;
   const node = line.forms.get(form);
   const unit = game.content.heroes.get(form);
@@ -59,14 +66,27 @@ function FormCard(props: { game: Game; line: CompiledLine; form: string }) {
   const parent = node.from === null ? undefined : game.content.heroes.get(node.from);
   return (
     <section class="sheet form-card" data-details={form}>
-      <h3 class="hero-name">{unitName(form)}</h3>
-      <p class="note">{tierLabel(node.tier)}</p>
-      {node.from !== null && (
-        <p class="form-origin">
-          <span>{t('heroes.from', { name: unitName(node.from) })}</span>
-          <Gold amount={node.evolveCost} />
-        </p>
-      )}
+      <header class="card-head">
+        <Portrait stage={props.stage} unit={form} />
+        <div class="card-title">
+          <h3 class="hero-name">{unitName(form)}</h3>
+          <p class="hero-form">
+            <span>{lineName(line.id)}</span>
+            <span>{tierLabel(node.tier)}</span>
+          </p>
+        </div>
+        {parent !== undefined && (
+          <InfoButton topic={unitName(form)} lines={[t('heroes.compare')]} />
+        )}
+      </header>
+      <p class="form-origin">
+        <span>
+          {node.from === null
+            ? t('heroes.info.price')
+            : t('heroes.from', { name: unitName(node.from) })}
+        </span>
+        <Gold amount={node.from === null ? line.price : node.evolveCost} />
+      </p>
       <p class="form-next">
         {node.next.length === 0
           ? t('heroes.last')
@@ -74,7 +94,6 @@ function FormCard(props: { game: Game; line: CompiledLine; form: string }) {
       </p>
       {/* Forma po ewolucji zaczyna bez ulepszeń, więc porównujemy wartości bazowe obu form. */}
       <StatTable spec={parent?.base ?? unit.base} next={parent === undefined ? null : unit.base} />
-      {parent !== undefined && <p class="note">{t('heroes.compare')}</p>}
       <div class="form-upgrades">
         <span class="sheet-title">{t('heroes.upgrade.costs')}</span>
         <span class="form-upgrade-costs">
@@ -89,8 +108,13 @@ function FormCard(props: { game: Game; line: CompiledLine; form: string }) {
   );
 }
 
-export function HeroesScreen(props: { game: Game; line: string | null; form: string | null }) {
-  const { game } = props;
+export function HeroesScreen(props: {
+  game: Game;
+  stage: StageControls;
+  line: string | null;
+  form: string | null;
+}) {
+  const { game, stage } = props;
   const { content } = game;
   const line = props.line === null ? undefined : content.lines.get(props.line);
   const form = line === undefined ? null : (props.form ?? line.base);
@@ -99,7 +123,15 @@ export function HeroesScreen(props: { game: Game; line: string | null; form: str
 
   return (
     <div class="screen heroes">
-      <ScreenHead game={game} title={t('nav.heroes')} />
+      <ScreenHead
+        game={game}
+        title={t('nav.heroes')}
+        info={[
+          t('heroes.info.upgrade', { percent: upgradePercent }),
+          t('heroes.info.evolve', { max: maxUpgrades }),
+          t('heroes.info.where'),
+        ]}
+      />
       <nav class="line-tabs" aria-label={t('heroes.lines')}>
         {[...content.lines.values()].map((option) => (
           <button
@@ -110,7 +142,7 @@ export function HeroesScreen(props: { game: Game; line: string | null; form: str
             aria-pressed={option.id === props.line}
             onClick={() => game.openHeroes(option.id)}
           >
-            {unitName(option.base)}
+            {lineName(option.id)}
           </button>
         ))}
       </nav>
@@ -118,19 +150,10 @@ export function HeroesScreen(props: { game: Game; line: string | null; form: str
       {line !== undefined && form !== null && (
         <>
           <section class="sheet tree-sheet">
-            <Tree game={game} line={line} form={form} />
-            <p class="note">
-              {t('heroes.info.upgrade', { percent: upgradePercent })}{' '}
-              {t('heroes.info.evolve', { max: maxUpgrades })} {t('heroes.info.where')}
-            </p>
-            <p class="tree-price">
-              <span>{t('heroes.info.price')}</span>
-              <Gold amount={line.price} />
-              <span>{t('shop.owned', { count: ownedCount(game.save.value, line.id) })}</span>
-            </p>
+            <Tree game={game} stage={stage} line={line} form={form} />
           </section>
 
-          <FormCard game={game} line={line} form={form} />
+          <FormCard game={game} stage={stage} line={line} form={form} />
 
           {/* Pod podłogą droga wybranej formy: nazwy postaci i koszty ewolucji między nimi. */}
           {stands.map((stand, index) => {

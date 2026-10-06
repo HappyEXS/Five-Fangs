@@ -2,9 +2,12 @@
 // więc leczenie z danego ticka może uratować jednostkę przed śmiercią w tym samym ticku.
 import type { Battle } from './battle.ts';
 import { isAlive } from './decide.ts';
-import { TEAM_SIZE } from './types.ts';
+import { isPlayerUnit, SQUAD_UNITS, TEAM_SIZE } from './types.ts';
 
-/** Leczenie okresowe: co `healInterval` ticków od początku walki leczy siebie albo całą drużynę. */
+/**
+ * Leczenie okresowe: co `healInterval` ticków od początku walki (dla przyzwanego: od przyzwania)
+ * leczy siebie albo całą drużynę, razem z jej przyzwanymi.
+ */
 export function applyPeriodicHeals(battle: Battle): void {
   const { state, specs, pending, healers } = battle;
   for (let h = 0; h < healers.length; h++) {
@@ -23,11 +26,13 @@ export function applyPeriodicHeals(battle: Battle): void {
       state.healingDone[i] = (state.healingDone[i] ?? 0) + amount;
       continue;
     }
-    const first = i < TEAM_SIZE ? 0 : TEAM_SIZE;
-    for (let ally = first; ally < first + TEAM_SIZE; ally++) {
-      if (!isAlive(state.status[ally] ?? 0)) continue;
-      pending.heal[ally] = (pending.heal[ally] ?? 0) + amount;
-      state.healingDone[i] = (state.healingDone[i] ?? 0) + amount;
+    const first = isPlayerUnit(i) ? 0 : TEAM_SIZE;
+    for (let base = first; base < first + state.unitSpan; base += SQUAD_UNITS) {
+      for (let ally = base; ally < base + TEAM_SIZE; ally++) {
+        if (!isAlive(state.status[ally] ?? 0)) continue;
+        pending.heal[ally] = (pending.heal[ally] ?? 0) + amount;
+        state.healingDone[i] = (state.healingDone[i] ?? 0) + amount;
+      }
     }
   }
 }

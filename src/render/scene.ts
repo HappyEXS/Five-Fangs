@@ -2,7 +2,7 @@
 // powstają raz, przy tworzeniu renderera; rysowanie tylko je wypełnia i czyta.
 import type { Pool } from '../core/pool.ts';
 import { createRng, type Rng } from '../core/rng.ts';
-import { type Battle, MAX_UNITS, TEAM_SIZE } from '../sim/index.ts';
+import { type Battle, isPlayerUnit, MAX_UNITS, SQUAD_UNITS } from '../sim/index.ts';
 import { type Animator, createAnimator, type UnitLook } from './animation.ts';
 import type { Atlas, Sprite } from './atlas.ts';
 import { type Camera, createCamera, GROUND_Y } from './camera.ts';
@@ -10,6 +10,13 @@ import { debugStats } from './debug.ts';
 import { createFloatTexts, type FloatText } from './float-text.ts';
 import { MATRIX_SIZE } from './rig.ts';
 import type { Viewport } from './viewport.ts';
+
+/**
+ * Liczba wierszy w tablicach wyglądu: miejsca jednostek walki, a za nimi po jednym wzorcu na
+ * jednostkę składu. Wzorzec `MAX_UNITS + unitId` trzyma wygląd tego, co dana jednostka przyzywa;
+ * przy przyzwaniu renderer przepisuje go do miejsca, w którym przyzwany stanął (ADR 0020).
+ */
+export const LOOK_ROWS = MAX_UNITS + SQUAD_UNITS;
 
 export interface Scene {
   readonly ctx: CanvasRenderingContext2D;
@@ -23,10 +30,12 @@ export interface Scene {
   readonly local: Float32Array;
   /** Największa liczba kości wśród rigów; rozmiar wiersza w `boneSprites`. */
   readonly maxBones: number;
-  /** Stan przygotowany w beginBattle; indeks = unitId. */
+  /** Stan przygotowany w beginBattle; indeks = unitId albo wiersz wzorca przyzwanego. */
   readonly looks: (UnitLook | null)[];
   readonly boneSprites: (Sprite | null)[];
   readonly projectileSprites: (Sprite | null)[];
+  /** Wysokość lotu pocisków jednostki nad linią stóp, w jednostkach logicznych sceny. */
+  readonly projectileHeights: Float32Array;
   /** Liczby obrażeń i leczenia. */
   readonly floatTexts: Pool<FloatText>;
   /** RNG wyłącznie dla efektów kosmetycznych. */
@@ -34,12 +43,21 @@ export interface Scene {
   /** Cyfry 0..9 zestawu obrażeń, potem leczenia, potem liczby życia nad paskiem. */
   readonly digitSprites: (Sprite | null)[];
   readonly plusSprite: Sprite | null;
+  /** Znak uniku unoszący się nad postacią, która uniknęła trafienia. */
+  readonly dodgeSprite: Sprite | null;
   /** Jednostka rysowana na wierzchu pozostałych albo -1. */
   topUnit: number;
+  /** Scena pokazowa: paski życia obu stron w kolorze gracza. */
+  showcase: boolean;
   /** Zasięg postaci per unitId (reach.ts): za plecami, przed sobą i w górę, w jednostkach sceny. */
   readonly reachBack: Float32Array;
   readonly reachFront: Float32Array;
   readonly reachHeight: Float32Array;
+  /**
+   * Wysokość, nad którą wisi pasek życia jednostki, w jednostkach sceny: czubek stojącej postaci,
+   * ale nie niżej niż u człowieka o tej samej skali, żeby paski ludzi stały w jednej linii.
+   */
+  readonly headHeight: Float32Array;
   battle: Battle | null;
 }
 
@@ -68,17 +86,21 @@ export function createScene(
     matrices: new Float32Array(maxBones * MATRIX_SIZE),
     local: new Float32Array(MATRIX_SIZE),
     maxBones,
-    looks: new Array<UnitLook | null>(MAX_UNITS).fill(null),
-    boneSprites: new Array<Sprite | null>(MAX_UNITS * maxBones).fill(null),
-    projectileSprites: new Array<Sprite | null>(MAX_UNITS).fill(null),
+    looks: new Array<UnitLook | null>(LOOK_ROWS).fill(null),
+    boneSprites: new Array<Sprite | null>(LOOK_ROWS * maxBones).fill(null),
+    projectileSprites: new Array<Sprite | null>(LOOK_ROWS).fill(null),
+    projectileHeights: new Float32Array(LOOK_ROWS),
     floatTexts: createFloatTexts(),
     jitter: createRng(1),
     digitSprites,
     plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
+    dodgeSprite: atlas.sprites.get('fx/dodge') ?? null,
     topUnit: -1,
-    reachBack: new Float32Array(MAX_UNITS),
-    reachFront: new Float32Array(MAX_UNITS),
-    reachHeight: new Float32Array(MAX_UNITS),
+    showcase: false,
+    reachBack: new Float32Array(LOOK_ROWS),
+    reachFront: new Float32Array(LOOK_ROWS),
+    reachHeight: new Float32Array(LOOK_ROWS),
+    headHeight: new Float32Array(LOOK_ROWS),
     battle: null,
   };
 }
@@ -95,12 +117,34 @@ export const UPPER_BODY = 48;
 
 /** Kierunek, w który patrzy jednostka: gracz w prawo, przeciwnik w lewo. */
 export function unitFacing(unit: number): number {
-  return unit < TEAM_SIZE ? 1 : -1;
+  return isPlayerUnit(unit) ? 1 : -1;
 }
 
-/** Wysokość czubka głowy jednostki na scenie. */
-export function unitHeadY(look: UnitLook): number {
-  return FEET_Y - (look.rig.hipHeight + UPPER_BODY) * look.scale;
+/**
+ * Przepisuje wygląd z wiersza `from` do wiersza `to`: przyzwana jednostka dostaje wygląd
+ * przygotowany dla jej przyzywacza. Bez alokacji; wołane ze zdarzenia symulacji.
+ */
+export function copyLook(scene: Scene, from: number, to: number): void {
+  const { maxBones, boneSprites } = scene;
+  scene.looks[to] = scene.looks[from] ?? null;
+  for (let bone = 0; bone < maxBones; bone++) {
+    boneSprites[to * maxBones + bone] = boneSprites[from * maxBones + bone] ?? null;
+  }
+  scene.projectileSprites[to] = scene.projectileSprites[from] ?? null;
+  scene.projectileHeights[to] = scene.projectileHeights[from] ?? 0;
+  scene.reachBack[to] = scene.reachBack[from] ?? 0;
+  scene.reachFront[to] = scene.reachFront[from] ?? 0;
+  scene.reachHeight[to] = scene.reachHeight[from] ?? 0;
+  scene.headHeight[to] = scene.headHeight[from] ?? 0;
+}
+
+/**
+ * Wysokość nad stopami, nad którą wisi pasek życia: `stand` to zmierzony czubek stojącej
+ * postaci (reach.ts). Postacie o ludzkiej budowie dostają wspólną wysokość z rigu, wyższe
+ * (długa szyja, rogi, uszy) własną.
+ */
+export function headHeightOf(look: UnitLook, stand: number): number {
+  return Math.max((look.rig.hipHeight + UPPER_BODY) * look.scale, stand);
 }
 
 /**

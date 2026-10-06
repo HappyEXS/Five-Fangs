@@ -5,6 +5,11 @@ export function unitNameKey(unitId: string): string {
   return `unit.${unitId}.name`;
 }
 
+/** Klucz i18n z nazwą linii bohaterów, czyli szczepu. */
+export function lineNameKey(lineId: string): string {
+  return `line.${lineId}.name`;
+}
+
 /** Klucz i18n z nazwą świata. */
 export function worldNameKey(worldId: string): string {
   return `world.${worldId}.name`;

@@ -32,6 +32,7 @@ Do tej pory linia bohatera miała dokładnie dwie formy: bazową i jedną po ewo
 ## Konsekwencje
 
 - Docelowy roster autor gry poda jako drzewa w tym samym formacie; kopie testowe znikną razem ze swoimi wpisami w `heroes.json` i słownikach. Zapisy z kopiami wrócą wtedy do formy bazowej (bez migracji, przez `reconcileSave`).
+- **Uzupełnienie (2026-10-06, M5j):** kopie testowe znikły, gdy cztery linie ludzi stały się dwoma szczepami po siedem form. Wbrew zapowiedzi wyżej dostały migrację zapisu (v3 → v4): gra działa już u testerów, a bez migracji bohaterowie linii Tarczowników i Akolitów przepadliby, a formy-kopie wróciły do formy bazowej bez ulepszeń. Każda kopia wskazuje w migracji prawdziwą formę tej samej postaci.
 - Dłuższe drogi mieszczą się w danych i w UI: siatka drzewa ma tyle kolumn, ile stopni, a scena zakładki pokazuje do pięciu form jednej drogi.
 - Wybór drogi jest nieodwracalny. Gracz, który chce drugiej drogi, kupuje kolejny egzemplarz tej samej linii w sklepie (egzemplarze są niezależne od M5b).
 - Raport balansu ma kolumny C0–C4. Świat „Las” kończy się na B4, więc jego oczekiwane rangi się nie zmieniły.

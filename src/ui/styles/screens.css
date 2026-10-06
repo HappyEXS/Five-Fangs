@@ -41,14 +41,6 @@
   font-size: 0.88em;
 }
 
-.shop-hint {
-  position: absolute;
-  top: 9.6%;
-  right: 1.6%;
-  left: 1.6%;
-  font-size: 0.92em;
-}
-
 /* Informacje o bohaterach: drzewo ewolucji linii u góry, postacie wybranej drogi na scenie,
    karta wybranej formy z prawej, nazwy i koszty ewolucji pod linią podłogi (ADR 0016). */
 
@@ -66,15 +58,15 @@
   position: absolute;
   top: 17%;
   left: 1.6%;
-  display: grid;
-  gap: 0.6em;
   width: 57%;
+  padding-block: 0.6em;
 }
 
-/* Kolumna to stopień formy, wiersz to droga; rozwidlenie zajmuje wiersze swoich gałęzi. */
+/* Kolumna to stopień formy, wiersz to droga; rozwidlenie zajmuje wiersze swoich gałęzi.
+   Wiersze są ciasne: drzewo o czterech końcowych formach kończy się nad głowami postaci. */
 .tree {
   display: grid;
-  gap: 0.45em 1.4em;
+  gap: 0.3em 1.4em;
   grid-auto-columns: 1fr;
   align-items: center;
 }
@@ -103,9 +95,14 @@
 }
 
 .tree-node {
+  --portrait: 1.85em;
+
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
   flex: 1;
   min-width: 0;
-  padding: 0.25em 0.5em;
+  padding: 0.1em 0.5em 0.1em 0.2em;
   border: var(--line) solid var(--ink);
   border-radius: 0.28em;
   background-color: var(--sheet-light);
@@ -123,6 +120,15 @@
   background-color: var(--sheet);
 }
 
+/* W przycisku miniaturka leży płasko: cień ma już sam przycisk. */
+.tree-node .portrait {
+  box-shadow: none;
+}
+
+.tree-name {
+  min-width: 0;
+}
+
 /* Formy na drodze do wybranej: jaśniejszy nagietek, wybrana: pełny. */
 .tree-path {
   background-color: var(--marigold-light);
@@ -130,13 +136,6 @@
 
 .tree-node[aria-pressed="true"] {
   background-color: var(--marigold);
-}
-
-.tree-price {
-  display: flex;
-  align-items: center;
-  gap: 0.6em;
-  font-weight: 700;
 }
 
 .form-card {
@@ -283,6 +282,60 @@
   margin: 0 0.5em;
 }
 
+/* Miniaturki żywych postaci w dolnych rogach: swoi z lewej, wróg z prawej, w tej kolejności,
+   w jakiej stoją na scenie. Poległy przewraca się do tyłu i znika, a rząd zsuwa się do rogu. */
+.hud-faces {
+  --portrait: 3.4em;
+
+  position: absolute;
+  bottom: 4.5%;
+  display: flex;
+}
+
+.hud-faces-player {
+  left: 1.6%;
+}
+
+.hud-faces-enemy {
+  right: 1.6%;
+}
+
+.hud-face {
+  width: var(--portrait);
+}
+
+.hud-faces-player .hud-face {
+  margin-right: 0.55em;
+  transform-origin: 0 100%;
+}
+
+.hud-faces-enemy .hud-face {
+  margin-left: 0.55em;
+  transform-origin: 100% 100%;
+}
+
+/* Przejście tylko w stronę zejścia: żywe miniaturki zmieniają rozmiar razem z oknem od razu. */
+.hud-face[data-alive="false"] {
+  width: 0;
+  margin: 0;
+  opacity: 0;
+  transition:
+    opacity 320ms ease-in,
+    rotate 320ms ease-in,
+    translate 320ms ease-in,
+    width 220ms ease-out 300ms,
+    margin 220ms ease-out 300ms;
+  translate: 0 55%;
+}
+
+.hud-faces-player .hud-face[data-alive="false"] {
+  rotate: -24deg;
+}
+
+.hud-faces-enemy .hud-face[data-alive="false"] {
+  rotate: 24deg;
+}
+
 /* Wynik: arkusz opuszczany na scenę, na której zostało pole zakończonej walki. */
 
 .result-sheet {
@@ -360,5 +413,9 @@
 @media (prefers-reduced-motion: reduce) {
   .result-sheet {
     animation: none;
+  }
+
+  .hud-face[data-alive="false"] {
+    transition: none;
   }
 }

@@ -32,6 +32,16 @@ export function Coin() {
   );
 }
 
+/** Litera „i” przycisku informacji: sama kropka i trzonek, kółkiem jest przycisk. */
+export function InfoMark() {
+  return (
+    <svg class="icon icon-info" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="5.2" r="2.2" />
+      <path d="M12 11.2v7.6" fill="none" />
+    </svg>
+  );
+}
+
 export function Lock() {
   return (
     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">

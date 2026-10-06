@@ -65,7 +65,52 @@ function formIndexToUnit(save: Record<string, unknown>): Record<string, unknown>
   return { ...save, saveVersion: 3, heroes };
 }
 
+/** Linie, które w wersji 4 weszły do szczepów Mieczników i Łuczników. */
+const MERGED_LINES: ReadonlyMap<string, string> = new Map([
+  ['guard', 'swordsman'],
+  ['cleric', 'archer'],
+]);
+
+/**
+ * Formy, których w wersji 4 już nie ma: kopie z testowych drzew ewolucji (ADR 0016). Każda
+ * wskazuje prawdziwą formę tej samej postaci: „Strażnik (kopia)” i „Strażnik II” to Strażnik,
+ * „Rycerz (kopia)” to forma o statystykach dawnego Rycerza (dziś Zbrojny, `swordsman_b`),
+ * a „Rycerz II (kopia)” to dzisiejszy Rycerz (`swordsman_b2`); u łuczników tak samo.
+ */
+const MERGED_FORMS: ReadonlyMap<string, string> = new Map([
+  ['swordsman_c', 'guard_b'],
+  ['swordsman_c2', 'guard_b'],
+  ['guard_b2', 'guard_b'],
+  ['guard_c', 'swordsman_b'],
+  ['guard_c2', 'swordsman_b2'],
+  ['archer_c', 'cleric_b'],
+  ['archer_c2', 'cleric_b'],
+  ['cleric_b2', 'cleric_b'],
+  ['cleric_c', 'archer_b'],
+  ['cleric_c2', 'archer_b2'],
+]);
+
+/**
+ * v3 → v4: cztery linie ludzi (Miecznicy, Łucznicy, Tarczownicy, Akolici) stają się dwoma
+ * szczepami po siedem form. Bez tej migracji reconcileSave usunąłby bohaterów linii, których
+ * już nie ma, a bohaterów w formach-kopiach cofnął do formy bazowej. Bohater zachowuje id,
+ * liczbę ulepszeń i runy; formy `swordsman_b`, `archer_b`, `guard_a`, `guard_b`,
+ * `cleric_a` i `cleric_b` istnieją dalej pod tym samym id.
+ */
+function mergeHumanLines(save: Record<string, unknown>): Record<string, unknown> {
+  const heroes = Array.isArray(save.heroes)
+    ? save.heroes.map((hero: unknown) => {
+        if (!isRecord(hero)) return hero;
+        const line = typeof hero.line === 'string' ? MERGED_LINES.get(hero.line) : undefined;
+        const form = typeof hero.form === 'string' ? MERGED_FORMS.get(hero.form) : undefined;
+        return { ...hero, line: line ?? hero.line, form: form ?? hero.form };
+      })
+    : save.heroes;
+  return { ...save, saveVersion: 4, heroes };
+}
+
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: linesToHeroes,
   2: formIndexToUnit,
+  3: mergeHumanLines,
 };

@@ -1,6 +1,7 @@
 // Faza 4: pociski fizyczne (ADR 0007). Pocisk to punkt lecący ze stałym krokiem aż do
 // krawędzi pola; nie śledzi celu. Zwykły trafia pierwszego wroga na drodze, przebijający
-// każdego, którego minie.
+// każdego, którego minie, a wycelowany (cecha targetLast) tylko jednostkę, w którą celował
+// strzelec: pozostałych mija, a gdy cel zginął, leci do krawędzi pola.
 //
 // Trafienie wykrywamy przez położenie względne: wróg był przed pociskiem na początku ticka
 // i nie jest przed nim po ruchu obu. Sam przedział przebyty przez pocisk nie wystarcza,
@@ -14,9 +15,19 @@ import {
   EVENT_PROJECTILE_SPAWNED,
   pushEvent,
 } from './events.ts';
-import { attackDamage, queueHit } from './hits.ts';
+import { nextAttackDamage, queueHit } from './hits.ts';
 import type { BattleState } from './state.ts';
-import { forwardOf, MAX_PROJECTILES, TEAM_SIZE, teamOf } from './types.ts';
+import {
+  forwardOf,
+  isPlayerUnit,
+  MAX_PROJECTILES,
+  PROJECTILE_AIMED,
+  PROJECTILE_FIRST,
+  PROJECTILE_PIERCE,
+  SQUAD_UNITS,
+  TEAM_SIZE,
+  teamOf,
+} from './types.ts';
 
 /** Tworzy pocisk w pozycji strzelca, z jego obrażeniami z chwili wystrzału (także premią szału). */
 export function spawnProjectile(battle: Battle, owner: number): void {
@@ -33,10 +44,17 @@ export function spawnProjectile(battle: Battle, owner: number): void {
   state.projPrevX[p] = x;
   state.projStep[p] = forwardOf(teamOf(owner)) * (specs.projectileStep[owner] ?? 0);
   state.projOwner[p] = owner;
-  state.projDamage[p] = attackDamage(battle, owner);
+  state.projDamage[p] = nextAttackDamage(battle, owner);
   state.projKnockback[p] = specs.knockback[owner] ?? 0;
-  state.projPierce[p] = specs.pierce[owner] ?? 0;
   state.projHitMask[p] = 0;
+  if ((specs.targetLast[owner] ?? 0) !== 0) {
+    // Cel jest zablokowany od początku zamachu; mógł już zginąć, wtedy pocisk nikogo nie trafi.
+    state.projMode[p] = PROJECTILE_AIMED;
+    state.projTarget[p] = state.target[owner] ?? -1;
+  } else {
+    state.projMode[p] = (specs.pierce[owner] ?? 0) !== 0 ? PROJECTILE_PIERCE : PROJECTILE_FIRST;
+    state.projTarget[p] = -1;
+  }
   state.projCount = p + 1;
   pushEvent(battle.events, EVENT_PROJECTILE_SPAWNED, id, owner, x);
 }
@@ -49,8 +67,9 @@ function copyProjectile(state: BattleState, from: number, to: number): void {
   state.projOwner[to] = state.projOwner[from] ?? 0;
   state.projDamage[to] = state.projDamage[from] ?? 0;
   state.projKnockback[to] = state.projKnockback[from] ?? 0;
-  state.projPierce[to] = state.projPierce[from] ?? 0;
+  state.projMode[to] = state.projMode[from] ?? 0;
   state.projHitMask[to] = state.projHitMask[from] ?? 0;
+  state.projTarget[to] = state.projTarget[from] ?? -1;
 }
 
 function hit(battle: Battle, p: number, target: number): void {
@@ -72,7 +91,66 @@ function hit(battle: Battle, p: number, target: number): void {
 }
 
 /**
+ * Pocisk przebijający wśród przyzwanych: trafia każdą żywą jednostkę spośród TEAM_SIZE miejsc
+ * od `first`, którą minął w tym ticku i której jeszcze nie trafił. Zwraca maskę trafionych.
+ */
+function pierceSummons(
+  battle: Battle,
+  p: number,
+  first: number,
+  from: number,
+  to: number,
+  hitMask: number,
+): number {
+  const { status, x, prevX } = battle.state;
+  const direction = to > from ? 1 : -1;
+  let mask = hitMask;
+  for (let enemy = first; enemy < first + TEAM_SIZE; enemy++) {
+    if (!isAlive(status[enemy] ?? 0) || (mask & (1 << enemy)) !== 0) continue;
+    const before = ((prevX[enemy] ?? 0) - from) * direction;
+    const after = ((x[enemy] ?? 0) - to) * direction;
+    if (before >= 0 && after <= 0) {
+      mask |= 1 << enemy;
+      hit(battle, p, enemy);
+    }
+  }
+  return mask;
+}
+
+/**
+ * Pierwszy na drodze pocisku wśród przyzwanych: najbliższy przed pociskiem na początku ticka
+ * spośród TEAM_SIZE miejsc od `first`, o ile jest bliżej niż dotychczasowy `best` ze składu
+ * (-1: nikogo). Remis wygrywa `best`, czyli niższe `unitId`.
+ */
+function firstSummonOnPath(
+  state: BattleState,
+  first: number,
+  from: number,
+  to: number,
+  best: number,
+): number {
+  const { status, x, prevX } = state;
+  const direction = to > from ? 1 : -1;
+  let nearest = best;
+  let nearestBefore = best === -1 ? 0 : ((prevX[best] ?? 0) - from) * direction;
+  for (let enemy = first; enemy < first + TEAM_SIZE; enemy++) {
+    if (!isAlive(status[enemy] ?? 0)) continue;
+    const before = ((prevX[enemy] ?? 0) - from) * direction;
+    const after = ((x[enemy] ?? 0) - to) * direction;
+    if (before >= 0 && after <= 0 && (nearest === -1 || before < nearestBefore)) {
+      nearest = enemy;
+      nearestBefore = before;
+    }
+  }
+  return nearest;
+}
+
+/**
  * Przesuwa pocisk `p` i rozstrzyga trafienia. Zwraca true, jeśli pocisk leci dalej.
+ *
+ * Wrogowie to skład przeciwnej strony, a w walce z przyzywaczami także jej przyzwani. Skład
+ * sprawdzają pętle wpisane tutaj, takie same jak przed dodaniem przyzywania; przyzwanych osobne
+ * funkcje, wołane tylko w walce z przyzywaczami (uzasadnienie przy `frontUnit`).
  */
 function advance(battle: Battle, p: number): boolean {
   const { state } = battle;
@@ -81,10 +159,21 @@ function advance(battle: Battle, p: number): boolean {
   const direction = step > 0 ? 1 : -1;
   const from = state.projX[p] ?? 0;
   const to = from + step;
-  const firstEnemy = (state.projOwner[p] ?? 0) < TEAM_SIZE ? TEAM_SIZE : 0;
+  const firstEnemy = isPlayerUnit(state.projOwner[p] ?? 0) ? TEAM_SIZE : 0;
   state.projX[p] = to;
 
-  if ((state.projPierce[p] ?? 0) !== 0) {
+  const mode = state.projMode[p] ?? PROJECTILE_FIRST;
+  if (mode === PROJECTILE_AIMED) {
+    const aimed = state.projTarget[p] ?? -1;
+    if (aimed >= 0 && isAlive(status[aimed] ?? 0)) {
+      const before = ((prevX[aimed] ?? 0) - from) * direction;
+      const after = ((x[aimed] ?? 0) - to) * direction;
+      if (before >= 0 && after <= 0) {
+        hit(battle, p, aimed);
+        return false;
+      }
+    }
+  } else if (mode === PROJECTILE_PIERCE) {
     let mask = state.projHitMask[p] ?? 0;
     for (let enemy = firstEnemy; enemy < firstEnemy + TEAM_SIZE; enemy++) {
       if (!isAlive(status[enemy] ?? 0) || (mask & (1 << enemy)) !== 0) continue;
@@ -94,6 +183,9 @@ function advance(battle: Battle, p: number): boolean {
         mask |= 1 << enemy;
         hit(battle, p, enemy);
       }
+    }
+    if (state.unitSpan !== SQUAD_UNITS) {
+      mask = pierceSummons(battle, p, firstEnemy + SQUAD_UNITS, from, to, mask);
     }
     state.projHitMask[p] = mask;
   } else {
@@ -108,6 +200,9 @@ function advance(battle: Battle, p: number): boolean {
         nearest = enemy;
         nearestBefore = before;
       }
+    }
+    if (state.unitSpan !== SQUAD_UNITS) {
+      nearest = firstSummonOnPath(state, firstEnemy + SQUAD_UNITS, from, to, nearest);
     }
     if (nearest !== -1) {
       hit(battle, p, nearest);

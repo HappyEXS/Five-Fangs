@@ -32,3 +32,7 @@ Dodanie cechy wymaga: wariantu w schemacie, pól w `UnitSpec` i kompilacji, kodu
 - Wrogowie i bossowie używają tych samych cech co bohaterowie.
 - Jeśli liczba cech przekroczy kilkanaście albo pojawi się potrzeba łączenia wyzwalaczy z akcjami, wrócimy do pytania o silnik ogólny w nowym ADR.
 - `UnitSpec` rośnie o pola z każdą cechą; to akceptowalne przy 10 jednostkach w walce.
+
+## Uzupełnienie z 2026-10-05
+
+Po szczepach Immortals, Plants i Robots doszły `doubleDamage`, `dodge` i `shield` (pierwsze cechy obronne: działają po stronie trafionego, w jednym miejscu, `queueHit`). Wcześniej zestaw miał sześć cech: `periodicHeal`, `pierce`, `enrage`, `lifesteal`, `splash` i `targetLast` (celowanie w koniec szyku wroga, GAME_DESIGN.md §6). `targetLast` jest pierwszą cechą, która zmienia wybór celu, a nie skutek trafienia. Zmieściła się w tym samym trybie pracy: flaga w `UnitSpec`, wybór celu w fazie decyzji, tryb pocisku w fazie pocisków (ADR 0007, uzupełnienie), reguły w `validateSetup` i walidatorze treści, testy i własna walka golden.

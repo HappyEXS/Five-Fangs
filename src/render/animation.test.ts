@@ -4,6 +4,7 @@ import {
   createEventBuffer,
   EVENT_DAMAGED,
   EVENT_DIED,
+  EVENT_SUMMONED,
   pushEvent,
   STATUS_ATTACKING,
   STATUS_IDLE,
@@ -176,6 +177,31 @@ describe('zdarzenia', () => {
     updateUnitPose(a, 1, swordsman, STATUS_ATTACKING, 6, 12, 0.8, 300, 150);
     expect(a.deathMs[1]).toBe(250);
     expect(Array.from(a.pose)).toEqual(frozen);
+  });
+
+  it('przyzwanie zeruje miejsce: nowa jednostka nie dziedziczy padania ani pozy poprzednika', () => {
+    const a = animator();
+    updateUnitPose(a, 12, swordsman, STATUS_MOVING, -1, 12, 0, 100, 16);
+    updateUnitPose(a, 12, swordsman, STATUS_MOVING, -1, 12, 0, 130, 16);
+    const events = createEventBuffer(8);
+    pushEvent(events, EVENT_DAMAGED, 12, 40, 5);
+    pushEvent(events, EVENT_DIED, 12, 0, 0);
+    animatorOnEvents(a, events);
+    expect(a.deathMs[12]).toBe(0);
+    expect(a.walkPhase[12]).toBeGreaterThan(0);
+
+    events.count = 0;
+    pushEvent(events, EVENT_SUMMONED, 12, 0, 0);
+    animatorOnEvents(a, events);
+    expect(a.deathMs[12]).toBe(-1);
+    expect(a.flashMs[12]).toBe(0);
+    expect(a.walkPhase[12]).toBe(0);
+    expect(a.posed[12]).toBe(0);
+    // Pierwsza klatka nowej jednostki: poza wprost z klipu, a dystans liczony od jej pozycji,
+    // nie od miejsca, w którym padł poprzednik.
+    updateUnitPose(a, 12, swordsman, STATUS_MOVING, -1, 12, 0, 400, 16);
+    expect(a.walkPhase[12]).toBe(0);
+    expect(a.posed[12]).toBe(1);
   });
 
   it('reset przywraca stan początkowy', () => {

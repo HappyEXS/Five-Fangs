@@ -1,12 +1,15 @@
 // Kształt zapisu gry (docs/ARCHITECTURE.md §6.2, ADR 0005). Zmiana kształtu wymaga podniesienia
 // SAVE_VERSION, migracji w save-migrations.ts i fixture w tests/fixtures/saves/.
 //
+// Wersja 4: ten sam kształt co w wersji 3, ale inne linie: cztery dawne linie ludzi to teraz
+// dwa szczepy po siedem form (M5j), więc bohaterowie linii, które znikły, i form-kopii z drzew
+// testowych dostają w migracji nową linię i formę.
 // Wersja 3: forma bohatera to id jednostki, bo formy linii tworzą drzewo ewolucji (ADR 0016).
 // Wersja 2: bohaterowie są egzemplarzami (gracz może mieć kilku bohaterów tej samej linii,
 // każdy z własnymi ulepszeniami i runami). W wersji 1 stan był trzymany per linia.
 import { z } from 'zod';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 /** Liczba slotów składu; równa TEAM_SIZE symulacji. */
 export const SQUAD_SLOTS = 5;

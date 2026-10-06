@@ -9,8 +9,9 @@ import { SAVE_VERSION } from '../../src/game/save-schema.ts';
 import v1 from '../fixtures/saves/v1.json' with { type: 'json' };
 import v2 from '../fixtures/saves/v2.json' with { type: 'json' };
 import v3 from '../fixtures/saves/v3.json' with { type: 'json' };
+import v4 from '../fixtures/saves/v4.json' with { type: 'json' };
 
-const FIXTURES: Readonly<Record<number, unknown>> = { 1: v1, 2: v2, 3: v3 };
+const FIXTURES: Readonly<Record<number, unknown>> = { 1: v1, 2: v2, 3: v3, 4: v4 };
 
 describe('przykładowe pliki zapisów', () => {
   it('istnieje plik dla każdej wersji zapisu', () => {
@@ -28,16 +29,16 @@ describe('przykładowe pliki zapisów', () => {
   });
 
   it('zapis w bieżącej wersji wczytuje się bez zmian', () => {
-    expect(decodeSave(JSON.stringify(v3))).toEqual({ kind: 'ok', save: v3, migratedFrom: null });
+    expect(decodeSave(JSON.stringify(v4))).toEqual({ kind: 'ok', save: v4, migratedFrom: null });
   });
 
-  it('migracje v1 → v3 zamieniają stan linii na bohaterów, a indeks formy na jej id', () => {
+  it('migracje od v1 zamieniają stan linii na bohaterów, a indeks formy na jej id', () => {
     const decoded = decodeSave(JSON.stringify(v1));
     expect(decoded).toEqual({
       kind: 'ok',
       migratedFrom: 1,
       save: {
-        saveVersion: 3,
+        saveVersion: 4,
         gameVersion: '0.1.0',
         gold: 135,
         // Każda linia z v1 to jeden bohater; id nadane w kolejności linii w zapisie.
@@ -75,6 +76,13 @@ describe('przykładowe pliki zapisów', () => {
       [3, 'swordsman_a', 0],
       [4, 'guard_a', 1],
     ]);
+    // Dalej, w v3 → v4, Tarczownik z dawnej linii Tarczowników trafia do Mieczników.
+    expect(decoded.save.heroes.map((hero) => hero.line)).toEqual([
+      'swordsman',
+      'archer',
+      'swordsman',
+      'swordsman',
+    ]);
     // Reszta zapisu przechodzi bez zmian.
     expect(decoded.save.squad).toEqual(v2.squad);
     expect(decoded.save.runes).toEqual(v2.runes);
@@ -83,6 +91,66 @@ describe('przykładowe pliki zapisów', () => {
   it('migracja v2 → v3 nie zgaduje formy spoza 0 i 1: taki zapis jest uszkodzony', () => {
     const broken = { ...v2, heroes: [{ ...v2.heroes[0], form: 7 }] };
     expect(decodeSave(JSON.stringify(broken)).kind).toBe('corrupt');
+  });
+
+  it('migracja v3 → v4 przenosi bohaterów dawnych linii i form-kopii do dwóch szczepów ludzi', () => {
+    const decoded = decodeSave(JSON.stringify(v3));
+    if (decoded.kind !== 'ok') throw new Error('v3 does not decode');
+    expect(decoded.migratedFrom).toBe(3);
+    // „Strażnik (kopia)” z linii Mieczników i Strażnik z linii Tarczowników to dziś ta sama forma
+    // szczepu Mieczników; „Strzelec wyborowy II” ma dalej swoje id. Ulepszenia i runy zostają.
+    expect(decoded.save.heroes).toEqual([
+      { id: 1, line: 'swordsman', form: 'guard_b', upgrades: 4, runes: ['rune_hp_200', null] },
+      { id: 2, line: 'archer', form: 'archer_b2', upgrades: 1, runes: [null, 'rune_attack_10'] },
+      { id: 3, line: 'swordsman', form: 'swordsman_a', upgrades: 0, runes: [null, null] },
+      { id: 4, line: 'swordsman', form: 'guard_b', upgrades: 2, runes: [null, null] },
+    ]);
+    // Reszta zapisu przechodzi bez zmian.
+    expect(decoded.save.squad).toEqual(v3.squad);
+    expect(decoded.save.gold).toBe(v3.gold);
+    expect(decoded.save.levels).toEqual(v3.levels);
+  });
+
+  it('migracja v3 → v4 zna każdą linię i formę, która znikła z treści gry', () => {
+    const gone: [line: string, form: string, toLine: string, toForm: string][] = [
+      ['swordsman', 'swordsman_c', 'swordsman', 'guard_b'],
+      ['swordsman', 'swordsman_c2', 'swordsman', 'guard_b'],
+      ['guard', 'guard_a', 'swordsman', 'guard_a'],
+      ['guard', 'guard_b', 'swordsman', 'guard_b'],
+      ['guard', 'guard_b2', 'swordsman', 'guard_b'],
+      ['guard', 'guard_c', 'swordsman', 'swordsman_b'],
+      ['guard', 'guard_c2', 'swordsman', 'swordsman_b2'],
+      ['archer', 'archer_c', 'archer', 'cleric_b'],
+      ['archer', 'archer_c2', 'archer', 'cleric_b'],
+      ['cleric', 'cleric_a', 'archer', 'cleric_a'],
+      ['cleric', 'cleric_b', 'archer', 'cleric_b'],
+      ['cleric', 'cleric_b2', 'archer', 'cleric_b'],
+      ['cleric', 'cleric_c', 'archer', 'archer_b'],
+      ['cleric', 'cleric_c2', 'archer', 'archer_b2'],
+    ];
+    const content = requireContent();
+    const old = {
+      ...v3,
+      heroes: gone.map(([line, form], index) => ({
+        id: index + 1,
+        line,
+        form,
+        upgrades: 3,
+        runes: [null, null],
+      })),
+      nextHeroId: gone.length + 1,
+      squad: [1, 2, 3, 4, 5],
+    };
+    const decoded = decodeSave(JSON.stringify(old));
+    if (decoded.kind !== 'ok') throw new Error('old save does not decode');
+    expect(decoded.save.heroes.map((hero) => [hero.line, hero.form])).toEqual(
+      gone.map(([, , toLine, toForm]) => [toLine, toForm]),
+    );
+    // Żaden bohater nie przepada ani nie wraca do formy bazowej przy dopasowaniu do treści.
+    const reconciled = reconcileSave(content, decoded.save);
+    expect(reconciled.heroes).toEqual(decoded.save.heroes);
+    expect(reconciled.heroes.every((hero) => hero.upgrades === 3)).toBe(true);
+    expect(reconciled.squad).toEqual([1, 2, 3, 4, 5]);
   });
 
   it('wczytane zapisy pasują do treści gry: bohaterowie, runy i poziomy zostają', () => {

@@ -88,4 +88,59 @@ export const GOLDEN_SETUPS: Readonly<Record<string, BattleSetup>> = {
     [swordsman(), ranged({ pierce: true, knockback: u(6) }), ranged({ pierce: true })],
     [brute(), brute(), melee(), ranged({ pierce: true })],
   ),
+
+  // Stały rytm: podwójne obrażenia, unik i tarcza po obu stronach, wręcz i z pocisków.
+  rhythm: setupOf(
+    [
+      melee({ doubleDamagePercent: 50, knockback: u(15) }),
+      melee({ dodgePercent: 70, attackInterval: 20 }),
+      ranged({ doubleDamagePercent: 20, pierce: true }),
+    ],
+    [
+      brute(),
+      melee({ shieldPercent: 50, doubleDamagePercent: 30, lifestealPercent: 25 }),
+      ranged({ dodgePercent: 40, shieldPercent: 10 }),
+    ],
+  ),
+
+  // Przyzywacze po obu stronach (ADR 0020): u gracza stoi w miejscu i przyzywa wojowników,
+  // u przeciwnika idzie z drużyną i przyzywa strzelców; do tego pocisk przebijający, cios
+  // obszarowy i leczenie drużyny, które obejmują przyzwanych.
+  summon: setupOf(
+    [
+      swordsman(),
+      ranged({ pierce: true, healAmount: 8, healInterval: 40, healTeam: true }),
+      melee({
+        maxHp: 2000,
+        attack: 0,
+        moveStep: 0,
+        range: u(1000),
+        attackInterval: 15,
+        knockback: u(40),
+        summon: melee({ maxHp: 100, attack: 20, moveStep: 256 }),
+      }),
+    ],
+    [
+      brute(),
+      melee({ splashRadius: u(40), attackInterval: 40 }),
+      melee({
+        maxHp: 900,
+        attack: 0,
+        range: u(300),
+        attackInterval: 45,
+        summon: ranged({ maxHp: 60, attack: 15, range: u(260) }),
+      }),
+    ],
+  ),
+
+  // Celowanie w koniec szyku po obu stronach: pociski mijają front, strzelcy stoją w miejscu.
+  'target-last': setupOf(
+    [swordsman(), archer(), ranged({ targetLast: true, range: u(1000), attack: 60 })],
+    [
+      brute(),
+      melee({ maxHp: 300 }),
+      archer(),
+      ranged({ targetLast: true, range: u(1000), knockback: u(20) }),
+    ],
+  ),
 };

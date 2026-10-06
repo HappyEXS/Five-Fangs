@@ -22,12 +22,20 @@ export interface UnitVisual {
   readonly stance: string;
   /** Sprite pocisku (`fx/<nazwa>`) albo null dla ataku wręcz. */
   readonly projectileSprite: string | null;
+  /** Wysokość lotu pocisku nad stopami w jednostkach rigu; 0 dla ataku wręcz. */
+  readonly projectileHeight: number;
+  /** Własny kadr miniaturki (środek względem kości miniaturki rigu, bok) albo null: kadr rigu. */
+  readonly portrait: { readonly x: number; readonly y: number; readonly size: number } | null;
+  /** Wygląd jednostki przyzywanej przez tę jednostkę albo null. */
+  readonly summon: UnitVisual | null;
 }
 
 export interface CompiledUnit {
   readonly id: string;
-  readonly kind: 'melee' | 'ranged';
+  readonly kind: 'melee' | 'ranged' | 'summoner';
   readonly attackType: string;
+  /** Id jednostki przyzywanej (units/summons.json) albo null. */
+  readonly summon: string | null;
   /** Specyfikacja bez ulepszeń i run. */
   readonly base: UnitSpec;
   readonly visual: UnitVisual;
@@ -53,7 +61,21 @@ export function hitTickOf(attack: RawAttackType): number {
   return clampInt(Math.round(attack.hitFraction * swingTicks), 1, swingTicks - 1);
 }
 
-export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
+/**
+ * Odstęp między początkami ataków w tickach, co najmniej 1. Treść podaje tempo jako ataki na
+ * sekundę albo jako sekundy między atakami; schemat pilnuje, że jest dokładnie jedno z nich.
+ */
+export function attackIntervalOf(raw: Pick<RawUnit, 'attackSpeed' | 'attackInterval'>): number {
+  if (raw.attackInterval !== undefined) return Math.max(1, secondsToTicks(raw.attackInterval));
+  return ratePerSecondToInterval(raw.attackSpeed ?? 1);
+}
+
+/** `summon` to skompilowana jednostka przyzywana przez tę jednostkę, gdy jest przyzywaczem. */
+export function compileUnit(
+  raw: RawUnit,
+  attack: RawAttackType,
+  summon: CompiledUnit | null = null,
+): CompiledUnit {
   // Cechy są spłaszczane do pól specyfikacji; symulacja nie interpretuje list ani napisów.
   let pierce = false;
   let healAmount = 0;
@@ -63,6 +85,10 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
   let enrageAttackPercent = 0;
   let lifestealPercent = 0;
   let splashRadius = 0;
+  let targetLast = false;
+  let doubleDamagePercent = 0;
+  let dodgePercent = 0;
+  let shieldPercent = 0;
   for (const trait of raw.traits) {
     switch (trait.type) {
       case 'pierce':
@@ -83,6 +109,18 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       case 'splash':
         splashRadius = unitsToSubunits(trait.radius);
         break;
+      case 'targetLast':
+        targetLast = true;
+        break;
+      case 'doubleDamage':
+        doubleDamagePercent = trait.percent;
+        break;
+      case 'dodge':
+        dodgePercent = trait.percent;
+        break;
+      case 'shield':
+        shieldPercent = trait.percent;
+        break;
     }
   }
 
@@ -90,13 +128,14 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
     id: raw.id,
     kind: raw.kind,
     attackType: attack.id,
+    summon: summon === null ? null : summon.id,
     base: {
       maxHp: raw.maxHp,
       attack: raw.attack,
       moveStep: unitsPerSecondToStep(raw.moveSpeed),
       range: unitsToSubunits(raw.range),
       knockback: unitsToSubunits(raw.knockback),
-      attackInterval: ratePerSecondToInterval(raw.attackSpeed),
+      attackInterval: attackIntervalOf(raw),
       swingTicks: swingTicksOf(attack),
       hitTick: hitTickOf(attack),
       projectileStep:
@@ -109,6 +148,11 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       enrageAttackPercent,
       lifestealPercent,
       splashRadius,
+      targetLast,
+      doubleDamagePercent,
+      dodgePercent,
+      shieldPercent,
+      summon: summon === null ? null : summon.base,
     },
     visual: {
       rig: raw.rig,
@@ -117,6 +161,12 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       attackClip: attack.clip,
       stance: attack.stance,
       projectileSprite: attack.projectile === undefined ? null : attack.projectile.sprite,
+      projectileHeight: attack.projectile === undefined ? 0 : attack.projectile.height,
+      portrait:
+        raw.portrait === undefined
+          ? null
+          : { x: raw.portrait.center[0], y: raw.portrait.center[1], size: raw.portrait.size },
+      summon: summon === null ? null : summon.visual,
     },
   };
 }

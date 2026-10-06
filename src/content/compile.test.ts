@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compileArena, compileUnit, hitTickOf, swingTicksOf } from './compile.ts';
+import { attackIntervalOf, compileArena, compileUnit, hitTickOf, swingTicksOf } from './compile.ts';
 import type { RawAttackType, RawUnit } from './schema.ts';
 
 const slash: RawAttackType = {
@@ -15,7 +15,7 @@ const shoot: RawAttackType = {
   hitFraction: 0.5,
   clip: 'shoot',
   stance: 'bow',
-  projectile: { speed: 400, sprite: 'arrow' },
+  projectile: { speed: 400, sprite: 'arrow', height: 43 },
 };
 
 const swordsman: RawUnit = {
@@ -58,6 +58,7 @@ describe('compileUnit', () => {
       id: 'swordsman',
       kind: 'melee',
       attackType: 'slash',
+      summon: null,
       base: {
         maxHp: 600,
         attack: 40,
@@ -76,6 +77,11 @@ describe('compileUnit', () => {
         enrageAttackPercent: 0,
         lifestealPercent: 0,
         splashRadius: 0,
+        targetLast: false,
+        doubleDamagePercent: 0,
+        dodgePercent: 0,
+        shieldPercent: 0,
+        summon: null,
       },
       visual: {
         rig: 'humanoid',
@@ -84,8 +90,40 @@ describe('compileUnit', () => {
         attackClip: 'slash',
         stance: 'sword',
         projectileSprite: null,
+        projectileHeight: 0,
+        portrait: null,
+        summon: null,
       },
     });
+  });
+
+  it('tempo ataków: ataki na sekundę albo sekundy między atakami', () => {
+    const { attackSpeed: _, ...noRate } = swordsman;
+    // „Atk: 3,0” ze szkicu: atak co 3 sekundy, czyli co 90 ticków.
+    expect(compileUnit({ ...noRate, attackInterval: 3 }, slash).base.attackInterval).toBe(90);
+    expect(compileUnit({ ...noRate, attackInterval: 1.7 }, slash).base.attackInterval).toBe(51);
+    expect(compileUnit({ ...noRate, attackSpeed: 0.8 }, slash).base.attackInterval).toBe(38);
+    // Odstęp krótszy niż tick zaokrągla się do jednego ticka.
+    expect(compileUnit({ ...noRate, attackInterval: 0.001 }, slash).base.attackInterval).toBe(1);
+    expect(attackIntervalOf({ attackInterval: 2 })).toBe(60);
+    expect(attackIntervalOf({ attackSpeed: 2 })).toBe(15);
+  });
+
+  it('przyzywacz niesie specyfikację i wygląd jednostki, którą przyzywa', () => {
+    const sprout = compileUnit({ ...swordsman, id: 'sprout', maxHp: 100, skin: 'sprout' }, slash);
+    const tree = compileUnit(
+      { ...swordsman, id: 'tree', kind: 'summoner', attack: 0, summon: 'sprout' },
+      slash,
+      sprout,
+    );
+    expect(tree.kind).toBe('summoner');
+    expect(tree.summon).toBe('sprout');
+    expect(tree.base.summon).toBe(sprout.base);
+    expect(tree.base.summon?.maxHp).toBe(100);
+    expect(tree.visual.summon).toBe(sprout.visual);
+    // Przyzywany sam nie przyzywa.
+    expect(sprout.base.summon).toBeNull();
+    expect(sprout.visual.summon).toBeNull();
   });
 
   it('wygląd strzelca wskazuje klip, postawę i sprite pocisku z typu ataku', () => {
@@ -103,6 +141,9 @@ describe('compileUnit', () => {
       attackClip: 'shoot',
       stance: 'bow',
       projectileSprite: 'arrow',
+      projectileHeight: 43,
+      portrait: null,
+      summon: null,
     });
   });
 
@@ -181,6 +222,26 @@ describe('cechy pasywne', () => {
   it('cios obszarowy przelicza promień na podjednostki', () => {
     const cleaver: RawUnit = { ...swordsman, traits: [{ type: 'splash', radius: 40 }] };
     expect(compileUnit(cleaver, slash).base.splashRadius).toBe(40 * 256);
+  });
+
+  it('targetLast ustawia flagę celowania w koniec szyku', () => {
+    const archer: RawUnit = { ...swordsman, kind: 'ranged', attackType: 'shoot' };
+    const spitter: RawUnit = { ...archer, traits: [{ type: 'targetLast' }] };
+    expect(compileUnit(spitter, shoot).base.targetLast).toBe(true);
+    expect(compileUnit(archer, shoot).base.targetLast).toBe(false);
+  });
+
+  it('rytm podwójnych obrażeń, unik i tarcza trafiają do specyfikacji jako procenty', () => {
+    const fighter: RawUnit = {
+      ...swordsman,
+      traits: [
+        { type: 'doubleDamage', percent: 20 },
+        { type: 'dodge', percent: 70 },
+        { type: 'shield', percent: 10 },
+      ],
+    };
+    const { base } = compileUnit(fighter, slash);
+    expect([base.doubleDamagePercent, base.dodgePercent, base.shieldPercent]).toEqual([20, 70, 10]);
   });
 
   it('pierce ustawia flagę i łączy się z leczeniem', () => {

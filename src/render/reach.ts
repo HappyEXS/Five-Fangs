@@ -22,6 +22,8 @@ export interface Reach {
   front: number;
   /** Od stóp do najwyższego punktu. */
   height: number;
+  /** Od stóp do czubka stojącej postaci (klip idle): nad nim wisi pasek życia. */
+  stand: number;
 }
 
 /**
@@ -36,6 +38,7 @@ export function measureReach(look: UnitLook, sprites: readonly (Sprite | null)[]
   let minX = -HP_HALF_WIDTH;
   let maxX = HP_HALF_WIDTH;
   let minY = 0;
+  let idleMinY = 0;
   for (const clip of [look.idle, look.walk, look.attack]) {
     for (let i = 0; i <= SAMPLES; i++) {
       sampleClip(clip, i / SAMPLES, look.rest, pose, 0);
@@ -61,11 +64,12 @@ export function measureReach(look: UnitLook, sprites: readonly (Sprite | null)[]
           if (x < minX) minX = x;
           if (x > maxX) maxX = x;
           if (y < minY) minY = y;
+          if (clip === look.idle && y < idleMinY) idleMinY = y;
         }
       }
     }
   }
-  return { back: SLACK - minX, front: maxX + SLACK, height: SLACK - minY };
+  return { back: SLACK - minX, front: maxX + SLACK, height: SLACK - minY, stand: -idleMinY };
 }
 
 /**

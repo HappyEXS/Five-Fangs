@@ -43,20 +43,22 @@ describe('evolveOptions i applyEvolve', () => {
     }
     expect(evolveOptions(content, save, SWORD)).toEqual([
       { unitId: 'swordsman_b', cost: 250 },
-      { unitId: 'swordsman_c', cost: 250 },
+      { unitId: 'guard_a', cost: 250 },
     ]);
   });
 
   it('gracz wybiera drogę: każda opcja daje inną formę bez ulepszeń, z kosztem tej formy', () => {
     const save = upgraded(rich(5000));
     const knight = applyEvolve(content, save, SWORD, 'swordsman_b');
-    const guard = applyEvolve(content, save, SWORD, 'swordsman_c');
+    const guard = applyEvolve(content, save, SWORD, 'guard_a');
     expect(knight?.heroes[0]).toMatchObject({ form: 'swordsman_b', upgrades: 0 });
-    expect(guard?.heroes[0]).toMatchObject({ form: 'swordsman_c', upgrades: 0 });
+    expect(guard?.heroes[0]).toMatchObject({ form: 'guard_a', upgrades: 0 });
     expect(knight?.gold).toBe(save.gold - 250);
-    // Po ewolucji bohater ma jednostkę, statystyki i cechy wybranej formy.
+    // Po ewolucji bohater ma jednostkę, statystyki i cechy wybranej formy: Zbrojny bije
+    // obszarowo, Tarczownik ma ponad dwa razy więcej życia niż Miecznik.
     expect(knight && heroView(content, knight, SWORD)?.spec.splashRadius).toBeGreaterThan(0);
-    expect(guard && heroView(content, guard, SWORD)?.spec.healAmount).toBeGreaterThan(0);
+    expect(guard && heroView(content, guard, SWORD)?.spec.splashRadius).toBe(0);
+    expect(guard && heroView(content, guard, SWORD)?.spec.maxHp).toBe(1300);
     // Forma spoza dróg bieżącej formy nie jest dostępna.
     expect(applyEvolve(content, save, SWORD, 'swordsman_b2')).toBeNull();
     expect(applyEvolve(content, save, SWORD, 'archer_b')).toBeNull();
@@ -64,14 +66,18 @@ describe('evolveOptions i applyEvolve', () => {
 
   it('każda forma ma własne ulepszenia; trzeci stopień jest końcem drogi', () => {
     let save = upgraded(rich(20_000));
-    save = applyEvolve(content, save, SWORD, 'swordsman_c') ?? save;
+    save = applyEvolve(content, save, SWORD, 'guard_a') ?? save;
     expect(upgradeCost(content, save, SWORD)).toBe(300);
     expect(evolveOptions(content, save, SWORD)).toEqual([]);
     save = upgraded(save);
-    // Z wybranej drogi prowadzi tylko jej dalszy stopień.
-    expect(evolveOptions(content, save, SWORD)).toEqual([{ unitId: 'swordsman_c2', cost: 1200 }]);
-    save = applyEvolve(content, save, SWORD, 'swordsman_c2') ?? save;
-    expect(save.heroes[0]).toMatchObject({ form: 'swordsman_c2', upgrades: 0 });
+    // Z wybranej drogi prowadzą tylko jej dwie formy końcowe, nie formy drugiej gałęzi.
+    expect(evolveOptions(content, save, SWORD)).toEqual([
+      { unitId: 'guard_b', cost: 1200 },
+      { unitId: 'pavise_guard', cost: 1200 },
+    ]);
+    expect(applyEvolve(content, save, SWORD, 'berserker')).toBeNull();
+    save = applyEvolve(content, save, SWORD, 'pavise_guard') ?? save;
+    expect(save.heroes[0]).toMatchObject({ form: 'pavise_guard', upgrades: 0 });
     expect(upgradeCost(content, save, SWORD)).toBe(1000);
     save = upgraded(save);
     expect(upgradeCost(content, save, SWORD)).toBeNull();
@@ -101,27 +107,36 @@ describe('evolveOptions i applyEvolve', () => {
 
 describe('drzewo form', () => {
   it('formPath: droga od formy bazowej do wskazanej', () => {
-    expect(formPath(line('archer'), 'archer_c2')).toEqual(['archer_a', 'archer_c', 'archer_c2']);
+    expect(formPath(line('archer'), 'inquisitor')).toEqual(['archer_a', 'cleric_a', 'inquisitor']);
     expect(formPath(line('archer'), 'archer_a')).toEqual(['archer_a']);
     expect(formPath(line('archer'), 'swordsman_b')).toEqual([]);
   });
 
   it('displayPath: wskazana forma i dalej pierwsza droga do końca', () => {
-    expect(displayPath(line('guard'), 'guard_a')).toEqual(['guard_a', 'guard_b', 'guard_b2']);
-    expect(displayPath(line('guard'), 'guard_c')).toEqual(['guard_a', 'guard_c', 'guard_c2']);
-    expect(displayPath(line('guard'), 'guard_b2')).toEqual(['guard_a', 'guard_b', 'guard_b2']);
-    expect(displayPath(line('guard'), 'nieznana')).toEqual(['guard_a', 'guard_b', 'guard_b2']);
+    const swordsmen = line('swordsman');
+    const first = ['swordsman_a', 'swordsman_b', 'swordsman_b2'];
+    expect(displayPath(swordsmen, 'swordsman_a')).toEqual(first);
+    expect(displayPath(swordsmen, 'guard_a')).toEqual(['swordsman_a', 'guard_a', 'guard_b']);
+    expect(displayPath(swordsmen, 'berserker')).toEqual([
+      'swordsman_a',
+      'swordsman_b',
+      'berserker',
+    ]);
+    expect(displayPath(swordsmen, 'nieznana')).toEqual(first);
   });
 
   it('treeLayout: kolumna to stopień, rozwidlenie zajmuje wiersze swoich gałęzi', () => {
-    expect(treeLayout(line('cleric'))).toEqual([
-      { unit: 'cleric_a', tier: 0, row: 0, rows: 2 },
-      { unit: 'cleric_b', tier: 1, row: 0, rows: 1 },
-      { unit: 'cleric_c', tier: 1, row: 1, rows: 1 },
-      { unit: 'cleric_b2', tier: 2, row: 0, rows: 1 },
-      { unit: 'cleric_c2', tier: 2, row: 1, rows: 1 },
+    // Łucznicy: forma bazowa, dwie pierwsze ewolucje, z każdej po dwie formy końcowe.
+    expect(treeLayout(line('archer'))).toEqual([
+      { unit: 'archer_a', tier: 0, row: 0, rows: 4 },
+      { unit: 'archer_b', tier: 1, row: 0, rows: 2 },
+      { unit: 'cleric_a', tier: 1, row: 2, rows: 2 },
+      { unit: 'archer_b2', tier: 2, row: 0, rows: 1 },
+      { unit: 'hunter', tier: 2, row: 1, rows: 1 },
+      { unit: 'cleric_b', tier: 2, row: 2, rows: 1 },
+      { unit: 'inquisitor', tier: 2, row: 3, rows: 1 },
     ]);
-    expect(tierCount(line('cleric'))).toBe(3);
+    expect(tierCount(line('archer'))).toBe(3);
   });
 
   it('treeLayout obsługuje rozwidlenie na dalszym stopniu i drogi różnej długości', () => {

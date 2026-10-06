@@ -134,12 +134,12 @@ describe('sklep', () => {
   const rich = (gold: number): Save => ({ ...fresh(), gold });
 
   it('kupuje bohatera nowej linii: forma bazowa, nowe id, pierwszy wolny slot składu', () => {
-    const save = buyHero(content, rich(500), 'guard');
-    expect(save?.gold).toBe(500 - 300);
+    const save = buyHero(content, rich(500), 'beasts');
+    expect(save?.gold).toBe(500 - 200);
     expect(save?.heroes[2]).toEqual({
       id: 3,
-      line: 'guard',
-      form: 'guard_a',
+      line: 'beasts',
+      form: 'monstrosity',
       upgrades: 0,
       runes: [null, null],
     });
@@ -163,16 +163,16 @@ describe('sklep', () => {
 
   it('przy pełnym składzie bohater trafia poza skład', () => {
     let save = rich(5000);
-    for (const line of ['guard', 'cleric', 'archer']) save = buyHero(content, save, line) ?? save;
+    for (const line of ['beasts', 'plants', 'archer']) save = buyHero(content, save, line) ?? save;
     expect(save.squad).toEqual([1, 2, 3, 4, 5]);
-    save = buyHero(content, save, 'guard') ?? save;
+    save = buyHero(content, save, 'beasts') ?? save;
     expect(save.heroes).toHaveLength(6);
     expect(save.squad).toEqual([1, 2, 3, 4, 5]);
   });
 
   it('odmawia bez złota i dla nieznanej linii', () => {
-    expect(buyHero(content, rich(299), 'guard')).toBeNull();
-    expect(buyHero(content, rich(300), 'guard')?.gold).toBe(0);
+    expect(buyHero(content, rich(199), 'beasts')).toBeNull();
+    expect(buyHero(content, rich(200), 'beasts')?.gold).toBe(0);
     expect(buyHero(content, rich(9999), 'nie_ma')).toBeNull();
   });
 });

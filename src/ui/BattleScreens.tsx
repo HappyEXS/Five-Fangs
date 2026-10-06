@@ -1,4 +1,5 @@
-// HUD walki i arkusz wyniku. W walce gracz może tylko wstrzymać, zmienić prędkość albo wyjść.
+// HUD walki i arkusz wyniku. W walce gracz może tylko wstrzymać, zmienić prędkość albo wyjść;
+// w dolnych rogach widzi miniaturki postaci, które jeszcze żyją: swoje z lewej, wroga z prawej.
 // Po walce widzi nagrody i jednym przyciskiem wraca na mapę.
 import { useEffect, useRef } from 'preact/hooks';
 import { levelNameKey } from '../content/i18n/keys.ts';
@@ -8,11 +9,38 @@ import { t, tName } from '../game/i18n.ts';
 import type { Rewards } from '../game/progress.ts';
 import type { BattleSpeed } from '../game/save-schema.ts';
 import { formatBattleTime } from '../game/stats.ts';
-import { formatNumber, runeColor, runeLabel } from './common.tsx';
+import { formatNumber, runeColor, runeLabel, unitName } from './common.tsx';
 import type { Gate } from './gate.ts';
 import { Coin, FangMark } from './icons.tsx';
+import { Portrait } from './Portrait.tsx';
 
 const SPEEDS: readonly BattleSpeed[] = [1, 2, 4];
+
+/**
+ * Miniaturki jednej strony w kolejności ze sceny. Poległy zostaje w drzewie jeszcze na czas
+ * zejścia (CSS), ale czytniki ekranu już go nie widzą.
+ */
+function Faces(props: { stage: StageControls; side: 'player' | 'enemy' }) {
+  const { stage, side } = props;
+  const faces = stage.faces.value.filter((face) => face.side === side);
+  return (
+    <ul class={`hud-faces hud-faces-${side}`} aria-label={t(`battle.faces.${side}`)}>
+      {faces.map((face) => (
+        <li
+          key={face.unit}
+          class="hud-face"
+          data-unit={face.unitId}
+          data-alive={String(face.alive)}
+          aria-hidden={!face.alive}
+          title={unitName(face.unitId)}
+        >
+          <Portrait stage={stage} unit={face.unitId} mirrored={side === 'enemy'} />
+          <span class="visually-hidden">{unitName(face.unitId)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function BattleHud(props: { game: Game; gate: Gate; stage: StageControls; level: string }) {
   const { game, gate, stage } = props;
@@ -56,6 +84,8 @@ export function BattleHud(props: { game: Game; gate: Gate; stage: StageControls;
           {t('battle.exit')}
         </button>
       </div>
+      <Faces stage={stage} side="player" />
+      <Faces stage={stage} side="enemy" />
     </div>
   );
 }

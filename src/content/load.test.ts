@@ -68,6 +68,20 @@ describe('loadContent', () => {
     expect(text).toContain('extra');
   });
 
+  it('wymaga dokładnie jednego z pól tempa ataków', () => {
+    const { attackSpeed: _, ...noRate } = unit;
+    expect(messages(withHeroes([{ ...noRate, attackInterval: 1.5 }]))).toEqual([]);
+    expect(messages(withHeroes([noRate]))).toEqual([
+      'units/heroes.json: 0.attackSpeed: podaj dokładnie jedno z pól: attackSpeed albo attackInterval',
+    ]);
+    expect(messages(withHeroes([{ ...unit, attackInterval: 1.5 }]))).toEqual([
+      'units/heroes.json: 0.attackSpeed: podaj dokładnie jedno z pól: attackSpeed albo attackInterval',
+    ]);
+    expect(messages(withHeroes([{ ...noRate, attackInterval: 0 }]))[0]).toContain(
+      '0.attackInterval',
+    );
+  });
+
   it('wymaga ułamka trafienia wewnątrz zamachu', () => {
     const raw: RawContent = {
       ...rawContent,
@@ -130,6 +144,64 @@ describe('loadContent', () => {
     ]);
   });
 
+  it('targetLast wymaga pocisku i wyklucza się z pierce', () => {
+    const archer = { ...unit, kind: 'ranged', attackType: 'shoot' };
+    expect(messages(withHeroes([{ ...unit, traits: [{ type: 'targetLast' }] }]))).toEqual([
+      'units/heroes.json: swordsman: cecha "targetLast" wymaga ataku z pociskiem',
+    ]);
+    const both = [{ type: 'targetLast' }, { type: 'pierce' }];
+    expect(messages(withHeroes([{ ...archer, traits: both }]))).toEqual([
+      'units/heroes.json: swordsman: cechy "targetLast" i "pierce" wykluczają się',
+    ]);
+    expect(messages(withHeroes([{ ...archer, traits: [{ type: 'targetLast' }] }]))).toEqual([]);
+  });
+
+  it('przyzywacz wskazuje jednostkę z units/summons.json i dostaje jej specyfikację', () => {
+    const sprout = { ...unit, id: 'sprout', maxHp: 100, skin: 'sprout' };
+    const tree = { ...unit, id: 'tree', kind: 'summoner', attack: 0, summon: 'sprout' };
+    const raw: RawContent = { ...withHeroes([tree]), 'units/summons.json': [sprout] };
+    const { content, issues } = loadContent(raw);
+    expect(issues).toEqual([]);
+    expect(content?.summons.get('sprout')?.base.maxHp).toBe(100);
+    expect(content?.heroes.get('tree')?.base.summon).toBe(content?.summons.get('sprout')?.base);
+    expect(content?.heroes.get('tree')?.visual.summon?.skin).toBe('sprout');
+  });
+
+  it('kind summoner i pole summon idą razem; przyzywany musi istnieć i sam nie przyzywa', () => {
+    const sprout = { ...unit, id: 'sprout', skin: 'sprout' };
+    const withSummons = (heroes: unknown, summons: unknown): RawContent => ({
+      ...withHeroes(heroes),
+      'units/summons.json': summons,
+    });
+    expect(messages(withSummons([{ ...unit, kind: 'summoner' }], [sprout]))).toEqual([
+      'units/heroes.json: swordsman: kind "summoner" i pole "summon" podaje się razem',
+    ]);
+    expect(messages(withSummons([{ ...unit, summon: 'sprout' }], [sprout]))).toEqual([
+      'units/heroes.json: swordsman: kind "summoner" i pole "summon" podaje się razem',
+    ]);
+    expect(
+      messages(withSummons([{ ...unit, kind: 'summoner', summon: 'nobody' }], [sprout])),
+    ).toEqual(['units/heroes.json: swordsman: nieznana jednostka przyzywana "nobody"']);
+    expect(
+      messages(
+        withSummons([], [sprout, { ...unit, id: 'seed', kind: 'summoner', summon: 'sprout' }]),
+      ),
+    ).toEqual(['units/summons.json: seed: przyzwana jednostka nie może przyzywać']);
+    // Przyzywacz nie strzela: typ ataku z pociskiem do niego nie pasuje.
+    expect(
+      messages(
+        withSummons(
+          [{ ...unit, kind: 'summoner', summon: 'sprout', attackType: 'shoot' }],
+          [sprout],
+        ),
+      )[0],
+    ).toContain('nie pasuje');
+    // Id przyzywanych leżą w tej samej przestrzeni co bohaterowie i wrogowie.
+    expect(messages(withSummons([unit], [{ ...sprout, id: 'swordsman' }]))).toEqual([
+      'units/heroes.json: powtórzone id "swordsman"',
+    ]);
+  });
+
   it('odrzuca nieznaną cechę i błędne parametry', () => {
     expect(
       loadContent(withHeroes([{ ...unit, traits: [{ type: 'lifesteal' }] }])).content,
@@ -151,6 +223,22 @@ describe('requireContent', () => {
 describe('validateContent', () => {
   it('treść gry jest poprawna', () => {
     expect(validateContent()).toEqual([]);
+  });
+
+  it('wymaga nazwy każdego szczepu (linii) w słowniku', () => {
+    const nameless = [
+      {
+        id: 'nameless',
+        price: 100,
+        starter: true,
+        forms: [{ unit: 'swordsman', upgradeCosts: [1, 2, 3, 4] }],
+      },
+    ];
+    const issues = validateContent({ ...withHeroes([unit]), 'lines.json': nameless });
+    expect(issues).toContainEqual({
+      source: 'lines.json',
+      message: 'nameless: brak tekstu "line.nameless.name" w słowniku',
+    });
   });
 
   it('wymaga nazwy każdej jednostki w słowniku i przynależności bohatera do linii', () => {

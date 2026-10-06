@@ -7,6 +7,7 @@ import { parseAtlasMeta } from './atlas.ts';
 import { ARENA_MARGIN, arenaToStageX } from './camera.ts';
 import { HP_HALF_WIDTH, keepOnStage, measureReach } from './reach.ts';
 import { compileRig } from './rig.ts';
+import { headHeightOf, UPPER_BODY } from './scene.ts';
 import { LOGICAL_WIDTH } from './viewport.ts';
 
 const content = requireContent();
@@ -44,6 +45,47 @@ describe('measureReach', () => {
     // Postać ma kilkadziesiąt jednostek wysokości, a nie kilka ani kilkaset.
     expect(reach.height).toBeGreaterThan(60);
     expect(reach.height).toBeLessThan(250);
+  });
+
+  it('mierzy czubek stojącej postaci: nie wyżej niż najwyższy punkt wszystkich klipów', () => {
+    for (const unit of allUnits) {
+      const { look, parts } = lookOf(unit.visual);
+      const reach = measureReach(
+        look,
+        parts.map((part) => part ?? null),
+      );
+      expect(reach.stand, unit.id).toBeGreaterThan(0);
+      expect(reach.stand, unit.id).toBeLessThanOrEqual(reach.height);
+    }
+  });
+});
+
+describe('headHeightOf', () => {
+  const reachOf = (id: string) => {
+    const unit = content.heroes.get(id);
+    if (unit === undefined) throw new Error(`no unit ${id}`);
+    const { look, parts } = lookOf(unit.visual);
+    return {
+      look,
+      stand: measureReach(
+        look,
+        parts.map((part) => part ?? null),
+      ).stand,
+    };
+  };
+
+  it('ludzie mają pasek życia na wspólnej wysokości z rigu', () => {
+    const { look, stand } = reachOf('swordsman_a');
+    const human = (look.rig.hipHeight + UPPER_BODY) * look.scale;
+    expect(stand).toBeLessThan(human);
+    expect(headHeightOf(look, stand)).toBe(human);
+  });
+
+  it('wysoka bestia ma pasek nad własnym łbem', () => {
+    const { look, stand } = reachOf('ironbeak');
+    const human = (look.rig.hipHeight + UPPER_BODY) * look.scale;
+    expect(stand).toBeGreaterThan(human);
+    expect(headHeightOf(look, stand)).toBe(stand);
   });
 });
 

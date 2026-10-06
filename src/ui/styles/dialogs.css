@@ -1,4 +1,86 @@
-/* Okno ustawień i komunikaty. */
+/* Okno ustawień, komunikaty i okienko informacji. */
+
+/* Informacje: papierowy krążek z literą „i”. Zasady i wyjaśnienia czekają w okienku pod nim,
+   zamiast stać na scenie; otwarty krążek jest nagietkowy, jak każdy wciśnięty przycisk. */
+
+.info-btn {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0;
+  border: var(--line) solid var(--ink);
+  border-radius: 50%;
+  background-color: var(--sheet-light);
+  background-image: var(--paper-grain, none);
+  box-shadow: 0.14em 0.14em 0 var(--ink);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  place-items: center;
+}
+
+/* Krążek jest mały, więc pole trafienia sięga poza jego brzeg. */
+.info-btn::after {
+  position: absolute;
+  inset: -0.35em;
+  content: "";
+}
+
+.info-btn:hover {
+  background-color: var(--paper);
+}
+
+.info-btn:active {
+  box-shadow: none;
+  translate: 0.14em 0.14em;
+}
+
+.info-btn[aria-expanded="true"] {
+  background-color: var(--marigold);
+}
+
+.icon-info {
+  width: 1.1em;
+  height: 1.1em;
+  stroke-width: 3.6;
+}
+
+.icon-info circle {
+  stroke: none;
+}
+
+/* Przy tytule ekranu krążek jest większy: stoi obok dużego napisu. */
+.screen-head .info-btn {
+  font-size: 1.15em;
+}
+
+/* W nagłówku karty krążek stoi w prawym górnym rogu, a nazwa zawija się obok niego. */
+.card-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-head .info-btn {
+  align-self: flex-start;
+}
+
+/* Okienko wisi pod swoim przyciskiem (--info-below to jego dolna krawędź na scenie);
+   keep-inside.ts wsuwa je do sceny, a gdy jest wyższe niż scena, treść się przewija. */
+.info-popup {
+  position: absolute;
+  top: calc(var(--info-below) + 0.6em);
+  z-index: 30;
+  display: grid;
+  gap: 0.5em;
+  width: max-content;
+  max-width: 21em;
+  padding: 0.65em 0.9em;
+  overflow: auto;
+  font-size: 0.95em;
+  translate: -50% 0;
+}
 
 /* Ustawienia */
 

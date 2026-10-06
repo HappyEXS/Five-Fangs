@@ -31,6 +31,93 @@
     "scale": 1.08
   },
   {
+    "id": "guard_a",
+    "kind": "melee",
+    "maxHp": 1300,
+    "attack": 28,
+    "moveSpeed": 45,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 35,
+    "attackType": "slash",
+    "skin": "guard_a"
+  },
+  {
+    "id": "swordsman_b2",
+    "kind": "melee",
+    "maxHp": 1300,
+    "attack": 115,
+    "moveSpeed": 60,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 30,
+    "attackType": "cleave",
+    "traits": [
+      {
+        "type": "splash",
+        "radius": 60
+      }
+    ],
+    "skin": "swordsman_b2"
+  },
+  {
+    "id": "berserker",
+    "kind": "melee",
+    "maxHp": 1000,
+    "attack": 80,
+    "moveSpeed": 70,
+    "attackSpeed": 1.2,
+    "range": 30,
+    "knockback": 20,
+    "attackType": "slash",
+    "traits": [
+      {
+        "type": "enrage",
+        "hpBelow": 50,
+        "attackBonus": 80
+      }
+    ],
+    "skin": "berserker"
+  },
+  {
+    "id": "guard_b",
+    "kind": "melee",
+    "maxHp": 2300,
+    "attack": 50,
+    "moveSpeed": 45,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 45,
+    "attackType": "slash",
+    "traits": [
+      {
+        "type": "periodicHeal",
+        "target": "self",
+        "amount": 45,
+        "interval": 3
+      }
+    ],
+    "skin": "guard_b"
+  },
+  {
+    "id": "pavise_guard",
+    "kind": "melee",
+    "maxHp": 1900,
+    "attack": 45,
+    "moveSpeed": 45,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 110,
+    "attackType": "slash",
+    "traits": [
+      {
+        "type": "shield",
+        "percent": 35
+      }
+    ],
+    "skin": "pavise_guard"
+  },
+  {
     "id": "archer_a",
     "kind": "ranged",
     "maxHp": 350,
@@ -61,170 +148,33 @@
     "scale": 1.08
   },
   {
-    "id": "guard_a",
-    "kind": "melee",
-    "maxHp": 1100,
-    "attack": 22,
-    "moveSpeed": 45,
-    "attackSpeed": 0.8,
-    "range": 30,
-    "knockback": 35,
-    "attackType": "slash",
-    "skin": "guard_a",
-    "scale": 1.1
-  },
-  {
-    "id": "guard_b",
-    "kind": "melee",
-    "maxHp": 1700,
-    "attack": 38,
-    "moveSpeed": 45,
-    "attackSpeed": 0.8,
-    "range": 30,
-    "knockback": 45,
-    "attackType": "slash",
-    "traits": [
-      {
-        "type": "periodicHeal",
-        "target": "self",
-        "amount": 30,
-        "interval": 3
-      }
-    ],
-    "skin": "guard_b",
-    "scale": 1.18
-  },
-  {
     "id": "cleric_a",
     "kind": "ranged",
-    "maxHp": 320,
-    "attack": 14,
+    "maxHp": 420,
+    "attack": 20,
     "moveSpeed": 50,
     "attackSpeed": 0.8,
-    "range": 150,
+    "range": 170,
     "knockback": 0,
     "attackType": "shoot",
     "traits": [
       {
         "type": "periodicHeal",
         "target": "team",
-        "amount": 12,
+        "amount": 16,
         "interval": 3
       }
     ],
     "skin": "cleric_a"
   },
   {
-    "id": "cleric_b",
-    "kind": "ranged",
-    "maxHp": 450,
-    "attack": 22,
-    "moveSpeed": 50,
-    "attackSpeed": 0.8,
-    "range": 170,
-    "knockback": 0,
-    "attackType": "shoot",
-    "traits": [
-      {
-        "type": "periodicHeal",
-        "target": "team",
-        "amount": 22,
-        "interval": 2.5
-      }
-    ],
-    "skin": "cleric_b",
-    "scale": 1.08
-  },
-  {
-    "id": "swordsman_c",
-    "kind": "melee",
-    "maxHp": 1700,
-    "attack": 38,
-    "moveSpeed": 45,
-    "attackSpeed": 0.8,
-    "range": 30,
-    "knockback": 45,
-    "attackType": "slash",
-    "traits": [
-      {
-        "type": "periodicHeal",
-        "target": "self",
-        "amount": 30,
-        "interval": 3
-      }
-    ],
-    "skin": "guard_b",
-    "scale": 1.18
-  },
-  {
-    "id": "swordsman_b2",
-    "kind": "melee",
-    "maxHp": 1283,
-    "attack": 115,
-    "moveSpeed": 60,
-    "attackSpeed": 0.8,
-    "range": 30,
-    "knockback": 25,
-    "attackType": "cleave",
-    "traits": [
-      {
-        "type": "splash",
-        "radius": 45
-      }
-    ],
-    "skin": "swordsman_b",
-    "scale": 1.19
-  },
-  {
-    "id": "swordsman_c2",
-    "kind": "melee",
-    "maxHp": 2295,
-    "attack": 51,
-    "moveSpeed": 45,
-    "attackSpeed": 0.8,
-    "range": 30,
-    "knockback": 45,
-    "attackType": "slash",
-    "traits": [
-      {
-        "type": "periodicHeal",
-        "target": "self",
-        "amount": 30,
-        "interval": 3
-      }
-    ],
-    "skin": "guard_b",
-    "scale": 1.3
-  },
-  {
-    "id": "archer_c",
-    "kind": "ranged",
-    "maxHp": 450,
-    "attack": 22,
-    "moveSpeed": 50,
-    "attackSpeed": 0.8,
-    "range": 170,
-    "knockback": 0,
-    "attackType": "shoot",
-    "traits": [
-      {
-        "type": "periodicHeal",
-        "target": "team",
-        "amount": 22,
-        "interval": 2.5
-      }
-    ],
-    "skin": "cleric_b",
-    "scale": 1.08
-  },
-  {
     "id": "archer_b2",
     "kind": "ranged",
-    "maxHp": 648,
-    "attack": 101,
+    "maxHp": 650,
+    "attack": 100,
     "moveSpeed": 50,
     "attackSpeed": 0.6,
-    "range": 300,
+    "range": 320,
     "knockback": 0,
     "attackType": "snipe",
     "traits": [
@@ -232,144 +182,589 @@
         "type": "pierce"
       }
     ],
-    "skin": "archer_b",
-    "scale": 1.19
+    "skin": "archer_b2"
   },
   {
-    "id": "archer_c2",
+    "id": "hunter",
     "kind": "ranged",
-    "maxHp": 608,
+    "maxHp": 560,
+    "attack": 70,
+    "moveSpeed": 50,
+    "attackSpeed": 0.7,
+    "range": 1000,
+    "knockback": 0,
+    "attackType": "snipe",
+    "traits": [
+      {
+        "type": "targetLast"
+      }
+    ],
+    "skin": "hunter"
+  },
+  {
+    "id": "cleric_b",
+    "kind": "ranged",
+    "maxHp": 600,
     "attack": 30,
     "moveSpeed": 50,
     "attackSpeed": 0.8,
-    "range": 170,
+    "range": 190,
     "knockback": 0,
     "attackType": "shoot",
     "traits": [
       {
         "type": "periodicHeal",
         "target": "team",
-        "amount": 22,
+        "amount": 28,
         "interval": 2.5
       }
     ],
-    "skin": "cleric_b",
-    "scale": 1.19
+    "skin": "cleric_b"
   },
   {
-    "id": "guard_c",
-    "kind": "melee",
-    "maxHp": 950,
-    "attack": 85,
-    "moveSpeed": 60,
+    "id": "inquisitor",
+    "kind": "ranged",
+    "maxHp": 520,
+    "attack": 55,
+    "moveSpeed": 50,
     "attackSpeed": 0.8,
-    "range": 30,
-    "knockback": 25,
-    "attackType": "cleave",
+    "range": 220,
+    "knockback": 0,
+    "attackType": "shoot",
     "traits": [
       {
-        "type": "splash",
-        "radius": 45
+        "type": "lifesteal",
+        "percent": 50
       }
     ],
-    "skin": "swordsman_b",
-    "scale": 1.08
+    "skin": "inquisitor"
   },
   {
-    "id": "guard_b2",
+    "id": "monstrosity",
     "kind": "melee",
-    "maxHp": 2295,
-    "attack": 51,
-    "moveSpeed": 45,
-    "attackSpeed": 0.8,
+    "maxHp": 200,
+    "attack": 30,
+    "moveSpeed": 25,
+    "attackSpeed": 1,
     "range": 30,
-    "knockback": 45,
+    "knockback": 50,
     "attackType": "slash",
+    "skin": "monstrosity",
+    "scale": 0.9,
+    "portrait": {
+      "center": [2, -13],
+      "size": 34
+    }
+  },
+  {
+    "id": "batfang",
+    "kind": "ranged",
+    "maxHp": 350,
+    "attack": 35,
+    "moveSpeed": 10,
+    "attackInterval": 1.2,
+    "range": 220,
+    "knockback": 30,
+    "attackType": "fang_spit",
+    "skin": "batfang",
+    "portrait": {
+      "center": [2, -15],
+      "size": 38
+    }
+  },
+  {
+    "id": "reaper",
+    "kind": "melee",
+    "maxHp": 400,
+    "attack": 50,
+    "moveSpeed": 30,
+    "attackSpeed": 1.2,
+    "range": 30,
+    "knockback": 10,
+    "attackType": "slash",
+    "skin": "reaper",
+    "scale": 1.05,
+    "portrait": {
+      "center": [4, -14],
+      "size": 38
+    }
+  },
+  {
+    "id": "spiker",
+    "kind": "ranged",
+    "maxHp": 700,
+    "attack": 40,
+    "moveSpeed": 15,
+    "attackInterval": 1,
+    "range": 240,
+    "knockback": 10,
+    "attackType": "spike_volley",
     "traits": [
       {
         "type": "periodicHeal",
         "target": "self",
-        "amount": 30,
-        "interval": 3
+        "amount": 25,
+        "interval": 1
       }
     ],
-    "skin": "guard_b",
-    "scale": 1.3
+    "skin": "spiker",
+    "scale": 1.1,
+    "portrait": {
+      "center": [2, -11],
+      "size": 36
+    }
   },
   {
-    "id": "guard_c2",
+    "id": "ironbeak",
     "kind": "melee",
-    "maxHp": 1283,
-    "attack": 115,
-    "moveSpeed": 60,
+    "maxHp": 900,
+    "attack": 80,
+    "moveSpeed": 100,
+    "attackSpeed": 1,
+    "range": 30,
+    "knockback": 180,
+    "attackType": "peck",
+    "skin": "ironbeak",
+    "scale": 1.15,
+    "portrait": {
+      "center": [9, -27],
+      "size": 38
+    }
+  },
+  {
+    "id": "tuskovator",
+    "kind": "melee",
+    "maxHp": 800,
+    "attack": 90,
+    "moveSpeed": 30,
+    "attackSpeed": 0.7,
+    "range": 30,
+    "knockback": 225,
+    "attackType": "gore",
+    "skin": "tuskovator",
+    "scale": 1.25,
+    "portrait": {
+      "center": [9, -7],
+      "size": 46
+    }
+  },
+  {
+    "id": "ignitix",
+    "kind": "ranged",
+    "maxHp": 1000,
+    "attack": 100,
+    "moveSpeed": 5,
+    "attackInterval": 0.8,
+    "range": 1000,
+    "knockback": 50,
+    "attackType": "fire_spit",
+    "traits": [
+      {
+        "type": "targetLast"
+      }
+    ],
+    "skin": "ignitix",
+    "scale": 1.2,
+    "portrait": {
+      "center": [11, -27],
+      "size": 40
+    }
+  },
+  {
+    "id": "orb",
+    "kind": "ranged",
+    "maxHp": 350,
+    "attack": 35,
+    "moveSpeed": 15,
+    "attackInterval": 1.5,
+    "range": 240,
+    "knockback": 10,
+    "attackType": "orb_gaze",
+    "skin": "orb",
+    "scale": 0.9,
+    "portrait": {
+      "center": [1, 9],
+      "size": 30
+    }
+  },
+  {
+    "id": "cardinal",
+    "kind": "ranged",
+    "maxHp": 450,
+    "attack": 45,
+    "moveSpeed": 10,
+    "attackInterval": 1,
+    "range": 260,
+    "knockback": 20,
+    "attackType": "cardinal_gaze",
+    "skin": "cardinal",
+    "scale": 1.05,
+    "portrait": {
+      "center": [1, -12],
+      "size": 34
+    }
+  },
+  {
+    "id": "guardian_of_hell",
+    "kind": "melee",
+    "maxHp": 400,
+    "attack": 60,
+    "moveSpeed": 30,
+    "attackSpeed": 1,
+    "range": 30,
+    "knockback": 10,
+    "attackType": "gore",
+    "skin": "guardian_of_hell",
+    "scale": 1.1,
+    "portrait": {
+      "center": [1.5, -13],
+      "size": 36
+    }
+  },
+  {
+    "id": "polaris",
+    "kind": "ranged",
+    "maxHp": 1100,
+    "attack": 50,
+    "moveSpeed": 0,
+    "attackSpeed": 1,
+    "range": 1000,
+    "knockback": 30,
+    "attackType": "star_cast",
+    "skin": "polaris",
+    "scale": 1.25,
+    "portrait": {
+      "center": [1.5, -11],
+      "size": 34
+    }
+  },
+  {
+    "id": "ultimus",
+    "kind": "ranged",
+    "maxHp": 1250,
+    "attack": 250,
+    "moveSpeed": 30,
+    "attackInterval": 3,
+    "range": 260,
+    "knockback": 50,
+    "attackType": "ray_flare",
+    "skin": "ultimus",
+    "scale": 1.3,
+    "portrait": {
+      "center": [1, -15],
+      "size": 40
+    }
+  },
+  {
+    "id": "xartix",
+    "kind": "melee",
+    "maxHp": 850,
+    "attack": 90,
+    "moveSpeed": 75,
+    "attackSpeed": 1.2,
+    "range": 30,
+    "knockback": 75,
+    "attackType": "slash",
+    "traits": [
+      {
+        "type": "doubleDamage",
+        "percent": 50
+      }
+    ],
+    "skin": "xartix",
+    "scale": 1.15,
+    "portrait": {
+      "center": [2, -11],
+      "size": 32
+    }
+  },
+  {
+    "id": "enigmatix",
+    "kind": "melee",
+    "maxHp": 1000,
+    "attack": 160,
+    "moveSpeed": 65,
     "attackSpeed": 0.8,
     "range": 30,
-    "knockback": 25,
+    "knockback": 100,
     "attackType": "cleave",
     "traits": [
       {
-        "type": "splash",
-        "radius": 45
+        "type": "shield",
+        "percent": 50
       }
     ],
-    "skin": "swordsman_b",
-    "scale": 1.19
+    "skin": "enigmatix",
+    "scale": 1.25,
+    "portrait": {
+      "center": [1, -10],
+      "size": 34
+    }
   },
   {
-    "id": "cleric_c",
+    "id": "bush",
     "kind": "ranged",
-    "maxHp": 480,
-    "attack": 75,
-    "moveSpeed": 50,
-    "attackSpeed": 0.6,
-    "range": 300,
-    "knockback": 0,
-    "attackType": "snipe",
-    "traits": [
-      {
-        "type": "pierce"
-      }
-    ],
-    "skin": "archer_b",
-    "scale": 1.08
+    "maxHp": 400,
+    "attack": 15,
+    "moveSpeed": 0,
+    "attackInterval": 1.5,
+    "range": 1000,
+    "knockback": 10,
+    "attackType": "bush_thorn",
+    "skin": "bush",
+    "scale": 0.72,
+    "portrait": {
+      "center": [2, 22],
+      "size": 40
+    }
   },
   {
-    "id": "cleric_b2",
+    "id": "trunk",
     "kind": "ranged",
-    "maxHp": 608,
+    "maxHp": 600,
     "attack": 30,
-    "moveSpeed": 50,
-    "attackSpeed": 0.8,
-    "range": 170,
-    "knockback": 0,
-    "attackType": "shoot",
+    "moveSpeed": 25,
+    "attackInterval": 1.5,
+    "range": 240,
+    "knockback": 10,
+    "attackType": "seed_cast",
+    "skin": "trunk",
+    "portrait": {
+      "center": [1, -9],
+      "size": 36
+    }
+  },
+  {
+    "id": "ivy",
+    "kind": "ranged",
+    "maxHp": 500,
+    "attack": 40,
+    "moveSpeed": 0,
+    "attackInterval": 1.7,
+    "range": 1000,
+    "knockback": 30,
+    "attackType": "ivy_thorn",
+    "skin": "ivy",
+    "portrait": {
+      "center": [3, -9],
+      "size": 32
+    }
+  },
+  {
+    "id": "oak_warrior",
+    "kind": "melee",
+    "maxHp": 1250,
+    "attack": 150,
+    "moveSpeed": 40,
+    "attackSpeed": 0.6,
+    "range": 30,
+    "knockback": 300,
+    "attackType": "cleave",
+    "skin": "oak_warrior",
+    "scale": 1.3,
+    "portrait": {
+      "center": [1, -11],
+      "size": 36
+    }
+  },
+  {
+    "id": "mother_tree",
+    "kind": "summoner",
+    "maxHp": 10000,
+    "attack": 0,
+    "moveSpeed": 0,
+    "attackInterval": 2,
+    "range": 1000,
+    "knockback": 40,
+    "attackType": "summon",
+    "summon": "sprout",
+    "skin": "mother_tree",
+    "scale": 1.35,
+    "portrait": {
+      "center": [0, -10],
+      "size": 40
+    }
+  },
+  {
+    "id": "ice_ivy",
+    "kind": "ranged",
+    "maxHp": 900,
+    "attack": 20,
+    "moveSpeed": 0,
+    "attackInterval": 2,
+    "range": 1000,
+    "knockback": 10,
+    "attackType": "frost_spit",
     "traits": [
       {
         "type": "periodicHeal",
         "target": "team",
-        "amount": 22,
-        "interval": 2.5
+        "amount": 50,
+        "interval": 1
       }
     ],
-    "skin": "cleric_b",
-    "scale": 1.19
+    "skin": "ice_ivy",
+    "scale": 1.1,
+    "portrait": {
+      "center": [1.5, -8],
+      "size": 32
+    }
   },
   {
-    "id": "cleric_c2",
+    "id": "toxic_ivy",
     "kind": "ranged",
-    "maxHp": 648,
-    "attack": 101,
-    "moveSpeed": 50,
-    "attackSpeed": 0.6,
-    "range": 300,
-    "knockback": 0,
-    "attackType": "snipe",
+    "maxHp": 800,
+    "attack": 10,
+    "moveSpeed": 0,
+    "attackInterval": 1,
+    "range": 1000,
+    "knockback": 30,
+    "attackType": "spore_spit",
     "traits": [
       {
         "type": "pierce"
       }
     ],
-    "skin": "archer_b",
-    "scale": 1.19
+    "skin": "toxic_ivy",
+    "scale": 1.1,
+    "portrait": {
+      "center": [2, -8],
+      "size": 30
+    }
+  },
+  {
+    "id": "bot",
+    "kind": "melee",
+    "maxHp": 200,
+    "attack": 25,
+    "moveSpeed": 50,
+    "attackSpeed": 1,
+    "range": 30,
+    "knockback": 15,
+    "attackType": "jab",
+    "skin": "bot",
+    "scale": 0.8,
+    "portrait": {
+      "center": [4, 8],
+      "size": 32
+    }
+  },
+  {
+    "id": "egzo_bot",
+    "kind": "melee",
+    "maxHp": 400,
+    "attack": 40,
+    "moveSpeed": 70,
+    "attackSpeed": 1.2,
+    "range": 30,
+    "knockback": 25,
+    "attackType": "slash",
+    "skin": "egzo_bot",
+    "portrait": {
+      "center": [1, -9],
+      "size": 32
+    }
+  },
+  {
+    "id": "holo_bot",
+    "kind": "ranged",
+    "maxHp": 300,
+    "attack": 30,
+    "moveSpeed": 0,
+    "attackInterval": 1,
+    "range": 1000,
+    "knockback": 30,
+    "attackType": "glitch_spit",
+    "skin": "holo_bot",
+    "portrait": {
+      "center": [1, 3],
+      "size": 36
+    }
+  },
+  {
+    "id": "thermobot",
+    "kind": "ranged",
+    "maxHp": 900,
+    "attack": 100,
+    "moveSpeed": 80,
+    "attackInterval": 1,
+    "range": 220,
+    "knockback": 25,
+    "attackType": "slag_cast",
+    "skin": "thermobot",
+    "scale": 1.15,
+    "portrait": {
+      "center": [1, -9],
+      "size": 30
+    }
+  },
+  {
+    "id": "ax_bot",
+    "kind": "melee",
+    "maxHp": 750,
+    "attack": 75,
+    "moveSpeed": 80,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 40,
+    "attackType": "cleave",
+    "traits": [
+      {
+        "type": "doubleDamage",
+        "percent": 20
+      }
+    ],
+    "skin": "ax_bot",
+    "scale": 1.15,
+    "portrait": {
+      "center": [2, -8],
+      "size": 30
+    }
+  },
+  {
+    "id": "whirl_bot",
+    "kind": "melee",
+    "maxHp": 700,
+    "attack": 70,
+    "moveSpeed": 175,
+    "attackSpeed": 1.5,
+    "range": 30,
+    "knockback": 30,
+    "attackType": "slash",
+    "traits": [
+      {
+        "type": "dodge",
+        "percent": 70
+      }
+    ],
+    "skin": "whirl_bot",
+    "scale": 1.1,
+    "portrait": {
+      "center": [5, -7],
+      "size": 30
+    }
+  },
+  {
+    "id": "titan_bot",
+    "kind": "melee",
+    "maxHp": 1200,
+    "attack": 75,
+    "moveSpeed": 40,
+    "attackSpeed": 0.7,
+    "range": 30,
+    "knockback": 70,
+    "attackType": "gore",
+    "traits": [
+      {
+        "type": "shield",
+        "percent": 10
+      }
+    ],
+    "skin": "titan_bot",
+    "scale": 1.3,
+    "portrait": {
+      "center": [8, -9],
+      "size": 34
+    }
   }
 ]

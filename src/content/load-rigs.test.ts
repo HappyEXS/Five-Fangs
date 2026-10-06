@@ -13,6 +13,7 @@ const rig = {
     { id: 'arm', parent: 'body', at: [0, -5], sprite: 'upper', back: true },
   ],
   drawOrder: ['arm', 'body'],
+  portrait: { bone: 'body', center: [0, -6], size: 12 },
   stances: { sword: { arm: -30 } },
   clips: {
     idle: {
@@ -76,9 +77,20 @@ describe('rig humanoid z treści gry', () => {
       'shoot',
       'cleave',
       'snipe',
+      // Ataki bestii: dziobnięcie, cios kłem, plucie, salwa kolców.
+      'peck',
+      'gore',
+      'spit',
+      'volley',
+      // Ataki trzech kolejnych szczepów: rzut, uniesienie rąk, przyzwanie, dziobnięcie kulą.
+      'cast',
+      'flare',
+      'summon',
+      'jab',
     ]);
     expect(humanoid?.clips.slash?.markers.hit).toBe(0.5);
     expect(humanoid?.stances.sword).toEqual({ weapon: -75 });
+    expect(humanoid?.portrait.bone).toBe('head');
   });
 });
 
@@ -98,6 +110,14 @@ describe('walidacja rigu', () => {
     expect(
       problems({ bones: reserved, drawOrder: ['bob'], stances: {}, clips: rig.clips }),
     ).toContain('kość nie może nazywać się "bob"');
+  });
+
+  it('kadr miniaturki musi wskazywać istniejącą kość i mieć dodatni bok', () => {
+    expect(problems({ portrait: { bone: 'head', center: [0, 0], size: 12 } })).toEqual([
+      'miniaturka: nieznana kość "head"',
+    ]);
+    expect(problems({ portrait: { bone: 'body', center: [0, 0], size: 0 } })).not.toEqual([]);
+    expect(problems({ portrait: undefined })).not.toEqual([]);
   });
 
   it('drawOrder musi zawierać każdą kość dokładnie raz', () => {

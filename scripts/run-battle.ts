@@ -18,12 +18,15 @@ import {
   EVENT_BATTLE_ENDED,
   EVENT_DAMAGED,
   EVENT_DIED,
+  EVENT_DODGED,
   EVENT_HEALED,
   EVENT_KNOCKED_BACK,
   EVENT_PROJECTILE_EXPIRED,
   EVENT_PROJECTILE_HIT,
   EVENT_PROJECTILE_SPAWNED,
+  EVENT_SUMMONED,
   OUTCOME_IN_PROGRESS,
+  SQUAD_UNITS,
   stepBattle,
   TEAM_SIZE,
   type UnitSpec,
@@ -120,6 +123,10 @@ function describe(type: number, a: number, b: number, c: number): string {
       return `${unit(a)} odrzucony o ${pos(b)}`;
     case EVENT_DIED:
       return `${unit(a)} ginie`;
+    case EVENT_DODGED:
+      return `${unit(a)} unika ataku ${unit(b)}`;
+    case EVENT_SUMMONED:
+      return `${unit(b)} przyzywa jednostkę w miejscu #${a} na x=${pos(c)}`;
     case EVENT_BATTLE_ENDED:
       return 'koniec walki';
     default:
@@ -144,11 +151,17 @@ console.log(
   `\nWynik: ${result.outcome} (${result.reason}) po ${result.ticks} tickach (${seconds} s)`,
 );
 console.log('Jednostka            HP   zadane  otrzymane');
-for (let id = 0; id < TEAM_SIZE * 2; id++) {
-  const spec = id < TEAM_SIZE ? setup.player[id] : setup.enemy[id - TEAM_SIZE];
-  if (spec == null) continue;
+for (let id = 0; id < result.finalHp.length; id++) {
+  // Miejsca przyzwanych (od SQUAD_UNITS) pokazujemy, gdy ktoś w nich stanął. Obrażenia zadane
+  // przez przyzwanych są w wierszu ich przyzywacza.
+  const used =
+    id < SQUAD_UNITS
+      ? (id < TEAM_SIZE ? setup.player[id] : setup.enemy[id - TEAM_SIZE]) != null
+      : (battle.state.summonedBy[id] ?? -1) >= 0;
+  if (!used) continue;
+  const label = id < SQUAD_UNITS ? unit(id) : `#${id} (przyzwany)`;
   console.log(
-    `${unit(id).padEnd(18)} ${String(result.finalHp[id] ?? 0).padStart(4)}  ${String(result.damageDealt[id] ?? 0).padStart(7)}  ${String(result.damageTaken[id] ?? 0).padStart(9)}`,
+    `${label.padEnd(18)} ${String(result.finalHp[id] ?? 0).padStart(4)}  ${String(result.damageDealt[id] ?? 0).padStart(7)}  ${String(result.damageTaken[id] ?? 0).padStart(9)}`,
   );
 }
 console.log(

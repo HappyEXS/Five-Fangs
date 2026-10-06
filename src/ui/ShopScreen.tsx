@@ -1,6 +1,7 @@
 // Sklep: samo kupowanie. Bohaterowie na sprzedaż stoją na scenie, a pod każdym wisi metka
 // z ceną. Każdy zakup to nowy egzemplarz bohatera w formie bazowej; tę samą linię można kupić
-// wiele razy. Statystyki i ewolucję opisuje ekran informacji o bohaterach.
+// wiele razy; mówi o tym okienko pod przyciskiem „i” przy tytule. Statystyki i ewolucję opisuje
+// ekran informacji o bohaterach.
 import { useMemo } from 'preact/hooks';
 import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
@@ -33,8 +34,11 @@ export function ShopScreen(props: { game: Game }) {
 
   return (
     <div class="screen shop">
-      <ScreenHead game={game} title={t('nav.shop')} />
-      <p class="shop-hint">{t('shop.hint')}</p>
+      <ScreenHead
+        game={game}
+        title={t('nav.shop')}
+        info={[t('shop.info.copy'), t('shop.info.again')]}
+      />
 
       {stands.map((stand) => {
         const line = content.lines.get(stand.line);

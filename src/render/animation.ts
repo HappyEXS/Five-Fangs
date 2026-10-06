@@ -4,6 +4,7 @@
 import {
   EVENT_DAMAGED,
   EVENT_DIED,
+  EVENT_SUMMONED,
   type EventBuffer,
   MAX_UNITS,
   STATUS_ATTACKING,
@@ -78,7 +79,10 @@ export function resetAnimator(animator: Animator): void {
   for (let i = 0; i < MAX_UNITS; i++) animator.idlePhase[i] = (i * 0.37) % 1;
 }
 
-/** Reakcja na zdarzenia jednego ticka: błysk przy obrażeniach, początek animacji śmierci. */
+/**
+ * Reakcja na zdarzenia jednego ticka: błysk przy obrażeniach, początek animacji śmierci,
+ * a przy przyzwaniu wyzerowanie miejsca, w którym mógł jeszcze padać poprzedni przyzwany.
+ */
 export function animatorOnEvents(animator: Animator, events: EventBuffer): void {
   for (let i = 0; i < events.count; i++) {
     const type = events.type[i];
@@ -87,6 +91,13 @@ export function animatorOnEvents(animator: Animator, events: EventBuffer): void 
       if ((events.b[i] ?? 0) > 0) animator.flashMs[unit] = FLASH_MS;
     } else if (type === EVENT_DIED) {
       animator.deathMs[unit] = 0;
+    } else if (type === EVENT_SUMMONED) {
+      // `posed` = 0: pierwsza klatka nowej jednostki ustawi pozę od razu, bez dochodzenia z pozy
+      // poprzednika, i nie policzy dystansu od jego ostatniej pozycji.
+      animator.posed[unit] = 0;
+      animator.walkPhase[unit] = 0;
+      animator.flashMs[unit] = 0;
+      animator.deathMs[unit] = -1;
     }
   }
 }

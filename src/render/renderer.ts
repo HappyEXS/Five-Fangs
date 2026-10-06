@@ -23,6 +23,12 @@ export interface Renderer {
    * zeruje to ustawienie.
    */
   setTopUnit(unit: number): void;
+  /**
+   * Scena pokazowa: nikt tu nie walczy, więc paski życia obu stron mają kolor gracza. Sklep
+   * stawia część bohaterów w slotach prawej strony sceny i nie chce, by wyglądali na wrogów.
+   * `beginBattle` zeruje to ustawienie.
+   */
+  setShowcase(on: boolean): void;
   /** Zwalnia odwołanie do walki. */
   endBattle(): void;
 }

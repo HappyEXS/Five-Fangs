@@ -78,27 +78,52 @@ describe('buildBattle', () => {
 
   it('lista jednostek obejmuje bohaterów i wrogów', () => {
     expect(allUnitIds(content)).toEqual([
+      // Szczep Mieczników w kolejności drzewa.
       'swordsman_a',
       'swordsman_b',
+      'guard_a',
+      'swordsman_b2',
+      'berserker',
+      'guard_b',
+      'pavise_guard',
+      // Szczep Łuczników.
       'archer_a',
       'archer_b',
-      'guard_a',
-      'guard_b',
       'cleric_a',
-      'cleric_b',
-      // Testowe kopie form w drzewach ewolucji (ADR 0016).
-      'swordsman_c',
-      'swordsman_b2',
-      'swordsman_c2',
-      'archer_c',
       'archer_b2',
-      'archer_c2',
-      'guard_c',
-      'guard_b2',
-      'guard_c2',
-      'cleric_c',
-      'cleric_b2',
-      'cleric_c2',
+      'hunter',
+      'cleric_b',
+      'inquisitor',
+      // Szczep Beasts.
+      'monstrosity',
+      'batfang',
+      'reaper',
+      'spiker',
+      'ironbeak',
+      'tuskovator',
+      'ignitix',
+      // Szczepy Immortals, Plants i Robots.
+      'orb',
+      'cardinal',
+      'guardian_of_hell',
+      'polaris',
+      'ultimus',
+      'xartix',
+      'enigmatix',
+      'bush',
+      'trunk',
+      'ivy',
+      'oak_warrior',
+      'mother_tree',
+      'ice_ivy',
+      'toxic_ivy',
+      'bot',
+      'egzo_bot',
+      'holo_bot',
+      'thermobot',
+      'ax_bot',
+      'whirl_bot',
+      'titan_bot',
       'brute',
       'raider',
       'shaman',
@@ -123,6 +148,21 @@ describe('battleFromSetupJson', () => {
     expect(battle?.visuals[1]?.attackClip).toBe('shoot');
     expect(battle?.visuals[2]).toBeNull();
     expect(battle?.visuals[5]?.attackClip).toBe('slash');
+  });
+
+  it('odtwarza walkę z przyzywaczem: specyfikacja przyzywanego wraca z JSON-a razem z wyglądem', () => {
+    const summoning = buildBattle(content, {
+      player: [{ unit: 'mother_tree', rank: 2 }],
+      enemy: [{ unit: 'brute', rank: 0 }],
+    }).setup;
+    expect(summoning.player[0]?.summon).toMatchObject({ maxHp: 120, attack: 24 });
+    const battle = battleFromSetupJson(content, JSON.stringify(summoning));
+    expect(battle?.setup).toEqual(summoning);
+    expect(battle?.visuals[0]?.summon?.attackClip).toBe('slash');
+    // Wejście z raportu starszej wersji gry nie ma pola summon: jednostka nic nie przyzywa.
+    const { summon: _, ...legacy } = setup.player[0] ?? { summon: null };
+    const old = { ...setup, player: [legacy, null, null, null, null] };
+    expect(battleFromSetupJson(content, JSON.stringify(old))?.setup.player[0]?.summon).toBeNull();
   });
 
   it('odrzuca niepoprawny JSON, zły kształt i setup łamiący niezmienniki symulacji', () => {

@@ -50,6 +50,32 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* Miniaturka postaci: okienko z niebem sceny, w którym stoi popiersie. Niebo jest tłem, na
+   którym postacie są rysowane, więc każda jest na nim czytelna. Bok ustawia --portrait. */
+
+.portrait {
+  display: block;
+  flex: none;
+  width: var(--portrait, 3em);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.28em;
+  background: var(--dusk);
+  box-shadow: 0.14em 0.14em 0 var(--ink);
+}
+
+.portrait-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Przeciwnik patrzy w lewo, tak jak na scenie. */
+.portrait-mirrored .portrait-face {
+  scale: -1 1;
+}
+
 /* Przyciski: papierowy kartonik, który po naciśnięciu siada na swoim cieniu. */
 
 .btn {
@@ -135,6 +161,9 @@
     inset 0 0 1.4em var(--burn),
     0.32em 0.32em 0 var(--ink);
   color: var(--ink);
+  /* Arkusz, który się przewija (np. wielu bohaterów poza składem), ma wąski atramentowy suwak. */
+  scrollbar-color: var(--ink-soft) transparent;
+  scrollbar-width: thin;
 }
 
 .sheet-title {
@@ -209,6 +238,24 @@
 .hero-name {
   font: 400 1.75em / 1 var(--display);
   letter-spacing: 0.02em;
+}
+
+/* Nagłówek karty postaci: miniaturka, obok nazwa i jeden wiersz o formie. */
+.card-head {
+  --portrait: 4.2em;
+
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+.hero-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1em 0.8em;
+  margin-top: 0.25em;
+  color: var(--ink-soft);
+  font-size: 0.92em;
 }
 /* Statystyki */
 

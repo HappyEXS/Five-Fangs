@@ -35,6 +35,15 @@ export interface CompiledRig {
   readonly stances: ReadonlyMap<string, Float32Array>;
   /** Cięciwy per postawa. */
   readonly strings: ReadonlyMap<string, CompiledString>;
+  readonly portrait: CompiledPortrait;
+}
+
+/** Kadr miniaturki: kwadrat o boku `size` ze środkiem w punkcie (x, y) kości `bone`. */
+export interface CompiledPortrait {
+  readonly bone: number;
+  readonly x: number;
+  readonly y: number;
+  readonly size: number;
 }
 
 /** Cięciwa: linia między dwoma punktami kości, naciągana do punktu innej kości w fazie klipu. */
@@ -108,6 +117,12 @@ export function compileRig(raw: RawRig): CompiledRig {
     clips,
     stances,
     strings,
+    portrait: {
+      bone: boneIds.indexOf(raw.portrait.bone),
+      x: raw.portrait.center[0],
+      y: raw.portrait.center[1],
+      size: raw.portrait.size,
+    },
   };
 }
 

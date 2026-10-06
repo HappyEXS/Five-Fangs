@@ -8,13 +8,24 @@ import { projectileBound, validateSetup, validateUnitSpec } from '../../src/sim/
 
 const EMPTY_TEAM = [null, null, null, null, null] as const;
 
-/** Suma największych ograniczeń pocisków w jednej drużynie złożonej z tych jednostek. */
+/**
+ * Suma największych ograniczeń pocisków w jednej drużynie złożonej z tych jednostek. Drużyna
+ * może mieć do tego TEAM_SIZE przyzwanych; w najgorszym razie wszyscy są tą z jednostek
+ * przyzywanych przez `units`, która trzyma w locie najwięcej pocisków.
+ */
 function worstTeamBound(units: Iterable<CompiledUnit>, width: number): number {
-  return [...units]
+  const all = [...units];
+  const squad = all
     .map((unit) => projectileBound(unit.base, width))
     .sort((a, b) => b - a)
     .slice(0, TEAM_SIZE)
     .reduce((sum, bound) => sum + bound, 0);
+  const summon = all.reduce(
+    (worst, unit) =>
+      unit.base.summon === null ? worst : Math.max(worst, projectileBound(unit.base.summon, width)),
+    0,
+  );
+  return squad + TEAM_SIZE * summon;
 }
 
 export function contentSimIssues(content: GameContent): ContentIssue[] {
@@ -31,12 +42,28 @@ export function contentSimIssues(content: GameContent): ContentIssue[] {
   const groups = [
     ['units/heroes.json', content.heroes],
     ['units/enemies.json', content.enemies],
+    ['units/summons.json', content.summons],
   ] as const;
   const all: CompiledUnit[] = [];
   for (const [source, units] of groups) {
     for (const unit of units.values()) {
       all.push(unit);
       for (const message of validateUnitSpec(unit.id, unit.base)) issues.push({ source, message });
+      // Jednostka celująca w koniec szyku strzela z miejsca: idąc do celu, minęłaby bliższych
+      // wrogów. Ten sam warunek sprawdza `validateSetup` przy tworzeniu walki.
+      if (unit.base.targetLast && unit.base.range < content.arena.width) {
+        issues.push({
+          source,
+          message: `${unit.id}: cecha "targetLast" wymaga zasięgu na całe pole (range ≥ szerokość areny)`,
+        });
+      }
+      // Jednostka bez ruchu, która nie sięga całego pola, stałaby bezczynnie, gdy wróg jest dalej.
+      if (unit.base.moveStep === 0 && unit.base.range < content.arena.width) {
+        issues.push({
+          source,
+          message: `${unit.id}: jednostka bez ruchu (moveSpeed 0) wymaga zasięgu na całe pole (range ≥ szerokość areny)`,
+        });
+      }
     }
   }
   if (issues.length > 0 || all.length === 0) return issues;

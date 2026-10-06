@@ -84,6 +84,15 @@ describe('statystyki dla gracza', () => {
     if (sniper === undefined || sword === undefined) throw new Error('missing unit');
     expect(traitsOf(sniper.base)).toEqual([{ key: 'trait.pierce', params: {} }]);
     expect(traitsOf(sword.base)).toEqual([]);
+    // Przyzywacz: opis zaczyna się od tego, że nie atakuje, i podaje statystyki przyzywanego.
+    const tree = content.heroes.get('mother_tree');
+    if (tree === undefined) throw new Error('no mother_tree');
+    expect(traitsOf(tree.base)).toEqual([
+      { key: 'trait.summon', params: { seconds: 2, hp: 100, attack: 20, limit: 5 } },
+    ]);
+    expect(traitsOf({ ...sniper.base, pierce: false, targetLast: true })).toEqual([
+      { key: 'trait.targetLast', params: {} },
+    ]);
     expect(traitsOf({ ...sword.base, healAmount: 20, healInterval: 45, healTeam: true })).toEqual([
       { key: 'trait.heal.team', params: { amount: 20, seconds: 1.5 } },
     ]);

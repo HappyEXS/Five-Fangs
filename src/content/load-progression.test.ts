@@ -49,28 +49,37 @@ describe('dane progresji gry', () => {
     expect([...(archer?.forms.keys() ?? [])]).toEqual([
       'archer_a',
       'archer_b',
-      'archer_c',
+      'cleric_a',
       'archer_b2',
-      'archer_c2',
+      'hunter',
+      'cleric_b',
+      'inquisitor',
     ]);
     expect(archer?.forms.get('archer_a')).toEqual({
       unit: 'archer_a',
       from: null,
       evolveCost: 0,
       upgradeCosts: [50, 80, 120, 180],
-      next: ['archer_b', 'archer_c'],
+      next: ['archer_b', 'cleric_a'],
       tier: 0,
     });
-    expect(archer?.forms.get('archer_c2')).toEqual({
-      unit: 'archer_c2',
-      from: 'archer_c',
+    expect(archer?.forms.get('inquisitor')).toEqual({
+      unit: 'inquisitor',
+      from: 'cleric_a',
       evolveCost: 1200,
       upgradeCosts: [1000, 1300, 1700, 2200],
       next: [],
       tier: 2,
     });
-    expect(content?.lines.get('guard')).toMatchObject({ price: 300, starter: false });
-    expect([...(content?.lines.keys() ?? [])]).toEqual(['swordsman', 'archer', 'guard', 'cleric']);
+    expect(content?.lines.get('beasts')).toMatchObject({ price: 200, starter: false });
+    expect([...(content?.lines.keys() ?? [])]).toEqual([
+      'swordsman',
+      'archer',
+      'beasts',
+      'immortals',
+      'plants',
+      'robots',
+    ]);
   });
 
   it('światy mają poziomy w kolejności, a poziom zna swój świat i nagrody', () => {

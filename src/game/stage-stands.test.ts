@@ -26,16 +26,30 @@ function withLines(count: number): GameContent {
 }
 
 describe('shopStands', () => {
-  it('stawia każdą linię z treści gry w jednym rzędzie, w kolejności z treści', () => {
+  it('stawia każdą linię z treści gry w kolejności z treści: sześć szczepów po trzy na stronę', () => {
     const stands = shopStands(content);
     expect(stands.map((stand) => stand.line)).toEqual([...content.lines.keys()]);
-    expect(stands.every((stand) => stand.side === 0)).toBe(true);
-    expect(stands.map((stand) => stand.slot)).toEqual(stands.map((_, index) => index));
-    expect(stands[0]?.position).toBeCloseTo(0.12);
-    expect(stands.at(-1)?.position).toBeCloseTo(0.88);
+    expect(stands.map((stand) => stand.side)).toEqual([0, 0, 0, 1, 1, 1]);
+    expect(stands.map((stand) => stand.slot)).toEqual([0, 1, 2, 0, 1, 2]);
+    // Równe odstępy przez całą scenę, także między lewą a prawą grupą: metki mają tyle samo
+    // miejsca pod każdą postacią.
+    const positions = stands.map((stand) => stand.position);
+    expect(positions[0]).toBeCloseTo(0.08);
+    expect(positions.at(-1)).toBeCloseTo(0.92);
+    for (let i = 1; i < positions.length; i++) {
+      expect((positions[i] ?? 0) - (positions[i - 1] ?? 0)).toBeCloseTo(0.168);
+    }
     for (const stand of stands) {
       expect(stand.unitId).toBe(content.lines.get(stand.line)?.base);
     }
+  });
+
+  it('do pięciu linii stoi w jednym rzędzie po lewej stronie', () => {
+    const stands = shopStands(withLines(5));
+    expect(stands.every((stand) => stand.side === 0)).toBe(true);
+    expect(stands.map((stand) => stand.slot)).toEqual([0, 1, 2, 3, 4]);
+    expect(stands[0]?.position).toBeCloseTo(0.12);
+    expect(stands.at(-1)?.position).toBeCloseTo(0.88);
   });
 
   it('jedną linię stawia na środku sceny', () => {
@@ -58,12 +72,8 @@ describe('shopStands', () => {
 
 describe('formStands', () => {
   it('stawia drogę ewolucji od lewej: formę bazową, wybraną i dalsze stopnie, wszystkie w prawo', () => {
-    const stands = formStands(content, 'swordsman', 'swordsman_c');
-    expect(stands.map((stand) => stand.unitId)).toEqual([
-      'swordsman_a',
-      'swordsman_c',
-      'swordsman_c2',
-    ]);
+    const stands = formStands(content, 'swordsman', 'guard_a');
+    expect(stands.map((stand) => stand.unitId)).toEqual(['swordsman_a', 'guard_a', 'guard_b']);
     expect(stands.every((stand) => stand.side === 0)).toBe(true);
     const positions = stands.map((stand) => stand.position);
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
@@ -123,12 +133,17 @@ describe('standScene', () => {
     const battle = createBattle(scene.setup);
     for (const stand of stands) {
       const x = arenaXAt(stand.position, content.arena.width);
-      expect(scene.setup.arena.playerSlots[stand.slot]).toBe(x);
-      expect(scene.setup.player[stand.slot]).toBe(content.heroes.get(stand.unitId)?.base);
-      expect(scene.visuals[stand.slot]).toBe(content.heroes.get(stand.unitId)?.visual);
-      expect(battle.state.x[stand.slot]).toBe(x);
+      const { arena, player, enemy } = scene.setup;
+      // Prawa strona sceny to sloty przeciwnika: jednostki 5..9.
+      const unitId = stand.side === 0 ? stand.slot : SQUAD_SLOTS + stand.slot;
+      expect((stand.side === 0 ? arena.playerSlots : arena.enemySlots)[stand.slot]).toBe(x);
+      expect((stand.side === 0 ? player : enemy)[stand.slot]).toBe(
+        content.heroes.get(stand.unitId)?.base,
+      );
+      expect(scene.visuals[unitId]).toBe(content.heroes.get(stand.unitId)?.visual);
+      expect(battle.state.x[unitId]).toBe(x);
     }
-    expect(scene.setup.enemy.every((unit) => unit === null)).toBe(true);
+    expect(scene.visuals.filter((visual) => visual !== null)).toHaveLength(stands.length);
   });
 
   it('prawa strona sceny trafia do slotów przeciwnika', () => {

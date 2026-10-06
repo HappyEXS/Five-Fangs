@@ -2,17 +2,18 @@
 // obiektów, tablic, domknięć ani napisów tworzonych co klatkę. Wszystkie bufory powstają raz,
 // w `createScene`; rysowanie jest w draw-units.ts, draw-rig.ts i draw-effects.ts.
 import type { UnitVisual } from '../content/compile.ts';
-import type { RawRig } from '../content/schema-rig.ts';
 import {
   type Battle,
   EVENT_DAMAGED,
+  EVENT_DODGED,
   EVENT_HEALED,
+  EVENT_SUMMONED,
   type EventBuffer,
   MAX_UNITS,
+  SQUAD_UNITS,
   TEAM_SIZE,
 } from '../sim/index.ts';
-import { animatorOnEvents, resetAnimator, type UnitLook } from './animation.ts';
-import type { Atlas } from './atlas.ts';
+import { animatorOnEvents, resetAnimator } from './animation.ts';
 import { drawBackground } from './background.ts';
 import { fitCamera } from './camera.ts';
 import { debugOptions, debugOverlay, debugStats } from './debug.ts';
@@ -21,89 +22,64 @@ import { drawUnit } from './draw-units.ts';
 import {
   clearFloatTexts,
   FLOAT_KIND_DAMAGE,
+  FLOAT_KIND_DODGE,
   FLOAT_KIND_HEAL,
   updateFloatTexts,
 } from './float-text.ts';
+import { compileRigs, type RenderAssets, resolveLook, skinParts } from './looks.ts';
 import { measureReach } from './reach.ts';
 import type { Renderer } from './renderer.ts';
-import { type CompiledRig, compileRig } from './rig.ts';
-import { createScene } from './scene.ts';
+import { copyLook, createScene, headHeightOf, LOOK_ROWS } from './scene.ts';
 import type { Viewport } from './viewport.ts';
-
-export interface RenderAssets {
-  readonly atlas: Atlas;
-  readonly rigs: ReadonlyMap<string, RawRig>;
-}
 
 export function createCanvasRenderer(
   ctx: CanvasRenderingContext2D,
   assets: RenderAssets,
 ): Renderer {
   const { atlas } = assets;
-  const rigs = new Map<string, CompiledRig>();
-  let maxBones = 1;
-  let maxChannels = 1;
-  for (const [id, raw] of assets.rigs) {
-    const rig = compileRig(raw);
-    rigs.set(id, rig);
-    maxBones = Math.max(maxBones, rig.boneCount);
-    maxChannels = Math.max(maxChannels, rig.channelCount);
-  }
+  const rigs = compileRigs(assets.rigs);
+  const { maxBones } = rigs;
+  const scene = createScene(ctx, atlas, maxBones, rigs.maxChannels);
 
-  const scene = createScene(ctx, atlas, maxBones, maxChannels);
-
-  function resolveLook(visual: UnitVisual): UnitLook {
-    const rig = rigs.get(visual.rig);
-    if (rig === undefined) throw new Error(`Unknown rig "${visual.rig}"`);
-    const rest = rig.stances.get(visual.stance);
-    const idle = rig.clips.get('idle');
-    const walk = rig.clips.get('walk');
-    const attack = rig.clips.get(visual.attackClip);
-    if (rest === undefined || idle === undefined || walk === undefined || attack === undefined) {
-      throw new Error(`Rig "${visual.rig}" is missing clips or stance for skin "${visual.skin}"`);
-    }
-    return {
-      rig,
-      rest,
-      idle,
-      walk,
-      attack,
-      scale: rig.scale * visual.scale,
-      string: rig.strings.get(visual.stance) ?? null,
-    };
+  /** Wypełnia wiersz wyglądu `row`: wygląd, części, zasięg postaci, pocisk. */
+  function prepareLook(row: number, visual: UnitVisual): void {
+    const look = resolveLook(rigs, visual);
+    scene.looks[row] = look;
+    const parts = skinParts(atlas, look.rig, visual.skin);
+    parts.forEach((sprite, bone) => {
+      scene.boneSprites[row * maxBones + bone] = sprite;
+    });
+    const reach = measureReach(look, parts);
+    scene.reachBack[row] = reach.back;
+    scene.reachFront[row] = reach.front;
+    scene.reachHeight[row] = reach.height;
+    scene.headHeight[row] = headHeightOf(look, reach.stand);
+    scene.projectileSprites[row] =
+      visual.projectileSprite === null
+        ? null
+        : (atlas.sprites.get(`fx/${visual.projectileSprite}`) ?? null);
+    scene.projectileHeights[row] = visual.projectileHeight * look.scale;
   }
 
   return {
     beginBattle(battle: Battle, visuals: readonly (UnitVisual | null)[]): void {
       scene.battle = battle;
       scene.topUnit = -1;
+      scene.showcase = false;
       fitCamera(scene.camera, battle.width);
       resetAnimator(scene.animator);
       clearFloatTexts(scene.floatTexts);
       scene.boneSprites.fill(null);
-      for (let unit = 0; unit < MAX_UNITS; unit++) {
+      for (let row = 0; row < LOOK_ROWS; row++) {
+        scene.looks[row] = null;
+        scene.projectileSprites[row] = null;
+      }
+      for (let unit = 0; unit < SQUAD_UNITS; unit++) {
         const visual = visuals[unit] ?? null;
-        if (visual === null) {
-          scene.looks[unit] = null;
-          scene.projectileSprites[unit] = null;
-          continue;
-        }
-        const look = resolveLook(visual);
-        scene.looks[unit] = look;
-        const parts = look.rig.sprites.map(
-          (part) => atlas.sprites.get(`${visual.skin}/${part}`) ?? null,
-        );
-        parts.forEach((sprite, bone) => {
-          scene.boneSprites[unit * maxBones + bone] = sprite;
-        });
-        const reach = measureReach(look, parts);
-        scene.reachBack[unit] = reach.back;
-        scene.reachFront[unit] = reach.front;
-        scene.reachHeight[unit] = reach.height;
-        scene.projectileSprites[unit] =
-          visual.projectileSprite === null
-            ? null
-            : (atlas.sprites.get(`fx/${visual.projectileSprite}`) ?? null);
+        if (visual === null) continue;
+        prepareLook(unit, visual);
+        // Wzorzec tego, co jednostka przyzywa: miejsca przyzwanych dostają go w `consume`.
+        if (visual.summon !== null) prepareLook(MAX_UNITS + unit, visual.summon);
       }
     },
 
@@ -113,6 +89,15 @@ export function createCanvasRenderer(
       if (battle === null) return;
       for (let i = 0; i < events.count; i++) {
         const type = events.type[i];
+        if (type === EVENT_SUMMONED) {
+          // Animator wyzerował już stan miejsca; tu przyzwany dostaje wygląd od przyzywacza.
+          copyLook(scene, MAX_UNITS + (events.b[i] ?? 0), events.a[i] ?? 0);
+          continue;
+        }
+        if (type === EVENT_DODGED) {
+          spawnNumber(scene, battle, events.a[i] ?? 0, 0, FLOAT_KIND_DODGE);
+          continue;
+        }
         const value = events.b[i] ?? 0;
         if (value <= 0) continue;
         if (type === EVENT_DAMAGED) {
@@ -137,6 +122,12 @@ export function createCanvasRenderer(
           drawUnit(scene, battle, TEAM_SIZE + slot, viewport, alpha, frameMs);
         }
       }
+      // Przyzwani na wierzchu składów: są mali i wychodzą przed swojego przyzywacza.
+      if (battle.hasSummons) {
+        for (let unit = SQUAD_UNITS; unit < MAX_UNITS; unit++) {
+          drawUnit(scene, battle, unit, viewport, alpha, frameMs);
+        }
+      }
       if (top >= 0) drawUnit(scene, battle, top, viewport, alpha, frameMs);
       drawProjectiles(scene, battle, viewport, alpha);
       drawNumbers(scene, viewport);
@@ -144,6 +135,9 @@ export function createCanvasRenderer(
       if (import.meta.env.DEV && debugOptions.perf) debugOverlay(ctx);
     },
 
+    setShowcase(on: boolean): void {
+      scene.showcase = on;
+    },
     setTopUnit(unit: number): void {
       scene.topUnit = Number.isInteger(unit) && unit >= 0 && unit < MAX_UNITS ? unit : -1;
     },

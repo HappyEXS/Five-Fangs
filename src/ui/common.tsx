@@ -1,13 +1,19 @@
 // Elementy wspólne ekranów: nagłówek ekranu, sakiewka, tabela statystyk, nazwy z treści gry.
-import { unitNameKey } from '../content/i18n/keys.ts';
+import { lineNameKey, unitNameKey } from '../content/i18n/keys.ts';
 import type { Rune } from '../content/schema-progression.ts';
 import type { Game } from '../game/game.ts';
 import { t, tName } from '../game/i18n.ts';
 import { displayStats, traitsOf, type UnitSpec } from '../game/stats.ts';
+import { InfoButton } from './InfoButton.tsx';
 import { Coin } from './icons.tsx';
 
 export function unitName(unitId: string): string {
   return tName(unitNameKey(unitId));
+}
+
+/** Nazwa szczepu, czyli linii bohaterów z jednym drzewem ewolucji. */
+export function lineName(lineId: string): string {
+  return tName(lineNameKey(lineId));
 }
 
 export function runeLabel(rune: Rune): string {
@@ -53,14 +59,16 @@ export function Gold(props: { amount: number }) {
 /**
  * Nagłówek ekranów otwieranych z mapy: „Wróć” zawsze prowadzi na mapę, obok tytuł i sakiewka.
  * Między tymi ekranami nie ma przejść na skróty, więc gracz zawsze wie, dokąd wróci.
+ * `info` to zasady ekranu: zamiast stać na scenie, czekają pod przyciskiem „i” przy tytule.
  */
-export function ScreenHead(props: { game: Game; title: string }) {
+export function ScreenHead(props: { game: Game; title: string; info?: readonly string[] }) {
   return (
     <header class="screen-head">
       <button type="button" class="btn" data-action="back" onClick={() => props.game.openMap()}>
         {t('common.back')}
       </button>
       <h2 class="screen-title">{props.title}</h2>
+      {props.info !== undefined && <InfoButton topic={props.title} lines={props.info} />}
       <span class="spacer" />
       <Purse game={props.game} />
     </header>

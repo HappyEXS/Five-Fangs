@@ -65,6 +65,51 @@ describe('contentSimIssues', () => {
     expect(issues.at(-1)).toContain('pocisków w locie');
   });
 
+  it('jednostka celująca w koniec szyku musi sięgać całego pola', () => {
+    const spitter = {
+      ...unit,
+      id: 'spitter',
+      kind: 'ranged',
+      attackSpeed: 0.8,
+      attackType: 'shoot',
+      traits: [{ type: 'targetLast' }],
+    };
+    expect(issuesFor({ 'units/heroes.json': [{ ...spitter, range: 1000 }] })).toEqual([]);
+    expect(issuesFor({ 'units/heroes.json': [{ ...spitter, range: 400 }] })).toEqual([
+      'units/heroes.json: spitter: cecha "targetLast" wymaga zasięgu na całe pole (range ≥ szerokość areny)',
+    ]);
+  });
+
+  it('jednostka bez ruchu musi sięgać całego pola', () => {
+    const rooted = { ...unit, id: 'rooted', kind: 'ranged', moveSpeed: 0, attackType: 'shoot' };
+    expect(issuesFor({ 'units/heroes.json': [{ ...rooted, range: 1000 }] })).toEqual([]);
+    expect(issuesFor({ 'units/heroes.json': [{ ...rooted, range: 400 }] })).toEqual([
+      'units/heroes.json: rooted: jednostka bez ruchu (moveSpeed 0) wymaga zasięgu na całe pole (range ≥ szerokość areny)',
+    ]);
+  });
+
+  it('jednostki przyzywane podlegają tym samym regułom co pozostałe', () => {
+    const sprout = { ...unit, id: 'sprout', skin: 'sprout' };
+    const tree = { ...unit, id: 'tree', kind: 'summoner', attack: 0, summon: 'sprout' };
+    const ok = issuesFor({ 'units/heroes.json': [tree], 'units/summons.json': [sprout] });
+    expect(ok).toEqual([]);
+    // Zbyt szybki przyzywany mógłby minąć wroga.
+    const fast = issuesFor({
+      'units/heroes.json': [tree],
+      'units/summons.json': [{ ...sprout, moveSpeed: 1000 }],
+    });
+    expect(fast.join('\n')).toContain('mogłyby się minąć');
+    expect(fast.join('\n')).toContain('"sprout"');
+    // Przyzywany z odstępem ataków krótszym niż zamach.
+    const hasty = issuesFor({
+      'units/heroes.json': [tree],
+      'units/summons.json': [{ ...sprout, attackSpeed: 5 }],
+    });
+    expect(hasty).toContain(
+      'units/summons.json: sprout: attackInterval nie może być krótszy niż swingTicks',
+    );
+  });
+
   it('sprawdza arenę', () => {
     const issues = issuesFor({
       'arena.json': {

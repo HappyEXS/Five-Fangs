@@ -4,10 +4,11 @@
 import {
   type Battle,
   isAlive,
+  isPlayerUnit,
+  SQUAD_UNITS,
   STATUS_ATTACKING,
   STATUS_DEAD,
   STATUS_EMPTY,
-  TEAM_SIZE,
 } from '../sim/index.ts';
 import { attackProgress, DEATH_MS, updateUnitPose } from './animation.ts';
 import { VARIANT_NORMAL } from './atlas.ts';
@@ -16,13 +17,15 @@ import { drawRigParts, drawString } from './draw-rig.ts';
 import { digitAt, digitCount } from './float-text.ts';
 import { keepOnStage } from './reach.ts';
 import { computeBoneMatrices, rootMatrix } from './rig.ts';
-import { blit, FEET_Y, type Scene, UPPER_BODY, unitFacing } from './scene.ts';
+import { blit, FEET_Y, type Scene, unitFacing } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 const HP_BACK = '#241f3d';
 const HP_PLAYER = '#8db35a';
 const HP_ENEMY = '#c9463d';
 const HP_BAR_WIDTH = 46;
+/** Przyzwani chodzą gromadą: mają krótszy pasek i nie mają liczby życia, żeby się nie zlewały. */
+const HP_BAR_WIDTH_SUMMON = 22;
 const HP_BAR_HEIGHT = 5;
 /** Odstęp górnej krawędzi paska od czubka głowy. */
 const HP_BAR_RISE = 12;
@@ -40,9 +43,10 @@ function drawHpBar(scene: Scene, battle: Battle, unit: number, x: number, top: n
   const hp = battle.state.hp[unit] ?? 0;
   const fraction = hp <= 0 ? 0 : hp >= maxHp ? 1 : hp / maxHp;
   ctx.fillStyle = HP_BACK;
-  ctx.fillRect(x - HP_BAR_WIDTH / 2 - 1, top - 1, HP_BAR_WIDTH + 2, HP_BAR_HEIGHT + 2);
-  ctx.fillStyle = unit < TEAM_SIZE ? HP_PLAYER : HP_ENEMY;
-  ctx.fillRect(x - HP_BAR_WIDTH / 2, top, HP_BAR_WIDTH * fraction, HP_BAR_HEIGHT);
+  const width = unit < SQUAD_UNITS ? HP_BAR_WIDTH : HP_BAR_WIDTH_SUMMON;
+  ctx.fillRect(x - width / 2 - 1, top - 1, width + 2, HP_BAR_HEIGHT + 2);
+  ctx.fillStyle = isPlayerUnit(unit) || scene.showcase ? HP_PLAYER : HP_ENEMY;
+  ctx.fillRect(x - width / 2, top, width * fraction, HP_BAR_HEIGHT);
 }
 
 /**
@@ -162,11 +166,13 @@ export function drawUnit(
   if (!isAlive(status)) return;
   const s = viewport.scale;
   ctx.setTransform(s, 0, 0, s, 0, 0);
-  const barTop = feetY - (rig.hipHeight + UPPER_BODY) * scale - HP_BAR_RISE;
+  const barTop = feetY - (scene.headHeight[unit] ?? 0) - HP_BAR_RISE;
   drawHpBar(scene, battle, unit, x, barTop);
-  scene.local[4] = x;
-  scene.local[5] = barTop - HP_NUMBER_RISE;
-  drawHpNumber(scene, battle, unit, viewport);
+  if (unit < SQUAD_UNITS) {
+    scene.local[4] = x;
+    scene.local[5] = barTop - HP_NUMBER_RISE;
+    drawHpNumber(scene, battle, unit, viewport);
+  }
 
   if (import.meta.env.DEV && debugOptions.ranges) {
     const target = state.target[unit] ?? -1;

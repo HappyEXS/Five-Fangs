@@ -167,6 +167,59 @@ Zlecenie autora gry: typowa animacja w postaci mechanicznej metalowej bramy oraz
 | M5f-1 | Brama: rysunek, ruch, przejścia po ekranie startowym, przed i po walce; walka stoi do otwarcia bramy; wynik na zamkniętej bramie | 1 | Testy kolejności ruchów; testy end-to-end przechodzą przez bramę; przy ograniczonym ruchu brak przesuwania | gotowe |
 | M5f-2 | Tekstura starego papieru dla okien, przycisków, kafli i metek | 0,5 | Brak żadnego pliku i zapytania; kontrast drobnego tekstu zachowany | gotowe |
 
+## M5g – Miniaturki postaci (2026-10-05)
+
+Zlecenie autora gry po pierwszym udanym deployu: każda postać ma miniaturkę („obrazek profilowy”); miniaturki pokazują bohaterów poza składem, są w zakładce „Bohaterowie” i w walce (żywe postacie gracza w lewym dolnym rogu, przeciwnika w prawym dolnym). Decyzja w ADR 0017, wygląd w uzupełnieniu ADR 0015.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5g-1 | Kadr miniaturki w danych rigu; arkusz miniaturek rysowany z rigu i atlasu | 0,5 | Walidator odrzuca kadr z nieznaną kością; test: głowa każdej jednostki z treści mieści się w kadrze | gotowe |
+| M5g-2 | Skład: bohaterowie poza składem jako miniaturki; Bohaterowie: miniaturki w drzewie i na karcie formy | 0,5 | Test end-to-end: miniaturki są narysowane, miniaturka przeciągnięta na slot wchodzi do składu; rząd miniaturek mieści się w arkuszu bez przewijania w czterech rozmiarach okna | gotowe |
+| M5g-3 | Walka: miniaturki żywych postaci w dolnych rogach ekranu | 0,5 | Testy listy twarzy i maski żywych; test end-to-end: pokonany przeciwnik traci miniaturkę; alokacje renderera bez zmian (278 B na klatkę) | gotowe |
+| M5g-4 | Ocena autora gry: wygląd okienek, brak paska życia przy miniaturkach w walce, miniaturki także w sklepie i na mapie | — | Decyzja autora | otwarte |
+
+## M5h – Szczep Beasts (2026-10-05)
+
+Zlecenie autora gry: zaprojektować wygląd siedmiu bohaterów szczepu Beasts według szkiców z notesu (zdjęcia w folderze `inspirations/`) i wprowadzić ich statystyki do gry, bez usuwania dotychczasowych bohaterów. Ustalenia z autorem: „Ela” to odrzut; nazwy Tuskovator i Ignitix; „attacks the last enemy” to zawsze ostatni wróg w szyku, z zasięgiem na całe pole; bestie stoją na dwóch nogach na szkielecie ludzi. Decyzje w ADR 0018 i uzupełnieniach ADR 0007, 0009 i 0017.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5h-1 | Cecha `targetLast`: cel na końcu szyku, pocisk wycelowany, reguły walidacji | 1 | Testy wyboru celu, lotu nad bliższymi wrogami, śmierci celu i niezmienników; nowa walka golden; `pnpm bench` w granicach rozrzutu sprzed zmiany | gotowe |
+| M5h-2 | Wygląd siedmiu bestii: części na szkielecie humanoid, pociski, klipy `peck`, `gore`, `spit`, `volley` | 2 | Każda skórka ma komplet części i żadna nie jest ucięta; atlas w budżecie (128 KB); zrzuty z gry w czterech drogach ewolucji | gotowe |
+| M5h-3 | Treść: siedem jednostek ze statystykami ze szkiców, linia w sklepie, drzewo ewolucji, kadry miniaturek | 0,5 | Walidator treści przechodzi; test end-to-end: zakup, drzewo siedmiu form, Ignitix zabija najpierw tylnego wroga | gotowe |
+| M5h-4 | Renderer: pasek życia nad łbem wysokich postaci, wysokość wylotu pocisku, lot łukiem | 0,5 | Alokacje renderera bez zmian przy włączonym i wyłączonym łuku (297 B na klatkę w scenie z pociskami wycelowanymi) | gotowe |
+| M5h-5 | Ocena autora: wygląd bestii, wartości robocze (ataki na sekundę melee, zasięg strzelców, koszty), wolny ruch strzelców | — | Decyzja autora | otwarte |
+| M5h-6 | Pozostałe trzy szczepy | — | Czeka na szkice autora | wstrzymane |
+| M5h-7 | Uwagi autora po obejrzeniu bestii: nazwy szczepów na zakładkach „Bohaterów”, miniaturka w wyborze ewolucji i na karcie bohatera w składzie, stała wysokość paska „Poza składem” | 0,5 | Test end-to-end: zakładki noszą nazwy szczepów, miniaturki są narysowane, pasek ma tę samą wysokość pusty i z bohaterem (zmierzone też przy dwunastu bohaterach: 150,7 px w każdym stanie) | gotowe |
+
+## M5i – Szczepy Immortals, Plants i Robots; mroczniejszy styl postaci (2026-10-05)
+
+Zlecenie autora gry: skórki trzech kolejnych szczepów według szkiców (zdjęcia w `inspirations/`) i mniej dziecinna, „obskurna” grafika każdego bohatera. Ustalenia z autorem: szanse ze szkiców działają jako stały rytm bez losu; tarcza to mniejsze obrażenia; przyzwane krzaki Mother-tree mają osobne miejsca (do 5 naraz ponad skład); stojące postacie (Spd 0) strzelają przez całe pole; styl „mroczna baśń” (brud, poszarpane kontury, blizny, rdza, pleśń, małe świecące oczy, bez krwi) dla czterech szczepów, starzy ludzie bez zmian; nazwy Polaris i Xartix; pocisk Toxic Ivy przebija wszystkich.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5i-1 | Cechy `doubleDamage` i `dodge` w stałym rytmie oraz `shield`; znak uniku nad postacią | 1 | Testy rytmu (50, 20, 30, 70 na 100), łączenia z szałem, kradzieżą życia, pociskami i ciosem obszarowym; walka golden `rhythm`; w istniejących walkach zmienia się tylko hash stanu | gotowe |
+| M5i-2 | Styl „mroczna baśń” (ADR 0019): przybory generatora, przerysowane bestie, skórki Immortals, Plants (z przyzywanym krzakiem) i Robots, dziewięć pocisków, klipy `cast`, `flare`, `summon`, `jab` | 3 | 29 skórek z kompletem części, żadna nie jest ucięta; atlas 543 KB (budżet 1 MB), pierwsze uruchomienie 726 KB (budżet 2 MB); zrzuty każdej postaci w czterech pozach i bestii w grze | gotowe |
+| M5i-3 | Treść trzech szczepów: 20 bohaterów ze statystykami ze szkiców, 12 typów ataków, linie `immortals`, `plants` (bez Mother-tree), `robots`, nazwy, kadry miniaturek; szybkość 0 z zasięgiem na całe pole; sklep mieści osiem linii | 1 | Testy treści (drzewa, statystyki, cechy, pociski), reguła walidatora dla jednostek bez ruchu; zrzuty sklepu, drzew i walk każdego szczepu | gotowe |
+| M5i-4 | Przyzywanie (ADR 0020): pięć miejsc na przyzwanych na stronę, przyzywacz w symulacji, treści, rendererze i narzędziach; Mother-tree i „Bush ver. 2”; tańsze tworzenie walki (tablice z jednego bufora) | 3 | 32 testy przyzywania w sim, walka golden `summon`, 17 starszych walk golden bez zmiany hashy; pomiar A/B (zwykła walka nie wolniejsza niż przed zmianą); test end-to-end: Mother-tree wygrywa poziom samymi krzakami | gotowe |
+
+## M5j – Poprawka tempa ataków ze szkiców; Miecznicy i Łucznicy jako szczepy po siedem form (2026-10-06)
+
+Odpowiedzi autora gry po obejrzeniu M5i: „Atk: 3,0” na szkicu to jeden atak co 3 sekundy (wcześniej odczytane odwrotnie); cztery dawne linie ludzi (Miecznicy, Łucznicy, Tarczownicy, Akolici) mają stać się dwoma szczepami po siedem form, w których dotychczasowe warianty są różnymi ewolucjami. Ustalenia: Rycerz, Strażnik, Strzelec wyborowy i Kapłan zostają formami końcowymi; brakujące formy proponuje wykonawca; ludzie zachowują prosty styl graficzny.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5j-1 | Tempo ataków ze szkiców jako odstęp w sekundach: pole `attackInterval` w danych jednostek, 14 form czterech szczepów przepisanych ze szkiców, zamachy Ignitixa i Ultimusa dopasowane do nowych odstępów | 0,5 | Testy treści (odstępy w tickach, zamach mieści się w odstępie), schemat wymaga dokładnie jednego pola tempa; obserwacje z walk próbnych w GAME_DESIGN.md przeliczone | gotowe |
+| M5j-2 | Miecznicy i Łucznicy jako szczepy po siedem form: dawne linie Tarczowników i Akolitów jako gałęzie, sześć nowych form (Zbrojny, Berserker, Pawężnik, Strzelec, Łowca, Inkwizytor), usunięcie kopii testowych, 14 skórek w prostym stylu, zapis v4 z migracją | 1,5 | Testy drzew, zakupów i ewolucji na nowych liniach; migracja v3 → v4 z fixture i testem każdej usuniętej linii i formy; raport balansu świata 1 bez zmiany oczekiwań; test end-to-end starego zapisu; sklep z sześcioma szczepami | gotowe |
+
+## M5k – Podpowiedzi pod przyciskiem „i” (2026-10-06)
+
+Uwaga autora gry: na ekranach jest za dużo informacji dodatkowych i wskazówek, których gracz sam się domyśli; w ich miejscu ma być okrągły przycisk „i” z okienkiem. Wskazane miejsca: tekst w arkuszu „Poza składem”, „Wartości po strzałkach…” na karcie bohatera, tekst na dole ekranu Bohaterowie, tekst pod nagłówkiem Sklepu. Sklep na razie nie dostaje nowej zawartości (decyzja autora); balans i poziomy autor zaplanuje później.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5k-1 | Przycisk „i” z okienkiem (`InfoButton.tsx`): zasady Składu, Bohaterów i Sklepu przy tytule ekranu, wyjaśnienie strzałek w nagłówku karty bohatera i karty formy; cena formy bazowej przeniesiona na jej kartę; teksty podpowiedzi usunięte ze sceny | 0,5 | Test end-to-end: treść okienek w czterech miejscach, okienko w granicach sceny (także okno 700×620 i język angielski), zamykanie przyciskiem, Escape i kliknięciem obok, jedno okienko naraz, okienko znika ze zmianą bohatera i ekranu; zrzuty ekranu w trzech rozmiarach okna | gotowe |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

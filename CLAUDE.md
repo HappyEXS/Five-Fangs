@@ -51,7 +51,7 @@ Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo 
 src/core     narzędzia czyste: matematyka całkowita, hash, pętla stałego kroku, pule, i18n, RNG (tylko efekty w render)
 src/sim      symulacja walki – czysta logika
 src/content  dane JSON + schematy Zod + kompilacja do struktur runtime
-src/render   Canvas 2D, rig, animacje, atlas, efekty, debug overlay
+src/render   Canvas 2D, rig, animacje, atlas, efekty, miniaturki postaci, debug overlay
 src/game     sceny, progresja, zapis
 src/ui       Preact (ekran startowy, mapa jako ekran główny, skład, bohaterowie, sklep, HUD, wynik)
 src/tools    narzędzia dev (edytor animacji, piaskownica walki) – osobne wejście tools.html, nie trafiają do builda prod
@@ -69,7 +69,8 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 - Stan wyłącznie w liczbach całkowitych w tablicach typowanych: pozycje i zasięgi w podjednostkach (1 jednostka świata = 256), HP i obrażenia jako inty.
 - Zakaz funkcji przestępnych (`Math.sin/cos/tan/exp/log/pow`, `**` z niecałkowitym wykładnikiem). Dozwolone: `+ - * /` z jawnym zaokrągleniem, `abs`, `min`, `max`, `floor`, `ceil`, `round`, `trunc`, `Math.imul`.
 - Iteracja w stałej kolejności (po `unitId`). Remisy rozstrzygane jawnie (niższe id).
-- Fazy ticka: decyzje → ruch → ataki → pociski → cechy okresowe → **jednoczesne** nałożenie obrażeń, leczenia i odrzutu → śmierci.
+- Fazy ticka: decyzje → ruch → ataki → pociski → cechy okresowe → **jednoczesne** nałożenie obrażeń, leczenia i odrzutu → śmierci → pojawienie się przyzwanych.
+- Jednostki składów mają `unitId` 0–4 (gracz) i 5–9 (przeciwnik); przyzwani 10–14 i 15–19 (ADR 0020). Pętla po drużynie obejmuje oba zakresy, a walka bez przyzywaczy nie może płacić za drugi.
 - Cechy pasywne to zamknięty zestaw (ADR 0009): nowa cecha = wariant schematu + pola `UnitSpec` + kod w sim + testy.
 - Symulacja nie wywołuje renderera. Komunikuje się przez bufor zdarzeń.
 - Symulacja jest źródłem prawdy o czasie ataku. Animacja podąża za postępem ataku z sim.
@@ -120,7 +121,7 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 
 60 FPS na telefonie średniej klasy · render klatki < 4 ms (desktop) / < 8 ms (telefon) · tick sim < 0,2 ms · > 2000 walk headless/s w Node · JS gzip < 150 KB · 0 alokacji w gorącej pętli.
 Desktop jest platformą główną; budżety dla telefonu to cele pomiarowe, które nie blokują milestone'ów.
-Przy zmianach w `render` lub `sim` sprawdź overlay wydajności w piaskownicy walki. Jeśli zmiana może wpłynąć na budżet, zmierz przed i po: symulację przez `pnpm bench`, renderer przez `/tools.html?view=perf` (metoda i ostatnie wyniki w ARCHITECTURE.md §3.8 i §5.7; interpretacja budżetu alokacji renderera w ADR 0013, proponowanym).
+Przy zmianach w `render` lub `sim` sprawdź overlay wydajności w piaskownicy walki. Jeśli zmiana może wpłynąć na budżet, zmierz przed i po: symulację przez `pnpm bench` (budżet walk na sekundę jest na styk, a pojedynczy przebieg waha się o ±5%: różnice rzędu 2% pokaże tylko pomiar obu wersji na przemian w jednym procesie, ARCHITECTURE.md §3.8), renderer przez `/tools.html?view=perf` (metoda i ostatnie wyniki w ARCHITECTURE.md §3.8 i §5.7; interpretacja budżetu alokacji renderera w ADR 0013, proponowanym).
 
 Transfer: pierwsze uruchomienie < 2 MB łącznie · atlas świata < 1 MB · powtórna wizyta bez nowej wersji < 20 KB. CI odrzuca build przekraczający budżety.
 

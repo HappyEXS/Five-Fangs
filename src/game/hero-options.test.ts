@@ -54,14 +54,14 @@ describe('nextPurchase', () => {
         },
         {
           cost: 250,
-          unitId: 'swordsman_c',
-          spec: previewEvolve(content, save, SWORD, 'swordsman_c'),
+          unitId: 'guard_a',
+          spec: previewEvolve(content, save, SWORD, 'guard_a'),
         },
       ],
     });
   });
 
-  it('po ewolucji: ulepszenia nowej formy, potem jedyna dalsza droga, a na końcu nic', () => {
+  it('po ewolucji: ulepszenia nowej formy, potem dwie formy końcowe tej drogi, a na końcu nic', () => {
     const evolved = buy(rich(), 5);
     expect(nextPurchase(content, evolved, SWORD)).toMatchObject({
       kind: 'upgrade',
@@ -69,7 +69,10 @@ describe('nextPurchase', () => {
     });
     expect(nextPurchase(content, buy(evolved, 4), SWORD)).toMatchObject({
       kind: 'evolve',
-      options: [{ cost: 1200, unitId: 'swordsman_b2' }],
+      options: [
+        { cost: 1200, unitId: 'swordsman_b2' },
+        { cost: 1200, unitId: 'berserker' },
+      ],
     });
     expect(nextPurchase(content, buy(evolved, 9), SWORD)).toBeNull();
   });

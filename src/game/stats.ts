@@ -4,7 +4,7 @@
 import type { MessageKey } from '../content/i18n/index.ts';
 import type { MessageParams } from '../core/i18n.ts';
 import { subunitsToUnits, TICKS_PER_SECOND } from '../core/units.ts';
-import type { UnitSpec } from '../sim/types.ts';
+import { TEAM_SIZE, type UnitSpec } from '../sim/types.ts';
 
 // UI nie importuje z symulacji; typ specyfikacji dostaje stąd.
 export type { UnitSpec };
@@ -50,7 +50,20 @@ function tenths(value: number): number {
 /** Cechy pasywne jednostki odczytane ze specyfikacji symulacji, w stałej kolejności. */
 export function traitsOf(spec: UnitSpec): TraitView[] {
   const traits: TraitView[] = [];
+  if (spec.summon !== null) {
+    // Przyzywacz nie atakuje, więc to pierwsze, co gracz powinien o nim przeczytać.
+    traits.push({
+      key: 'trait.summon',
+      params: {
+        seconds: tenths(spec.attackInterval / TICKS_PER_SECOND),
+        hp: spec.summon.maxHp,
+        attack: spec.summon.attack,
+        limit: TEAM_SIZE,
+      },
+    });
+  }
   if (spec.pierce) traits.push({ key: 'trait.pierce', params: {} });
+  if (spec.targetLast) traits.push({ key: 'trait.targetLast', params: {} });
   if (spec.splashRadius > 0) {
     traits.push({ key: 'trait.splash', params: { radius: subunitsToUnits(spec.splashRadius) } });
   }
@@ -59,6 +72,21 @@ export function traitsOf(spec: UnitSpec): TraitView[] {
       key: spec.healTeam ? 'trait.heal.team' : 'trait.heal.self',
       params: { amount: spec.healAmount, seconds: tenths(spec.healInterval / TICKS_PER_SECOND) },
     });
+  }
+  if (spec.doubleDamagePercent > 0) {
+    // Gdy rytm jest równy („co drugi”, „co piąty”), mówimy to wprost.
+    const percent = spec.doubleDamagePercent;
+    traits.push(
+      100 % percent === 0 && percent < 100
+        ? { key: 'trait.doubleDamage.every', params: { every: 100 / percent } }
+        : { key: 'trait.doubleDamage', params: { percent } },
+    );
+  }
+  if (spec.dodgePercent > 0) {
+    traits.push({ key: 'trait.dodge', params: { percent: spec.dodgePercent } });
+  }
+  if (spec.shieldPercent > 0) {
+    traits.push({ key: 'trait.shield', params: { percent: spec.shieldPercent } });
   }
   if (spec.lifestealPercent > 0) {
     traits.push({ key: 'trait.lifesteal', params: { percent: spec.lifestealPercent } });

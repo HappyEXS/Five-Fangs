@@ -1,5 +1,6 @@
-// Fazy 6 i 7: jednoczesne nałożenie zmian z kolejki, śmierci i warunek końca walki.
-// HP zmienia się tylko tutaj, więc kolejność jednostek w pozostałych fazach nie daje przewagi.
+// Fazy 6 i 7: jednoczesne nałożenie zmian z kolejki, śmierci, pojawienie się przyzwanych
+// i warunek końca walki. HP zmienia się tylko tutaj, więc kolejność jednostek w pozostałych
+// fazach nie daje przewagi.
 import type { Battle } from './battle.ts';
 import { isAlive } from './decide.ts';
 import {
@@ -9,8 +10,9 @@ import {
   EVENT_KNOCKED_BACK,
   pushEvent,
 } from './events.ts';
+import { spawnSummons } from './summon.ts';
 import {
-  MAX_UNITS,
+  isPlayerUnit,
   OUTCOME_LOSS,
   OUTCOME_WIN,
   REASON_ELIMINATED,
@@ -53,7 +55,7 @@ function applyPending(battle: Battle, i: number): number {
   // Odrzut zmienia tylko pozycję: nie przerywa zamachu i nie odwołuje trafień w toku.
   if (push > 0 && hp > 0) {
     const x = state.x[i] ?? 0;
-    let pushed = i < TEAM_SIZE ? x - push : x + push;
+    let pushed = isPlayerUnit(i) ? x - push : x + push;
     if (pushed < 0) pushed = 0;
     else if (pushed > battle.width) pushed = battle.width;
     if (pushed !== x) {
@@ -76,7 +78,7 @@ export function resolveAndFinish(battle: Battle): void {
   const { status, swingTick, sinceAttack } = state;
   let players = 0;
   let enemies = 0;
-  for (let i = 0; i < MAX_UNITS; i++) {
+  for (let i = 0; i < state.unitSpan; i++) {
     // Kolejka martwych i pustych slotów jest zawsze pusta: trafienia i leczenie omijają je.
     if (!isAlive(status[i] ?? 0)) continue;
     if (applyPending(battle, i) <= 0) {
@@ -86,8 +88,14 @@ export function resolveAndFinish(battle: Battle): void {
       continue;
     }
     sinceAttack[i] = (sinceAttack[i] ?? 0) + 1;
-    if (i < TEAM_SIZE) players++;
+    if (isPlayerUnit(i)) players++;
     else enemies++;
+  }
+  // Przyzwani stają na polu po śmierciach tego ticka: miejsce zwolnione przed chwilą jest już
+  // wolne, a strona, której ostatni bohater zginął w ticku przyzwania, walczy dalej.
+  if (battle.hasSummons) {
+    players += spawnSummons(battle, 0);
+    enemies += spawnSummons(battle, TEAM_SIZE);
   }
   state.tick++;
 

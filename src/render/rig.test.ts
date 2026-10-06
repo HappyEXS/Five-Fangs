@@ -17,6 +17,7 @@ const stick: RawRig = {
     { id: 'hand', parent: 'arm', at: [0, 4], sprite: 'fore', back: false },
   ],
   drawOrder: ['arm', 'hand', 'body'],
+  portrait: { bone: 'arm', center: [1, -2], size: 12 },
   stances: { sword: { hand: -30 } },
   strings: {
     sword: {
@@ -83,6 +84,7 @@ describe('compileRig', () => {
     expect(rig.sprites).toEqual(['torso', 'upper', 'fore']);
     expect(rig.stances.get('sword')?.[2]).toBeCloseTo(-30 * DEG);
     expect(rig.clips.get('slash')?.markers.hit).toBe(0.5);
+    expect(rig.portrait).toEqual({ bone: 1, x: 1, y: -2, size: 12 });
   });
 
   it('kompiluje rig humanoid z treści gry', () => {
@@ -98,6 +100,16 @@ describe('compileRig', () => {
       'shoot',
       'cleave',
       'snipe',
+      // Ataki bestii: dziobnięcie, cios kłem, plucie, salwa kolców.
+      'peck',
+      'gore',
+      'spit',
+      'volley',
+      // Ataki trzech kolejnych szczepów: rzut, uniesienie rąk, przyzwanie, dziobnięcie kulą.
+      'cast',
+      'flare',
+      'summon',
+      'jab',
     ]);
     // Każda kość ma rodzica wymienionego wcześniej.
     humanoid.parent.forEach((p, bone) => {

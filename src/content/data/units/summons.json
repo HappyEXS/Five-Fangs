@@ -1,0 +1,19 @@
+[
+  {
+    "id": "sprout",
+    "kind": "melee",
+    "maxHp": 100,
+    "attack": 20,
+    "moveSpeed": 30,
+    "attackSpeed": 1,
+    "range": 30,
+    "knockback": 0,
+    "attackType": "peck",
+    "skin": "sprout",
+    "scale": 0.6,
+    "portrait": {
+      "center": [2, 22],
+      "size": 40
+    }
+  }
+]

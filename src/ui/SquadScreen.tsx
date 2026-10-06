@@ -1,21 +1,23 @@
 // Zarządzanie składem. Każdy bohater ma na scenie swoje pole: nad nim gniazda run, pod nim
 // pasek ulepszeń i przycisk zakupu. Bohatera łapie się wprost za postać: jedzie za wskaźnikiem
 // po linii podłogi, a upuszczony na innym slocie zamienia się miejscami z tym, kto tam stoi.
-// Karta z prawej tylko pokazuje statystyki wybranego bohatera.
+// Karta z prawej tylko pokazuje statystyki wybranego bohatera. Bohaterowie spoza składu czekają
+// u góry jako miniaturki; łapie się ich tak samo. Zasady ekranu są pod przyciskiem „i” przy tytule.
 import { useSignal } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 import type { StageControls } from '../game/battle-stage.ts';
 import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
-import { heroView, isSquadEmpty } from '../game/progress.ts';
+import { type HeroView, heroView, isSquadEmpty } from '../game/progress.ts';
 import { SQUAD_SLOTS } from '../game/save-schema.ts';
 import { SQUAD_FIELD_AT } from '../game/stage-stands.ts';
-import { ScreenHead } from './common.tsx';
+import { ScreenHead, unitName } from './common.tsx';
 import { createDrag } from './drag.ts';
 import { type EvolvePick, EvolvePicker } from './EvolvePicker.tsx';
 import { HeroCard, heroLabel } from './HeroCard.tsx';
 import { BuyButton, RuneSockets, UpgradeBar } from './HeroField.tsx';
 import { FANG_PATH } from './icons.tsx';
+import { Portrait } from './Portrait.tsx';
 import { type RunePick, RunePicker } from './RunePicker.tsx';
 
 const BENCH = 'bench';
@@ -26,6 +28,27 @@ const VISUAL_ORDER = [...SLOTS].sort((a, b) => (SQUAD_FIELD_AT[a] ?? 0) - (SQUAD
 
 function fieldAt(slot: number): number {
   return SQUAD_FIELD_AT[slot] ?? 0;
+}
+
+/** Kółko myszy przewija rząd miniaturek w bok; bez nadmiaru bohaterów nic nie robi. */
+function scrollSideways(event: WheelEvent): void {
+  const row = event.currentTarget;
+  if (!(row instanceof HTMLElement) || row.scrollWidth <= row.clientWidth) return;
+  if (event.deltaY === 0) return;
+  row.scrollLeft += event.deltaY;
+  event.preventDefault();
+}
+
+/** Bohater spoza składu: miniaturka, liczba ulepszeń i nazwa formy. */
+function ChipFace(props: { stage: StageControls; view: HeroView }) {
+  const { view } = props;
+  return (
+    <>
+      <Portrait stage={props.stage} unit={view.unitId} />
+      {view.hero.upgrades > 0 && <span class="chip-level">+{view.hero.upgrades}</span>}
+      <span class="chip-name">{unitName(view.unitId)}</span>
+    </>
+  );
 }
 
 export function SquadScreen(props: { game: Game; stage: StageControls }) {
@@ -108,14 +131,27 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
 
   return (
     <div ref={screen} class="screen squad">
-      <ScreenHead game={game} title={t('nav.squad')} />
+      <ScreenHead
+        game={game}
+        title={t('nav.squad')}
+        info={[t('squad.info.move'), t('squad.info.front'), t('squad.info.buy')]}
+      />
 
       <section class={over === BENCH ? 'sheet reserve is-over' : 'sheet reserve'} data-drop={BENCH}>
-        <h3 class="sheet-title">{t('squad.bench')}</h3>
+        {/* Obok tytułu staje tylko ostrzeżenie o pustym składzie, a pod nim jest zawsze jeden rząd
+            na miniaturki: arkusz ma tę samą wysokość pusty i pełny. Gdy bohaterów jest więcej,
+            rząd się przewija. */}
+        <header class="reserve-head">
+          <h3 class="sheet-title">{t('squad.bench')}</h3>
+          {isSquadEmpty(save) && <p class="note">{t('squad.empty')}</p>}
+        </header>
         {bench.length === 0 ? (
-          <p class="note">{t('squad.bench.empty')}</p>
+          // Klasa `note` na wewnętrznym elemencie: jej mniejsza czcionka zmieniłaby wysokość rzędu.
+          <div class="chips chips-empty">
+            <p class="note">{t('squad.bench.empty')}</p>
+          </div>
         ) : (
-          <div class="chips">
+          <div class="chips" onWheel={scrollSideways}>
             {bench.map((hero) => {
               const view = heroView(content, save, hero.id);
               return view === null ? null : (
@@ -125,26 +161,26 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
                   class="hero-chip"
                   data-hero={hero.id}
                   aria-pressed={selectedId === hero.id}
+                  aria-label={heroLabel(view)}
                   onPointerDown={(event) => drag.start(event, String(hero.id))}
                   // Klawiatura nie wysyła zdarzeń wskaźnika; Enter i spacja wybierają bohatera.
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') selected.value = hero.id;
                   }}
                 >
-                  {heroLabel(view)}
+                  <ChipFace stage={stage} view={view} />
                 </button>
               );
             })}
           </div>
         )}
-        <p class="note">{t(isSquadEmpty(save) ? 'squad.empty' : 'squad.hint')}</p>
       </section>
 
       <section class="sheet hero-sheet">
         {selectedView === null ? (
           <p class="note">{t('squad.details.none')}</p>
         ) : (
-          <HeroCard game={game} view={selectedView} />
+          <HeroCard game={game} stage={stage} view={selectedView} />
         )}
       </section>
 
@@ -243,7 +279,7 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
 
       {picking?.kind === 'rune' && <RunePicker game={game} pick={picking} onClose={closePick} />}
       {picking?.kind === 'evolve' && (
-        <EvolvePicker game={game} pick={picking} onClose={closePick} />
+        <EvolvePicker game={game} stage={stage} pick={picking} onClose={closePick} />
       )}
 
       {dragging !== null && draggedView !== null && (
@@ -251,7 +287,7 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
           class="hero-chip drag-ghost"
           style={{ left: `${dragging.x}px`, top: `${dragging.y}px` }}
         >
-          {heroLabel(draggedView)}
+          <ChipFace stage={stage} view={draggedView} />
         </div>
       )}
     </div>
