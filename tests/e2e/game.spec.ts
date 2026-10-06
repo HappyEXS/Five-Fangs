@@ -1,53 +1,7 @@
 // Testy end-to-end pętli gry na buildzie produkcyjnym (M4-11): gra startuje, walka dochodzi
 // do końca, postęp się zapisuje, a konsola przeglądarki nie zawiera błędów.
-import { expect, type Page, test } from '@playwright/test';
-
-const SAVE_KEY = 'five-fangs.save';
-
-/** Zbiera błędy konsoli i nieobsłużone wyjątki strony. */
-function collectErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  page.on('pageerror', (error) => errors.push(String(error)));
-  return errors;
-}
-
-async function readSave(page: Page): Promise<Record<string, unknown>> {
-  const text = await page.evaluate((key) => localStorage.getItem(key), SAVE_KEY);
-  expect(text).not.toBeNull();
-  return JSON.parse(text ?? '{}') as Record<string, unknown>;
-}
-
-/** Wstawia zapis przed startem gry, o ile przeglądarka nie ma jeszcze żadnego. */
-async function seedSave(page: Page, save: unknown): Promise<void> {
-  await page.addInitScript(
-    ([key, value]) => {
-      if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
-    },
-    [SAVE_KEY, JSON.stringify(save)] as const,
-  );
-}
-
-/** Otwiera grę i przechodzi z ekranu startowego na mapę. */
-async function play(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Graj' }).click();
-  await expect(page.locator('.map')).toBeVisible();
-}
-
-/** Liczba miniaturek pod selektorem (canvasy `.portrait-face`), na których coś narysowano. */
-async function paintedPortraits(page: Page, selector: string): Promise<number> {
-  return page.locator(selector).evaluateAll(
-    (nodes) =>
-      nodes.filter((node) => {
-        if (!(node instanceof HTMLCanvasElement)) return false;
-        const pixels = node.getContext('2d')?.getImageData(0, 0, node.width, node.height).data;
-        return pixels?.some((value, index) => index % 4 === 3 && value > 0) ?? false;
-      }).length,
-  );
-}
+import { expect, test } from '@playwright/test';
+import { collectErrors, paintedPortraits, play, readSave, SAVE_KEY, seedSave } from './helpers.ts';
 
 const hero = (id: number, line: string) => ({
   id,
@@ -146,7 +100,9 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   const field = page.locator('[data-drop="slot:0"]');
   const sheet = page.locator('.hero-sheet');
   await expect(sheet).toContainText('Miecznik');
-  await expect(sheet.getByRole('button')).toHaveCount(0);
+  // Jedyny przycisk karty to „i” z wyjaśnieniem; niczego się w niej nie kupuje.
+  await expect(sheet.locator('button:not(.info-btn)')).toHaveCount(0);
+  await expect(sheet.locator('.info-btn')).toHaveCount(1);
   await expect(field.locator('.upgrade-bar')).toHaveAttribute('data-upgrades', '0');
   await field.getByRole('button', { name: 'Kup ulepszenie za 50 złota' }).click();
   await expect(field.locator('.upgrade-bar')).toHaveAttribute('data-upgrades', '1');

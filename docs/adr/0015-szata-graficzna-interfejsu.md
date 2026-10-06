@@ -89,3 +89,13 @@ Autor gry poprosił o miniaturkę („obrazek profilowy”) każdej postaci: dla
 - **Trzeci moment ruchu:** miniaturka poległego przewraca się do tyłu i znika, a rząd zsuwa się do rogu (ok. 0,5 s). Przy ustawieniu „ograniczony ruch” znika od razu.
 - Miniaturki nie pokazują życia: paski i liczby życia są nad postaciami.
 - **Poprawki z 2026-10-05:** miniaturka jest też przy każdej drodze w okienku wyboru ewolucji i na karcie wybranego bohatera w składzie. Pasek „Poza składem” ma zawsze wysokość jednego rzędu miniaturek: pusty pokazuje przerywany zarys miejsca, a gdy bohaterów jest więcej, niż mieści rząd, przewija się w bok. Autor zgłosił, że arkusz rozciągał się po włożeniu pierwszego bohatera.
+
+### Podpowiedzi pod przyciskiem „i” (2026-10-06)
+
+Autor gry uznał, że na ekranach jest za dużo wyjaśnień, których gracz sam się domyśli, i poprosił o okrągły przycisk „i” z okienkiem w ich miejscu.
+
+- **Zasada:** na scenie zostaje to, co jest stanem gry albo wymaga działania (ceny, liczby, ostrzeżenie o pustym składzie, komunikat pustego miejsca). Zasady ekranu i objaśnienia oznaczeń idą do okienka. Nowy tekst objaśniający dodajemy do okienka, nie na scenę.
+- **Przycisk** to papierowy krążek z atramentowym konturem, twardym cieniem i literą „i” (znak SVG, nie tekst); otwarty jest nagietkowy, jak każdy wciśnięty przycisk.
+- **Gdzie stoi:** zasady całego ekranu przy jego tytule (Skład, Bohaterowie, Sklep), objaśnienie karty w jej prawym górnym rogu. Jedno stałe miejsce na ekran jest łatwiejsze do zapamiętania niż przycisk w miejscu każdego dawnego tekstu; dlatego podpowiedź składu nie została w arkuszu „Poza składem”. Przycisk pojawia się tylko tam, gdzie jest co wyjaśnić (karta bez strzałek go nie ma).
+- **Okienko** to mały arkusz papieru pod przyciskiem, po akapicie na zasadę, bez tytułu i bez przycisku zamknięcia. Nie jest modalne: zamyka je ten sam przycisk, Escape albo kliknięcie gdziekolwiek, a kliknięty przy okazji element działa normalnie. Nie wychodzi poza scenę, jak pozostałe okienka.
+- **Co znikło ze sceny:** podpowiedź przeciągania w arkuszu „Poza składem”, objaśnienia strzałek na kartach, akapit zasad i wiersz „W sklepie / Masz” pod sceną w Bohaterach, zdanie pod nagłówkiem Sklepu. Cena szczepu jest teraz na karcie formy bazowej, w tym samym wierszu, w którym pozostałe formy mają koszt ewolucji; liczbę posiadanych pokazuje sklep.

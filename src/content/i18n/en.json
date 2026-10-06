@@ -32,7 +32,6 @@
   "map.level.locked": "Locked",
   "map.level.cleared": "Cleared",
   "squad.empty": "Place at least one hero.",
-  "squad.hint": "Grab a hero and move them to another slot or onto \"Not in squad\". Slot 1 is the front: it stands closest to the enemy.",
   "squad.bench": "Not in squad",
   "squad.bench.empty": "All heroes are in the squad.",
   "squad.slot": "Slot {slot}",
@@ -84,7 +83,6 @@
   "squad.details.none": "Pick a hero to see their stats.",
   "shop.buy": "Buy",
   "shop.owned": "Owned: {count}",
-  "shop.hint": "Every hero you buy is a separate copy with its own upgrades and runes. You can buy the same hero more than once.",
   "line.swordsman.name": "Swordsmen",
   "line.archer.name": "Archers",
   "line.beasts.name": "Beasts",
@@ -168,7 +166,6 @@
   "heroes.upgrade.full": "Maxed",
   "heroes.card.upgrade": "Values after the arrows: stats after the next upgrade.",
   "heroes.card.evolve": "Values after the arrows: stats after evolving into {name}.",
-  "heroes.card.bench": "Upgrades and runes become available once the hero is in the squad.",
   "runes.socket.empty": "Rune socket {slot}: empty. Choose a rune",
   "runes.socket.filled": "Rune socket {slot}: {rune}. Change the rune",
   "runes.socket.title": "Rune for socket {slot}",
@@ -188,5 +185,11 @@
   "heroes.into": "Can evolve into: {names}",
   "heroes.last": "Last tier of this path",
   "heroes.compare": "Values after the arrows: this form compared with the one it evolves from.",
-  "heroes.upgrade.costs": "Upgrades"
+  "heroes.upgrade.costs": "Upgrades",
+  "info.about": "Info: {topic}",
+  "squad.info.move": "Grab a hero and move them to another slot or onto \"Not in squad\".",
+  "squad.info.front": "Slot 1 is the front: it stands closest to the enemy.",
+  "squad.info.buy": "You buy runes, upgrades and evolution next to a hero who is in the squad.",
+  "shop.info.copy": "Every hero you buy is a separate copy with its own upgrades and runes.",
+  "shop.info.again": "You can buy the same hero more than once."
 }

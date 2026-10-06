@@ -41,14 +41,6 @@
   font-size: 0.88em;
 }
 
-.shop-hint {
-  position: absolute;
-  top: 9.6%;
-  right: 1.6%;
-  left: 1.6%;
-  font-size: 0.92em;
-}
-
 /* Informacje o bohaterach: drzewo ewolucji linii u góry, postacie wybranej drogi na scenie,
    karta wybranej formy z prawej, nazwy i koszty ewolucji pod linią podłogi (ADR 0016). */
 
@@ -144,24 +136,6 @@
 
 .tree-node[aria-pressed="true"] {
   background-color: var(--marigold);
-}
-
-/* Pod linią podłogi, pod nazwami drogi: cena linii w sklepie i zasady ulepszeń. */
-.heroes-foot {
-  position: absolute;
-  top: calc(var(--floor) + 3.5em);
-  left: 1.6%;
-  display: grid;
-  gap: 0.3em;
-  width: 57%;
-  font-size: 0.92em;
-}
-
-.tree-price {
-  display: flex;
-  align-items: center;
-  gap: 0.6em;
-  font-weight: 700;
 }
 
 .form-card {

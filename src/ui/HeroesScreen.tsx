@@ -1,15 +1,16 @@
 // Informacje o bohaterach: zakładki szczepów i drzewo ewolucji wybranego (ADR 0016). U góry drzewo form
 // (kolumna to stopień, rozwidlenie to wybór drogi; każda forma ma swoją miniaturkę), na scenie
 // postacie drogi przez wybraną formę, z prawej jej karta. Tu niczego się nie kupuje: bohaterów
-// sprzedaje sklep, a ulepszenia i ewolucje ekran składu.
+// sprzedaje sklep, a ulepszenia i ewolucje ekran składu. Zasady ulepszeń i ewolucji są pod
+// przyciskiem „i” przy tytule.
 import type { CompiledLine } from '../content/load-progression.ts';
 import type { StageControls } from '../game/battle-stage.ts';
 import { formPath, treeLayout } from '../game/evolution.ts';
 import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
-import { ownedCount } from '../game/progress.ts';
 import { formStands } from '../game/stage-stands.ts';
 import { Gold, lineName, ScreenHead, StatTable, tierLabel, unitName } from './common.tsx';
+import { InfoButton } from './InfoButton.tsx';
 import { Portrait } from './Portrait.tsx';
 
 /** Drzewo form linii jako siatka przycisków; wybrana forma jest wyróżniona. */
@@ -53,7 +54,10 @@ function Tree(props: { game: Game; stage: StageControls; line: CompiledLine; for
   );
 }
 
-/** Karta formy: stopień, skąd się bierze, dokąd prowadzi, statystyki i koszty ulepszeń. */
+/**
+ * Karta formy: stopień, skąd się bierze (forma bazowa ze sklepu, pozostałe z ewolucji) i za ile,
+ * dokąd prowadzi, statystyki i koszty ulepszeń.
+ */
 function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine; form: string }) {
   const { game, line, form } = props;
   const node = line.forms.get(form);
@@ -64,20 +68,25 @@ function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine;
     <section class="sheet form-card" data-details={form}>
       <header class="card-head">
         <Portrait stage={props.stage} unit={form} />
-        <div>
+        <div class="card-title">
           <h3 class="hero-name">{unitName(form)}</h3>
           <p class="hero-form">
             <span>{lineName(line.id)}</span>
             <span>{tierLabel(node.tier)}</span>
           </p>
         </div>
+        {parent !== undefined && (
+          <InfoButton topic={unitName(form)} lines={[t('heroes.compare')]} />
+        )}
       </header>
-      {node.from !== null && (
-        <p class="form-origin">
-          <span>{t('heroes.from', { name: unitName(node.from) })}</span>
-          <Gold amount={node.evolveCost} />
-        </p>
-      )}
+      <p class="form-origin">
+        <span>
+          {node.from === null
+            ? t('heroes.info.price')
+            : t('heroes.from', { name: unitName(node.from) })}
+        </span>
+        <Gold amount={node.from === null ? line.price : node.evolveCost} />
+      </p>
       <p class="form-next">
         {node.next.length === 0
           ? t('heroes.last')
@@ -85,7 +94,6 @@ function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine;
       </p>
       {/* Forma po ewolucji zaczyna bez ulepszeń, więc porównujemy wartości bazowe obu form. */}
       <StatTable spec={parent?.base ?? unit.base} next={parent === undefined ? null : unit.base} />
-      {parent !== undefined && <p class="note">{t('heroes.compare')}</p>}
       <div class="form-upgrades">
         <span class="sheet-title">{t('heroes.upgrade.costs')}</span>
         <span class="form-upgrade-costs">
@@ -115,7 +123,15 @@ export function HeroesScreen(props: {
 
   return (
     <div class="screen heroes">
-      <ScreenHead game={game} title={t('nav.heroes')} />
+      <ScreenHead
+        game={game}
+        title={t('nav.heroes')}
+        info={[
+          t('heroes.info.upgrade', { percent: upgradePercent }),
+          t('heroes.info.evolve', { max: maxUpgrades }),
+          t('heroes.info.where'),
+        ]}
+      />
       <nav class="line-tabs" aria-label={t('heroes.lines')}>
         {[...content.lines.values()].map((option) => (
           <button
@@ -136,20 +152,6 @@ export function HeroesScreen(props: {
           <section class="sheet tree-sheet">
             <Tree game={game} stage={stage} line={line} form={form} />
           </section>
-
-          {/* Cena i zasady stoją pod sceną: drzewo o czterech końcowych formach musi zmieścić się
-              nad głowami postaci, więc w arkuszu zostaje samo drzewo. */}
-          <div class="heroes-foot">
-            <p class="tree-price">
-              <span>{t('heroes.info.price')}</span>
-              <Gold amount={line.price} />
-              <span>{t('shop.owned', { count: ownedCount(game.save.value, line.id) })}</span>
-            </p>
-            <p>
-              {t('heroes.info.upgrade', { percent: upgradePercent })}{' '}
-              {t('heroes.info.evolve', { max: maxUpgrades })} {t('heroes.info.where')}
-            </p>
-          </div>
 
           <FormCard game={game} stage={stage} line={line} form={form} />
 

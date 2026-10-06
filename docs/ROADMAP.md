@@ -212,6 +212,14 @@ Odpowiedzi autora gry po obejrzeniu M5i: „Atk: 3,0” na szkicu to jeden atak 
 | M5j-1 | Tempo ataków ze szkiców jako odstęp w sekundach: pole `attackInterval` w danych jednostek, 14 form czterech szczepów przepisanych ze szkiców, zamachy Ignitixa i Ultimusa dopasowane do nowych odstępów | 0,5 | Testy treści (odstępy w tickach, zamach mieści się w odstępie), schemat wymaga dokładnie jednego pola tempa; obserwacje z walk próbnych w GAME_DESIGN.md przeliczone | gotowe |
 | M5j-2 | Miecznicy i Łucznicy jako szczepy po siedem form: dawne linie Tarczowników i Akolitów jako gałęzie, sześć nowych form (Zbrojny, Berserker, Pawężnik, Strzelec, Łowca, Inkwizytor), usunięcie kopii testowych, 14 skórek w prostym stylu, zapis v4 z migracją | 1,5 | Testy drzew, zakupów i ewolucji na nowych liniach; migracja v3 → v4 z fixture i testem każdej usuniętej linii i formy; raport balansu świata 1 bez zmiany oczekiwań; test end-to-end starego zapisu; sklep z sześcioma szczepami | gotowe |
 
+## M5k – Podpowiedzi pod przyciskiem „i” (2026-10-06)
+
+Uwaga autora gry: na ekranach jest za dużo informacji dodatkowych i wskazówek, których gracz sam się domyśli; w ich miejscu ma być okrągły przycisk „i” z okienkiem. Wskazane miejsca: tekst w arkuszu „Poza składem”, „Wartości po strzałkach…” na karcie bohatera, tekst na dole ekranu Bohaterowie, tekst pod nagłówkiem Sklepu. Sklep na razie nie dostaje nowej zawartości (decyzja autora); balans i poziomy autor zaplanuje później.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5k-1 | Przycisk „i” z okienkiem (`InfoButton.tsx`): zasady Składu, Bohaterów i Sklepu przy tytule ekranu, wyjaśnienie strzałek w nagłówku karty bohatera i karty formy; cena formy bazowej przeniesiona na jej kartę; teksty podpowiedzi usunięte ze sceny | 0,5 | Test end-to-end: treść okienek w czterech miejscach, okienko w granicach sceny (także okno 700×620 i język angielski), zamykanie przyciskiem, Escape i kliknięciem obok, jedno okienko naraz, okienko znika ze zmianą bohatera i ekranu; zrzuty ekranu w trzech rozmiarach okna | gotowe |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

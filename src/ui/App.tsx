@@ -10,6 +10,7 @@ import { BattleHud, ResultScreen } from './BattleScreens.tsx';
 import { createGateMotion, type GateParts, GateView } from './Gate.tsx';
 import { createGate, type Gate } from './gate.ts';
 import { HeroesScreen } from './HeroesScreen.tsx';
+import { InfoOutlet } from './InfoButton.tsx';
 import { LoadFailureBanner } from './LoadFailureBanner.tsx';
 import { MapScreen } from './MapScreen.tsx';
 import { PaperDefs } from './PaperDefs.tsx';
@@ -102,6 +103,7 @@ export function App(props: AppProps) {
       {/* Za zamkniętą albo ruszającą się bramą scena jest niedostępna także z klawiatury. */}
       <div class="scene-layer" inert={phase !== 'open'}>
         <SceneView {...props} gate={gate} />
+        <InfoOutlet />
       </div>
       <GateView gate={gate} parts={parts} />
       {scene.name === 'result' && phase === 'closed' && (

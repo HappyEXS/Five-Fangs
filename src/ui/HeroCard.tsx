@@ -1,12 +1,13 @@
 // Karta wybranego bohatera na ekranie składu: tylko do czytania. Miniaturka, statystyki z podglądem
 // następnego zakupu; wszystkie działania (runy, ulepszenia, ewolucja) są w polu bohatera
-// na scenie (HeroField.tsx).
+// na scenie (HeroField.tsx). Co znaczą wartości po strzałkach, wyjaśnia przycisk „i” w nagłówku.
 import type { StageControls } from '../game/battle-stage.ts';
 import type { Game } from '../game/game.ts';
 import { nextPurchase } from '../game/hero-options.ts';
 import { t } from '../game/i18n.ts';
 import type { HeroView } from '../game/progress.ts';
 import { StatTable, tierLabel, unitName } from './common.tsx';
+import { InfoButton } from './InfoButton.tsx';
 import { Portrait } from './Portrait.tsx';
 
 /** Nazwa bohatera z liczbą ulepszeń: odróżnia egzemplarze tej samej linii. */
@@ -20,15 +21,15 @@ export function HeroCard(props: { game: Game; stage: StageControls; view: HeroVi
   const { content } = game;
   const save = game.save.value;
   const heroId = view.hero.id;
-  const inSquad = save.squad.includes(heroId);
   const purchase = nextPurchase(content, save, heroId);
   const single = purchase !== null && purchase.options.length === 1 ? purchase.options[0] : null;
+  const name = unitName(view.unitId);
   return (
     <div class="hero-card" data-hero={heroId}>
       <header class="card-head">
         <Portrait stage={props.stage} unit={view.unitId} />
-        <div>
-          <h3 class="hero-name">{unitName(view.unitId)}</h3>
+        <div class="card-title">
+          <h3 class="hero-name">{name}</h3>
           <p class="hero-form">
             <span>{tierLabel(view.line.forms.get(view.hero.form)?.tier ?? 0)}</span>
             <span>
@@ -39,20 +40,22 @@ export function HeroCard(props: { game: Game; stage: StageControls; view: HeroVi
             </span>
           </p>
         </div>
+        {purchase !== null && (
+          <InfoButton
+            topic={name}
+            lines={[
+              purchase.kind === 'upgrade'
+                ? t('heroes.card.upgrade')
+                : single !== null
+                  ? t('heroes.card.evolve', { name: unitName(single.unitId) })
+                  : t('heroes.card.evolve.choice'),
+            ]}
+          />
+        )}
       </header>
       {/* Przy kilku drogach ewolucji podgląd nie wie, którą gracz wybierze: porównanie jest
           w okienku wyboru drogi. */}
       <StatTable spec={view.spec} next={single?.spec ?? null} />
-      {purchase !== null && (
-        <p class="note">
-          {purchase.kind === 'upgrade'
-            ? t('heroes.card.upgrade')
-            : single !== null
-              ? t('heroes.card.evolve', { name: unitName(single.unitId) })
-              : t('heroes.card.evolve.choice')}
-        </p>
-      )}
-      {!inSquad && <p class="note">{t('heroes.card.bench')}</p>}
     </div>
   );
 }

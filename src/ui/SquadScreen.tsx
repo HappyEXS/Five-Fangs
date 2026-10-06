@@ -2,7 +2,7 @@
 // pasek ulepszeń i przycisk zakupu. Bohatera łapie się wprost za postać: jedzie za wskaźnikiem
 // po linii podłogi, a upuszczony na innym slocie zamienia się miejscami z tym, kto tam stoi.
 // Karta z prawej tylko pokazuje statystyki wybranego bohatera. Bohaterowie spoza składu czekają
-// u góry jako miniaturki; łapie się ich tak samo.
+// u góry jako miniaturki; łapie się ich tak samo. Zasady ekranu są pod przyciskiem „i” przy tytule.
 import { useSignal } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 import type { StageControls } from '../game/battle-stage.ts';
@@ -131,14 +131,19 @@ export function SquadScreen(props: { game: Game; stage: StageControls }) {
 
   return (
     <div ref={screen} class="screen squad">
-      <ScreenHead game={game} title={t('nav.squad')} />
+      <ScreenHead
+        game={game}
+        title={t('nav.squad')}
+        info={[t('squad.info.move'), t('squad.info.front'), t('squad.info.buy')]}
+      />
 
       <section class={over === BENCH ? 'sheet reserve is-over' : 'sheet reserve'} data-drop={BENCH}>
-        {/* Podpowiedź stoi obok tytułu, a pod nią jest zawsze jeden rząd na miniaturki: arkusz
-            ma tę samą wysokość pusty i pełny. Gdy bohaterów jest więcej, rząd się przewija. */}
+        {/* Obok tytułu staje tylko ostrzeżenie o pustym składzie, a pod nim jest zawsze jeden rząd
+            na miniaturki: arkusz ma tę samą wysokość pusty i pełny. Gdy bohaterów jest więcej,
+            rząd się przewija. */}
         <header class="reserve-head">
           <h3 class="sheet-title">{t('squad.bench')}</h3>
-          <p class="note">{t(isSquadEmpty(save) ? 'squad.empty' : 'squad.hint')}</p>
+          {isSquadEmpty(save) && <p class="note">{t('squad.empty')}</p>}
         </header>
         {bench.length === 0 ? (
           // Klasa `note` na wewnętrznym elemencie: jej mniejsza czcionka zmieniłaby wysokość rzędu.

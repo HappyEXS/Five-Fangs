@@ -32,7 +32,6 @@
   "map.level.locked": "Zablokowany",
   "map.level.cleared": "Ukończony",
   "squad.empty": "Ustaw przynajmniej jednego bohatera.",
-  "squad.hint": "Złap bohatera i przesuń go na inny slot albo na „Poza składem”. Slot 1 to front: stoi najbliżej wroga.",
   "squad.bench": "Poza składem",
   "squad.bench.empty": "Wszyscy bohaterowie są w składzie.",
   "squad.slot": "Slot {slot}",
@@ -84,7 +83,6 @@
   "squad.details.none": "Wybierz bohatera, żeby zobaczyć jego statystyki.",
   "shop.buy": "Kup",
   "shop.owned": "Masz: {count}",
-  "shop.hint": "Każdy kupiony bohater to osobny egzemplarz z własnymi ulepszeniami i runami. Tego samego bohatera można kupić kilka razy.",
   "line.swordsman.name": "Miecznicy",
   "line.archer.name": "Łucznicy",
   "line.beasts.name": "Beasts",
@@ -168,7 +166,6 @@
   "heroes.upgrade.full": "Komplet",
   "heroes.card.upgrade": "Wartości po strzałkach: statystyki po następnym ulepszeniu.",
   "heroes.card.evolve": "Wartości po strzałkach: statystyki po ewolucji w formę {name}.",
-  "heroes.card.bench": "Ulepszenia i runy kupisz, gdy postawisz bohatera w składzie.",
   "runes.socket.empty": "Gniazdo runy {slot}: puste. Wybierz runę",
   "runes.socket.filled": "Gniazdo runy {slot}: {rune}. Zmień runę",
   "runes.socket.title": "Runa do gniazda {slot}",
@@ -188,5 +185,11 @@
   "heroes.into": "Może ewoluować w: {names}",
   "heroes.last": "Ostatni stopień tej drogi",
   "heroes.compare": "Wartości po strzałkach: ta forma względem formy, z której powstaje.",
-  "heroes.upgrade.costs": "Ulepszenia"
+  "heroes.upgrade.costs": "Ulepszenia",
+  "info.about": "Informacje: {topic}",
+  "squad.info.move": "Złap bohatera i przesuń go na inny slot albo na „Poza składem”.",
+  "squad.info.front": "Slot 1 to front: stoi najbliżej wroga.",
+  "squad.info.buy": "Runy, ulepszenia i ewolucję kupujesz przy bohaterze, który stoi w składzie.",
+  "shop.info.copy": "Każdy kupiony bohater to osobny egzemplarz z własnymi ulepszeniami i runami.",
+  "shop.info.again": "Tego samego bohatera można kupić kilka razy."
 }
