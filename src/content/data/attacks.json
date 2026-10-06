@@ -223,5 +223,12 @@
       "sprite": "slag",
       "height": 50
     }
+  },
+  {
+    "id": "summon",
+    "swingDuration": 0.5,
+    "hitFraction": 0.5,
+    "clip": "summon",
+    "stance": "beast"
   }
 ]

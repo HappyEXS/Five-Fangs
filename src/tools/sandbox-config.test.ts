@@ -119,6 +119,7 @@ describe('buildBattle', () => {
       'trunk',
       'ivy',
       'oak_warrior',
+      'mother_tree',
       'ice_ivy',
       'toxic_ivy',
       'bot',
@@ -152,6 +153,21 @@ describe('battleFromSetupJson', () => {
     expect(battle?.visuals[1]?.attackClip).toBe('shoot');
     expect(battle?.visuals[2]).toBeNull();
     expect(battle?.visuals[5]?.attackClip).toBe('slash');
+  });
+
+  it('odtwarza walkę z przyzywaczem: specyfikacja przyzywanego wraca z JSON-a razem z wyglądem', () => {
+    const summoning = buildBattle(content, {
+      player: [{ unit: 'mother_tree', rank: 2 }],
+      enemy: [{ unit: 'brute', rank: 0 }],
+    }).setup;
+    expect(summoning.player[0]?.summon).toMatchObject({ maxHp: 120, attack: 24 });
+    const battle = battleFromSetupJson(content, JSON.stringify(summoning));
+    expect(battle?.setup).toEqual(summoning);
+    expect(battle?.visuals[0]?.summon?.attackClip).toBe('slash');
+    // Wejście z raportu starszej wersji gry nie ma pola summon: jednostka nic nie przyzywa.
+    const { summon: _, ...legacy } = setup.player[0] ?? { summon: null };
+    const old = { ...setup, player: [legacy, null, null, null, null] };
+    expect(battleFromSetupJson(content, JSON.stringify(old))?.setup.player[0]?.summon).toBeNull();
   });
 
   it('odrzuca niepoprawny JSON, zły kształt i setup łamiący niezmienniki symulacji', () => {

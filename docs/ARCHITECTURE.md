@@ -103,20 +103,27 @@ Cechy `doubleDamage`, `dodge` i `shield` to procenty w `UnitSpec` (`doubleDamage
 
 Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009). Poza polami z listingu specyfikacja ma: `enrageHpPercent` i `enrageAttackPercent` (szał), `lifestealPercent` (kradzież życia) oraz `splashRadius` w podjednostkach (cios obszarowy); zero oznacza brak cechy. Próg HP i obrażenia w szale symulacja liczy raz, przy tworzeniu walki, więc w tickach zostaje jedno porównanie. Wejście symulacji zapisane przez starszą wersję gry (bez tych pól) piaskownica wczytuje z wartościami zerowymi.
 
+**Przyzywacz** (ADR 0020) to jednostka z polem `summon: UnitSpec | null` niosącym specyfikację tego, co przyzywa; u zwykłej jednostki jest tam `null`. Przyzywana jednostka sama nie może przyzywać, a przyzywacz nie może mieć pocisku. `validateSetup` sprawdza zagnieżdżoną specyfikację tak samo jak jednostki składu i wlicza ją do reguły mijania oraz do limitu pocisków (pięciu przyzwanych na stronę ponad skład).
+
 `createBattle` sprawdza niezmienniki setupu (`validateSetup`) i rzuca błąd, gdy są złamane: wartości całkowite, zależności pól ataku, sloty gracza na lewo od slotów przeciwnika, największy `moveStep` nie większy niż najmniejszy `range`, pula pocisków wystarczająca dla składu.
 
 ### 3.3 Stan
 
-`unitId` jest stałe: slot gracza `s` → `s`, slot przeciwnika `s` → `5 + s`. Pusty slot ma stan `Empty`. Definicja: `src/sim/state.ts`. Wszystkie tablice to `Int32Array`; jeden typ tablic daje jednolity, szybki dostęp i prosty hash.
+`unitId` jednostki składu jest stałe: slot gracza `s` → `s`, slot przeciwnika `s` → `5 + s`. Pusty slot ma stan `Empty`. Definicja: `src/sim/state.ts`. Wszystkie tablice to `Int32Array`; jeden typ tablic daje jednolity, szybki dostęp i prosty hash.
+
+**Miejsca przyzwanych** (ADR 0020). Walka z przyzywaczem ma dwadzieścia miejsc zamiast dziesięciu: za składami leży po pięć miejsc na przyzwanych, `10..14` dla gracza i `15..19` dla przeciwnika (`isPlayerUnit`, `teamOf`). `state.unitSpan` to liczba miejsc w tej walce (10 albo 20) i zarazem długość tablic jednostek; walka bez przyzywaczy ma te same tablice, pętle i hash co przed dodaniem przyzywania. Pętla po drużynie obejmuje skład, a w walce z przyzywaczami także miejsca przyzwanych (wzór pętli w komentarzu `sim/types.ts`).
 
 | Grupa | Pola | Uwagi |
 |---|---|---|
 | Walka | `tick`, `outcome`, `reason` | `tick` to liczba wykonanych ticków |
-| Jednostki (10) | `status`, `x`, `prevX`, `hp`, `target`, `swingTick`, `sinceAttack`, `traitTimer`, `doubleCharge`, `dodgeCharge` | `status`: Empty, Idle, Moving, Attacking, Dead; `target` i `swingTick` mają -1 dla „brak” |
+| Jednostki (`unitSpan`: 10 albo 20) | `status`, `x`, `prevX`, `hp`, `target`, `swingTick`, `sinceAttack`, `traitTimer`, `doubleCharge`, `dodgeCharge` | `status`: Empty, Idle, Moving, Attacking, Dead; `target` i `swingTick` mają -1 dla „brak” |
+| Przyzywanie | `summonedBy` (per miejsce), `summonCursor` (per strona) | `summonedBy`: `unitId` przyzywacza jednostki w miejscu przyzwanych, -1 dla reszty; `summonCursor`: od którego miejsca strona szuka wolnego (kolejka okrężna) |
 | Pociski (pula 64) | `projCount`, `nextProjId`, `projId`, `projX`, `projPrevX`, `projStep`, `projOwner`, `projDamage`, `projKnockback`, `projMode`, `projHitMask`, `projTarget` | Aktywne zajmują indeksy `0..projCount-1` w kolejności wystrzelenia; `projId` rośnie przez całą walkę. `projMode`: pierwszy na drodze, przebijający albo wycelowany; `projTarget` to cel pocisku wycelowanego (dla pozostałych -1) |
 | Statystyki | `damageDealt`, `damageTaken`, `healingDone` | Per `unitId` |
 
-Specyfikacje jednostek są rozłożone na takie same tablice (`UnitSpecs`) i nie zmieniają się w trakcie walki.
+Specyfikacje jednostek są rozłożone na takie same tablice (`UnitSpecs`). Dla składów nie zmieniają się w trakcie walki; miejsce przyzwanych dostaje specyfikację przy każdym przyzwaniu (`placeUnit`), a o tym, czyja to specyfikacja, mówi `summonedBy`, które wchodzi do hasha.
+
+Tablice tworzy `core/int-arrays.ts`: małe (do 64 bajtów, czyli 16 liczb) osobno, bo V8 trzyma je na stercie i tworzy najtaniej, a większe (pociski, zdarzenia, jednostki w walce z przyzywaczami) jako widoki jednego bufora. Kod symulacji widzi zwykłe `Int32Array`.
 
 `prevX` służy dwóm celom: testowi trafienia pocisku i interpolacji w rendererze.
 
@@ -131,15 +138,15 @@ Fazy w stałej kolejności; każda iteruje po `unitId` rosnąco, chyba że zazna
 | 0 | Początek | `prevX ← x`, `projPrevX ← projX`, wyczyszczenie kolejki zmian |
 | 1 | Decyzje | Tylko jednostki poza zamachem. Odczyt stanu z początku ticka. Cel: front szyku przeciwnika, a dla jednostek z `targetLast` jego koniec; oba wyznaczane raz na tick, koniec tylko w walkach, w których ktoś ma tę cechę (`battle.hasTargetLast`). |
 | 2 | Ruch | Każda jednostka niezależnie; sojusznicy się nie blokują. |
-| 3 | Ataki | W `hitTick`: melee dopisuje obrażenia i odrzut do kolejki, ranged tworzy pocisk. |
+| 3 | Ataki | W `hitTick`: melee dopisuje obrażenia i odrzut do kolejki, ranged tworzy pocisk, przyzywacz dopisuje prośbę o jednostkę. Przyzywacz zaczyna zamach tylko wtedy, gdy jego strona ma wolne miejsce. |
 | 4 | Pociski | Trafienie = wróg był przed pociskiem na początku ticka i nie jest przed nim po ruchu obu. Dopisuje obrażenia i odrzut do kolejki. Pocisk wycelowany sprawdza w ten sposób tylko swój cel. |
 | 5 | Cechy okresowe | Leczenie dopisywane do kolejki. |
 | 6 | Rozstrzygnięcie | Dla wszystkich naraz: `hp = min(maxHp, hp − obrażenia + leczenie)`, potem przesunięcie o zsumowany odrzut w stronę własnej krawędzi, z przycięciem do pola. |
-| 7 | Śmierci i koniec | Zdarzenia `Died`, warunek końca, limit czasu. |
+| 7 | Śmierci, przyzwani i koniec | Zdarzenia `Died`; potem na polu stają przyzwani z tego ticka (`sim/summon.ts`), w pozycji przyzywacza, w pierwszym wolnym miejscu od `summonCursor`; warunek końca liczy żywych obu stron razem z przyzwanymi; limit czasu. |
 
 Test trafienia pocisku porównuje położenie względne przed i po ticku, a nie przedział przebyty przez sam pocisk. Dzięki temu wróg idący naprzeciw nie może „przeskoczyć” pocisku w fazie ruchu.
 
-Kolejka zmian to trzy tablice indeksowane `unitId`: `pendingDamage`, `pendingHeal`, `pendingKnockback`. Wszystkie źródła piszą do niej, a HP zmienia tylko faza 6. Każde trafienie dopisuje do `pendingKnockback` wartość `max(0, knockback źródła − knockback trafionego)`.
+Kolejka zmian to tablice indeksowane `unitId`: `pendingDamage`, `pendingHeal`, `pendingKnockback` i `pendingSummon` (prośby przyzywaczy). Wszystkie źródła piszą do niej, a HP zmienia tylko faza 6. Przyzwany pojawia się na końcu ticka, więc nie działa w ticku przyzwania, a miejsce, w którym stanął, jest czyszczone z odwołań do poprzednika: cel trwającego zamachu, cel pocisku wycelowanego i bit w masce pocisku przebijającego. Każde trafienie dopisuje do `pendingKnockback` wartość `max(0, knockback źródła − knockback trafionego)`.
 
 Pozycję zmieniają dwie fazy: ruch (2) i odrzut (6). Odrzut przesuwa jednostkę od przeciwnika, więc nie narusza gwarancji, że wrogie jednostki się nie mijają.
 
@@ -162,6 +169,7 @@ Bufor o stałej pojemności (1024, co mieści najgorszy możliwy tick) w układz
 | `Died` | jednostka | | |
 | `BattleEnded` | wynik | powód | |
 | `Dodged` | jednostka, która uniknęła | źródło trafienia | |
+| `Summoned` | miejsce (`unitId`), w którym stanął przyzwany | przyzywacz | pozycja |
 
 `Healed` powstaje w rozstrzygnięciu, po przycięciu do `maxHp`, więc zgłasza sumę leczenia jednostki w ticku, bez źródła. Przy prędkości x4 w jednej klatce wykonuje się kilka ticków, więc konsument wywołuje `drainEvents(battle, out)` po każdym `stepBattle` i sam zbiera zdarzenia do swojej klatki.
 
@@ -189,8 +197,8 @@ interface BattleResult {
   outcome: 'win' | 'loss';
   reason: 'eliminated' | 'mutual' | 'timeout';
   ticks: number;
-  damageDealt: readonly number[];   // per unitId
-  damageTaken: readonly number[];
+  damageDealt: readonly number[];   // per unitId; obrażenia przyzwanych liczą się przyzywaczowi
+  damageTaken: readonly number[];   // tablice mają 10 pozycji, a w walce z przyzywaczem 20
   healingDone: readonly number[];
   finalHp: readonly number[];
   stateHash: number;
@@ -202,7 +210,7 @@ interface BattleResult {
 
 ### 3.7 Hash
 
-FNV-1a 32-bit (`Math.imul`) po wszystkich tablicach stanu i liczniku ticków. `eventHash` narasta w każdym ticku, w którym zaszły zdarzenia: obejmuje numer ticka i zawartość bufora, więc te same zdarzenia w innym momencie dają inny hash. Testy golden w `tests/golden/` przechowują parę hashy dla każdego ustalonego `BattleSetup`.
+FNV-1a 32-bit (`Math.imul`) po wszystkich tablicach stanu i liczniku ticków; w walce z przyzywaczem także po miejscach przyzwanych, `summonedBy` i `summonCursor`. `eventHash` narasta w każdym ticku, w którym zaszły zdarzenia: obejmuje numer ticka i zawartość bufora, więc te same zdarzenia w innym momencie dają inny hash. Testy golden w `tests/golden/` przechowują parę hashy dla każdego ustalonego `BattleSetup`.
 
 ### 3.8 Wydajność
 
@@ -224,7 +232,20 @@ Pomiar po dodaniu cechy `targetLast` (2026-10-05, sześć przebiegów przed i po
 
 Pomiar po dodaniu cech `doubleDamage`, `dodge` i `shield` (2026-10-05, osiem przebiegów na przemian przed i po zmianie): mediana 2119 walk na sekundę wobec 2166 przed zmianą, czyli ok. 2% wolniej (tego dnia cały pomiar wypadał niżej niż rano). Sam tick nie czyta pól tych cech w walkach bez nich; koszt to pięć dodatkowych tablic tworzonych w `createBattle`. Zapas wobec budżetu 2000 spadł do ok. 6%.
 
-Dalsze przyspieszenie wymagałoby jednej wspólnej tablicy na wszystkie pola jednostek kosztem czytelności. Przy zerowej losowości skrypt balansu rozgrywa setki, a nie setki tysięcy walk, więc na razie nie jest to potrzebne.
+Pomiar po dodaniu przyzywania (2026-10-06, ADR 0020). Pojedynczy przebieg `pnpm bench` waha się tego dnia o ±5% (od 1830 do 2150 walk na sekundę dla tego samego kodu), więc porównania robiono w jednym procesie: wersja sprzed zmiany i bieżąca na przemian, po 21 rund z 400 walkami.
+
+| Wariant pętli po drużynie (skład + przyzwani) | Czas zwykłej walki względem stanu sprzed zmiany |
+|---|---|
+| Wspólna pętla zagnieżdżona po obu zakresach we `frontUnit` i w ruchu pocisków | +4–6% |
+| Pętla składu i przyzwanych wyniesiona do wspólnej funkcji | +7–9% |
+| Pętla składu jak przedtem, przyzwani w osobnej funkcji wołanej tylko w walce z przyzywaczami (stan obecny) | sam tick ok. +1,5% |
+
+- Reszta zmian w ticku (granica pętli z `unitSpan`, `isPlayerUnit`, sprawdzenia `hasSummons`) nie daje różnicy mierzalnej ponad rozrzut.
+- Przy okazji wyszło, że `createBattle` kosztuje 28 µs, czyli 6% całej walki, z czego 21 µs to alokacja czternastu tablic typowanych większych niż 64 bajty (pociski i zdarzenia): V8 daje każdej osobny bufor poza stertą, ok. 1 µs na sztukę. Wycinanie ich z jednego bufora (`core/int-arrays.ts`) skróciło `createBattle` do 13,5 µs.
+- Bilans dla zwykłej walki: ok. 9 µs dłuższe ticki, 14,5 µs krótsze tworzenie. Osiem par przebiegów `pnpm bench` na przemian dało medianę 1951 walk na sekundę wobec 1932 przed zmianą (tego dnia cała maszyna mierzyła o kilka procent niżej niż rano, gdy ten sam kod sprzed zmiany dawał 2040–2110).
+- Walka z przyzywaczami (golden `summon`, 924 ticki, do szesnastu jednostek naraz): ok. 1000 walk na sekundę, 1,1 µs na tick.
+
+**Budżet 2000 walk na sekundę jest na styk**: wynik zależy dziś bardziej od obciążenia maszyny niż od kodu. Kolejna zmiana symulacji musi zacząć od pomiaru A/B w jednym procesie; pojedynczy `pnpm bench` nie rozróżni 2%. Dalsze przyspieszenie ticka wymagałoby jednej wspólnej tablicy na wszystkie pola jednostek kosztem czytelności. Przy zerowej losowości skrypt balansu rozgrywa setki, a nie setki tysięcy walk, więc na razie nie jest to potrzebne.
 
 ## 4. Treść (`src/content`)
 
@@ -236,6 +257,7 @@ src/content/data/
   attacks.json          typy ataków
   units/heroes.json     formy bohaterów
   units/enemies.json    wrogowie i bossowie
+  units/summons.json    jednostki przyzywane (ADR 0020); gracz ich nie kupuje, poziomy ich nie wystawiają
   progression.json      stałe progresji: liczba ulepszeń, procent na ulepszenie, sloty run, złoto za powtórkę
   lines.json            linie bohaterów: drzewo form, koszty ulepszeń i ewolucji, cena, linia startowa
   runes.json
@@ -265,6 +287,11 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
   "traits": [{ "type": "pierce" }] }
 // pola "rig" i "skin" dojdą razem z rendererem w M2
 // opcjonalnie własny kadr miniaturki (ADR 0017): "portrait": { "center": [9, -27], "size": 38 }
+
+// przyzywacz (ADR 0020): nie atakuje, attackSpeed to przyzwania na sekundę,
+// "summon" wskazuje jednostkę z units/summons.json
+{ "id": "mother_tree", "kind": "summoner", "maxHp": 10000, "attack": 0, "moveSpeed": 0,
+  "attackSpeed": 2, "range": 1000, "knockback": 40, "attackType": "summon", "summon": "sprout" }
 
 // pocisk może podać wysokość lotu nad stopami w jednostkach rigu (domyślnie 43): skąd wylatuje
 { "id": "fire_spit", "swingDuration": 0.9, "hitFraction": 0.5, "clip": "spit", "stance": "beast",
@@ -331,6 +358,7 @@ function levelSetup(
 - `pierce` tylko przy ataku z pociskiem, `splash` tylko przy ataku wręcz;
 - `targetLast` tylko przy ataku z pociskiem, bez `pierce`, a `range` takiej jednostki obejmuje całą szerokość areny;
 - jednostka bez ruchu (`moveSpeed` 0) ma `range` na całą szerokość areny: inaczej stałaby bezczynnie, gdy wróg jest dalej;
+- `kind: "summoner"` i pole `summon` występują razem; `summon` wskazuje jednostkę z `units/summons.json`, która sama nie przyzywa; typ ataku przyzywacza nie ma pocisku; jednostki przyzywane przechodzą te same reguły symulacji i atlasu co bohaterowie i wrogowie;
 - procenty cech w zakresach: `doubleDamage` 1–100, `dodge` i `shield` 1–99;
 - wróg na poziomie to dowolna jednostka: forma bohatera albo jednostka specjalna z `units/enemies.json`;
 - górne ograniczenie liczby żywych pocisków mieści się w puli;
@@ -359,7 +387,7 @@ function createCanvasRenderer(ctx: CanvasRenderingContext2D, assets: RenderAsset
 function createPortraitSheet(assets: RenderAssets, visuals: Iterable<[string, UnitVisual]>): PortraitSheet;
 ```
 
-Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Jednostki rysowane są od najdalszego slotu do najbliższego; `setTopUnit` pozwala narysować jedną na wierzchu (ekran składu: bohater, którego gracz właśnie przeciąga). `setShowcase` oznacza scenę, na której nikt nie walczy: paski życia obu stron mają wtedy kolor gracza (sklep stawia połowę linii w slotach prawej strony sceny). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`). Zamianę `UnitVisual` na struktury renderera (`UnitLook`: skompilowany rig, postawa, klipy) robi `render/looks.ts`, wspólnie dla walki i miniaturek (§5.8).
+Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Jednostki rysowane są od najdalszego slotu do najbliższego; `setTopUnit` pozwala narysować jedną na wierzchu (ekran składu: bohater, którego gracz właśnie przeciąga). Przyzwani (ADR 0020) nie mają wyglądu w `visuals`: niesie go `UnitVisual.summon` przyzywacza. Renderer przygotowuje go przy `beginBattle` w wierszu wzorca (`LOOK_ROWS` = miejsca jednostek i po jednym wzorcu na jednostkę składu) i przy zdarzeniu `Summoned` przepisuje do miejsca, w którym przyzwany stanął (`copyLook`, bez alokacji); animator zeruje wtedy stan miejsca, żeby nowa jednostka nie przejęła padania ani pozy poprzednika. Przyzwani są rysowani po składach, z krótszym paskiem życia i bez liczby nad nim. `setShowcase` oznacza scenę, na której nikt nie walczy: paski życia obu stron mają wtedy kolor gracza (sklep stawia połowę linii w slotach prawej strony sceny). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`). Zamianę `UnitVisual` na struktury renderera (`UnitLook`: skompilowany rig, postawa, klipy) robi `render/looks.ts`, wspólnie dla walki i miniaturek (§5.8).
 
 ### 5.2 Pętla
 

@@ -19,10 +19,12 @@ import { nextAttackDamage, queueHit } from './hits.ts';
 import type { BattleState } from './state.ts';
 import {
   forwardOf,
+  isPlayerUnit,
   MAX_PROJECTILES,
   PROJECTILE_AIMED,
   PROJECTILE_FIRST,
   PROJECTILE_PIERCE,
+  SQUAD_UNITS,
   TEAM_SIZE,
   teamOf,
 } from './types.ts';
@@ -89,7 +91,66 @@ function hit(battle: Battle, p: number, target: number): void {
 }
 
 /**
+ * Pocisk przebijający wśród przyzwanych: trafia każdą żywą jednostkę spośród TEAM_SIZE miejsc
+ * od `first`, którą minął w tym ticku i której jeszcze nie trafił. Zwraca maskę trafionych.
+ */
+function pierceSummons(
+  battle: Battle,
+  p: number,
+  first: number,
+  from: number,
+  to: number,
+  hitMask: number,
+): number {
+  const { status, x, prevX } = battle.state;
+  const direction = to > from ? 1 : -1;
+  let mask = hitMask;
+  for (let enemy = first; enemy < first + TEAM_SIZE; enemy++) {
+    if (!isAlive(status[enemy] ?? 0) || (mask & (1 << enemy)) !== 0) continue;
+    const before = ((prevX[enemy] ?? 0) - from) * direction;
+    const after = ((x[enemy] ?? 0) - to) * direction;
+    if (before >= 0 && after <= 0) {
+      mask |= 1 << enemy;
+      hit(battle, p, enemy);
+    }
+  }
+  return mask;
+}
+
+/**
+ * Pierwszy na drodze pocisku wśród przyzwanych: najbliższy przed pociskiem na początku ticka
+ * spośród TEAM_SIZE miejsc od `first`, o ile jest bliżej niż dotychczasowy `best` ze składu
+ * (-1: nikogo). Remis wygrywa `best`, czyli niższe `unitId`.
+ */
+function firstSummonOnPath(
+  state: BattleState,
+  first: number,
+  from: number,
+  to: number,
+  best: number,
+): number {
+  const { status, x, prevX } = state;
+  const direction = to > from ? 1 : -1;
+  let nearest = best;
+  let nearestBefore = best === -1 ? 0 : ((prevX[best] ?? 0) - from) * direction;
+  for (let enemy = first; enemy < first + TEAM_SIZE; enemy++) {
+    if (!isAlive(status[enemy] ?? 0)) continue;
+    const before = ((prevX[enemy] ?? 0) - from) * direction;
+    const after = ((x[enemy] ?? 0) - to) * direction;
+    if (before >= 0 && after <= 0 && (nearest === -1 || before < nearestBefore)) {
+      nearest = enemy;
+      nearestBefore = before;
+    }
+  }
+  return nearest;
+}
+
+/**
  * Przesuwa pocisk `p` i rozstrzyga trafienia. Zwraca true, jeśli pocisk leci dalej.
+ *
+ * Wrogowie to skład przeciwnej strony, a w walce z przyzywaczami także jej przyzwani. Skład
+ * sprawdzają pętle wpisane tutaj, takie same jak przed dodaniem przyzywania; przyzwanych osobne
+ * funkcje, wołane tylko w walce z przyzywaczami (uzasadnienie przy `frontUnit`).
  */
 function advance(battle: Battle, p: number): boolean {
   const { state } = battle;
@@ -98,7 +159,7 @@ function advance(battle: Battle, p: number): boolean {
   const direction = step > 0 ? 1 : -1;
   const from = state.projX[p] ?? 0;
   const to = from + step;
-  const firstEnemy = (state.projOwner[p] ?? 0) < TEAM_SIZE ? TEAM_SIZE : 0;
+  const firstEnemy = isPlayerUnit(state.projOwner[p] ?? 0) ? TEAM_SIZE : 0;
   state.projX[p] = to;
 
   const mode = state.projMode[p] ?? PROJECTILE_FIRST;
@@ -123,6 +184,9 @@ function advance(battle: Battle, p: number): boolean {
         hit(battle, p, enemy);
       }
     }
+    if (state.unitSpan !== SQUAD_UNITS) {
+      mask = pierceSummons(battle, p, firstEnemy + SQUAD_UNITS, from, to, mask);
+    }
     state.projHitMask[p] = mask;
   } else {
     // Pierwszy na drodze: najbliższy przed pociskiem na początku ticka; remis → niższe unitId.
@@ -136,6 +200,9 @@ function advance(battle: Battle, p: number): boolean {
         nearest = enemy;
         nearestBefore = before;
       }
+    }
+    if (state.unitSpan !== SQUAD_UNITS) {
+      nearest = firstSummonOnPath(state, firstEnemy + SQUAD_UNITS, from, to, nearest);
     }
     if (nearest !== -1) {
       hit(battle, p, nearest);

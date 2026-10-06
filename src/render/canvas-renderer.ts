@@ -7,8 +7,10 @@ import {
   EVENT_DAMAGED,
   EVENT_DODGED,
   EVENT_HEALED,
+  EVENT_SUMMONED,
   type EventBuffer,
   MAX_UNITS,
+  SQUAD_UNITS,
   TEAM_SIZE,
 } from '../sim/index.ts';
 import { animatorOnEvents, resetAnimator } from './animation.ts';
@@ -27,7 +29,7 @@ import {
 import { compileRigs, type RenderAssets, resolveLook, skinParts } from './looks.ts';
 import { measureReach } from './reach.ts';
 import type { Renderer } from './renderer.ts';
-import { createScene, headHeightOf } from './scene.ts';
+import { copyLook, createScene, headHeightOf, LOOK_ROWS } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 export function createCanvasRenderer(
@@ -39,6 +41,26 @@ export function createCanvasRenderer(
   const { maxBones } = rigs;
   const scene = createScene(ctx, atlas, maxBones, rigs.maxChannels);
 
+  /** Wypełnia wiersz wyglądu `row`: wygląd, części, zasięg postaci, pocisk. */
+  function prepareLook(row: number, visual: UnitVisual): void {
+    const look = resolveLook(rigs, visual);
+    scene.looks[row] = look;
+    const parts = skinParts(atlas, look.rig, visual.skin);
+    parts.forEach((sprite, bone) => {
+      scene.boneSprites[row * maxBones + bone] = sprite;
+    });
+    const reach = measureReach(look, parts);
+    scene.reachBack[row] = reach.back;
+    scene.reachFront[row] = reach.front;
+    scene.reachHeight[row] = reach.height;
+    scene.headHeight[row] = headHeightOf(look, reach.stand);
+    scene.projectileSprites[row] =
+      visual.projectileSprite === null
+        ? null
+        : (atlas.sprites.get(`fx/${visual.projectileSprite}`) ?? null);
+    scene.projectileHeights[row] = visual.projectileHeight * look.scale;
+  }
+
   return {
     beginBattle(battle: Battle, visuals: readonly (UnitVisual | null)[]): void {
       scene.battle = battle;
@@ -48,29 +70,16 @@ export function createCanvasRenderer(
       resetAnimator(scene.animator);
       clearFloatTexts(scene.floatTexts);
       scene.boneSprites.fill(null);
-      for (let unit = 0; unit < MAX_UNITS; unit++) {
+      for (let row = 0; row < LOOK_ROWS; row++) {
+        scene.looks[row] = null;
+        scene.projectileSprites[row] = null;
+      }
+      for (let unit = 0; unit < SQUAD_UNITS; unit++) {
         const visual = visuals[unit] ?? null;
-        if (visual === null) {
-          scene.looks[unit] = null;
-          scene.projectileSprites[unit] = null;
-          continue;
-        }
-        const look = resolveLook(rigs, visual);
-        scene.looks[unit] = look;
-        const parts = skinParts(atlas, look.rig, visual.skin);
-        parts.forEach((sprite, bone) => {
-          scene.boneSprites[unit * maxBones + bone] = sprite;
-        });
-        const reach = measureReach(look, parts);
-        scene.reachBack[unit] = reach.back;
-        scene.reachFront[unit] = reach.front;
-        scene.reachHeight[unit] = reach.height;
-        scene.headHeight[unit] = headHeightOf(look, reach.stand);
-        scene.projectileSprites[unit] =
-          visual.projectileSprite === null
-            ? null
-            : (atlas.sprites.get(`fx/${visual.projectileSprite}`) ?? null);
-        scene.projectileHeights[unit] = visual.projectileHeight * look.scale;
+        if (visual === null) continue;
+        prepareLook(unit, visual);
+        // Wzorzec tego, co jednostka przyzywa: miejsca przyzwanych dostają go w `consume`.
+        if (visual.summon !== null) prepareLook(MAX_UNITS + unit, visual.summon);
       }
     },
 
@@ -80,6 +89,11 @@ export function createCanvasRenderer(
       if (battle === null) return;
       for (let i = 0; i < events.count; i++) {
         const type = events.type[i];
+        if (type === EVENT_SUMMONED) {
+          // Animator wyzerował już stan miejsca; tu przyzwany dostaje wygląd od przyzywacza.
+          copyLook(scene, MAX_UNITS + (events.b[i] ?? 0), events.a[i] ?? 0);
+          continue;
+        }
         if (type === EVENT_DODGED) {
           spawnNumber(scene, battle, events.a[i] ?? 0, 0, FLOAT_KIND_DODGE);
           continue;
@@ -106,6 +120,12 @@ export function createCanvasRenderer(
         if (slot !== top) drawUnit(scene, battle, slot, viewport, alpha, frameMs);
         if (TEAM_SIZE + slot !== top) {
           drawUnit(scene, battle, TEAM_SIZE + slot, viewport, alpha, frameMs);
+        }
+      }
+      // Przyzwani na wierzchu składów: są mali i wychodzą przed swojego przyzywacza.
+      if (battle.hasSummons) {
+        for (let unit = SQUAD_UNITS; unit < MAX_UNITS; unit++) {
+          drawUnit(scene, battle, unit, viewport, alpha, frameMs);
         }
       }
       if (top >= 0) drawUnit(scene, battle, top, viewport, alpha, frameMs);

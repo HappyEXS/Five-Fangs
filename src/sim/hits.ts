@@ -4,6 +4,7 @@ import { mulDivFloor } from '../core/int.ts';
 import type { Battle } from './battle.ts';
 import { isAlive } from './decide.ts';
 import { EVENT_DAMAGED, EVENT_DODGED, pushEvent } from './events.ts';
+import { SQUAD_UNITS } from './types.ts';
 
 /** Próg licznika stałego rytmu: procenty cech liczą się na sto ataków albo trafień. */
 const RHYTHM = 100;
@@ -68,7 +69,10 @@ export function queueHit(
   pending.damage[target] = (pending.damage[target] ?? 0) + damage;
   const push = knockback - (battle.specs.knockback[target] ?? 0);
   if (push > 0) pending.knockback[target] = (pending.knockback[target] ?? 0) + push;
-  state.damageDealt[source] = (state.damageDealt[source] ?? 0) + damage;
+  // Obrażenia przyzwanych liczą się w wyniku walki ich przyzywaczowi: miejsce przyzwanych
+  // zajmują po kolei różne jednostki, a gracz wystawił do walki przyzywacza.
+  const credited = source < SQUAD_UNITS ? source : (state.summonedBy[source] ?? source);
+  state.damageDealt[credited] = (state.damageDealt[credited] ?? 0) + damage;
   pushEvent(battle.events, EVENT_DAMAGED, target, damage, source);
 
   // Kradzież życia: leczenie trafia do tej samej kolejki, więc może uratować źródło przed

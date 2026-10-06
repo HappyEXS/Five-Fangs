@@ -88,6 +88,22 @@ describe('aliveMask', () => {
     expect(aliveMask(battle)).toBe(0b0000000001);
   });
 
+  it('nie obejmuje przyzwanych: ich pojawienie się nie zmienia twarzy w HUD-zie', () => {
+    const summoner = melee({
+      attack: 0,
+      moveStep: 0,
+      range: 1_000_000,
+      attackInterval: 15,
+      summon: melee({ maxHp: 100, moveStep: 0 }),
+    });
+    const battle = createBattle(setupOf([summoner], [melee({ attack: 0, moveStep: 0 })]));
+    const before = aliveMask(battle);
+    for (let tick = 0; tick < 40; tick++) stepBattle(battle);
+    expect(battle.state.status[10]).not.toBe(0);
+    expect(aliveMask(battle)).toBe(before);
+    expect(before).toBe(0b0000100001);
+  });
+
   it('zgadza się z twarzami prawdziwego poziomu od pierwszego ticka', () => {
     const battle = createBattle(levelSetup(content, level, squad));
     const faces = battleFaces(battleLineup(level, squad), aliveMask(battle));

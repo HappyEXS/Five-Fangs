@@ -20,6 +20,17 @@ describe('contentAssetIssues', () => {
     ]);
   });
 
+  it('sprawdza także skórki jednostek przyzywanych', () => {
+    const partial = new Set(sprites);
+    partial.delete('sprout/head');
+    expect(contentAssetIssues(content, partial)).toEqual([
+      {
+        source: 'units/summons.json',
+        message: 'sprout: w atlasie brakuje sprite\'a "sprout/head"',
+      },
+    ]);
+  });
+
   it('zgłasza brakujący sprite pocisku u każdego strzelca', () => {
     const partial = new Set(sprites);
     partial.delete('fx/arrow');

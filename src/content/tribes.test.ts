@@ -18,11 +18,29 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     expect(next('immortals', 'guardian_of_hell')).toEqual(['xartix', 'enigmatix']);
   });
 
-  it('Plants: Bush, z niego Trunk albo Ivy; Mother-tree czeka na przyzywanie', () => {
+  it('Plants: Bush, z niego Trunk albo Ivy, z każdego po dwie formy końcowe', () => {
     expect(content.lines.get('plants')).toMatchObject({ base: 'bush', starter: false });
     expect(next('plants', 'bush')).toEqual(['trunk', 'ivy']);
-    expect(next('plants', 'trunk')).toEqual(['oak_warrior']);
+    expect(next('plants', 'trunk')).toEqual(['oak_warrior', 'mother_tree']);
     expect(next('plants', 'ivy')).toEqual(['ice_ivy', 'toxic_ivy']);
+  });
+
+  it('Mother-tree nie atakuje: co pół sekundy przyzywa krzak z 100 życia i 20 ataku', () => {
+    const tree = unit('mother_tree');
+    expect(tree.kind).toBe('summoner');
+    expect(tree.summon).toBe('sprout');
+    expect([tree.base.maxHp, tree.base.attack, tree.base.moveStep]).toEqual([10_000, 0, 0]);
+    expect(tree.base.attackInterval).toBe(ratePerSecondToInterval(2));
+    expect(tree.base.projectileStep).toBe(0);
+    const sprout = content.summons.get('sprout');
+    expect(tree.base.summon).toBe(sprout?.base);
+    expect(tree.visual.summon).toBe(sprout?.visual);
+    // „Bushes ver. 2” ze szkicu: życie 100, atak 20, szybkość 30, odrzut 0; walczy wręcz.
+    expect(sprout?.kind).toBe('melee');
+    expect(sprout?.base).toMatchObject({ maxHp: 100, attack: 20, moveStep: 256, knockback: 0 });
+    // Krzaka nie da się kupić ani wystawić: nie jest bohaterem ani wrogiem poziomu.
+    expect(content.heroes.has('sprout')).toBe(false);
+    expect(content.enemies.has('sprout')).toBe(false);
   });
 
   it('Robots: Bot, z niego Egzo-bot albo Holo-bot, z każdego po dwie formy końcowe', () => {
@@ -117,12 +135,14 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
       'polaris',
       'bush',
       'ivy',
+      'mother_tree',
       'ice_ivy',
       'toxic_ivy',
       'holo_bot',
     ]);
     for (const hero of still) {
-      expect(hero.kind, hero.id).toBe('ranged');
+      // Stoją strzelcy i przyzywacz; nikt, kto musiałby dojść do wroga.
+      expect(hero.kind, hero.id).not.toBe('melee');
       expect(hero.base.range, hero.id).toBeGreaterThanOrEqual(content.arena.width);
     }
   });

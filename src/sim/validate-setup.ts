@@ -77,6 +77,17 @@ export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
   if (spec.targetLast && spec.pierce) {
     problems.push(`${label}: targetLast nie łączy się z pierce`);
   }
+  if (spec.summon !== null) {
+    // Przyzywacz nie atakuje: jego zamach kończy się przyzwaniem, więc nie ma pocisku.
+    if (spec.projectileStep > 0) {
+      problems.push(`${label}: przyzywacz nie może mieć ataku z pociskiem`);
+    }
+    if (spec.summon.summon !== null) {
+      problems.push(`${label}, przyzwany: przyzwana jednostka nie może przyzywać`);
+    } else {
+      problems.push(...validateUnitSpec(`${label}, przyzwany`, spec.summon));
+    }
+  }
   return problems;
 }
 
@@ -115,22 +126,37 @@ export function validateSetup(setup: BattleSetup): string[] {
     problems.push('arena: wszystkie sloty gracza muszą leżeć na lewo od slotów przeciwnika');
   }
 
+  // Wszystkie jednostki, które mogą stanąć na polu: składy i to, co przyzywają.
   const units: UnitSpec[] = [];
-  const check = (label: string, spec: UnitSpec | null): void => {
-    if (spec === null) return;
-    units.push(spec);
-    problems.push(...validateUnitSpec(label, spec));
-    // Jednostka idąca do ostatniego wroga minęłaby tych, którzy stoją bliżej, więc musi
-    // sięgać go z każdego miejsca pola.
+  // Ograniczenie liczby pocisków w locie: suma po składach, a dla przyzwanych największe
+  // ograniczenie wśród przyzywanych przez każdą ze stron (indeks 0: gracz, 1: przeciwnik).
+  let bound = 0;
+  const summonBound = [0, 0];
+  // Jednostka idąca do ostatniego wroga minęłaby tych, którzy stoją bliżej, więc musi sięgać
+  // go z każdego miejsca pola.
+  const checkReach = (label: string, spec: UnitSpec): void => {
     if (spec.targetLast && spec.range < arena.width) {
       problems.push(`${label}: targetLast wymaga zasięgu na całe pole (range ≥ ${arena.width})`);
     }
   };
+  const check = (label: string, spec: UnitSpec | null, side: number): void => {
+    if (spec === null) return;
+    units.push(spec);
+    problems.push(...validateUnitSpec(label, spec));
+    checkReach(label, spec);
+    bound += projectileBound(spec, arena.width);
+    const { summon } = spec;
+    if (summon === null) return;
+    // Przyzwani stają na polu, więc obowiązują ich te same reguły co jednostki składów.
+    units.push(summon);
+    checkReach(`${label}, przyzwany`, summon);
+    summonBound[side] = Math.max(summonBound[side] ?? 0, projectileBound(summon, arena.width));
+  };
   setup.player.forEach((spec, slot) => {
-    check(`gracz, slot ${slot}`, spec);
+    check(`gracz, slot ${slot}`, spec, 0);
   });
   setup.enemy.forEach((spec, slot) => {
-    check(`przeciwnik, slot ${slot}`, spec);
+    check(`przeciwnik, slot ${slot}`, spec, 1);
   });
   if (problems.length > 0 || units.length === 0) return problems;
 
@@ -144,8 +170,9 @@ export function validateSetup(setup: BattleSetup): string[] {
     );
   }
 
-  let bound = 0;
-  for (const unit of units) bound += projectileBound(unit, arena.width);
+  // Każda strona może mieć naraz TEAM_SIZE przyzwanych; w najgorszym razie wszyscy strzelają
+  // jak ten z jej przyzwanych, który trzyma w locie najwięcej pocisków.
+  bound += TEAM_SIZE * ((summonBound[0] ?? 0) + (summonBound[1] ?? 0));
   if (bound > MAX_PROJECTILES) {
     problems.push(`możliwa liczba pocisków w locie (${bound}) przekracza pulę ${MAX_PROJECTILES}`);
   }

@@ -81,6 +81,7 @@ export function melee(overrides: Partial<UnitSpec> = {}): UnitSpec {
     doubleDamagePercent: 0,
     dodgePercent: 0,
     shieldPercent: 0,
+    summon: null,
     ...overrides,
   };
 }

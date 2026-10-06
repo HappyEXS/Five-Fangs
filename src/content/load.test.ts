@@ -142,6 +142,52 @@ describe('loadContent', () => {
     expect(messages(withHeroes([{ ...archer, traits: [{ type: 'targetLast' }] }]))).toEqual([]);
   });
 
+  it('przyzywacz wskazuje jednostkę z units/summons.json i dostaje jej specyfikację', () => {
+    const sprout = { ...unit, id: 'sprout', maxHp: 100, skin: 'sprout' };
+    const tree = { ...unit, id: 'tree', kind: 'summoner', attack: 0, summon: 'sprout' };
+    const raw: RawContent = { ...withHeroes([tree]), 'units/summons.json': [sprout] };
+    const { content, issues } = loadContent(raw);
+    expect(issues).toEqual([]);
+    expect(content?.summons.get('sprout')?.base.maxHp).toBe(100);
+    expect(content?.heroes.get('tree')?.base.summon).toBe(content?.summons.get('sprout')?.base);
+    expect(content?.heroes.get('tree')?.visual.summon?.skin).toBe('sprout');
+  });
+
+  it('kind summoner i pole summon idą razem; przyzywany musi istnieć i sam nie przyzywa', () => {
+    const sprout = { ...unit, id: 'sprout', skin: 'sprout' };
+    const withSummons = (heroes: unknown, summons: unknown): RawContent => ({
+      ...withHeroes(heroes),
+      'units/summons.json': summons,
+    });
+    expect(messages(withSummons([{ ...unit, kind: 'summoner' }], [sprout]))).toEqual([
+      'units/heroes.json: swordsman: kind "summoner" i pole "summon" podaje się razem',
+    ]);
+    expect(messages(withSummons([{ ...unit, summon: 'sprout' }], [sprout]))).toEqual([
+      'units/heroes.json: swordsman: kind "summoner" i pole "summon" podaje się razem',
+    ]);
+    expect(
+      messages(withSummons([{ ...unit, kind: 'summoner', summon: 'nobody' }], [sprout])),
+    ).toEqual(['units/heroes.json: swordsman: nieznana jednostka przyzywana "nobody"']);
+    expect(
+      messages(
+        withSummons([], [sprout, { ...unit, id: 'seed', kind: 'summoner', summon: 'sprout' }]),
+      ),
+    ).toEqual(['units/summons.json: seed: przyzwana jednostka nie może przyzywać']);
+    // Przyzywacz nie strzela: typ ataku z pociskiem do niego nie pasuje.
+    expect(
+      messages(
+        withSummons(
+          [{ ...unit, kind: 'summoner', summon: 'sprout', attackType: 'shoot' }],
+          [sprout],
+        ),
+      )[0],
+    ).toContain('nie pasuje');
+    // Id przyzywanych leżą w tej samej przestrzeni co bohaterowie i wrogowie.
+    expect(messages(withSummons([unit], [{ ...sprout, id: 'swordsman' }]))).toEqual([
+      'units/heroes.json: powtórzone id "swordsman"',
+    ]);
+  });
+
   it('odrzuca nieznaną cechę i błędne parametry', () => {
     expect(
       loadContent(withHeroes([{ ...unit, traits: [{ type: 'lifesteal' }] }])).content,

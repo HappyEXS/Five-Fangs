@@ -3,7 +3,7 @@
 // klatek porównuje samą maskę bitową, a nową listę buduje przy zmianie.
 import type { CompiledLevel } from '../content/load-progression.ts';
 import type { SquadMember } from '../content/resolve-spec.ts';
-import { type Battle, isAlive, MAX_UNITS, TEAM_SIZE } from '../sim/index.ts';
+import { type Battle, isAlive, SQUAD_UNITS, TEAM_SIZE } from '../sim/index.ts';
 
 export interface BattleFace {
   /** Indeks jednostki w symulacji (`unitId`): sloty gracza 0..4, potem przeciwnika. */
@@ -22,7 +22,7 @@ export function battleLineup(
   level: CompiledLevel,
   squad: readonly (SquadMember | null)[],
 ): (string | null)[] {
-  const lineup = new Array<string | null>(MAX_UNITS).fill(null);
+  const lineup = new Array<string | null>(SQUAD_UNITS).fill(null);
   for (let slot = 0; slot < TEAM_SIZE; slot++) lineup[slot] = squad[slot]?.unit.id ?? null;
   for (const entry of level.enemies) {
     if (entry.slot >= 0 && entry.slot < TEAM_SIZE) lineup[TEAM_SIZE + entry.slot] = entry.unit;
@@ -30,11 +30,14 @@ export function battleLineup(
   return lineup;
 }
 
-/** Maska bitowa żywych jednostek: bit `unit` jest ustawiony, gdy jednostka żyje. Nie alokuje. */
+/**
+ * Maska bitowa żywych jednostek składów: bit `unit` jest ustawiony, gdy jednostka żyje. Nie
+ * alokuje. Przyzwani nie mają twarzy w HUD-zie, więc ich pojawianie się i śmierć nie zmienia maski.
+ */
 export function aliveMask(battle: Battle): number {
   const { status } = battle.state;
   let mask = 0;
-  for (let unit = 0; unit < MAX_UNITS; unit++) {
+  for (let unit = 0; unit < SQUAD_UNITS; unit++) {
     if (isAlive(status[unit] ?? 0)) mask |= 1 << unit;
   }
   return mask;

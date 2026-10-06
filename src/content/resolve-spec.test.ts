@@ -50,6 +50,17 @@ describe('resolveUnitSpec', () => {
     expect(spec.attack).toBe(56 + 25);
   });
 
+  it('przyzywany rośnie z ulepszeniami przyzywacza, ale nie z jego run', () => {
+    const tree = hero('mother_tree');
+    expect(resolveUnitSpec(tree, 0, [], progression)).toEqual(tree.base);
+    const spec = resolveUnitSpec(tree, 4, [attackRune, hpRune], progression);
+    expect(spec.maxHp).toBe(14_000 + 200);
+    expect(spec.attack).toBe(0 + 25);
+    // Krzak: 100 życia i 20 ataku, po czterech ulepszeniach o 40% więcej.
+    expect(spec.summon).toMatchObject({ maxHp: 140, attack: 28 });
+    expect(spec.summon?.moveStep).toBe(tree.base.summon?.moveStep);
+  });
+
   it('dwie takie same runy się sumują', () => {
     expect(resolveUnitSpec(swordsman, 0, [attackRune, attackRune], progression).attack).toBe(90);
   });
@@ -105,6 +116,7 @@ describe('levelVisuals', () => {
       projectileSprite: null,
       projectileHeight: 0,
       portrait: null,
+      summon: null,
     });
     expect(visuals[1]).toBeNull();
     expect(visuals[2]?.skin).toBe('archer_b');

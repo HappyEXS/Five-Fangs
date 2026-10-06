@@ -10,7 +10,14 @@ import {
   type Pending,
   type UnitSpecs,
 } from './state.ts';
-import { type BattleSetup, MAX_UNITS, STATUS_IDLE, TEAM_SIZE, type UnitSpec } from './types.ts';
+import {
+  type BattleSetup,
+  MAX_UNITS,
+  SQUAD_UNITS,
+  STATUS_IDLE,
+  TEAM_SIZE,
+  type UnitSpec,
+} from './types.ts';
 import { validateSetup } from './validate-setup.ts';
 
 export interface Battle {
@@ -36,11 +43,24 @@ export interface Battle {
    */
   readonly hasDoubleDamage: boolean;
   readonly hasGuards: boolean;
+  /**
+   * Czy w walce jest przyzywacz (ADR 0020). Bez nich walka ma tylko jednostki składów
+   * i żadna faza ticka nie zagląda do miejsc przyzwanych.
+   */
+  readonly hasSummons: boolean;
+  /** `unitId` przyzywaczy, rosnąco: w tej kolejności zajmują wolne miejsca w jednym ticku. */
+  readonly summoners: readonly number[];
+  /** Specyfikacja jednostki przyzywanej przez jednostkę składu o danym `unitId`; null dla reszty. */
+  readonly summonSpecs: readonly (UnitSpec | null)[];
   /** Narastający hash wszystkich zdarzeń walki. */
   eventHash: number;
 }
 
-function placeUnit(battle: Battle, unitId: number, spec: UnitSpec, x: number): void {
+/**
+ * Stawia jednostkę o danej specyfikacji w miejscu `unitId`: przy tworzeniu walki dla składów,
+ * w trakcie walki dla przyzwanych. Zeruje cały stan miejsca, więc nic nie zostaje po poprzedniku.
+ */
+export function placeUnit(battle: Battle, unitId: number, spec: UnitSpec, x: number): void {
   const { specs, state } = battle;
   specs.maxHp[unitId] = spec.maxHp;
   specs.attack[unitId] = spec.attack;
@@ -66,13 +86,19 @@ function placeUnit(battle: Battle, unitId: number, spec: UnitSpec, x: number): v
   specs.doubleDamagePercent[unitId] = spec.doubleDamagePercent;
   specs.dodgePercent[unitId] = spec.dodgePercent;
   specs.shieldPercent[unitId] = spec.shieldPercent;
+  specs.summoner[unitId] = spec.summon === null ? 0 : 1;
 
   state.status[unitId] = STATUS_IDLE;
   state.x[unitId] = x;
   state.prevX[unitId] = x;
   state.hp[unitId] = spec.maxHp;
+  state.target[unitId] = -1;
+  state.swingTick[unitId] = -1;
   // Pierwszy atak jest dostępny od razu, bez czekania na pełny odstęp.
   state.sinceAttack[unitId] = spec.attackInterval;
+  state.traitTimer[unitId] = 0;
+  state.doubleCharge[unitId] = 0;
+  state.dodgeCharge[unitId] = 0;
 }
 
 /** Tworzy walkę z jednostkami na pozycjach startowych. Rzuca błąd, gdy setup łamie niezmienniki. */
@@ -81,28 +107,50 @@ export function createBattle(setup: BattleSetup): Battle {
   if (problems.length > 0) throw new Error(`Invalid battle setup:\n${problems.join('\n')}`);
 
   const healers: number[] = [];
+  const summoners: number[] = [];
+  const summonSpecs: (UnitSpec | null)[] = [];
   let hasTargetLast = false;
   let hasDoubleDamage = false;
   let hasGuards = false;
-  for (let slot = 0; slot < TEAM_SIZE; slot++) {
-    for (const spec of [setup.player[slot], setup.enemy[slot]]) {
-      if (spec == null) continue;
-      if (spec.targetLast) hasTargetLast = true;
-      if (spec.doubleDamagePercent > 0) hasDoubleDamage = true;
-      if (spec.dodgePercent > 0 || spec.shieldPercent > 0) hasGuards = true;
+  // Leczący przyzwani: leczenie okresowe musi wtedy zaglądać do miejsc przyzwanych tej strony.
+  let healingPlayerSummons = false;
+  let healingEnemySummons = false;
+  for (let unitId = 0; unitId < SQUAD_UNITS; unitId++) {
+    const spec =
+      (unitId < TEAM_SIZE ? setup.player[unitId] : setup.enemy[unitId - TEAM_SIZE]) ?? null;
+    const summon = spec === null ? null : spec.summon;
+    summonSpecs.push(summon);
+    if (spec === null) continue;
+    if (spec.targetLast) hasTargetLast = true;
+    if (spec.doubleDamagePercent > 0) hasDoubleDamage = true;
+    if (spec.dodgePercent > 0 || spec.shieldPercent > 0) hasGuards = true;
+    if (summon === null) continue;
+    // Cechy przyzwanych liczą się tak samo jak cechy składu: mogą pojawić się w walce.
+    if (summon.targetLast) hasTargetLast = true;
+    if (summon.doubleDamagePercent > 0) hasDoubleDamage = true;
+    if (summon.dodgePercent > 0 || summon.shieldPercent > 0) hasGuards = true;
+    summoners.push(unitId);
+    if (summon.healAmount > 0) {
+      if (unitId < TEAM_SIZE) healingPlayerSummons = true;
+      else healingEnemySummons = true;
     }
   }
+  const hasSummons = summoners.length > 0;
+  const unitSpan = hasSummons ? MAX_UNITS : SQUAD_UNITS;
   const battle: Battle = {
     width: setup.arena.width,
     timeLimitTicks: setup.arena.timeLimitTicks,
-    specs: createSpecs(),
-    state: createState(),
+    specs: createSpecs(unitSpan),
+    state: createState(unitSpan),
     events: createEventBuffer(),
-    pending: createPending(),
+    pending: createPending(unitSpan),
     healers,
     hasTargetLast,
     hasDoubleDamage,
     hasGuards,
+    hasSummons,
+    summoners,
+    summonSpecs,
     eventHash: EVENT_HASH_SEED,
   };
   for (let slot = 0; slot < TEAM_SIZE; slot++) {
@@ -113,8 +161,14 @@ export function createBattle(setup: BattleSetup): Battle {
       placeUnit(battle, TEAM_SIZE + slot, enemy, setup.arena.enemySlots[slot] ?? 0);
     }
   }
-  for (let unitId = 0; unitId < MAX_UNITS; unitId++) {
+  for (let unitId = 0; unitId < SQUAD_UNITS; unitId++) {
     if ((battle.specs.healAmount[unitId] ?? 0) > 0) healers.push(unitId);
+  }
+  if (healingPlayerSummons) {
+    for (let unitId = SQUAD_UNITS; unitId < SQUAD_UNITS + TEAM_SIZE; unitId++) healers.push(unitId);
+  }
+  if (healingEnemySummons) {
+    for (let unitId = SQUAD_UNITS + TEAM_SIZE; unitId < MAX_UNITS; unitId++) healers.push(unitId);
   }
   return battle;
 }

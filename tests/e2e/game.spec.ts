@@ -456,10 +456,14 @@ test('szczepy Immortals, Plants i Robots: sklep ośmiu linii, drzewa i walka', a
   await tree.getByRole('button', { name: 'Enigmatix' }).click();
   await expect(page.locator('.form-card')).toContainText('Tarcza: otrzymuje o 50% mniej obrażeń');
 
-  // Mother-tree dojdzie razem z przyzywaniem: na razie Trunk ma jedną drogę.
   await tab('Plants').click();
-  await expect(tree.locator('.tree-node')).toHaveCount(6);
-  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(6);
+  await expect(tree.locator('.tree-node')).toHaveCount(7);
+  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(7);
+  await tree.getByRole('button', { name: 'Mother-tree' }).click();
+  await expect(page.locator('.path-name')).toHaveText(['Bush', 'Trunk', 'Mother-tree']);
+  await expect(page.locator('.form-card')).toContainText(
+    'Nie atakuje. Co 0.5 s przyzywa sojusznika (życie 100, atak 20); najwyżej 5 naraz.',
+  );
   await tree.getByRole('button', { name: 'Ice Ivy' }).click();
   await expect(page.locator('.form-card')).toContainText('Co 1 s leczy całą drużynę o 50');
   await tree.getByRole('button', { name: 'Toxic Ivy' }).click();
@@ -480,6 +484,30 @@ test('szczepy Immortals, Plants i Robots: sklep ośmiu linii, drzewa i walka', a
   await page.getByRole('button', { name: 'Walcz' }).click();
   await expect(page.locator('.hud-faces-player .hud-face')).toHaveCount(5);
   await expect.poll(() => paintedPortraits(page, '.hud-faces-player .portrait-face')).toBe(5);
+  const result = page.locator('.result-sheet');
+  await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
+  expect(errors).toEqual([]);
+});
+
+test('Mother-tree wygrywa walkę samymi przyzwanymi krzakami', async ({ page }) => {
+  const errors = collectErrors(page);
+  await seedSave(page, {
+    saveVersion: 3,
+    gameVersion: '0.1.0',
+    gold: 0,
+    heroes: [{ id: 1, line: 'plants', form: 'mother_tree', upgrades: 0, runes: [null, null] }],
+    nextHeroId: 2,
+    runes: [],
+    levels: {},
+    squad: [1, null, null, null, null],
+    settings: { lang: 'pl', battleSpeed: 4 },
+  });
+  await play(page);
+  await page.getByRole('button', { name: 'Walcz' }).click();
+  // Krzaki nie mają twarzy w HUD-zie: po stronie gracza jest tylko Mother-tree.
+  const faces = page.locator('.hud-faces-player .hud-face');
+  await expect(faces).toHaveCount(1);
+  // Sama nie atakuje, więc cała wygrana to dzieło przyzwanych.
   const result = page.locator('.result-sheet');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
   expect(errors).toEqual([]);

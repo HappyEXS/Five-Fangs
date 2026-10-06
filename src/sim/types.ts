@@ -3,10 +3,31 @@
 // gotowe specyfikacje przygotowuje kompilacja treści.
 
 export const TEAM_SIZE = 5;
-export const MAX_UNITS = TEAM_SIZE * 2;
+/** Jednostki składów obu stron: `unitId` 0..9. Tyle jednostek ma walka bez przyzywaczy. */
+export const SQUAD_UNITS = TEAM_SIZE * 2;
+/**
+ * Wszystkie miejsca jednostek: składy i miejsca jednostek przyzwanych (ADR 0020), po TEAM_SIZE
+ * na stronę. Przyzwani gracza zajmują `unitId` 10..14, przeciwnika 15..19.
+ */
+export const MAX_UNITS = SQUAD_UNITS * 2;
 export const MAX_PROJECTILES = 64;
 
-/** Drużyna gracza zajmuje `unitId` 0..4 (indeks = slot), przeciwnik 5..9. */
+/**
+ * Drużyna gracza zajmuje `unitId` 0..4 (indeks = slot), przeciwnik 5..9; dalej w tym samym
+ * układzie leżą miejsca przyzwanych. Dzięki temu jednostki składów mają te same `unitId`
+ * w każdej walce, z przyzywaczami i bez.
+ *
+ * Pętla po drużynie zaczynającej się od `first` (0 albo TEAM_SIZE) ma postać:
+ *
+ *   for (let base = first; base < first + unitSpan; base += SQUAD_UNITS)
+ *     for (let i = base; i < base + TEAM_SIZE; i++) …
+ *
+ * W walce bez przyzywaczy (`unitSpan` = SQUAD_UNITS) pętla zewnętrzna wykonuje się raz i zostaje
+ * sam skład; z przyzywaczami drugi obrót obejmuje miejsca przyzwanych. Kolejność jest rosnąca
+ * po `unitId`, więc remisy dalej wygrywa niższe id. Dwie funkcje wołane w każdym ticku
+ * (`frontUnit` i ruch pocisków) mają zamiast niej pętlę składu o stałych granicach i osobną
+ * funkcję dla przyzwanych: tam zagnieżdżona pętla mierzalnie spowalniała każdą walkę.
+ */
 export const TEAM_PLAYER = 0;
 export const TEAM_ENEMY = 1;
 
@@ -88,6 +109,12 @@ export interface UnitSpec {
   readonly dodgePercent: number;
   /** Tarcza: o tyle procent mniejsze są obrażenia każdego trafienia. 0 oznacza brak cechy. */
   readonly shieldPercent: number;
+  /**
+   * Przyzywacz: zamiast atakować, w ticku trafienia każdego zamachu stawia w swoim miejscu
+   * jednostkę o tej specyfikacji, o ile jego strona ma wolne miejsce (najwyżej TEAM_SIZE żywych
+   * przyzwanych naraz). Przyzwana jednostka sama nie może przyzywać. null oznacza zwykłą jednostkę.
+   */
+  readonly summon: UnitSpec | null;
 }
 
 export interface ArenaSpec {
@@ -107,9 +134,14 @@ export interface BattleSetup {
   readonly enemy: readonly (UnitSpec | null)[];
 }
 
+/** Czy jednostka (ze składu albo przyzwana) należy do gracza. */
+export function isPlayerUnit(unitId: number): boolean {
+  return unitId < TEAM_SIZE || (unitId >= SQUAD_UNITS && unitId < SQUAD_UNITS + TEAM_SIZE);
+}
+
 /** Drużyna jednostki o danym `unitId`. */
 export function teamOf(unitId: number): number {
-  return unitId < TEAM_SIZE ? TEAM_PLAYER : TEAM_ENEMY;
+  return isPlayerUnit(unitId) ? TEAM_PLAYER : TEAM_ENEMY;
 }
 
 /** Kierunek „do przodu” drużyny na osi pola: gracz idzie w prawo, przeciwnik w lewo. */

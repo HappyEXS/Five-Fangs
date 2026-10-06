@@ -19,6 +19,7 @@ function missingNames(content: GameContent, source: Dictionary): ContentIssue[] 
   };
   for (const id of content.heroes.keys()) require('units/heroes.json', id, unitNameKey(id));
   for (const id of content.enemies.keys()) require('units/enemies.json', id, unitNameKey(id));
+  for (const id of content.summons.keys()) require('units/summons.json', id, unitNameKey(id));
   for (const id of content.lines.keys()) require('lines.json', id, lineNameKey(id));
   for (const world of content.worlds) require('worlds.json', world.id, worldNameKey(world.id));
   for (const level of content.levels.values()) {

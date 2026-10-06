@@ -58,6 +58,7 @@ describe('compileUnit', () => {
       id: 'swordsman',
       kind: 'melee',
       attackType: 'slash',
+      summon: null,
       base: {
         maxHp: 600,
         attack: 40,
@@ -80,6 +81,7 @@ describe('compileUnit', () => {
         doubleDamagePercent: 0,
         dodgePercent: 0,
         shieldPercent: 0,
+        summon: null,
       },
       visual: {
         rig: 'humanoid',
@@ -90,8 +92,26 @@ describe('compileUnit', () => {
         projectileSprite: null,
         projectileHeight: 0,
         portrait: null,
+        summon: null,
       },
     });
+  });
+
+  it('przyzywacz niesie specyfikację i wygląd jednostki, którą przyzywa', () => {
+    const sprout = compileUnit({ ...swordsman, id: 'sprout', maxHp: 100, skin: 'sprout' }, slash);
+    const tree = compileUnit(
+      { ...swordsman, id: 'tree', kind: 'summoner', attack: 0, summon: 'sprout' },
+      slash,
+      sprout,
+    );
+    expect(tree.kind).toBe('summoner');
+    expect(tree.summon).toBe('sprout');
+    expect(tree.base.summon).toBe(sprout.base);
+    expect(tree.base.summon?.maxHp).toBe(100);
+    expect(tree.visual.summon).toBe(sprout.visual);
+    // Przyzywany sam nie przyzywa.
+    expect(sprout.base.summon).toBeNull();
+    expect(sprout.visual.summon).toBeNull();
   });
 
   it('wygląd strzelca wskazuje klip, postawę i sprite pocisku z typu ataku', () => {
@@ -111,6 +131,7 @@ describe('compileUnit', () => {
       projectileSprite: 'arrow',
       projectileHeight: 43,
       portrait: null,
+      summon: null,
     });
   });
 

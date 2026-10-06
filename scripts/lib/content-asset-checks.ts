@@ -30,5 +30,6 @@ export function contentAssetIssues(
   };
   for (const unit of content.heroes.values()) check('units/heroes.json', unit);
   for (const unit of content.enemies.values()) check('units/enemies.json', unit);
+  for (const unit of content.summons.values()) check('units/summons.json', unit);
   return issues;
 }

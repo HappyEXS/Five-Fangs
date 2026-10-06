@@ -87,7 +87,12 @@ export const traitSchema = z.discriminatedUnion('type', [
 
 export const unitSchema = z.strictObject({
   id,
-  kind: z.enum(['melee', 'ranged']),
+  /**
+   * `summoner` nie atakuje: w chwili trafienia każdego zamachu przyzywa jednostkę `summon`
+   * (ADR 0020). Jego `attackSpeed` to przyzwania na sekundę, a `range` odległość od wroga,
+   * przy której zaczyna przyzywać.
+   */
+  kind: z.enum(['melee', 'ranged', 'summoner']),
   maxHp: z.number().int().positive(),
   attack: z.number().int().nonnegative(),
   /** Jednostki świata na sekundę. */
@@ -99,6 +104,8 @@ export const unitSchema = z.strictObject({
   /** Jednostki świata. */
   knockback: z.number().nonnegative(),
   attackType: id,
+  /** Id jednostki z units/summons.json przyzywanej przez jednostkę o `kind: summoner`. */
+  summon: id.optional(),
   traits: z.array(traitSchema).default([]),
   /** Rig, na którym animowana jest jednostka. */
   rig: z.string().min(1).default('humanoid'),

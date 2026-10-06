@@ -116,7 +116,7 @@ export function buildBattle(content: GameContent, config: SandboxConfig): Sandbo
   return { setup: { arena: content.arena, player, enemy }, visuals };
 }
 
-const specSchema = z.strictObject({
+const plainSpecSchema = z.strictObject({
   maxHp: z.number(),
   attack: z.number(),
   moveStep: z.number(),
@@ -140,7 +140,11 @@ const specSchema = z.strictObject({
   doubleDamagePercent: z.number().default(0),
   dodgePercent: z.number().default(0),
   shieldPercent: z.number().default(0),
+  summon: z.null().default(null),
 });
+
+/** Jednostka składu: zwykła albo przyzywacz z zagnieżdżoną specyfikacją przyzwanego. */
+const specSchema = plainSpecSchema.extend({ summon: plainSpecSchema.nullable().default(null) });
 
 const setupSchema = z.strictObject({
   arena: z.strictObject({
@@ -157,7 +161,7 @@ const setupSchema = z.strictObject({
  * Walka z gotowego wejścia symulacji zapisanego jako JSON: z raportu „Zgłoś problem” albo
  * z walki golden (`pnpm battle golden:<nazwa> --link`). Wejście nie mówi, jak jednostki
  * wyglądają, więc strzelcy dostają wygląd pierwszego strzelca z treści, a reszta pierwszego
- * wojownika. Zwraca null, gdy JSON nie jest poprawnym wejściem symulacji.
+ * wojownika; tak samo jednostki przyzywane. Zwraca null, gdy JSON nie jest poprawnym wejściem symulacji.
  */
 export function battleFromSetupJson(content: GameContent, json: string): SandboxBattle | null {
   let data: unknown;
@@ -172,8 +176,14 @@ export function battleFromSetupJson(content: GameContent, json: string): Sandbox
   const units = [...content.heroes.values(), ...content.enemies.values()];
   const melee = units.find((unit) => unit.kind === 'melee')?.visual ?? null;
   const ranged = units.find((unit) => unit.kind === 'ranged')?.visual ?? null;
-  const visuals = [...parsed.data.player, ...parsed.data.enemy].map((spec) =>
-    spec === null ? null : spec.projectileStep > 0 ? ranged : melee,
-  );
+  const lookOf = (spec: { projectileStep: number }): UnitVisual | null =>
+    spec.projectileStep > 0 ? ranged : melee;
+  const visuals = [...parsed.data.player, ...parsed.data.enemy].map((spec) => {
+    if (spec === null) return null;
+    const visual = lookOf(spec);
+    // Przyzywacz niesie też wygląd tego, co przyzywa; inaczej przyzwani byliby niewidoczni.
+    if (visual === null || spec.summon === null) return visual;
+    return { ...visual, summon: lookOf(spec.summon) };
+  });
   return { setup: parsed.data, visuals };
 }

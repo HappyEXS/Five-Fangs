@@ -26,12 +26,16 @@ export interface UnitVisual {
   readonly projectileHeight: number;
   /** Własny kadr miniaturki (środek względem kości miniaturki rigu, bok) albo null: kadr rigu. */
   readonly portrait: { readonly x: number; readonly y: number; readonly size: number } | null;
+  /** Wygląd jednostki przyzywanej przez tę jednostkę albo null. */
+  readonly summon: UnitVisual | null;
 }
 
 export interface CompiledUnit {
   readonly id: string;
-  readonly kind: 'melee' | 'ranged';
+  readonly kind: 'melee' | 'ranged' | 'summoner';
   readonly attackType: string;
+  /** Id jednostki przyzywanej (units/summons.json) albo null. */
+  readonly summon: string | null;
   /** Specyfikacja bez ulepszeń i run. */
   readonly base: UnitSpec;
   readonly visual: UnitVisual;
@@ -57,7 +61,12 @@ export function hitTickOf(attack: RawAttackType): number {
   return clampInt(Math.round(attack.hitFraction * swingTicks), 1, swingTicks - 1);
 }
 
-export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
+/** `summon` to skompilowana jednostka przyzywana przez tę jednostkę, gdy jest przyzywaczem. */
+export function compileUnit(
+  raw: RawUnit,
+  attack: RawAttackType,
+  summon: CompiledUnit | null = null,
+): CompiledUnit {
   // Cechy są spłaszczane do pól specyfikacji; symulacja nie interpretuje list ani napisów.
   let pierce = false;
   let healAmount = 0;
@@ -110,6 +119,7 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
     id: raw.id,
     kind: raw.kind,
     attackType: attack.id,
+    summon: summon === null ? null : summon.id,
     base: {
       maxHp: raw.maxHp,
       attack: raw.attack,
@@ -133,6 +143,7 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
       doubleDamagePercent,
       dodgePercent,
       shieldPercent,
+      summon: summon === null ? null : summon.base,
     },
     visual: {
       rig: raw.rig,
@@ -146,6 +157,7 @@ export function compileUnit(raw: RawUnit, attack: RawAttackType): CompiledUnit {
         raw.portrait === undefined
           ? null
           : { x: raw.portrait.center[0], y: raw.portrait.center[1], size: raw.portrait.size },
+      summon: summon === null ? null : summon.visual,
     },
   };
 }

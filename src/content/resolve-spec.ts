@@ -14,6 +14,8 @@ const TEAM_SLOTS = 5;
  * Specyfikacja jednostki po ulepszeniach i runach. `rank` to liczba ulepszeń formy bohatera
  * albo poziom wroga: każdy punkt dodaje `upgradePercent` procent bazowego maxHp i attack
  * (zaokrąglenie w dół). Runy dodają wartości płaskie po przeliczeniu ulepszeń.
+ * Jednostka przyzywana przez przyzywacza rośnie z jego ulepszeniami tak samo; runy przyzywacza
+ * jej nie dotyczą.
  */
 export function resolveUnitSpec(
   unit: CompiledUnit,
@@ -28,7 +30,20 @@ export function resolveUnitSpec(
     if (rune.stat === 'maxHp') maxHp += rune.value;
     else attack += rune.value;
   }
-  return { ...unit.base, maxHp, attack };
+  const { summon } = unit.base;
+  return {
+    ...unit.base,
+    maxHp,
+    attack,
+    summon:
+      summon === null
+        ? null
+        : {
+            ...summon,
+            maxHp: mulDivFloor(summon.maxHp, scale, 100),
+            attack: mulDivFloor(summon.attack, scale, 100),
+          },
+  };
 }
 
 /**

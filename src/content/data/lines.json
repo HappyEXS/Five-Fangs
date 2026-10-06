@@ -255,6 +255,12 @@
         "upgradeCosts": [1000, 1300, 1700, 2200]
       },
       {
+        "unit": "mother_tree",
+        "from": "trunk",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
         "unit": "ice_ivy",
         "from": "ivy",
         "evolveCost": 1200,

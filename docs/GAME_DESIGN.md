@@ -112,7 +112,7 @@ Ustalenia z autorem (2026-10-05):
 - **Tarcza to mniejsze obrażenia:** „50% shield” to `shield` 50.
 - **Postać o szybkości 0 strzela przez całe pole** (`range` 1000) i przez całą walkę stoi w swoim slocie; odrzut dalej ją przesuwa. Walidator treści odrzuca jednostkę bez ruchu o krótszym zasięgu.
 - **„Attacks all enemies” Toxic Ivy** to pocisk z cechą `pierce`: chmura zarodników przechodzi przez wszystkich wrogów na drodze.
-- **Mother-tree** (druga forma końcowa Trunka) przyzywa krzaki na osobne miejsca, do pięciu naraz ponad skład. Wymaga to rozszerzenia symulacji i wchodzi do gry w osobnym kroku (M5i-4); do tego czasu Trunk ma jedną drogę ewolucji.
+- **Mother-tree** (druga forma końcowa Trunka) przyzywa krzaki na osobne miejsca, do pięciu naraz ponad skład (§4.8, ADR 0020).
 
 **Immortals** (kolor szczepu: złoto, świat: „Tower of time”). Orb → Cardinal albo Guardian of hell; Cardinal → Polaris albo Ultimus; Guardian of hell → Xartix albo Enigmatix.
 
@@ -134,7 +134,8 @@ Ustalenia z autorem (2026-10-05):
 | Trunk (ranged) | 1 | 600 | 30 | 25 | 1,5 | *240* | 10 | `seed_cast` |
 | Ivy (ranged) | 1 | 500 | 40 | 0 | 1,7 | 1000 (całe pole) | 30 | `ivy_thorn` |
 | Oak warrior (melee) | 2, z Trunka | 1250 | 150 | 40 | *0,6* | 30 | 300 | `cleave` |
-| Mother-tree (summoning) | 2, z Trunka | 10 000 | 0 | 0 | 2,0 | – | 40 | przyzywa krzaki (M5i-4) |
+| Mother-tree (summoning) | 2, z Trunka | 10 000 | 0 | 0 | 2,0 (przyzwania) | 1000 (całe pole) | 40 | `summon`: przyzywa „Bush ver. 2” |
+| Bush ver. 2 (melee, przyzywany) | – | 100 | 20 | 30 | *1,0* | 30 | 0 | `peck`; nie jest bohaterem |
 | Ice Ivy (ranged) | 2, z Ivy | 900 | 20 | 0 | 2,0 | 1000 (całe pole) | 10 | `frost_spit`, `periodicHeal` drużyny: 50 co 1 s |
 | Toxic Ivy (ranged) | 2, z Ivy | 800 | 10 | 0 | 1,0 | 1000 (całe pole) | 30 | `spore_spit`, `pierce` |
 
@@ -165,11 +166,12 @@ Nowe typy ataków (wszystkie z postawą `beast`, trafienie w połowie zamachu):
 | `spore_spit` | 0,6 s | `spit` | chmura zarodników, 300 jedn./s |
 | `glitch_spit` | 0,5 s | `spit` | zakłócenie, 520 jedn./s |
 | `slag_cast` | 0,6 s | `cast` | żużel, 380 jedn./s |
+| `summon` | 0,5 s | `summon` | brak; w połowie zamachu przyzwanie |
 
 Wygląd: wszystkie trzy szczepy i przerysowane bestie mają styl „mroczna baśń” (ADR 0019). Obserwacje z walk próbnych, do decyzji autora przy balansie:
 
 - **Ultimus zadaje 750 obrażeń na sekundę** (250 × 3 ataki), dziesięć razy więcej niż inne formy końcowe (Thermobot 100, Enigmatix 128, Xartix średnio 162). Sam wygrywa poziom Herszta w 7,5 s, tracąc 36 życia. Liczba „Atk: 3,0” jest ze szkicu i została odczytana tak jak u bestii, jako ataki na sekundę. Jeśli autor miał na myśli odstęp między atakami w sekundach (250 obrażeń co 3 s to 83 na sekundę, w zgodzie z resztą szczepu), trzeba odwrócić wszystkie liczby „Atk:” strzelców, także u bestii.
-- Mother-tree ma „Atk: 2,0”: przy atakach na sekundę rodzi krzak co pół sekundy i limit pięciu krzaków jest stale pełny; przy odstępie w sekundach krzak co 2 s.
+- Mother-tree ma „Atk: 2,0”: przy atakach na sekundę rodzi krzak co pół sekundy i limit pięciu krzaków jest stale pełny; przy odstępie w sekundach krzak co 2 s. Sama pokonuje dwóch Osiłków i Zbója w 32 s, nie tracąc życia: krzaki giną po kilku ciosach, ale wracają szybciej, niż wróg je zabija, więc wróg nigdy do niej nie dochodzi. Z 10 000 życia jest też praktycznie nie do zabicia w czasie walki (90 s).
 - Postacie stojące (Bush, Ivy, obie formy końcowe Ivy, Holo-bot, Polaris) strzelają od pierwszej sekundy, więc mimo małego ataku zadają dużo: Ivy 1600 obrażeń w walce z Hersztem, najwięcej w składzie samych roślin. Giną, gdy wróg do nich dojdzie: Polaris sam przegrywa z Hersztem i Osiłkiem.
 - Formy bazowe: Bot (200 życia) i Bush przegrywają w pojedynkę z Osiłkiem, Orb wygrywa z 70 życia.
 - Whirl-bot z unikiem 70 na 100 wygrywa sam z dwoma Osiłkami i Zbójem, tracąc 405 z 700 życia. Titan-bot z tarczą 10% przegrywa z Hersztem (zadaje 1725 z jego 2200 życia).
@@ -200,6 +202,7 @@ Liczniki zamachów rosną. W ticku trafienia:
 
 - **melee**: obrażenia i odrzut trafiają do kolejki dla zablokowanego celu, jeśli ten wciąż żyje, niezależnie od tego, jak daleko jest w tej chwili (także po odrzuceniu poza zasięg). Jeśli cel zginął w trakcie zamachu, cios chybia, a zamach dobiega końca.
 - **ranged**: powstaje pocisk w pozycji strzelca, lecący w stronę wroga. Powstaje także wtedy, gdy cel już nie żyje.
+- **przyzywacz**: zamiast ciosu przyzywa jednostkę (§4.8).
 
 ### 4.4 Pociski
 
@@ -249,12 +252,25 @@ Jednostka z `hp ≤ 0` ginie. Walka kończy się, gdy:
 
 | Sytuacja | Wynik |
 |---|---|
-| Wszyscy wrogowie martwi, żyje co najmniej jeden bohater | Wygrana |
-| Wszyscy bohaterowie martwi | Przegrana |
+| Wszyscy wrogowie martwi (także przyzwani), żyje ktoś po stronie gracza | Wygrana |
+| Po stronie gracza nie żyje nikt: ani bohater, ani przyzwany | Przegrana |
 | Obie strony giną w tym samym ticku | Przegrana |
 | Upłynęło 90 s (2700 ticków) | Przegrana |
 
 Pociski w locie w chwili końca walki nie mają znaczenia.
+
+### 4.8 Przyzywanie
+
+Przyzywacz (na razie tylko Mother-tree) nie atakuje. Jego „ataki na sekundę” to przyzwania: co odstęp zaczyna zamach i w chwili, w której zwykła jednostka zadałaby cios, przyzywa sojusznika (ADR 0020).
+
+- **Gdzie.** Przyzwany staje w miejscu przyzywacza i od następnego ticka zachowuje się jak każda jednostka: wybiera cel, idzie, bije.
+- **Ilu.** Każda strona ma pięć miejsc na przyzwanych, ponad pięć slotów składu i wspólnych dla wszystkich jej przyzywaczy. Gdy wszystkie są zajęte, przyzywacz czeka; gdy któryś przyzwany zginie, następny pojawia się po samym zamachu (odstęp biegnie także podczas czekania).
+- **Kim są dla reszty.** Pełnoprawnymi jednostkami swojej strony: wróg celuje w najbliższego, także przyzwanego; trafiają ich pociski i ciosy obszarowe; obejmuje ich leczenie drużyny. Strona żyje, dopóki żyje ktokolwiek z niej, więc po śmierci bohaterów walkę mogą dokończyć przyzwani.
+- **Ulepszenia.** Przyzwany rośnie z ulepszeniami przyzywacza tak jak on (10% życia i ataku na ulepszenie). Runy przyzywacza go nie dotyczą.
+- **Wynik walki.** Obrażenia zadane przez przyzwanych liczą się przyzywaczowi.
+- **Na ekranie.** Przyzwani mają krótszy pasek życia bez liczby i nie mają miniaturki w rogu ekranu.
+
+Przyzwanie i śmierć rozstrzygają się razem z obrażeniami na końcu ticka: przyzwanie dochodzi do skutku także wtedy, gdy przyzywacz ginie w tym samym ticku.
 
 ## 5. Bohaterowie i progresja
 

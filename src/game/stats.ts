@@ -4,7 +4,7 @@
 import type { MessageKey } from '../content/i18n/index.ts';
 import type { MessageParams } from '../core/i18n.ts';
 import { subunitsToUnits, TICKS_PER_SECOND } from '../core/units.ts';
-import type { UnitSpec } from '../sim/types.ts';
+import { TEAM_SIZE, type UnitSpec } from '../sim/types.ts';
 
 // UI nie importuje z symulacji; typ specyfikacji dostaje stąd.
 export type { UnitSpec };
@@ -50,6 +50,18 @@ function tenths(value: number): number {
 /** Cechy pasywne jednostki odczytane ze specyfikacji symulacji, w stałej kolejności. */
 export function traitsOf(spec: UnitSpec): TraitView[] {
   const traits: TraitView[] = [];
+  if (spec.summon !== null) {
+    // Przyzywacz nie atakuje, więc to pierwsze, co gracz powinien o nim przeczytać.
+    traits.push({
+      key: 'trait.summon',
+      params: {
+        seconds: tenths(spec.attackInterval / TICKS_PER_SECOND),
+        hp: spec.summon.maxHp,
+        attack: spec.summon.attack,
+        limit: TEAM_SIZE,
+      },
+    });
+  }
   if (spec.pierce) traits.push({ key: 'trait.pierce', params: {} });
   if (spec.targetLast) traits.push({ key: 'trait.targetLast', params: {} });
   if (spec.splashRadius > 0) {

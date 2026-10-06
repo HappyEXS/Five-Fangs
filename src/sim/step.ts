@@ -16,7 +16,7 @@ import { moveProjectiles } from './projectiles.ts';
 import { resolveAndFinish } from './resolve.ts';
 import { applyPeriodicHeals } from './traits.ts';
 import {
-  MAX_UNITS,
+  isPlayerUnit,
   OUTCOME_IN_PROGRESS,
   STATUS_ATTACKING,
   STATUS_MOVING,
@@ -27,13 +27,13 @@ import {
 export function stepBattle(battle: Battle): void {
   const { state } = battle;
   if (state.outcome !== OUTCOME_IN_PROGRESS) return;
-  const { status, x, prevX, projX, projPrevX } = state;
+  const { status, x, prevX, projX, projPrevX, unitSpan } = state;
   const { targetLast } = battle.specs;
 
   // Faza 0: zapamiętanie pozycji z początku ticka i wyczyszczenie zdarzeń.
-  // Pętle zamiast TypedArray.set(): przy 10 elementach wywołanie wbudowane kosztuje więcej.
+  // Pętle zamiast TypedArray.set(): przy 10–20 elementach wywołanie wbudowane kosztuje więcej.
   clearEvents(battle.events);
-  for (let i = 0; i < MAX_UNITS; i++) prevX[i] = x[i] ?? 0;
+  for (let i = 0; i < unitSpan; i++) prevX[i] = x[i] ?? 0;
   for (let p = 0; p < state.projCount; p++) projPrevX[p] = projX[p] ?? 0;
 
   // Fazy 1–3: decyzja, ruch i postęp ataku każdej żywej jednostki.
@@ -44,10 +44,11 @@ export function stepBattle(battle: Battle): void {
   const aimsLast = battle.hasTargetLast;
   const backPlayer = aimsLast ? backUnit(state, 0) : -1;
   const backEnemy = aimsLast ? backUnit(state, TEAM_SIZE) : -1;
-  for (let i = 0; i < MAX_UNITS; i++) {
+  for (let i = 0; i < unitSpan; i++) {
     if (!isAlive(status[i] ?? 0)) continue;
-    let enemy = i < TEAM_SIZE ? frontEnemy : frontPlayer;
-    if (aimsLast && (targetLast[i] ?? 0) !== 0) enemy = i < TEAM_SIZE ? backEnemy : backPlayer;
+    const player = isPlayerUnit(i);
+    let enemy = player ? frontEnemy : frontPlayer;
+    if (aimsLast && (targetLast[i] ?? 0) !== 0) enemy = player ? backEnemy : backPlayer;
     const action = decideUnit(battle, i, enemy);
     if (action === STATUS_MOVING) moveUnit(battle, i);
     else if (action === STATUS_ATTACKING) progressAttack(battle, i);

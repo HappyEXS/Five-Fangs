@@ -103,6 +103,7 @@ describe('portraitFrame', () => {
     projectileSprite: null,
     projectileHeight: 0,
     portrait: null,
+    summon: null,
   };
 
   it('bez własnego kadru jednostki bierze kadr rigu', () => {

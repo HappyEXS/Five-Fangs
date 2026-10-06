@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { Sprite } from './atlas.ts';
-import { blit, type Scene } from './scene.ts';
+import { MAX_UNITS } from '../sim/index.ts';
+import type { UnitLook } from './animation.ts';
+import type { Atlas, Sprite } from './atlas.ts';
+import { blit, copyLook, createScene, LOOK_ROWS, type Scene } from './scene.ts';
 import type { Viewport } from './viewport.ts';
 
 /** Kontekst zapisujący ostatnią transformację i argumenty drawImage. */
@@ -67,5 +69,44 @@ describe('blit', () => {
     // Punkt (u, v) w jednostkach rigu → (3v + 10, 3u + 20).
     expect(mapped(transform, 0, 0)).toEqual([3 * -3 + 10, 3 * -4.5 + 20]);
     expect(mapped(transform, 24, 32)).toEqual([3 * (-3 + 16) + 10, 3 * (-4.5 + 12) + 20]);
+  });
+});
+
+describe('copyLook', () => {
+  it('przepisuje wygląd wzorca do miejsca przyzwanego i nie rusza pozostałych wierszy', () => {
+    const atlas = { sprites: new Map<string, Sprite>() } as unknown as Atlas;
+    const scene = createScene({} as CanvasRenderingContext2D, atlas, 3, 4);
+    expect(scene.looks).toHaveLength(LOOK_ROWS);
+    expect(scene.boneSprites).toHaveLength(LOOK_ROWS * 3);
+
+    // Wzorzec przyzywanego przez jednostkę 2 leży w wierszu MAX_UNITS + 2.
+    const template = MAX_UNITS + 2;
+    const look = { scale: 0.6 } as unknown as UnitLook;
+    const head = { ...sprite };
+    const shot = { ...sprite, sx: 99 };
+    scene.looks[template] = look;
+    scene.boneSprites[template * 3 + 1] = head;
+    scene.projectileSprites[template] = shot;
+    scene.projectileHeights[template] = 12;
+    scene.reachBack[template] = 5;
+    scene.reachFront[template] = 7;
+    scene.reachHeight[template] = 30;
+    scene.headHeight[template] = 28;
+    // W miejscu 11 stał wcześniej ktoś inny: jego części muszą zniknąć.
+    scene.boneSprites[11 * 3 + 2] = { ...sprite, sx: 1 };
+
+    copyLook(scene, template, 11);
+    expect(scene.looks[11]).toBe(look);
+    expect(scene.boneSprites.slice(11 * 3, 12 * 3)).toEqual([null, head, null]);
+    expect(scene.projectileSprites[11]).toBe(shot);
+    expect(scene.projectileHeights[11]).toBe(12);
+    expect([
+      scene.reachBack[11],
+      scene.reachFront[11],
+      scene.reachHeight[11],
+      scene.headHeight[11],
+    ]).toEqual([5, 7, 30, 28]);
+    expect(scene.looks[10]).toBeNull();
+    expect(scene.looks[12]).toBeNull();
   });
 });

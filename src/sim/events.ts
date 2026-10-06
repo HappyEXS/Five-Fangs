@@ -1,5 +1,6 @@
 // Bufor zdarzeń symulacji w układzie struktury tablic. Symulacja nie wywołuje renderera;
 // renderer i UI czytają zdarzenia po każdym ticku. Bufor ma stałą pojemność i nie alokuje.
+import { int32Arrays } from '../core/int-arrays.ts';
 
 /** jednostka, cel */
 export const EVENT_ATTACK_STARTED = 1;
@@ -23,10 +24,14 @@ export const EVENT_DIED = 9;
 export const EVENT_BATTLE_ENDED = 10;
 /** jednostka, która uniknęła trafienia; źródło trafienia */
 export const EVENT_DODGED = 11;
+/** miejsce (`unitId`), w którym stanęła przyzwana jednostka; przyzywacz; pozycja */
+export const EVENT_SUMMONED = 12;
 
 /**
- * Górne ograniczenie liczby zdarzeń jednego ticka: każdy z 64 pocisków może trafić
- * 5 wrogów (trafienie + obrażenia), do tego zdarzenia jednostek. 1024 mieści to z zapasem.
+ * Górne ograniczenie liczby zdarzeń jednego ticka: pocisk trafia jednego wroga, a przebijający
+ * nie więcej niż 10 (skład i przyzwani), po dwa zdarzenia na trafienie; do tego zdarzenia
+ * jednostek. Pula 64 pocisków rzadko jest pełna samych przebijających; 1024 mieści typowy
+ * najgorszy tick z dużym zapasem, a przepełnienie rzuca błąd zamiast gubić zdarzenia.
  */
 export const EVENT_CAPACITY = 1024;
 
@@ -39,13 +44,8 @@ export interface EventBuffer {
 }
 
 export function createEventBuffer(capacity: number = EVENT_CAPACITY): EventBuffer {
-  return {
-    count: 0,
-    type: new Int32Array(capacity),
-    a: new Int32Array(capacity),
-    b: new Int32Array(capacity),
-    c: new Int32Array(capacity),
-  };
+  const columns = int32Arrays(capacity, 4);
+  return { count: 0, type: columns(), a: columns(), b: columns(), c: columns() };
 }
 
 export function clearEvents(buffer: EventBuffer): void {

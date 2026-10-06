@@ -8,13 +8,24 @@ import { projectileBound, validateSetup, validateUnitSpec } from '../../src/sim/
 
 const EMPTY_TEAM = [null, null, null, null, null] as const;
 
-/** Suma największych ograniczeń pocisków w jednej drużynie złożonej z tych jednostek. */
+/**
+ * Suma największych ograniczeń pocisków w jednej drużynie złożonej z tych jednostek. Drużyna
+ * może mieć do tego TEAM_SIZE przyzwanych; w najgorszym razie wszyscy są tą z jednostek
+ * przyzywanych przez `units`, która trzyma w locie najwięcej pocisków.
+ */
 function worstTeamBound(units: Iterable<CompiledUnit>, width: number): number {
-  return [...units]
+  const all = [...units];
+  const squad = all
     .map((unit) => projectileBound(unit.base, width))
     .sort((a, b) => b - a)
     .slice(0, TEAM_SIZE)
     .reduce((sum, bound) => sum + bound, 0);
+  const summon = all.reduce(
+    (worst, unit) =>
+      unit.base.summon === null ? worst : Math.max(worst, projectileBound(unit.base.summon, width)),
+    0,
+  );
+  return squad + TEAM_SIZE * summon;
 }
 
 export function contentSimIssues(content: GameContent): ContentIssue[] {
@@ -31,6 +42,7 @@ export function contentSimIssues(content: GameContent): ContentIssue[] {
   const groups = [
     ['units/heroes.json', content.heroes],
     ['units/enemies.json', content.enemies],
+    ['units/summons.json', content.summons],
   ] as const;
   const all: CompiledUnit[] = [];
   for (const [source, units] of groups) {

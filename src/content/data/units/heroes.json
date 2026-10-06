@@ -701,6 +701,24 @@
     }
   },
   {
+    "id": "mother_tree",
+    "kind": "summoner",
+    "maxHp": 10000,
+    "attack": 0,
+    "moveSpeed": 0,
+    "attackSpeed": 2,
+    "range": 1000,
+    "knockback": 40,
+    "attackType": "summon",
+    "summon": "sprout",
+    "skin": "mother_tree",
+    "scale": 1.35,
+    "portrait": {
+      "center": [0, -10],
+      "size": 40
+    }
+  },
+  {
     "id": "ice_ivy",
     "kind": "ranged",
     "maxHp": 900,
