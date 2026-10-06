@@ -78,27 +78,22 @@ describe('buildBattle', () => {
 
   it('lista jednostek obejmuje bohaterów i wrogów', () => {
     expect(allUnitIds(content)).toEqual([
+      // Szczep Mieczników w kolejności drzewa.
       'swordsman_a',
       'swordsman_b',
+      'guard_a',
+      'swordsman_b2',
+      'berserker',
+      'guard_b',
+      'pavise_guard',
+      // Szczep Łuczników.
       'archer_a',
       'archer_b',
-      'guard_a',
-      'guard_b',
       'cleric_a',
-      'cleric_b',
-      // Testowe kopie form w drzewach ewolucji (ADR 0016).
-      'swordsman_c',
-      'swordsman_b2',
-      'swordsman_c2',
-      'archer_c',
       'archer_b2',
-      'archer_c2',
-      'guard_c',
-      'guard_b2',
-      'guard_c2',
-      'cleric_c',
-      'cleric_b2',
-      'cleric_c2',
+      'hunter',
+      'cleric_b',
+      'inquisitor',
       // Szczep Beasts.
       'monstrosity',
       'batfang',

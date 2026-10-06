@@ -15,13 +15,13 @@ import { SAVE_VERSION, type Save } from './save-schema.ts';
 
 // Przykładowe pliki zapisów z kolejnych wersji gry sprawdza tests/saves/fixtures.test.ts.
 const sample: Save = {
-  saveVersion: 3,
+  saveVersion: 4,
   gameVersion: '0.1.0',
   gold: 135,
   heroes: [
     { id: 1, line: 'swordsman', form: 'swordsman_a', upgrades: 3, runes: ['rune_hp_200', null] },
     { id: 2, line: 'archer', form: 'archer_b', upgrades: 1, runes: [null, null] },
-    { id: 3, line: 'swordsman', form: 'swordsman_c2', upgrades: 0, runes: [null, null] },
+    { id: 3, line: 'swordsman', form: 'pavise_guard', upgrades: 0, runes: [null, null] },
   ],
   nextHeroId: 4,
   runes: ['rune_hp_200', 'rune_attack_25'],

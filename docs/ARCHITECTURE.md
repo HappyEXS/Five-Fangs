@@ -530,8 +530,8 @@ Pomiar z 2026-10-02 (Edge 154 headless): sterta JS po 5, 35 i 65 cyklach „wejd
 Jeden obiekt w `localStorage`, dostęp wyłącznie przez moduł zapisu:
 
 ```ts
-interface SaveV3 {
-  saveVersion: 3;
+interface SaveV4 {
+  saveVersion: 4;
   gameVersion: string;
   gold: number;
   heroes: {                           // posiadani bohaterowie, w kolejności zdobycia
@@ -549,10 +549,10 @@ interface SaveV3 {
 }
 ```
 
-Wersja 1 trzymała stan per linia (`lines`) i id linii w składzie; migracja `1 → 2` zamienia każdą linię na jednego bohatera. Wersja 2 trzymała formę jako indeks 0/1; migracja `2 → 3` zamienia go na id jednostki (`<linia>_a`, `<linia>_b`), bo formy tworzą teraz drzewo (ADR 0016).
+Wersja 1 trzymała stan per linia (`lines`) i id linii w składzie; migracja `1 → 2` zamienia każdą linię na jednego bohatera. Wersja 2 trzymała formę jako indeks 0/1; migracja `2 → 3` zamienia go na id jednostki (`<linia>_a`, `<linia>_b`), bo formy tworzą teraz drzewo (ADR 0016). Wersja 4 ma ten sam kształt co 3, ale inne linie: migracja `3 → 4` przenosi bohaterów dawnych linii `guard` i `cleric` do szczepów `swordsman` i `archer`, a formy-kopie z testowych drzew zamienia na prawdziwe formy tej samej postaci (M5j).
 
 - Wczytanie (`game/save.ts`): parsowanie → łańcuch migracji `vN → vN+1` (`save-migrations.ts`) → walidacja Zod. Błąd na dowolnym etapie: uszkodzony zapis trafia pod klucz kopii zapasowej `five-fangs.save.backup`, gra startuje z nowym zapisem i informuje gracza.
-- Po wczytaniu `reconcileSave` dopasowuje zapis do treści gry: usuwa bohaterów nieistniejących linii, runy i poziomy, których już nie ma, przycina liczniki, naprawia skład; zapis bez żadnego bohatera dostaje bohaterów startowych. Zmiana treści między wersjami nie wymaga więc migracji, dopóki nie zmienia się kształt zapisu.
+- Po wczytaniu `reconcileSave` dopasowuje zapis do treści gry: usuwa bohaterów nieistniejących linii, runy i poziomy, których już nie ma, przycina liczniki, naprawia skład; zapis bez żadnego bohatera dostaje bohaterów startowych. Zmiana treści między wersjami nie wymaga więc migracji, dopóki nie zmienia się kształt zapisu i dopóki gracz niczego przez nią nie traci. Gdy treść usuwa linię albo formę, którą gracz mógł mieć, potrzebna jest migracja, która wskaże następcę: `reconcileSave` potrafi tylko usunąć bohatera nieistniejącej linii i cofnąć nieznaną formę do bazowej (tak powstała wersja 4).
 - Zapis nowszy niż obsługiwany przez grę nie jest nadpisywany (`storage = 'blocked'`): gra pokazuje ekran z prośbą o odświeżenie i nie wykonuje żadnego zapisu.
 - Gdy przeglądarka blokuje `localStorage`, gra działa w pamięci (`storage = 'memory'`) i mówi o tym na mapie.
 - Autozapis po każdej akcji gracza i po każdej wygranej walce. Eksport i import pliku w ustawieniach; import przechodzi tę samą ścieżkę co wczytanie.

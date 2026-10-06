@@ -174,34 +174,36 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   await expect(info.locator('.line-tabs button')).toHaveText([
     'Miecznicy',
     'Łucznicy',
-    'Tarczownicy',
-    'Akolici',
     'Beasts',
     'Immortals',
     'Plants',
     'Robots',
   ]);
-  await info.getByRole('button', { name: 'Akolici' }).click();
+  // Tarczownik i Strażnik to dziś ewolucje Miecznika, Akolita i Kapłan ewolucje Łucznika.
+  await expect(info).toContainText('Tarczownik');
+  await expect(info).toContainText('Strażnik');
+  await info.getByRole('button', { name: 'Łucznicy' }).click();
+  await expect(info).toContainText('Akolita');
   await expect(info).toContainText('Kapłan');
   await expect(info.locator('[data-action="buy"]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Wróć' }).click();
 
   // Sklep: nowy typ bohatera i drugi egzemplarz posiadanego.
   await page.getByRole('button', { name: 'Sklep' }).click();
-  await page.locator('[data-line="guard"] [data-action="buy"]').click();
+  await page.locator('[data-line="beasts"] [data-action="buy"]').click();
   await page.locator('[data-line="swordsman"] [data-action="buy"]').click();
-  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '50');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '150');
   await expect(page.locator('[data-line="swordsman"]')).toContainText('Masz: 2');
-  await expect(page.locator('[data-line="cleric"] [data-action="buy"]')).toBeDisabled();
+  await expect(page.locator('[data-line="plants"] [data-action="buy"]')).toBeDisabled();
   let save = await readSave(page);
   expect(save.squad).toEqual([1, 2, 3, 4, null]);
 
-  // Skład: Tarczownik (id 3) złapany na scenie i przeniesiony na front; zamienia się miejscami
+  // Skład: Monstrosity (id 3) złapana na scenie i przeniesiona na front; zamienia się miejscami
   // z Miecznikiem.
   await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Skład' }).click();
   await page.locator('.stage-hero[data-hero="3"]').dragTo(page.locator('[data-drop="slot:0"]'));
-  await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Tarczownik');
+  await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Monstrosity');
   save = await readSave(page);
   expect(save.squad).toEqual([3, 2, 1, 4, null]);
 
@@ -243,29 +245,36 @@ test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async
   const picker = page.locator('.evolve-picker');
   await expect(picker.locator('.evolve-option')).toHaveCount(2);
   await expect.poll(() => paintedPortraits(page, '.evolve-option .portrait-face')).toBe(2);
-  await expect(picker).toContainText('Rycerz');
-  await expect(picker).toContainText('Strażnik (kopia)');
+  await expect(picker).toContainText('Zbrojny');
+  await expect(picker).toContainText('Tarczownik');
   await picker
-    .getByRole('button', { name: 'Kup ewolucję w formę Strażnik (kopia) za 250 złota' })
+    .getByRole('button', { name: 'Kup ewolucję w formę Tarczownik za 250 złota' })
     .click();
   await expect(picker).toHaveCount(0);
-  await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Strażnik (kopia)');
+  await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Tarczownik');
   const heroes = (await readSave(page)).heroes as { form: unknown; upgrades: unknown }[];
-  expect(heroes[0]).toMatchObject({ form: 'swordsman_c', upgrades: 0 });
+  expect(heroes[0]).toMatchObject({ form: 'guard_a', upgrades: 0 });
 
   // Bohaterowie: drzewo linii, wybrana forma na karcie i jej droga na scenie.
   await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Bohaterowie' }).click();
   const tree = page.locator('.tree');
-  await expect(tree.locator('.tree-node')).toHaveCount(5);
-  await tree.getByRole('button', { name: 'Strażnik II (kopia)' }).click();
+  // Szczep Mieczników: forma bazowa, dwie pierwsze ewolucje i cztery formy końcowe.
+  await expect(tree.locator('.tree-node')).toHaveCount(7);
+  await expect(tree.locator('.tree-node')).toContainText([
+    'Miecznik',
+    'Zbrojny',
+    'Tarczownik',
+    'Rycerz',
+    'Berserker',
+    'Strażnik',
+    'Pawężnik',
+  ]);
+  await tree.getByRole('button', { name: 'Pawężnik' }).click();
   await expect(page.locator('.form-card')).toContainText('Ewolucja 2. stopnia');
   await expect(page.locator('.form-card')).toContainText('Ostatni stopień tej drogi');
-  await expect(page.locator('.path-name')).toHaveText([
-    'Miecznik',
-    'Strażnik (kopia)',
-    'Strażnik II (kopia)',
-  ]);
+  await expect(page.locator('.form-card')).toContainText('Tarcza: otrzymuje o 35% mniej obrażeń');
+  await expect(page.locator('.path-name')).toHaveText(['Miecznik', 'Tarczownik', 'Pawężnik']);
   expect(errors).toEqual([]);
 });
 
@@ -291,7 +300,7 @@ test('miniaturki: bohater poza składem i formy w drzewie ewolucji', async ({ pa
   await page.getByRole('button', { name: 'Skład' }).click();
   const chip = page.locator('.hero-chip');
   await expect(chip).toHaveCount(1);
-  await expect(chip.locator('.chip-name')).toHaveText('Strzelec wyborowy');
+  await expect(chip.locator('.chip-name')).toHaveText('Strzelec');
   await expect(chip.locator('.chip-level')).toHaveText('+3');
   await expect.poll(() => paintedPortraits(page, '.hero-chip .portrait-face')).toBe(1);
   // Karta wybranego bohatera też zaczyna się od jego miniaturki.
@@ -301,7 +310,7 @@ test('miniaturki: bohater poza składem i formy w drzewie ewolucji', async ({ pa
   const withHero = await reserveHeight();
   // Miniaturkę łapie się jak postać: upuszczona na slocie wchodzi do składu.
   await chip.dragTo(page.locator('[data-drop="slot:1"]'));
-  await expect(page.locator('[data-drop="slot:1"] .field-name')).toHaveText('Strzelec wyborowy +3');
+  await expect(page.locator('[data-drop="slot:1"] .field-name')).toHaveText('Strzelec +3');
   await expect(page.locator('.hero-chip')).toHaveCount(0);
   expect((await readSave(page)).squad).toEqual([1, 2, null, null, null]);
   // Pusty pasek „Poza składem” ma tę samą wysokość co z bohaterem: nic nie skacze.
@@ -312,8 +321,8 @@ test('miniaturki: bohater poza składem i formy w drzewie ewolucji', async ({ pa
   // Bohaterowie: każda forma w drzewie i karta wybranej formy mają miniaturkę.
   await page.getByRole('button', { name: 'Wróć' }).click();
   await page.getByRole('button', { name: 'Bohaterowie' }).click();
-  await expect(page.locator('.tree-node')).toHaveCount(5);
-  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(5);
+  await expect(page.locator('.tree-node')).toHaveCount(7);
+  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(7);
   await expect.poll(() => paintedPortraits(page, '.form-card .portrait-face')).toBe(1);
   expect(errors).toEqual([]);
 });
@@ -385,7 +394,9 @@ test('szczep Beasts: zakup w sklepie, drzewo siedmiu form i walka Ignitixa', asy
   expect(errors).toEqual([]);
 });
 
-test('szczepy Immortals, Plants i Robots: sklep ośmiu linii, drzewa i walka', async ({ page }) => {
+test('szczepy Immortals, Plants i Robots: sklep sześciu szczepów, drzewa i walka', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await seedSave(page, {
     saveVersion: 3,
@@ -404,16 +415,14 @@ test('szczepy Immortals, Plants i Robots: sklep ośmiu linii, drzewa i walka', a
   });
   await play(page);
 
-  // Sklep: osiem metek w jednym rzędzie, żadna nie nachodzi na sąsiednią ani nie wychodzi
+  // Sklep: sześć metek w jednym rzędzie, żadna nie nachodzi na sąsiednią ani nie wychodzi
   // poza scenę.
   await page.getByRole('button', { name: 'Sklep' }).click();
   const tags = page.locator('.shop-tag');
-  await expect(tags).toHaveCount(8);
+  await expect(tags).toHaveCount(6);
   await expect(tags.locator('.tag-name')).toHaveText([
     'Miecznik',
     'Łucznik',
-    'Tarczownik',
-    'Akolita',
     'Monstrosity',
     'Orb',
     'Bush',
@@ -532,7 +541,49 @@ test('zapis w wersji 1 wczytuje się przez migrację', async ({ page }) => {
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '135');
   await page.getByRole('button', { name: 'Skład' }).click();
   await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Miecznik +3');
-  await expect(page.locator('[data-drop="slot:1"] .field-name')).toHaveText('Strzelec wyborowy +1');
+  await expect(page.locator('[data-drop="slot:1"] .field-name')).toHaveText('Strzelec +1');
+  expect(errors).toEqual([]);
+});
+
+test('zapis w wersji 3 z dawnymi liniami ludzi wczytuje się do dwóch szczepów', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await seedSave(page, {
+    saveVersion: 3,
+    gameVersion: '0.1.0',
+    gold: 1500,
+    heroes: [
+      // Dawna linia Tarczowników, kopia formy z testowego drzewa i dawna linia Akolitów.
+      { id: 1, line: 'guard', form: 'guard_b', upgrades: 2, runes: [null, null] },
+      { id: 2, line: 'swordsman', form: 'swordsman_c2', upgrades: 1, runes: [null, null] },
+      { id: 3, line: 'cleric', form: 'cleric_a', upgrades: 4, runes: [null, null] },
+      { id: 4, line: 'cleric', form: 'cleric_c', upgrades: 3, runes: [null, null] },
+    ],
+    nextHeroId: 5,
+    runes: [],
+    levels: { w1_l1: { cleared: true, bestTicks: 412 } },
+    squad: [1, 2, 3, 4, null],
+    settings: { lang: 'pl', battleSpeed: 1 },
+  });
+  await play(page);
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '1500');
+  await page.getByRole('button', { name: 'Skład' }).click();
+  // Nikt nie przepadł i nikt nie stracił ulepszeń.
+  await expect(page.locator('.stage-hero')).toHaveCount(4);
+  await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Strażnik +2');
+  await expect(page.locator('[data-drop="slot:1"] .field-name')).toHaveText('Strażnik +1');
+  await expect(page.locator('[data-drop="slot:2"] .field-name')).toHaveText('Akolita +4');
+  await expect(page.locator('[data-drop="slot:3"] .field-name')).toHaveText('Strzelec +3');
+  // Akolita z kompletem ulepszeń może ewoluować w obie formy końcowe swojej drogi.
+  await page
+    .locator('[data-drop="slot:2"]')
+    .getByRole('button', { name: 'Wybierz drogę ewolucji' })
+    .click();
+  const picker = page.locator('.evolve-picker');
+  await expect(picker.locator('.evolve-option')).toHaveCount(2);
+  await expect(picker).toContainText('Kapłan');
+  await expect(picker).toContainText('Inkwizytor');
   expect(errors).toEqual([]);
 });
 

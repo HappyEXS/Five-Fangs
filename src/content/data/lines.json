@@ -13,7 +13,7 @@
         "upgradeCosts": [300, 400, 550, 750]
       },
       {
-        "unit": "swordsman_c",
+        "unit": "guard_a",
         "from": "swordsman_a",
         "evolveCost": 250,
         "upgradeCosts": [300, 400, 550, 750]
@@ -25,8 +25,20 @@
         "upgradeCosts": [1000, 1300, 1700, 2200]
       },
       {
-        "unit": "swordsman_c2",
-        "from": "swordsman_c",
+        "unit": "berserker",
+        "from": "swordsman_b",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "guard_b",
+        "from": "guard_a",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "pavise_guard",
+        "from": "guard_a",
         "evolveCost": 1200,
         "upgradeCosts": [1000, 1300, 1700, 2200]
       }
@@ -48,7 +60,7 @@
         "upgradeCosts": [300, 400, 550, 750]
       },
       {
-        "unit": "archer_c",
+        "unit": "cleric_a",
         "from": "archer_a",
         "evolveCost": 250,
         "upgradeCosts": [300, 400, 550, 750]
@@ -60,82 +72,26 @@
         "upgradeCosts": [1000, 1300, 1700, 2200]
       },
       {
-        "unit": "archer_c2",
-        "from": "archer_c",
+        "unit": "hunter",
+        "from": "archer_b",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "cleric_b",
+        "from": "cleric_a",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "inquisitor",
+        "from": "cleric_a",
         "evolveCost": 1200,
         "upgradeCosts": [1000, 1300, 1700, 2200]
       }
     ],
     "price": 200,
     "starter": true
-  },
-  {
-    "id": "guard",
-    "forms": [
-      {
-        "unit": "guard_a",
-        "upgradeCosts": [50, 80, 120, 180]
-      },
-      {
-        "unit": "guard_b",
-        "from": "guard_a",
-        "evolveCost": 250,
-        "upgradeCosts": [300, 400, 550, 750]
-      },
-      {
-        "unit": "guard_c",
-        "from": "guard_a",
-        "evolveCost": 250,
-        "upgradeCosts": [300, 400, 550, 750]
-      },
-      {
-        "unit": "guard_b2",
-        "from": "guard_b",
-        "evolveCost": 1200,
-        "upgradeCosts": [1000, 1300, 1700, 2200]
-      },
-      {
-        "unit": "guard_c2",
-        "from": "guard_c",
-        "evolveCost": 1200,
-        "upgradeCosts": [1000, 1300, 1700, 2200]
-      }
-    ],
-    "price": 300
-  },
-  {
-    "id": "cleric",
-    "forms": [
-      {
-        "unit": "cleric_a",
-        "upgradeCosts": [50, 80, 120, 180]
-      },
-      {
-        "unit": "cleric_b",
-        "from": "cleric_a",
-        "evolveCost": 250,
-        "upgradeCosts": [300, 400, 550, 750]
-      },
-      {
-        "unit": "cleric_c",
-        "from": "cleric_a",
-        "evolveCost": 250,
-        "upgradeCosts": [300, 400, 550, 750]
-      },
-      {
-        "unit": "cleric_b2",
-        "from": "cleric_b",
-        "evolveCost": 1200,
-        "upgradeCosts": [1000, 1300, 1700, 2200]
-      },
-      {
-        "unit": "cleric_c2",
-        "from": "cleric_c",
-        "evolveCost": 1200,
-        "upgradeCosts": [1000, 1300, 1700, 2200]
-      }
-    ],
-    "price": 300
   },
   {
     "id": "beasts",

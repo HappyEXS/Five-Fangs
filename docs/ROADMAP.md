@@ -210,6 +210,7 @@ Odpowiedzi autora gry po obejrzeniu M5i: „Atk: 3,0” na szkicu to jeden atak 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
 | M5j-1 | Tempo ataków ze szkiców jako odstęp w sekundach: pole `attackInterval` w danych jednostek, 14 form czterech szczepów przepisanych ze szkiców, zamachy Ignitixa i Ultimusa dopasowane do nowych odstępów | 0,5 | Testy treści (odstępy w tickach, zamach mieści się w odstępie), schemat wymaga dokładnie jednego pola tempa; obserwacje z walk próbnych w GAME_DESIGN.md przeliczone | gotowe |
+| M5j-2 | Miecznicy i Łucznicy jako szczepy po siedem form: dawne linie Tarczowników i Akolitów jako gałęzie, sześć nowych form (Zbrojny, Berserker, Pawężnik, Strzelec, Łowca, Inkwizytor), usunięcie kopii testowych, 14 skórek w prostym stylu, zapis v4 z migracją | 1,5 | Testy drzew, zakupów i ewolucji na nowych liniach; migracja v3 → v4 z fixture i testem każdej usuniętej linii i formy; raport balansu świata 1 bez zmiany oczekiwań; test end-to-end starego zapisu; sklep z sześcioma szczepami | gotowe |
 
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 

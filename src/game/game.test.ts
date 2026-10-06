@@ -135,11 +135,11 @@ describe('sceny', () => {
     const game = start();
     game.openHeroes();
     expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman', form: 'swordsman_a' });
-    game.openHeroes('cleric', 'cleric_c2');
-    expect(game.scene.value).toEqual({ name: 'heroes', line: 'cleric', form: 'cleric_c2' });
+    game.openHeroes('archer', 'inquisitor');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'archer', form: 'inquisitor' });
     // Forma spoza linii i nieznana linia: forma bazowa, pierwsza linia.
-    game.openHeroes('cleric', 'archer_b');
-    expect(game.scene.value).toEqual({ name: 'heroes', line: 'cleric', form: 'cleric_a' });
+    game.openHeroes('archer', 'swordsman_b');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'archer', form: 'archer_a' });
     game.openHeroes('nobody');
     expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman', form: 'swordsman_a' });
   });
@@ -209,7 +209,7 @@ describe('akcje gracza', () => {
     expect(game.evolve(SWORD, 'swordsman_b')).toBe(false);
     expect(game.equipRune(SWORD, 0, 'rune_hp_200')).toBe(false);
     expect(game.placeInSquad(99, 0)).toBe(false);
-    expect(game.buyHero('guard')).toBe(false);
+    expect(game.buyHero('beasts')).toBe(false);
     expect(game.save.value).toBe(before);
   });
 
@@ -227,19 +227,19 @@ describe('akcje gracza', () => {
     const game = start(storage);
     game.finishBattle('w1_l1', WIN);
     game.finishBattle('w1_l2', WIN);
-    expect(game.buyHero('guard')).toBe(true);
-    expect(game.save.value.gold).toBe(500 - 300);
+    expect(game.buyHero('beasts')).toBe(true);
+    expect(game.save.value.gold).toBe(500 - 200);
     expect(game.buyHero('swordsman')).toBe(true);
     expect(game.save.value.heroes.map((hero) => hero.line)).toEqual([
       'swordsman',
       'archer',
-      'guard',
+      'beasts',
       'swordsman',
     ]);
     expect(game.save.value.squad).toEqual([1, 2, 3, 4, null]);
     const stored = decodeSave(items.get(SAVE_KEY) ?? '');
     expect(stored.kind === 'ok' && stored.save.heroes).toHaveLength(4);
-    expect(game.buyHero('cleric')).toBe(false);
+    expect(game.buyHero('plants')).toBe(false);
   });
 });
 

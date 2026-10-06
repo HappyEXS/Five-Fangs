@@ -46,16 +46,12 @@ Typ ataku ma **stały czas zamachu** (`swingDuration`, np. 0,4 s) i `hitFraction
 
 Odstęp nie może być krótszy niż zamach; walidator treści odrzuca takie dane. Gracz widzi w UI wartości efektywne, po zaokrągleniu do ticków.
 
-### Jednostki testowe
+### Jednostki specjalne świata „Las”
 
-Do czasu, aż autor gry uzupełni roster, gra zawiera dwie linie bohaterów po dwie formy oraz jednostki specjalne świata „Las”. Nazwy i liczby są tymczasowe; balans pilnuje `pnpm balance`.
+Wrogowie, których gracz nie zdobywa. Nazwy i liczby są tymczasowe; balans pilnuje `pnpm balance`. Bohaterów opisują kolejne sekcje, po jednej na szczep.
 
 | Jednostka | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|
-| Miecznik `swordsman_a` (melee) | 600 | 40 | 60 | 1,0 | 30 | 15 | `slash` |
-| Rycerz `swordsman_b` (melee) | 950 | 85 | 60 | 0,8 | 30 | 25 | `cleave`, `splash` 45 |
-| Łucznik `archer_a` (ranged) | 350 | 30 | 50 | 0,8 | 220 | 0 | `shoot` |
-| Strzelec wyborowy `archer_b` (ranged) | 480 | 75 | 50 | 0,6 | 300 | 0 | `snipe`, `pierce` |
 | Osiłek `brute` (specjalna, melee) | 800 | 35 | 45 | 0,7 | 30 | 25 | `slash` |
 | Łupieżca `raider` (specjalna, melee) | 520 | 30 | 75 | 1,3 | 30 | 5 | `slash`, `lifesteal` 35% |
 | Szaman `shaman` (specjalna, ranged) | 300 | 18 | 45 | 0,7 | 200 | 0 | `shoot`, `periodicHeal` drużyny: 18 co 2,5 s |
@@ -70,7 +66,50 @@ Typy ataku:
 | `shoot` | 0,6 s | 0,5 | `shoot`, `bow` | 400 jedn./s |
 | `snipe` | 0,9 s | 0,7 | `snipe`, `longbow` | 700 jedn./s |
 
-Forma po ewolucji ma inny typ ataku niż forma bazowa: Rycerz bije wolniej, mocniej i obszarowo, Strzelec wyborowy celuje dłużej, a jego strzały lecą szybciej i przebijają.
+`cleave` (wolniejszy, mocniejszy cios) i `snipe` (dłuższe celowanie, szybsza strzała) to ataki gałęzi Zbrojnego i Strzelca; pozostałe formy ludzi biją `slash` i strzelają `shoot`.
+
+### Szczepy Mieczników i Łuczników
+
+Decyzja autora gry z 2026-10-06: dawne cztery linie ludzi (Miecznicy, Łucznicy, Tarczownicy, Akolici) to dwa szczepy po siedem form, a dotychczasowe warianty są ich ewolucjami. Autor wybrał układ, w którym Rycerz, Strażnik, Strzelec wyborowy i Kapłan są formami końcowymi; brakujące formy (po trzy na szczep) i wszystkie liczby poniżej zaproponował wykonawca i są **robocze**. Wygląd: proste ludziki w dotychczasowym stylu, każda forma w innym kolorze (decyzja autora; styl „mroczna baśń” dotyczy czterech pozostałych szczepów).
+
+**Miecznicy** (linia `swordsman`, startowa). Miecznik → Zbrojny albo Tarczownik; Zbrojny → Rycerz albo Berserker; Tarczownik → Strażnik albo Pawężnik. Gałąź Zbrojnego bije, gałąź Tarczownika wytrzymuje.
+
+| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
+|---|---|---|---|---|---|---|---|---|
+| Miecznik `swordsman_a` | bazowa | 600 | 40 | 60 | 1,0 na s | 30 | 15 | `slash` |
+| Zbrojny `swordsman_b` (nowa nazwa) | 1 | 950 | 85 | 60 | 0,8 na s | 30 | 25 | `cleave`, `splash` 45 |
+| Tarczownik `guard_a` | 1 | 1300 | 28 | 45 | 0,8 na s | 30 | 35 | `slash` |
+| Rycerz `swordsman_b2` | 2, ze Zbrojnego | 1300 | 115 | 60 | 0,8 na s | 30 | 30 | `cleave`, `splash` 60 |
+| Berserker `berserker` (nowa) | 2, ze Zbrojnego | 1000 | 80 | 70 | 1,2 na s | 30 | 20 | `slash`, `enrage` poniżej 50%: +80% |
+| Strażnik `guard_b` | 2, z Tarczownika | 2300 | 50 | 45 | 0,8 na s | 30 | 45 | `slash`, `periodicHeal` siebie: 45 co 3 s |
+| Pawężnik `pavise_guard` (nowa) | 2, z Tarczownika | 1900 | 45 | 45 | 0,8 na s | 30 | 110 | `slash`, `shield` 35 |
+
+**Łucznicy** (linia `archer`, startowa). Łucznik → Strzelec albo Akolita; Strzelec → Strzelec wyborowy albo Łowca; Akolita → Kapłan albo Inkwizytor. Gałąź Strzelca zadaje obrażenia z daleka, gałąź Akolity wspiera.
+
+| Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
+|---|---|---|---|---|---|---|---|---|
+| Łucznik `archer_a` | bazowa | 350 | 30 | 50 | 0,8 na s | 220 | 0 | `shoot` |
+| Strzelec `archer_b` (nowa nazwa) | 1 | 480 | 75 | 50 | 0,6 na s | 300 | 0 | `snipe`, `pierce` |
+| Akolita `cleric_a` | 1 | 420 | 20 | 50 | 0,8 na s | 170 | 0 | `shoot`, `periodicHeal` drużyny: 16 co 3 s |
+| Strzelec wyborowy `archer_b2` | 2, ze Strzelca | 650 | 100 | 50 | 0,6 na s | 320 | 0 | `snipe`, `pierce` |
+| Łowca `hunter` (nowa) | 2, ze Strzelca | 560 | 70 | 50 | 0,7 na s | 1000 (całe pole) | 0 | `snipe`, `targetLast` |
+| Kapłan `cleric_b` | 2, z Akolity | 600 | 30 | 50 | 0,8 na s | 190 | 0 | `shoot`, `periodicHeal` drużyny: 28 co 2,5 s |
+| Inkwizytor `inquisitor` (nowa) | 2, z Akolity | 520 | 55 | 50 | 0,8 na s | 220 | 0 | `shoot`, `lifesteal` 50% |
+
+Skąd te liczby i nazwy:
+
+- **Formy pośrednie.** Układ autora wymagał nowej formy przed Rycerzem i przed Strzelcem wyborowym. Zbrojny i Strzelec przejęły id, statystyki i cechy dotychczasowych form po pierwszej ewolucji (`swordsman_b`, `archer_b`), a Rycerz i Strzelec wyborowy to ich mocniejsze wersje (dawne „Rycerz II” i „Strzelec wyborowy II”, zaokrąglone; Rycerz ma szerszy cios, Strzelec wyborowy dłuższy zasięg). Dzięki temu główna droga obu szczepów, poziomy świata „Las” i raport balansu zostały bez zmian.
+- **Tarczownik i Akolita** były formami bazowymi osobnych linii, a są pierwszymi ewolucjami, więc dostały trochę więcej (1100/22 → 1300/28; 320/14 → 420/20, leczenie 12 → 16). **Strażnik i Kapłan** przeszły o stopień wyżej i mają liczby dawnych wersji „II” (życie i atak ×1,35) z mocniejszym leczeniem.
+- **Nowe formy końcowe** korzystają z cech, które gra już ma: Berserker z szału, Pawężnik z tarczy i dużego odrzutu, Łowca z celowania w koniec szyku, Inkwizytor z kradzieży życia.
+- Koszty i cena linii (200) są takie same jak u pozostałych szczepów. Dawne linie Tarczowników i Akolitów kosztowały 300.
+
+Obserwacje z walk próbnych, do decyzji autora przy balansie:
+
+- Formy końcowe Mieczników w pojedynkę z Hersztem: Berserker wygrywa w 19 s, Rycerz w 26 s, Strażnik w 57 s, Pawężnik w 64 s (zostaje mu 160 z 1900 życia). Formy obronne wygrywają wolno; ich miejsce jest w drużynie, przed strzelcami.
+- Strzelec wyborowy sam przegrywa z Hersztem (zadaje 1300 z jego 2200 życia): strzelcy potrzebują kogoś z przodu.
+- Łowca zabija Szamana stojącego za Hersztem, zanim Herszt do niego dojdzie, ale potem ginie; w składzie zdejmuje wrogich strzelców i leczących.
+- Inkwizytor pokonuje Osiłka i kończy z prawie pełnym życiem (483 z 520). Akolita sam z Osiłkiem przegrywa, Tarczownik wygrywa w 38 s.
+- Pięć form końcowych (Rycerz, Berserker, Strażnik, Pawężnik, Kapłan) przechodzi poziom Herszta w 16 s bez strat.
 
 ### Szczep Beasts
 
@@ -281,9 +320,8 @@ Przyzwanie i śmierć rozstrzygają się razem z obrażeniami na końcu ticka: p
 - Forma po ewolucji to **inny bohater**: własne części graficzne, własne statystyki bazowe, może mieć inny typ ataku i inne cechy. Wszystkie formy linii dzielą rig i klipy animacji.
 - Gracz posiada **egzemplarze** bohaterów (decyzja autora z 2026-10-02). Każdy egzemplarz ma własne ulepszenia, formę i runy. Tej samej linii można mieć kilka egzemplarzy i wystawić ich w składzie obok siebie.
 - Gracz zaczyna z dwoma bohaterami: po jednym z każdej linii startowej (Miecznik i Łucznik). Kolejnych kupuje w sklepie (sekcja 5.5).
-- **Szczepy** (decyzja autora z 2026-10-05): docelowy roster to cztery szczepy, każdy jako jedna linia z drzewem siedmiu form (forma bazowa, dwie pierwsze ewolucje, po dwie drugie ewolucje z każdej). Pierwszy, Beasts, jest w grze (sekcja 3); dotychczasowe linie zostają obok niego, dopóki autor ich nie wycofa. Każdy szczep ma nazwę w słowniku (`line.<id>.name`), którą nosi jego zakładka w „Bohaterach”; dotychczasowe linie nazywają się roboczo od swojej formy bazowej (Miecznicy, Łucznicy, Tarczownicy, Akolici).
-- **Stan na teraz:** linie startowe to miecznik i łucznik; w sklepie są dodatkowo dwie linie testowe, Tarczownik → Strażnik (dużo życia i odrzutu; Strażnik leczy sam siebie) oraz Akolita → Kapłan (leczenie drużyny). Docelowy roster autor uzupełni przy wykańczaniu gry. Forma po ewolucji miecznika i łucznika ma inny typ ataku niż forma bazowa.
-- **Drzewa testowe** (z kopii obecnych bohaterów, do sprawdzenia rozgałęzień): każda linia ma drogę przez swoją dotychczasową formę po ewolucji i drugą drogę przez kopię formy po ewolucji innej linii (Miecznik → Rycerz albo Strażnik (kopia); Łucznik → Strzelec wyborowy albo Kapłan (kopia); Tarczownik → Strażnik albo Rycerz (kopia); Akolita → Kapłan albo Strzelec wyborowy (kopia)). Każda z tych form ma jeszcze jeden stopień: tę samą postać z życiem i atakiem ×1,35 („… II”).
+- **Szczepy** (decyzje autora z 2026-10-05 i 2026-10-06): roster to sześć szczepów, każdy jako jedna linia z drzewem siedmiu form (forma bazowa, dwie pierwsze ewolucje, po dwie drugie ewolucje z każdej): Miecznicy, Łucznicy, Beasts, Immortals, Plants i Robots (sekcja 3). Każdy szczep ma nazwę w słowniku (`line.<id>.name`), którą nosi jego zakładka w „Bohaterach”.
+- **Stan na teraz:** szczepy startowe to Miecznicy i Łucznicy. Dawne linie Tarczowników i Akolitów weszły do nich jako gałęzie (Tarczownik → Strażnik albo Pawężnik; Akolita → Kapłan albo Inkwizytor); zapisy graczy przenosi migracja v3 → v4 (bohater zachowuje postać, ulepszenia i runy).
 
 ### 5.2 Ulepszenia i ewolucja
 
@@ -324,7 +362,7 @@ Koszty (wyjściowe, do balansu): ulepszenia formy bazowej `50, 80, 120, 180`; ew
 - Tę samą linię można kupić wiele razy; każdy egzemplarz kosztuje tyle samo. Liczba posiadanych bohaterów nie ma limitu.
 - Bohaterów nie da się sprzedać.
 - Jednostek specjalnych (przeciwników takich jak Osiłek czy Herszt) nie ma w sklepie.
-- Ceny wyjściowe: Miecznik i Łucznik 200, Tarczownik i Akolita 300.
+- Ceny wyjściowe: każdy szczep 200 za formę bazową.
 
 Nagrody świata „Las” są policzone tak, by pierwsze przejścia opłacały ulepszenia dwóch bohaterów startowych. Zakup dodatkowych bohaterów wymaga więc powtarzania poziomów albo rezygnacji z części ulepszeń; ceny i nagrody do korekty przy docelowym balansie.
 
@@ -406,8 +444,8 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 
 | Kwestia | Stan |
 |---|---|
-| Roster: pozostałe cztery linie bohaterów | Autor uzupełni przy wykańczaniu gry; do tego czasu grają dwie linie testowe |
-| Docelowe drzewa ewolucji i koszty trzeciego stopnia | Autor poda razem z rosterem; do tego czasu drzewa z kopii (§5.1) |
+| Roster: sześć szczepów po siedem form | W grze. Liczby Mieczników i Łuczników oraz ich sześć nowych form to propozycja wykonawcy (§3), do oceny autora; wartości robocze pozostałych szczepów wypisane w §3 |
+| Koszty ewolucji i ulepszeń trzeciego stopnia | Liczby robocze, te same dla wszystkich szczepów (ewolucja 250 i 1200, ulepszenia 1000–2200) |
 | Motywy, wrogowie i bossowie światów 2–5 | Autor poda później; do tego czasu istnieje jeden świat testowy „Las” |
 | Ostateczne koszty ulepszeń, nagrody i ułamek za powtórki | Po ustaleniu pełnego rosteru, na podstawie raportu balansu |
 | Czy gra może być osadzana na innych stronach (`frame-ancestors`) | Przed premierą |

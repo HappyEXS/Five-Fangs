@@ -57,6 +57,8 @@ export interface Skin {
 }
 
 export const SKINS: readonly Skin[] = [
+  // Szczep Mieczników: hełm i miecz. Forma bazowa ma gładki strój, ewolucje pióropusz
+  // i zdobienia; formy różnią się kolorem (wybór autora gry: ludzie zostają prostymi ludzikami).
   {
     id: 'swordsman_a',
     head: 'helm',
@@ -68,8 +70,44 @@ export const SKINS: readonly Skin[] = [
     head: 'helm',
     weapon: 'sword',
     evolved: true,
+    palette: { main: '#9a7650', dark: '#3d2b17', accent: '#e3d3b0' },
+  },
+  {
+    id: 'guard_a',
+    head: 'helm',
+    weapon: 'sword',
+    evolved: true,
+    palette: { main: '#5c6b7a', dark: '#232b33', accent: '#b9c4cf' },
+  },
+  {
+    id: 'swordsman_b2',
+    head: 'helm',
+    weapon: 'sword',
+    evolved: true,
     palette: { main: '#c2a04b', dark: '#55431a', accent: '#f6efd6' },
   },
+  {
+    id: 'berserker',
+    head: 'helm',
+    weapon: 'sword',
+    evolved: true,
+    palette: { main: '#a1382d', dark: '#3f120d', accent: '#e8dcc0' },
+  },
+  {
+    id: 'guard_b',
+    head: 'helm',
+    weapon: 'sword',
+    evolved: true,
+    palette: { main: '#3f5f8a', dark: '#16243a', accent: '#e6edf5' },
+  },
+  {
+    id: 'pavise_guard',
+    head: 'helm',
+    weapon: 'sword',
+    evolved: true,
+    palette: { main: '#3d6b5a', dark: '#152c24', accent: '#d8b65a' },
+  },
+  // Szczep Łuczników: kaptur i łuk.
   {
     id: 'archer_a',
     head: 'hood',
@@ -84,30 +122,25 @@ export const SKINS: readonly Skin[] = [
     palette: { main: '#3f8483', dark: '#193a3a', accent: '#e8c76e' },
   },
   {
-    id: 'brute',
-    head: 'helm',
-    weapon: 'sword',
-    palette: { main: '#a85b49', dark: '#4a251d', accent: '#dccaa6' },
-  },
-  // Linie testowe ze sklepu.
-  {
-    id: 'guard_a',
-    head: 'helm',
-    weapon: 'sword',
-    palette: { main: '#5c6b7a', dark: '#232b33', accent: '#b9c4cf' },
-  },
-  {
-    id: 'guard_b',
-    head: 'helm',
-    weapon: 'sword',
-    evolved: true,
-    palette: { main: '#3f5f8a', dark: '#16243a', accent: '#e6edf5' },
-  },
-  {
     id: 'cleric_a',
     head: 'hood',
     weapon: 'bow',
+    evolved: true,
     palette: { main: '#d9d2bd', dark: '#5e5642', accent: '#c9a548' },
+  },
+  {
+    id: 'archer_b2',
+    head: 'hood',
+    weapon: 'bow',
+    evolved: true,
+    palette: { main: '#4d5340', dark: '#1c2014', accent: '#e8c76e' },
+  },
+  {
+    id: 'hunter',
+    head: 'hood',
+    weapon: 'bow',
+    evolved: true,
+    palette: { main: '#7a5a3a', dark: '#33230f', accent: '#b6c26a' },
   },
   {
     id: 'cleric_b',
@@ -116,7 +149,20 @@ export const SKINS: readonly Skin[] = [
     evolved: true,
     palette: { main: '#f1ead6', dark: '#6b5a2a', accent: '#e3b34b' },
   },
+  {
+    id: 'inquisitor',
+    head: 'hood',
+    weapon: 'bow',
+    evolved: true,
+    palette: { main: '#6e2b3a', dark: '#2a0f16', accent: '#d9d2bd' },
+  },
   // Jednostki specjalne świata Las: gracz ich nie zdobywa.
+  {
+    id: 'brute',
+    head: 'helm',
+    weapon: 'sword',
+    palette: { main: '#a85b49', dark: '#4a251d', accent: '#dccaa6' },
+  },
   {
     id: 'raider',
     head: 'hood',
