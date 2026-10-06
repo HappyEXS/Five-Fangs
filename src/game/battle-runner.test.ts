@@ -31,6 +31,7 @@ function recordingRenderer() {
       calls.frameMs.push(frameMs);
     },
     setTopUnit: () => {},
+    setShowcase: () => {},
     endBattle: () => {
       calls.end++;
     },

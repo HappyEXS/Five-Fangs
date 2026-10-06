@@ -45,6 +45,13 @@ export function contentSimIssues(content: GameContent): ContentIssue[] {
           message: `${unit.id}: cecha "targetLast" wymaga zasięgu na całe pole (range ≥ szerokość areny)`,
         });
       }
+      // Jednostka bez ruchu, która nie sięga całego pola, stałaby bezczynnie, gdy wróg jest dalej.
+      if (unit.base.moveStep === 0 && unit.base.range < content.arena.width) {
+        issues.push({
+          source,
+          message: `${unit.id}: jednostka bez ruchu (moveSpeed 0) wymaga zasięgu na całe pole (range ≥ szerokość areny)`,
+        });
+      }
     }
   }
   if (issues.length > 0 || all.length === 0) return issues;

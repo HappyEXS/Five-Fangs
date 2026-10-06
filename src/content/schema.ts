@@ -91,7 +91,7 @@ export const unitSchema = z.strictObject({
   maxHp: z.number().int().positive(),
   attack: z.number().int().nonnegative(),
   /** Jednostki świata na sekundę. */
-  moveSpeed: z.number().positive(),
+  moveSpeed: z.number().nonnegative(),
   /** Ataki na sekundę. */
   attackSpeed: z.number().positive(),
   /** Jednostki świata. */

@@ -502,5 +502,384 @@
       "center": [11, -27],
       "size": 40
     }
+  },
+  {
+    "id": "orb",
+    "kind": "ranged",
+    "maxHp": 350,
+    "attack": 35,
+    "moveSpeed": 15,
+    "attackSpeed": 1.5,
+    "range": 240,
+    "knockback": 10,
+    "attackType": "orb_gaze",
+    "skin": "orb",
+    "scale": 0.9,
+    "portrait": {
+      "center": [1, 9],
+      "size": 30
+    }
+  },
+  {
+    "id": "cardinal",
+    "kind": "ranged",
+    "maxHp": 450,
+    "attack": 45,
+    "moveSpeed": 10,
+    "attackSpeed": 1,
+    "range": 260,
+    "knockback": 20,
+    "attackType": "cardinal_gaze",
+    "skin": "cardinal",
+    "scale": 1.05,
+    "portrait": {
+      "center": [1, -12],
+      "size": 34
+    }
+  },
+  {
+    "id": "guardian_of_hell",
+    "kind": "melee",
+    "maxHp": 400,
+    "attack": 60,
+    "moveSpeed": 30,
+    "attackSpeed": 1,
+    "range": 30,
+    "knockback": 10,
+    "attackType": "gore",
+    "skin": "guardian_of_hell",
+    "scale": 1.1,
+    "portrait": {
+      "center": [1.5, -13],
+      "size": 36
+    }
+  },
+  {
+    "id": "polaris",
+    "kind": "ranged",
+    "maxHp": 1100,
+    "attack": 50,
+    "moveSpeed": 0,
+    "attackSpeed": 1,
+    "range": 1000,
+    "knockback": 30,
+    "attackType": "star_cast",
+    "skin": "polaris",
+    "scale": 1.25,
+    "portrait": {
+      "center": [1.5, -11],
+      "size": 34
+    }
+  },
+  {
+    "id": "ultimus",
+    "kind": "ranged",
+    "maxHp": 1250,
+    "attack": 250,
+    "moveSpeed": 30,
+    "attackSpeed": 3,
+    "range": 260,
+    "knockback": 50,
+    "attackType": "ray_flare",
+    "skin": "ultimus",
+    "scale": 1.3,
+    "portrait": {
+      "center": [1, -15],
+      "size": 40
+    }
+  },
+  {
+    "id": "xartix",
+    "kind": "melee",
+    "maxHp": 850,
+    "attack": 90,
+    "moveSpeed": 75,
+    "attackSpeed": 1.2,
+    "range": 30,
+    "knockback": 75,
+    "attackType": "slash",
+    "traits": [
+      {
+        "type": "doubleDamage",
+        "percent": 50
+      }
+    ],
+    "skin": "xartix",
+    "scale": 1.15,
+    "portrait": {
+      "center": [2, -11],
+      "size": 32
+    }
+  },
+  {
+    "id": "enigmatix",
+    "kind": "melee",
+    "maxHp": 1000,
+    "attack": 160,
+    "moveSpeed": 65,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 100,
+    "attackType": "cleave",
+    "traits": [
+      {
+        "type": "shield",
+        "percent": 50
+      }
+    ],
+    "skin": "enigmatix",
+    "scale": 1.25,
+    "portrait": {
+      "center": [1, -10],
+      "size": 34
+    }
+  },
+  {
+    "id": "bush",
+    "kind": "ranged",
+    "maxHp": 400,
+    "attack": 15,
+    "moveSpeed": 0,
+    "attackSpeed": 1.5,
+    "range": 1000,
+    "knockback": 10,
+    "attackType": "bush_thorn",
+    "skin": "bush",
+    "scale": 0.72,
+    "portrait": {
+      "center": [2, 22],
+      "size": 40
+    }
+  },
+  {
+    "id": "trunk",
+    "kind": "ranged",
+    "maxHp": 600,
+    "attack": 30,
+    "moveSpeed": 25,
+    "attackSpeed": 1.5,
+    "range": 240,
+    "knockback": 10,
+    "attackType": "seed_cast",
+    "skin": "trunk",
+    "portrait": {
+      "center": [1, -9],
+      "size": 36
+    }
+  },
+  {
+    "id": "ivy",
+    "kind": "ranged",
+    "maxHp": 500,
+    "attack": 40,
+    "moveSpeed": 0,
+    "attackSpeed": 1.7,
+    "range": 1000,
+    "knockback": 30,
+    "attackType": "ivy_thorn",
+    "skin": "ivy",
+    "portrait": {
+      "center": [3, -9],
+      "size": 32
+    }
+  },
+  {
+    "id": "oak_warrior",
+    "kind": "melee",
+    "maxHp": 1250,
+    "attack": 150,
+    "moveSpeed": 40,
+    "attackSpeed": 0.6,
+    "range": 30,
+    "knockback": 300,
+    "attackType": "cleave",
+    "skin": "oak_warrior",
+    "scale": 1.3,
+    "portrait": {
+      "center": [1, -11],
+      "size": 36
+    }
+  },
+  {
+    "id": "ice_ivy",
+    "kind": "ranged",
+    "maxHp": 900,
+    "attack": 20,
+    "moveSpeed": 0,
+    "attackSpeed": 2,
+    "range": 1000,
+    "knockback": 10,
+    "attackType": "frost_spit",
+    "traits": [
+      {
+        "type": "periodicHeal",
+        "target": "team",
+        "amount": 50,
+        "interval": 1
+      }
+    ],
+    "skin": "ice_ivy",
+    "scale": 1.1,
+    "portrait": {
+      "center": [1.5, -8],
+      "size": 32
+    }
+  },
+  {
+    "id": "toxic_ivy",
+    "kind": "ranged",
+    "maxHp": 800,
+    "attack": 10,
+    "moveSpeed": 0,
+    "attackSpeed": 1,
+    "range": 1000,
+    "knockback": 30,
+    "attackType": "spore_spit",
+    "traits": [
+      {
+        "type": "pierce"
+      }
+    ],
+    "skin": "toxic_ivy",
+    "scale": 1.1,
+    "portrait": {
+      "center": [2, -8],
+      "size": 30
+    }
+  },
+  {
+    "id": "bot",
+    "kind": "melee",
+    "maxHp": 200,
+    "attack": 25,
+    "moveSpeed": 50,
+    "attackSpeed": 1,
+    "range": 30,
+    "knockback": 15,
+    "attackType": "jab",
+    "skin": "bot",
+    "scale": 0.8,
+    "portrait": {
+      "center": [4, 8],
+      "size": 32
+    }
+  },
+  {
+    "id": "egzo_bot",
+    "kind": "melee",
+    "maxHp": 400,
+    "attack": 40,
+    "moveSpeed": 70,
+    "attackSpeed": 1.2,
+    "range": 30,
+    "knockback": 25,
+    "attackType": "slash",
+    "skin": "egzo_bot",
+    "portrait": {
+      "center": [1, -9],
+      "size": 32
+    }
+  },
+  {
+    "id": "holo_bot",
+    "kind": "ranged",
+    "maxHp": 300,
+    "attack": 30,
+    "moveSpeed": 0,
+    "attackSpeed": 1,
+    "range": 1000,
+    "knockback": 30,
+    "attackType": "glitch_spit",
+    "skin": "holo_bot",
+    "portrait": {
+      "center": [1, 3],
+      "size": 36
+    }
+  },
+  {
+    "id": "thermobot",
+    "kind": "ranged",
+    "maxHp": 900,
+    "attack": 100,
+    "moveSpeed": 80,
+    "attackSpeed": 1,
+    "range": 220,
+    "knockback": 25,
+    "attackType": "slag_cast",
+    "skin": "thermobot",
+    "scale": 1.15,
+    "portrait": {
+      "center": [1, -9],
+      "size": 30
+    }
+  },
+  {
+    "id": "ax_bot",
+    "kind": "melee",
+    "maxHp": 750,
+    "attack": 75,
+    "moveSpeed": 80,
+    "attackSpeed": 0.8,
+    "range": 30,
+    "knockback": 40,
+    "attackType": "cleave",
+    "traits": [
+      {
+        "type": "doubleDamage",
+        "percent": 20
+      }
+    ],
+    "skin": "ax_bot",
+    "scale": 1.15,
+    "portrait": {
+      "center": [2, -8],
+      "size": 30
+    }
+  },
+  {
+    "id": "whirl_bot",
+    "kind": "melee",
+    "maxHp": 700,
+    "attack": 70,
+    "moveSpeed": 175,
+    "attackSpeed": 1.5,
+    "range": 30,
+    "knockback": 30,
+    "attackType": "slash",
+    "traits": [
+      {
+        "type": "dodge",
+        "percent": 70
+      }
+    ],
+    "skin": "whirl_bot",
+    "scale": 1.1,
+    "portrait": {
+      "center": [5, -7],
+      "size": 30
+    }
+  },
+  {
+    "id": "titan_bot",
+    "kind": "melee",
+    "maxHp": 1200,
+    "attack": 75,
+    "moveSpeed": 40,
+    "attackSpeed": 0.7,
+    "range": 30,
+    "knockback": 70,
+    "attackType": "gore",
+    "traits": [
+      {
+        "type": "shield",
+        "percent": 10
+      }
+    ],
+    "skin": "titan_bot",
+    "scale": 1.3,
+    "portrait": {
+      "center": [8, -9],
+      "size": 34
+    }
   }
 ]

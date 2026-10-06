@@ -177,6 +177,9 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
     'Tarczownicy',
     'Akolici',
     'Beasts',
+    'Immortals',
+    'Plants',
+    'Robots',
   ]);
   await info.getByRole('button', { name: 'Akolici' }).click();
   await expect(info).toContainText('Kapłan');
@@ -377,6 +380,106 @@ test('szczep Beasts: zakup w sklepie, drzewo siedmiu form i walka Ignitixa', asy
     )
     .toBeGreaterThan(0);
   expect(fallen).toEqual(['archer_a']);
+  const result = page.locator('.result-sheet');
+  await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
+  expect(errors).toEqual([]);
+});
+
+test('szczepy Immortals, Plants i Robots: sklep ośmiu linii, drzewa i walka', async ({ page }) => {
+  const errors = collectErrors(page);
+  await seedSave(page, {
+    saveVersion: 3,
+    gameVersion: '0.1.0',
+    gold: 700,
+    heroes: [
+      { id: 1, line: 'robots', form: 'whirl_bot', upgrades: 0, runes: [null, null] },
+      { id: 2, line: 'plants', form: 'ivy', upgrades: 0, runes: [null, null] },
+      { id: 3, line: 'immortals', form: 'cardinal', upgrades: 0, runes: [null, null] },
+    ],
+    nextHeroId: 4,
+    runes: [],
+    levels: { w1_l1: { cleared: true, bestTicks: 420 } },
+    squad: [1, 3, 2, null, null],
+    settings: { lang: 'pl', battleSpeed: 4 },
+  });
+  await play(page);
+
+  // Sklep: osiem metek w jednym rzędzie, żadna nie nachodzi na sąsiednią ani nie wychodzi
+  // poza scenę.
+  await page.getByRole('button', { name: 'Sklep' }).click();
+  const tags = page.locator('.shop-tag');
+  await expect(tags).toHaveCount(8);
+  await expect(tags.locator('.tag-name')).toHaveText([
+    'Miecznik',
+    'Łucznik',
+    'Tarczownik',
+    'Akolita',
+    'Monstrosity',
+    'Orb',
+    'Bush',
+    'Bot',
+  ]);
+  const stage = await page.locator('#stage').boundingBox();
+  if (stage === null) throw new Error('stage not measured');
+  const boxes = await tags.evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const tag = node.getBoundingClientRect();
+      const button = node.querySelector('button')?.getBoundingClientRect();
+      return { left: tag.left, right: tag.right, buttonWidth: button?.width ?? 0 };
+    }),
+  );
+  boxes.forEach((box, index) => {
+    expect(box.left).toBeGreaterThanOrEqual(stage.x);
+    expect(box.right).toBeLessThanOrEqual(stage.x + stage.width);
+    // Przycisk zakupu mieści się w metce.
+    expect(box.buttonWidth).toBeLessThanOrEqual(box.right - box.left);
+    const next = boxes[index + 1];
+    if (next !== undefined) expect(box.right).toBeLessThanOrEqual(next.left);
+  });
+  for (const line of ['immortals', 'plants', 'robots']) {
+    await page.locator(`[data-line="${line}"] [data-action="buy"]`).click();
+  }
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
+  await page.getByRole('button', { name: 'Wróć' }).click();
+
+  // Bohaterowie: drzewa trzech szczepów z miniaturką przy każdej formie.
+  await page.getByRole('button', { name: 'Bohaterowie' }).click();
+  const tree = page.locator('.tree');
+  const tab = (name: string) => page.locator('.line-tabs').getByRole('button', { name });
+
+  await tab('Immortals').click();
+  await expect(tree.locator('.tree-node')).toHaveCount(7);
+  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(7);
+  await tree.getByRole('button', { name: 'Xartix' }).click();
+  await expect(page.locator('.path-name')).toHaveText(['Orb', 'Guardian of hell', 'Xartix']);
+  await expect(page.locator('.form-card')).toContainText('Co 2. atak zadaje podwójne obrażenia');
+  await tree.getByRole('button', { name: 'Enigmatix' }).click();
+  await expect(page.locator('.form-card')).toContainText('Tarcza: otrzymuje o 50% mniej obrażeń');
+
+  // Mother-tree dojdzie razem z przyzywaniem: na razie Trunk ma jedną drogę.
+  await tab('Plants').click();
+  await expect(tree.locator('.tree-node')).toHaveCount(6);
+  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(6);
+  await tree.getByRole('button', { name: 'Ice Ivy' }).click();
+  await expect(page.locator('.form-card')).toContainText('Co 1 s leczy całą drużynę o 50');
+  await tree.getByRole('button', { name: 'Toxic Ivy' }).click();
+  await expect(page.locator('.form-card')).toContainText('Pociski przebijają wszystkich wrogów');
+
+  await tab('Robots').click();
+  await expect(tree.locator('.tree-node')).toHaveCount(7);
+  await expect.poll(() => paintedPortraits(page, '.tree-node .portrait-face')).toBe(7);
+  await tree.getByRole('button', { name: 'Whirl-bot' }).click();
+  await expect(page.locator('.path-name')).toHaveText(['Bot', 'Holo-bot', 'Whirl-bot']);
+  await expect(page.locator('.form-card')).toContainText('Unika 70 na 100 ataków');
+  await page.getByRole('button', { name: 'Wróć' }).click();
+
+  // Walka: Whirl-bot z przodu, za nim Cardinal i Ivy, która strzela ze swojego slotu; dwa wolne
+  // sloty zajęli kupieni przed chwilą Orb i Bush.
+  expect((await readSave(page)).squad).toEqual([1, 3, 2, 4, 5]);
+  await page.locator('[data-level="w1_l2"]').click();
+  await page.getByRole('button', { name: 'Walcz' }).click();
+  await expect(page.locator('.hud-faces-player .hud-face')).toHaveCount(5);
+  await expect.poll(() => paintedPortraits(page, '.hud-faces-player .portrait-face')).toBe(5);
   const result = page.locator('.result-sheet');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
   expect(errors).toEqual([]);

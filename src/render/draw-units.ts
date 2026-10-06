@@ -41,7 +41,7 @@ function drawHpBar(scene: Scene, battle: Battle, unit: number, x: number, top: n
   const fraction = hp <= 0 ? 0 : hp >= maxHp ? 1 : hp / maxHp;
   ctx.fillStyle = HP_BACK;
   ctx.fillRect(x - HP_BAR_WIDTH / 2 - 1, top - 1, HP_BAR_WIDTH + 2, HP_BAR_HEIGHT + 2);
-  ctx.fillStyle = unit < TEAM_SIZE ? HP_PLAYER : HP_ENEMY;
+  ctx.fillStyle = unit < TEAM_SIZE || scene.showcase ? HP_PLAYER : HP_ENEMY;
   ctx.fillRect(x - HP_BAR_WIDTH / 2, top, HP_BAR_WIDTH * fraction, HP_BAR_HEIGHT);
 }
 

@@ -19,7 +19,10 @@
     "hitFraction": 0.5,
     "clip": "shoot",
     "stance": "bow",
-    "projectile": { "speed": 400, "sprite": "arrow" }
+    "projectile": {
+      "speed": 400,
+      "sprite": "arrow"
+    }
   },
   {
     "id": "snipe",
@@ -27,7 +30,10 @@
     "hitFraction": 0.7,
     "clip": "snipe",
     "stance": "longbow",
-    "projectile": { "speed": 700, "sprite": "arrow" }
+    "projectile": {
+      "speed": 700,
+      "sprite": "arrow"
+    }
   },
   {
     "id": "peck",
@@ -49,7 +55,11 @@
     "hitFraction": 0.5,
     "clip": "spit",
     "stance": "beast",
-    "projectile": { "speed": 420, "sprite": "fang", "height": 50 }
+    "projectile": {
+      "speed": 420,
+      "sprite": "fang",
+      "height": 50
+    }
   },
   {
     "id": "spike_volley",
@@ -57,7 +67,11 @@
     "hitFraction": 0.5,
     "clip": "volley",
     "stance": "beast",
-    "projectile": { "speed": 450, "sprite": "spike", "height": 38 }
+    "projectile": {
+      "speed": 450,
+      "sprite": "spike",
+      "height": 38
+    }
   },
   {
     "id": "fire_spit",
@@ -65,6 +79,149 @@
     "hitFraction": 0.5,
     "clip": "spit",
     "stance": "beast",
-    "projectile": { "speed": 380, "sprite": "fireball", "height": 72 }
+    "projectile": {
+      "speed": 380,
+      "sprite": "fireball",
+      "height": 72
+    }
+  },
+  {
+    "id": "jab",
+    "swingDuration": 0.45,
+    "hitFraction": 0.5,
+    "clip": "jab",
+    "stance": "beast"
+  },
+  {
+    "id": "orb_gaze",
+    "swingDuration": 0.5,
+    "hitFraction": 0.5,
+    "clip": "spit",
+    "stance": "beast",
+    "projectile": {
+      "speed": 420,
+      "sprite": "gaze",
+      "height": 39
+    }
+  },
+  {
+    "id": "cardinal_gaze",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "cast",
+    "stance": "beast",
+    "projectile": {
+      "speed": 440,
+      "sprite": "gaze",
+      "height": 52
+    }
+  },
+  {
+    "id": "star_cast",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "cast",
+    "stance": "beast",
+    "projectile": {
+      "speed": 480,
+      "sprite": "star",
+      "height": 52
+    }
+  },
+  {
+    "id": "ray_flare",
+    "swingDuration": 0.3,
+    "hitFraction": 0.5,
+    "clip": "flare",
+    "stance": "beast",
+    "projectile": {
+      "speed": 700,
+      "sprite": "ray",
+      "height": 58
+    }
+  },
+  {
+    "id": "bush_thorn",
+    "swingDuration": 0.5,
+    "hitFraction": 0.5,
+    "clip": "spit",
+    "stance": "beast",
+    "projectile": {
+      "speed": 420,
+      "sprite": "thorn",
+      "height": 26
+    }
+  },
+  {
+    "id": "seed_cast",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "cast",
+    "stance": "beast",
+    "projectile": {
+      "speed": 400,
+      "sprite": "seed",
+      "height": 50
+    }
+  },
+  {
+    "id": "ivy_thorn",
+    "swingDuration": 0.5,
+    "hitFraction": 0.5,
+    "clip": "spit",
+    "stance": "beast",
+    "projectile": {
+      "speed": 440,
+      "sprite": "thorn",
+      "height": 54
+    }
+  },
+  {
+    "id": "frost_spit",
+    "swingDuration": 0.45,
+    "hitFraction": 0.5,
+    "clip": "spit",
+    "stance": "beast",
+    "projectile": {
+      "speed": 460,
+      "sprite": "frost",
+      "height": 54
+    }
+  },
+  {
+    "id": "spore_spit",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "spit",
+    "stance": "beast",
+    "projectile": {
+      "speed": 300,
+      "sprite": "spore",
+      "height": 54
+    }
+  },
+  {
+    "id": "glitch_spit",
+    "swingDuration": 0.5,
+    "hitFraction": 0.5,
+    "clip": "spit",
+    "stance": "beast",
+    "projectile": {
+      "speed": 520,
+      "sprite": "glitch",
+      "height": 44
+    }
+  },
+  {
+    "id": "slag_cast",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "cast",
+    "stance": "beast",
+    "projectile": {
+      "speed": 380,
+      "sprite": "slag",
+      "height": 50
+    }
   }
 ]

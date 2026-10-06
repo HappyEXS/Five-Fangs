@@ -86,7 +86,11 @@ describe('skórki szczepów', () => {
       const line = content.lines.get(tribe);
       // Szczep bez linii w treści gry ma na razie same skórki.
       if (line === undefined) continue;
-      expect(ids.slice(0, line.forms.size), tribe).toEqual([...line.forms.keys()]);
+      const forms = [...line.forms.keys()];
+      expect(
+        ids.filter((id) => forms.includes(id)),
+        tribe,
+      ).toEqual(forms);
       for (const id of line.forms.keys()) {
         const unit = content.heroes.get(id);
         expect(unit?.visual.skin).toBe(id);

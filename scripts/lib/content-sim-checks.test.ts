@@ -80,6 +80,14 @@ describe('contentSimIssues', () => {
     ]);
   });
 
+  it('jednostka bez ruchu musi sięgać całego pola', () => {
+    const rooted = { ...unit, id: 'rooted', kind: 'ranged', moveSpeed: 0, attackType: 'shoot' };
+    expect(issuesFor({ 'units/heroes.json': [{ ...rooted, range: 1000 }] })).toEqual([]);
+    expect(issuesFor({ 'units/heroes.json': [{ ...rooted, range: 400 }] })).toEqual([
+      'units/heroes.json: rooted: jednostka bez ruchu (moveSpeed 0) wymaga zasięgu na całe pole (range ≥ szerokość areny)',
+    ]);
+  });
+
   it('sprawdza arenę', () => {
     const issues = issuesFor({
       'arena.json': {

@@ -330,10 +330,11 @@ function levelSetup(
 - największy `moveStep` ≤ najmniejszy `range` (gwarancja, że wrogie jednostki się nie miną);
 - `pierce` tylko przy ataku z pociskiem, `splash` tylko przy ataku wręcz;
 - `targetLast` tylko przy ataku z pociskiem, bez `pierce`, a `range` takiej jednostki obejmuje całą szerokość areny;
+- jednostka bez ruchu (`moveSpeed` 0) ma `range` na całą szerokość areny: inaczej stałaby bezczynnie, gdy wróg jest dalej;
 - procenty cech w zakresach: `doubleDamage` 1–100, `dodge` i `shield` 1–99;
 - wróg na poziomie to dowolna jednostka: forma bohatera albo jednostka specjalna z `units/enemies.json`;
 - górne ograniczenie liczby żywych pocisków mieści się w puli;
-- każda linia ma dokładnie 2 formy i komplet kosztów, forma należy do jednej linii, a każdy bohater do jakiejś linii;
+- każda linia jest drzewem form (jedna forma bazowa, każda inna osiągalna z niej jedną drogą; ADR 0016) z kompletem kosztów, forma należy do jednej linii, a każdy bohater do jakiejś linii;
 - każdy świat ma plik poziomów z wymaganą liczbą poziomów (`levelsPerWorld`); w poziomie sloty wrogów się nie powtarzają;
 - najwyżej jedna cecha danego typu na jednostkę;
 - kadr miniaturki rigu (`portrait`) wskazuje istniejącą kość.
@@ -350,6 +351,7 @@ interface Renderer {
   consume(events: EventBuffer): void;                                           // po każdym ticku
   draw(viewport: Viewport, alpha: number, frameMs: number): void;
   setTopUnit(unit: number): void;                                               // -1: zwykła kolejność
+  setShowcase(on: boolean): void;                                               // scena pokazowa
   endBattle(): void;
 }
 
@@ -357,7 +359,7 @@ function createCanvasRenderer(ctx: CanvasRenderingContext2D, assets: RenderAsset
 function createPortraitSheet(assets: RenderAssets, visuals: Iterable<[string, UnitVisual]>): PortraitSheet;
 ```
 
-Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Jednostki rysowane są od najdalszego slotu do najbliższego; `setTopUnit` pozwala narysować jedną na wierzchu (ekran składu: bohater, którego gracz właśnie przeciąga). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`). Zamianę `UnitVisual` na struktury renderera (`UnitLook`: skompilowany rig, postawa, klipy) robi `render/looks.ts`, wspólnie dla walki i miniaturek (§5.8).
+Reszta gry zna tylko ten interfejs; implementacja to Canvas 2D (ADR 0001). Jednostki rysowane są od najdalszego slotu do najbliższego; `setTopUnit` pozwala narysować jedną na wierzchu (ekran składu: bohater, którego gracz właśnie przeciąga). `setShowcase` oznacza scenę, na której nikt nie walczy: paski życia obu stron mają wtedy kolor gracza (sklep stawia połowę linii w slotach prawej strony sceny). Symulacja nie wie nic o wyglądzie: `UnitVisual` (rig, skórka, skala, klip ataku, postawa, sprite pocisku) pochodzi z treści i trafia do renderera obok walki (`levelVisuals`). Zamianę `UnitVisual` na struktury renderera (`UnitLook`: skompilowany rig, postawa, klipy) robi `render/looks.ts`, wspólnie dla walki i miniaturek (§5.8).
 
 ### 5.2 Pętla
 
@@ -485,7 +487,7 @@ Gra otwiera się ekranem startowym z jednym przyciskiem „Graj”. Dalej ekrane
 - **Akcje** `Game` wołają reguły i po każdej zmianie zapisują grę. UI czyta sygnały i wywołuje akcje; komponenty nie zawierają reguł.
 - **Canvas** obsługuje `game/battle-stage.ts`. Linia podłogi jest wspólna dla wszystkich ekranów, zmieniają się aktorzy. Podgląd to walka w ticku 0 bez kroków symulacji: na ekranie startowym i mapie skład gracza naprzeciw przeciwników poziomu, na ekranie składu sam skład, w sklepie bohaterowie na sprzedaż, w informacjach o bohaterach obie formy wybranej linii. `StageControls.movePreviewUnit(slot, pozycja)` przesuwa postać podglądu za wskaźnikiem przy przeciąganiu na ekranie składu i każe rendererowi rysować ją na wierzchu; zapis pozycji idzie wprost do stanu podglądu, który nigdy nie jest krokowany, więc nie dotyka żadnej walki. W scenie walki działa `BattleRunner`. Atlas ładuje się przy starcie gry, przez `guardedLoad`; po błędzie ekrany działają bez postaci na scenie, a z walki gracz wraca na mapę i widzi komunikat.
 - **Miniaturki i twarze walki.** Po wczytaniu atlasu `battle-stage.ts` tworzy arkusz miniaturek wszystkich jednostek z treści (`game/portraits.ts`, §5.8) i udostępnia go interfejsowi jako `StageControls.paintPortrait(canvas, unitId)`. Gdy arkusza nie da się narysować, błąd trafia do raportu, okienka zostają puste, a scena i walka działają dalej. `StageControls.faces` to lista postaci trwającej walki w kolejności ze sceny (tył składu gracza … front, front przeciwnika … tył) z flagą `alive`; poza walką jest pusta. `game/battle-faces.ts` buduje ją z tych samych danych co `levelSetup`; pętla klatek porównuje samą maskę bitową żywych (`aliveMask`), a nową listę tworzy na początku walki i gdy ktoś ginie.
-- **Stanowiska na scenie** (`game/stage-stands.ts`): `shopStands` rozstawia linie bohaterów wzdłuż sceny (do pięciu w jednym rzędzie, do dziesięciu w dwóch grupach zwróconych do siebie), `formStands` stawia formy jednej drogi ewolucji (od bazowej przez wybraną do końca drogi, `displayPath`), a `standScene` buduje ze stanowisk wejście symulacji z własnymi pozycjami slotów. `squadFieldSetup` rozstawia skład na ekranie zarządzania szerzej niż w walce (`SQUAD_FIELD_AT`), żeby pod każdym bohaterem zmieściło się jego pole; sloty przeciwnika odsuwa na prawą krawędź, bo symulacja wymaga, by sloty gracza leżały na lewo od nich. Z tych samych stanowisk UI wylicza położenie metek i drogi ulepszeń.
+- **Stanowiska na scenie** (`game/stage-stands.ts`): `shopStands` rozstawia linie bohaterów w równych odstępach wzdłuż sceny (do pięciu w jednym rzędzie; do dziesięciu w dwóch połowach zwróconych do siebie, z których prawa zajmuje sloty przeciwnika), `formStands` stawia formy jednej drogi ewolucji (od bazowej przez wybraną do końca drogi, `displayPath`), a `standScene` buduje ze stanowisk wejście symulacji z własnymi pozycjami slotów. `squadFieldSetup` rozstawia skład na ekranie zarządzania szerzej niż w walce (`SQUAD_FIELD_AT`), żeby pod każdym bohaterem zmieściło się jego pole; sloty przeciwnika odsuwa na prawą krawędź, bo symulacja wymaga, by sloty gracza leżały na lewo od nich. Z tych samych stanowisk UI wylicza położenie metek i drogi ulepszeń.
 - **Koniec walki**: po rozstrzygnięciu renderer rysuje jeszcze 1,4 s (animacje śmierci), potem `finishBattle` nalicza nagrody, zapisuje grę i przełącza na wynik. Pod arkuszem wyniku zostaje pole zakończonej walki. Wyjście ze sceny wyniku albo walki zwalnia `BattleRunner` i odpina walkę od renderera; sam renderer z atlasem żyje do końca sesji.
 
 Pomiar z 2026-10-02 (Edge 154 headless): sterta JS po 5, 35 i 65 cyklach „wejdź do walki, wyjdź” to 9157, 9261 i 9310 KB, czyli ok. 1,6–3,5 KB na cykl przy ok. 20 KB zajmowanych przez jedną walkę. Walki nie wyciekają.

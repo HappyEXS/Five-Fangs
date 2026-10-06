@@ -76,6 +76,9 @@ describe('dane progresji gry', () => {
       'guard',
       'cleric',
       'beasts',
+      'immortals',
+      'plants',
+      'robots',
     ]);
   });
 

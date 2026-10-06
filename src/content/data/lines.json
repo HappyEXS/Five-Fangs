@@ -182,5 +182,137 @@
       }
     ],
     "price": 200
+  },
+  {
+    "id": "immortals",
+    "forms": [
+      {
+        "unit": "orb",
+        "upgradeCosts": [50, 80, 120, 180]
+      },
+      {
+        "unit": "cardinal",
+        "from": "orb",
+        "evolveCost": 250,
+        "upgradeCosts": [300, 400, 550, 750]
+      },
+      {
+        "unit": "guardian_of_hell",
+        "from": "orb",
+        "evolveCost": 250,
+        "upgradeCosts": [300, 400, 550, 750]
+      },
+      {
+        "unit": "polaris",
+        "from": "cardinal",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "ultimus",
+        "from": "cardinal",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "xartix",
+        "from": "guardian_of_hell",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "enigmatix",
+        "from": "guardian_of_hell",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      }
+    ],
+    "price": 200
+  },
+  {
+    "id": "plants",
+    "forms": [
+      {
+        "unit": "bush",
+        "upgradeCosts": [50, 80, 120, 180]
+      },
+      {
+        "unit": "trunk",
+        "from": "bush",
+        "evolveCost": 250,
+        "upgradeCosts": [300, 400, 550, 750]
+      },
+      {
+        "unit": "ivy",
+        "from": "bush",
+        "evolveCost": 250,
+        "upgradeCosts": [300, 400, 550, 750]
+      },
+      {
+        "unit": "oak_warrior",
+        "from": "trunk",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "ice_ivy",
+        "from": "ivy",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "toxic_ivy",
+        "from": "ivy",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      }
+    ],
+    "price": 200
+  },
+  {
+    "id": "robots",
+    "forms": [
+      {
+        "unit": "bot",
+        "upgradeCosts": [50, 80, 120, 180]
+      },
+      {
+        "unit": "egzo_bot",
+        "from": "bot",
+        "evolveCost": 250,
+        "upgradeCosts": [300, 400, 550, 750]
+      },
+      {
+        "unit": "holo_bot",
+        "from": "bot",
+        "evolveCost": 250,
+        "upgradeCosts": [300, 400, 550, 750]
+      },
+      {
+        "unit": "thermobot",
+        "from": "egzo_bot",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "ax_bot",
+        "from": "egzo_bot",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "whirl_bot",
+        "from": "holo_bot",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      },
+      {
+        "unit": "titan_bot",
+        "from": "holo_bot",
+        "evolveCost": 1200,
+        "upgradeCosts": [1000, 1300, 1700, 2200]
+      }
+    ],
+    "price": 200
   }
 ]

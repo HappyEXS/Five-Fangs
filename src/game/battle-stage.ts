@@ -182,6 +182,7 @@ export function startStage(
             : formStands(content, scene.line, scene.form);
       const stand = standScene(content, stands);
       showPreview(renderer, stand.setup, stand.visuals);
+      renderer.setShowcase(true);
       return;
     }
 

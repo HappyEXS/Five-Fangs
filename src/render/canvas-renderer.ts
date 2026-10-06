@@ -43,6 +43,7 @@ export function createCanvasRenderer(
     beginBattle(battle: Battle, visuals: readonly (UnitVisual | null)[]): void {
       scene.battle = battle;
       scene.topUnit = -1;
+      scene.showcase = false;
       fitCamera(scene.camera, battle.width);
       resetAnimator(scene.animator);
       clearFloatTexts(scene.floatTexts);
@@ -114,6 +115,9 @@ export function createCanvasRenderer(
       if (import.meta.env.DEV && debugOptions.perf) debugOverlay(ctx);
     },
 
+    setShowcase(on: boolean): void {
+      scene.showcase = on;
+    },
     setTopUnit(unit: number): void {
       scene.topUnit = Number.isInteger(unit) && unit >= 0 && unit < MAX_UNITS ? unit : -1;
     },

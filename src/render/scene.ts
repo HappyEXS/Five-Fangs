@@ -40,6 +40,8 @@ export interface Scene {
   readonly dodgeSprite: Sprite | null;
   /** Jednostka rysowana na wierzchu pozostałych albo -1. */
   topUnit: number;
+  /** Scena pokazowa: paski życia obu stron w kolorze gracza. */
+  showcase: boolean;
   /** Zasięg postaci per unitId (reach.ts): za plecami, przed sobą i w górę, w jednostkach sceny. */
   readonly reachBack: Float32Array;
   readonly reachFront: Float32Array;
@@ -87,6 +89,7 @@ export function createScene(
     plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
     dodgeSprite: atlas.sprites.get('fx/dodge') ?? null,
     topUnit: -1,
+    showcase: false,
     reachBack: new Float32Array(MAX_UNITS),
     reachFront: new Float32Array(MAX_UNITS),
     reachHeight: new Float32Array(MAX_UNITS),

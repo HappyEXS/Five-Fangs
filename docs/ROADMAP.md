@@ -200,6 +200,7 @@ Zlecenie autora gry: skórki trzech kolejnych szczepów według szkiców (zdjęc
 |---|---|---|---|---|
 | M5i-1 | Cechy `doubleDamage` i `dodge` w stałym rytmie oraz `shield`; znak uniku nad postacią | 1 | Testy rytmu (50, 20, 30, 70 na 100), łączenia z szałem, kradzieżą życia, pociskami i ciosem obszarowym; walka golden `rhythm`; w istniejących walkach zmienia się tylko hash stanu | gotowe |
 | M5i-2 | Styl „mroczna baśń” (ADR 0019): przybory generatora, przerysowane bestie, skórki Immortals, Plants (z przyzywanym krzakiem) i Robots, dziewięć pocisków, klipy `cast`, `flare`, `summon`, `jab` | 3 | 29 skórek z kompletem części, żadna nie jest ucięta; atlas 543 KB (budżet 1 MB), pierwsze uruchomienie 726 KB (budżet 2 MB); zrzuty każdej postaci w czterech pozach i bestii w grze | gotowe |
+| M5i-3 | Treść trzech szczepów: 20 bohaterów ze statystykami ze szkiców, 12 typów ataków, linie `immortals`, `plants` (bez Mother-tree), `robots`, nazwy, kadry miniaturek; szybkość 0 z zasięgiem na całe pole; sklep mieści osiem linii | 1 | Testy treści (drzewa, statystyki, cechy, pociski), reguła walidatora dla jednostek bez ruchu; zrzuty sklepu, drzew i walk każdego szczepu | gotowe |
 
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
