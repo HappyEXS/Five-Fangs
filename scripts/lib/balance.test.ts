@@ -1,158 +1,234 @@
 import { describe, expect, it } from 'vitest';
 import { requireContent } from '../../src/content/load.ts';
+import type { Rune } from '../../src/content/schema-progression.ts';
 import {
+  assignRunes,
+  earnedRunes,
+  fightLevel,
   formatBalanceReport,
-  type Reference,
-  rankCount,
-  rankLabel,
+  goldBefore,
+  levelOrder,
   runBalance,
-  validateReference,
 } from './balance.ts';
+import {
+  purchaseOrder,
+  type Reference,
+  rankLabel,
+  squadForGold,
+  squadLabel,
+  validateReference,
+} from './reference-plan.ts';
 import { loadReference } from './reference-squads.ts';
 
 const content = requireContent();
+const loaded = loadReference(content);
+const reference: Reference = loaded.reference ?? { squad: [] };
 
-const starter = {
-  id: 'starter',
-  members: [
-    { slot: 0, line: 'swordsman' },
-    { slot: 1, line: 'archer' },
-  ],
-};
+const messages = (candidate: Reference) =>
+  validateReference(content, candidate).map((issue) => issue.message);
 
-/** Składy referencyjne dla wszystkich poziomów gry z tą samą rangą oczekiwaną. */
-function referenceWith(expectedRank: number): Reference {
-  const levels: Reference['levels'] = {};
-  for (const id of content.levels.keys()) levels[id] = { squad: 'starter', expectedRank };
-  return { squads: [starter], levels };
-}
-
-const messages = (reference: Reference) =>
-  validateReference(content, reference).map((i) => i.message);
-
-describe('rangi', () => {
-  it('po pięć rang na każdy stopień głównej drogi ewolucji: A forma bazowa, B i C ewolucje', () => {
-    expect(rankCount(content)).toBe(15);
-    expect([0, 4, 5, 9, 10, 14].map((rank) => rankLabel(content, rank))).toEqual([
-      'A0',
-      'A4',
-      'B0',
-      'B4',
-      'C0',
-      'C4',
+describe('skład odniesienia gry', () => {
+  it('jest poprawny: bohaterowie startowi, potem trzej kupieni, każdy na swoim slocie', () => {
+    expect(loaded.issues).toEqual([]);
+    expect(reference.squad.map((member) => member.line)).toEqual([
+      'swordsman',
+      'archer',
+      'robots',
+      'beasts',
+      'immortals',
     ]);
-  });
-});
-
-describe('składy referencyjne gry', () => {
-  it('są poprawne i obejmują każdy poziom', () => {
-    const { reference, issues } = loadReference(content);
-    expect(issues).toEqual([]);
-    expect(Object.keys(reference?.levels ?? {}).sort()).toEqual([...content.levels.keys()].sort());
+    expect(new Set(reference.squad.map((member) => member.slot)).size).toBe(5);
   });
 
-  it('błąd schematu zwraca problem zamiast składów', () => {
-    const { reference, issues } = loadReference(content, { squads: 'oops' });
-    expect(reference).toBeNull();
-    expect(issues.length).toBeGreaterThan(0);
+  it('błąd schematu zwraca problem zamiast składu', () => {
+    const broken = loadReference(content, { squad: 'oops' });
+    expect(broken.reference).toBeNull();
+    expect(broken.issues.length).toBeGreaterThan(0);
   });
-});
 
-describe('validateReference', () => {
-  it('wykrywa nieznaną linię, powtórzony slot i powtórzone id składu', () => {
-    const bad = referenceWith(0);
-    bad.squads = [
-      starter,
-      {
-        id: 'starter',
-        members: [
-          { slot: 0, line: 'ghost' },
+  it('odrzuca powtórzony slot, nieznaną linię, złą kolejność i drogę spoza drzewa', () => {
+    expect(
+      messages({
+        squad: [
+          { slot: 0, line: 'swordsman' },
           { slot: 0, line: 'archer' },
         ],
-      },
-    ];
-    expect(messages(bad)).toEqual([
-      'powtórzone id "starter"',
-      'starter: nieznana linia "ghost"',
-      'starter: slot 0 użyty więcej niż raz',
+      }),
+    ).toEqual(['slot 0 użyty więcej niż raz']);
+    expect(
+      messages({
+        squad: [
+          { slot: 0, line: 'swordsman' },
+          { slot: 1, line: 'archer' },
+          { slot: 2, line: 'smoki' },
+        ],
+      }),
+    ).toEqual(['nieznana linia "smoki"']);
+    expect(
+      messages({
+        squad: [
+          { slot: 0, line: 'beasts' },
+          { slot: 1, line: 'archer' },
+        ],
+      }),
+    ).toEqual(['bohater 1 składu musi być linią startową "swordsman" (jest "beasts")']);
+    expect(messages({ squad: [{ slot: 0, line: 'swordsman' }] })).toEqual([
+      'skład musi zawierać wszystkie linie startowe',
     ]);
+    expect(
+      messages({
+        squad: [
+          { slot: 0, line: 'swordsman' },
+          { slot: 1, line: 'archer' },
+          { slot: 2, line: 'beasts', via: ['tuskovator'] },
+        ],
+      }),
+    ).toEqual(['beasts: forma "tuskovator" nie powstaje z "monstrosity"']);
+  });
+});
+
+describe('plan zakupów', () => {
+  const steps = purchaseOrder(content, reference);
+
+  it('najpierw trzej brakujący bohaterowie, potem równy rozwój całej piątki', () => {
+    expect(steps.slice(0, 3).map((step) => [step.kind, step.cost])).toEqual([
+      ['buy', 200],
+      ['buy', 200],
+      ['buy', 200],
+    ]);
+    // Po zakupach: po jednym ulepszeniu każdemu, cztery razy, a potem ewolucja każdego.
+    expect(steps.slice(3, 8).map((step) => [step.member, step.kind, step.cost])).toEqual([
+      [0, 'upgrade', 50],
+      [1, 'upgrade', 50],
+      [2, 'upgrade', 50],
+      [3, 'upgrade', 50],
+      [4, 'upgrade', 50],
+    ]);
+    expect(steps.slice(23, 28).map((step) => [step.kind, step.cost])).toEqual(
+      Array.from({ length: 5 }, () => ['evolve', 400]),
+    );
+    // Trzech kupionych bohaterów i pięć pełnych dróg rozwoju.
+    expect(steps.reduce((sum, step) => sum + step.cost, 0)).toBe(600 + 5 * 6200);
   });
 
-  it('wykrywa nieznany poziom, nieznany skład, rangę poza zakresem i brakujący poziom', () => {
-    const bad = referenceWith(0);
-    delete bad.levels.w1_l6;
-    bad.levels.w9_l9 = { squad: 'starter', expectedRank: 0 };
-    bad.levels.w1_l1 = { squad: 'elite', expectedRank: 15 };
-    expect(messages(bad).sort()).toEqual(
-      [
-        'nieznany poziom "w9_l9"',
-        'w1_l1: nieznany skład "elite"',
-        'w1_l1: ranga 15 poza zakresem',
-        'brak składu referencyjnego dla poziomu "w1_l6"',
-      ].sort(),
-    );
+  it('skład za daną sumę złota: kupuje po kolei i staje na pierwszym kroku, na który nie stać', () => {
+    expect(squadLabel(squadForGold(content, reference, 0))).toBe('2 × A0');
+    expect(squadLabel(squadForGold(content, reference, 199))).toBe('2 × A0');
+    expect(squadForGold(content, reference, 200).members.map((member) => member.line)).toEqual([
+      'swordsman',
+      'archer',
+      'robots',
+    ]);
+    expect(squadLabel(squadForGold(content, reference, 600))).toBe('5 × A0');
+    // 50 złota ponad pięciu bohaterów to jedno ulepszenie pierwszego z nich (slot 0).
+    const partial = squadForGold(content, reference, 650);
+    expect(squadLabel(partial)).toBe('A1 A0 A0 A0 A0');
+    expect(partial.spent).toBe(650);
+    expect(squadLabel(squadForGold(content, reference, 1600))).toBe('5 × A4');
+    expect(squadLabel(squadForGold(content, reference, 3600))).toBe('5 × B0');
+  });
+
+  it('idzie drogą ewolucji podaną w składzie, a bez niej główną drogą linii', () => {
+    const full = squadForGold(content, reference, 100_000);
+    expect(full.maxed).toBe(true);
+    expect(full.spent).toBe(31_600);
+    expect(Object.fromEntries(full.members.map((member) => [member.line, member.form]))).toEqual({
+      swordsman: 'swordsman_b2',
+      archer: 'archer_b2',
+      robots: 'thermobot',
+      beasts: 'tuskovator',
+      immortals: 'polaris',
+    });
+    expect(full.members.map(rankLabel)).toEqual(['C4', 'C4', 'C4', 'C4', 'C4']);
+    expect(squadForGold(content, reference, 31_599).maxed).toBe(false);
+  });
+});
+
+describe('runy składu odniesienia', () => {
+  const rune = (id: string): Rune => {
+    const found = content.runes.get(id);
+    if (found === undefined) throw new Error(id);
+    return found;
+  };
+
+  it('zdobyte runy to nagrody wcześniejszych poziomów, w kolejności gry', () => {
+    expect(earnedRunes(content, 0)).toEqual([]);
+    expect(earnedRunes(content, 2)).toEqual([]);
+    // Pierwsza runa jest nagrodą trzeciego poziomu.
+    expect(earnedRunes(content, 3).map((entry) => entry.id)).toEqual(['rune_hp_100']);
+    expect(earnedRunes(content, 36)).toHaveLength(12);
+  });
+
+  it('życie idzie od frontu, atak od tyłu, najmocniejsze pierwsze; nadmiar zostaje', () => {
+    const squad = squadForGold(content, reference, 600);
+    const bySlot = (given: Rune[][]) =>
+      Object.fromEntries(
+        squad.members.map((member, index) => [member.slot, given[index]?.map((r) => r.id)]),
+      );
+    const some = [rune('rune_hp_100'), rune('rune_attack_10'), rune('rune_hp_200')];
+    expect(bySlot(assignRunes(squad, some, 2))).toEqual({
+      0: ['rune_hp_200'],
+      1: ['rune_hp_100'],
+      2: [],
+      3: [],
+      4: ['rune_attack_10'],
+    });
+    // Jedenaście run na dziesięć gniazd: każdy bohater ma dwie, najsłabsza zostaje.
+    const many = [
+      ...Array.from({ length: 6 }, () => rune('rune_hp_100')),
+      ...Array.from({ length: 5 }, () => rune('rune_attack_10')),
+    ];
+    const given = assignRunes(squad, many, 2);
+    expect(given.every((list) => list.length === 2)).toBe(true);
+    // Dwóch bohaterów nie dostaje więcej, niż mają gniazd.
+    const duo = squadForGold(content, reference, 0);
+    expect(assignRunes(duo, many, 2).map((list) => list.length)).toEqual([2, 2]);
   });
 });
 
 describe('runBalance', () => {
-  const reports = runBalance(content, referenceWith(4));
+  const reports = runBalance(content, reference);
+  const levels = levelOrder(content);
 
-  it('rozgrywa każdy poziom na każdej randze, w kolejności światów', () => {
-    expect(reports.map((r) => r.level)).toEqual(content.worlds.flatMap((w) => w.levels));
-    for (const report of reports) expect(report.ranks).toHaveLength(15);
+  it('raportuje każdy poziom w kolejności gry, ze złotem zdobytym wcześniej', () => {
+    expect(reports.map((report) => report.level)).toEqual(levels.map((level) => level.id));
+    const gold = goldBefore(content);
+    expect(gold).toHaveLength(37);
+    expect(reports.map((report) => report.goldBefore)).toEqual(gold.slice(0, 36));
+    expect(reports[0]).toMatchObject({ goldBefore: 0, squad: '2 × A0', previous: null });
   });
 
-  it('najniższa wygrywająca ranga to pierwsza wygrana na liście', () => {
+  it('boss to ostatni poziom świata i zawsze wymaga run; zwykły poziom dopiero po komplecie składu', () => {
+    expect(reports.filter((report) => report.boss).map((report) => report.level)).toEqual(
+      content.worlds.map((world) => world.levels.at(-1)),
+    );
     for (const report of reports) {
-      const first = report.ranks.findIndex((r) => r.win);
-      expect(report.minWinningRank).toBe(first === -1 ? null : first);
+      if (report.boss) expect(report.needsRunes, report.level).toBe(true);
     }
+    const index = reports.findIndex((report) => !report.boss && report.needsRunes);
+    // Zwykły poziom wymaga run dopiero wtedy, gdy już skład sprzed nagrody kupił wszystko.
+    expect(squadForGold(content, reference, reports[index - 1]?.goldBefore ?? 0).maxed).toBe(true);
   });
 
-  it('ocenia poziom względem rangi oczekiwanej', () => {
-    for (const report of reports) {
-      const min = report.minWinningRank;
-      const expected = min === null || min > 4 ? 'za trudny' : min < 4 ? 'za łatwy' : 'zgodny';
-      expect(report.verdict).toBe(expected);
-    }
-    // Pierwszy poziom testowy da się przejść bez ulepszeń, ostatni dopiero po ewolucji.
-    expect(reports[0]?.verdict).toBe('za łatwy');
-    expect(reports.at(-1)?.verdict).toBe('za trudny');
+  it('wynik bez run i z runami pochodzi z tej samej walki co ręczne wywołanie', () => {
+    const level = levels[5];
+    const report = reports[5];
+    if (level === undefined || report === undefined) throw new Error('no level');
+    const squad = squadForGold(content, reference, report.goldBefore);
+    expect(fightLevel(content, level, squad, [])).toEqual(report.plain);
+    expect(fightLevel(content, level, squad, earnedRunes(content, 5))).toEqual(report.runed);
   });
 
-  it('procent pozostałego HP mieści się w 0..100, a zwycięzca ma co najmniej 1', () => {
-    for (const result of reports.flatMap((r) => r.ranks)) {
-      expect(result.remainingHpPercent).toBeGreaterThanOrEqual(result.win ? 1 : 0);
-      expect(result.remainingHpPercent).toBeLessThanOrEqual(100);
-      expect(result.ticks).toBeGreaterThan(0);
-    }
+  it('jest deterministyczny', () => {
+    expect(runBalance(content, reference)).toEqual(reports);
   });
 
-  it('jest powtarzalny', () => {
-    expect(runBalance(content, referenceWith(4))).toEqual(reports);
-  });
-
-  it('rzuca błąd, gdy poziom nie ma składu', () => {
-    const missing = referenceWith(0);
-    delete missing.levels.w1_l1;
-    expect(() => runBalance(content, missing)).toThrow(/w1_l1/);
-  });
-});
-
-describe('formatBalanceReport', () => {
-  it('zawiera wiersz podsumowania i wiersz rang dla każdego poziomu', () => {
-    const reports = runBalance(content, referenceWith(4));
+  it('raport Markdown ma wiersz na poziom, bez daty', () => {
     const text = formatBalanceReport(content, reports);
-    expect(text).toContain('# Raport balansu');
-    expect(text).toContain('| Poziom | A0 | A1 | A2 | A3 | A4 | B0 | B1 | B2 | B3 | B4 |');
-    for (const report of reports) {
-      expect(
-        text.split('\n').filter((line) => line.startsWith(`| ${report.level} |`)),
-      ).toHaveLength(2);
-    }
-    expect(text).toMatch(/\| w1_l1 \| starter \| A4 \| A0 \| za łatwy \| wygrana \|/);
-    expect(text.endsWith('\n')).toBe(true);
-    // Bez daty ani wersji: raport ma się zmieniać tylko razem z balansem.
-    expect(text).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+    expect(text).toContain('# Raport balansu poziomów');
+    expect(text).toContain('| w1_l1 | 0 | 2 × A0 |');
+    expect(text).toContain('w6_l6 (boss)');
+    expect(text.split('\n').filter((line) => line.startsWith('| w')).length).toBe(36);
+    expect(text).not.toMatch(/20\d\d-\d\d-\d\d/);
   });
 });

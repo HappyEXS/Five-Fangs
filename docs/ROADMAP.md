@@ -271,6 +271,17 @@ Autor gry zauważył, że Miecznicy i Łucznicy mają statystyki wyższe od pozo
 
 Poza zakresem: runy (wartości płaskie ważą więcej przy niskich liczbach ludzi), przeciwnicy i nagrody światów 2–6, nierówności form bazowych i końcowych ze szkiców opisane w GAME_DESIGN §3.
 
+## M5q – Balans poziomów i nagród (2026-10-07)
+
+Autor gry: nagrody są zbyt wysokie, pierwsze poziomy nowych światów zbyt łatwe, na poziomie ma stać 3–5 wrogów (od świata 3 zwykle 5), a Akronix mają się pojawiać w każdym świecie w kolejności pocztu, z Axinami jako bossami wcześniejszych światów. Jego decyzje: 60 000 złota w całej grze, dwóch wrogów na dwóch pierwszych poziomach, Axiny od świata 3, trudność wymagająca (ADR 0025).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5q-1 | Raport balansu poziomów oparty na złocie: skład odniesienia z planem zakupów, runy, trzy walki na poziom, ocena według reguł trudności | 1 | Testy planu zakupów, rozdawania run i raportu; raport bez daty | gotowe |
+| M5q-2 | 36 poziomów: nagrody (60 000 łącznie, rosnące światami), runy, składy wrogów ze szczepu świata i Akronixów, poziomy siły dobrane wyszukiwaniem | 1,5 | Raport `pnpm balance`: 36 poziomów „zgodnych”; test reguł autora (suma złota, liczba wrogów, kolejność Akronixów, Axiny jako bossowie) | gotowe (rozkład i składy do oceny autora) |
+
+Poza zakresem: finałowy boss gry (autor zaprojektuje), podpowiedź o zakupie trzeciego bohatera, siła run, ułamek złota za powtórki.
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

@@ -1,11 +1,11 @@
-// Wczytanie składów referencyjnych dla skryptu balansu i walidatora treści.
+// Wczytanie składu odniesienia dla skryptu balansu i walidatora treści.
 
 import referenceJson from '../../src/content/data/balance/reference-squads.json' with {
   type: 'json',
 };
 import type { ContentIssue } from '../../src/content/issues.ts';
 import type { GameContent } from '../../src/content/load.ts';
-import { type Reference, referenceSchema, validateReference } from './balance.ts';
+import { type Reference, referenceSchema, validateReference } from './reference-plan.ts';
 
 export interface ReferenceResult {
   readonly reference: Reference | null;

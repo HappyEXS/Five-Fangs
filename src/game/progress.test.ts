@@ -34,6 +34,8 @@ const fresh = (): Save => newSave(content, '0.0.0', 'pl');
 const SWORD = 1;
 const ARCHER = 2;
 
+const goldOf = (level: string): number => content.levels.get(level)?.gold ?? 0;
+
 /** Zapis po wygraniu podanych poziomów po kolei. */
 function cleared(levels: readonly string[], from: Save = fresh()): Save {
   let save = from;
@@ -131,27 +133,30 @@ describe('odblokowywanie poziomów', () => {
 
 describe('nagrody', () => {
   it('pierwsze przejście daje pełne złoto i runę poziomu', () => {
-    const before = cleared(['w1_l1']);
-    expect(victoryRewards(content, before, 'w1_l2')).toEqual({
+    // Trzeci poziom gry daje pierwszą runę; kwoty czytamy z treści, bo należą do balansu.
+    const before = cleared(['w1_l1', 'w1_l2']);
+    expect(victoryRewards(content, before, 'w1_l3')).toEqual({
       firstClear: true,
-      gold: 400,
+      gold: goldOf('w1_l3'),
       rune: 'rune_hp_100',
     });
-    const after = cleared(['w1_l2'], before);
-    expect(after.gold).toBe(100 + 400);
+    const after = cleared(['w1_l3'], before);
+    expect(after.gold).toBe(goldOf('w1_l1') + goldOf('w1_l2') + goldOf('w1_l3'));
     expect(after.runes).toEqual(['rune_hp_100']);
-    expect(after.levels.w1_l2).toEqual({ cleared: true, bestTicks: 500 });
+    expect(after.levels.w1_l3).toEqual({ cleared: true, bestTicks: 500 });
   });
 
   it('powtórka daje 25% złota zaokrąglone w dół i nic poza tym', () => {
-    const save = cleared(['w1_l1', 'w1_l2']);
-    expect(victoryRewards(content, save, 'w1_l2')).toEqual({
+    const save = cleared(['w1_l1', 'w1_l2', 'w1_l3']);
+    const replay = Math.floor((goldOf('w1_l3') * content.progression.replayGoldPercent) / 100);
+    expect(content.progression.replayGoldPercent).toBe(25);
+    expect(victoryRewards(content, save, 'w1_l3')).toEqual({
       firstClear: false,
-      gold: 100,
+      gold: replay,
       rune: null,
     });
-    const again = applyVictory(content, save, 'w1_l2', 450);
-    expect(again?.save.gold).toBe(500 + 100);
+    const again = applyVictory(content, save, 'w1_l3', 450);
+    expect(again?.save.gold).toBe(save.gold + replay);
     expect(again?.save.runes).toEqual(['rune_hp_100']);
   });
 

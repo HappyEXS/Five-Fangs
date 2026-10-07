@@ -25,6 +25,11 @@ function start(storage: SaveStorage | null = memory().storage): Game {
   return createGame({ content, storage, gameVersion: '9.9.9', preferredLanguage: 'en' });
 }
 
+/** Nagrody czytamy z treści: te testy sprawdzają reguły gry, nie liczby balansu. */
+const goldOf = (level: string): number => content.levels.get(level)?.gold ?? 0;
+const FIRST = goldOf('w1_l1');
+const SECOND = goldOf('w1_l2');
+
 const WIN = { outcome: 'win', reason: 'eliminated', ticks: 400 } as const;
 const LOSS = { outcome: 'loss', reason: 'timeout', ticks: 2700 } as const;
 
@@ -48,7 +53,7 @@ describe('start gry', () => {
     game.finishBattle('w1_l1', WIN);
 
     const again = start(first.storage);
-    expect(again.save.value.gold).toBe(100);
+    expect(again.save.value.gold).toBe(FIRST);
     expect(again.save.value.gameVersion).toBe('9.9.9');
     expect(language.value).toBe('pl');
   });
@@ -102,7 +107,7 @@ describe('start gry', () => {
     const game = start(null);
     expect(game.storage.value).toBe('memory');
     game.finishBattle('w1_l1', WIN);
-    expect(game.save.value.gold).toBe(100);
+    expect(game.save.value.gold).toBe(FIRST);
     expect(game.storage.value).toBe('memory');
   });
 });
@@ -197,7 +202,7 @@ describe('wynik walki', () => {
       name: 'result',
       level: 'w1_l1',
       battle: WIN,
-      rewards: { firstClear: true, gold: 100, rune: null },
+      rewards: { firstClear: true, gold: FIRST, rune: null },
     });
     const stored = decodeSave(items.get(SAVE_KEY) ?? '');
     expect(stored.kind === 'ok' && stored.save.levels.w1_l1).toEqual({
@@ -245,8 +250,10 @@ describe('akcje gracza', () => {
     const game = start();
     game.finishBattle('w1_l1', WIN);
     game.finishBattle('w1_l2', WIN);
+    game.finishBattle('w1_l3', WIN);
     expect(game.upgrade(SWORD)).toBe(true);
-    expect(game.save.value.gold).toBe(500 - 50);
+    expect(game.save.value.gold).toBe(FIRST + SECOND + goldOf('w1_l3') - 50);
+    // Trzeci poziom daje pierwszą runę gry.
     expect(game.equipRune(SWORD, 0, 'rune_hp_100')).toBe(true);
   });
 
@@ -256,7 +263,7 @@ describe('akcje gracza', () => {
     game.finishBattle('w1_l1', WIN);
     game.finishBattle('w1_l2', WIN);
     expect(game.buyHero('beasts')).toBe(true);
-    expect(game.save.value.gold).toBe(500 - 200);
+    expect(game.save.value.gold).toBe(FIRST + SECOND - 200);
     expect(game.buyHero('swordsman')).toBe(true);
     expect(game.save.value.heroes.map((hero) => hero.line)).toEqual([
       'swordsman',
@@ -280,7 +287,7 @@ describe('eksport, import i reset', () => {
     const target = start();
     target.go({ name: 'shop' });
     expect(target.importSave(text)).toBe('ok');
-    expect(target.save.value.gold).toBe(100);
+    expect(target.save.value.gold).toBe(FIRST);
     // Po imporcie gra wraca na mapę z poziomem wynikającym z wczytanego postępu.
     expect(target.scene.value).toEqual({ name: 'map', selected: 'w1_l2' });
   });

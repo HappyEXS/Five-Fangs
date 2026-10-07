@@ -110,19 +110,14 @@ describe('dane progresji gry', () => {
       backdrop: 'castle',
       levels: ['w1_l1', 'w1_l2', 'w1_l3', 'w1_l4', 'w1_l5', 'w1_l6'],
     });
-    expect(content?.levels.get('w1_l2')).toEqual({
-      id: 'w1_l2',
-      world: 'world_1',
-      index: 1,
-      // Wrogami są tu zwykłe postacie gry: formy bohaterów.
-      enemies: [
-        { slot: 0, unit: 'swordsman_a', level: 0 },
-        { slot: 2, unit: 'archer_a', level: 0 },
-      ],
-      gold: 400,
-      rune: 'rune_hp_100',
-    });
+    // Kształt poziomu; same liczby należą do balansu i pilnuje ich raport `pnpm balance`.
+    const second = content?.levels.get('w1_l2');
+    expect(second).toMatchObject({ id: 'w1_l2', world: 'world_1', index: 1 });
+    // Wrogami są tu zwykłe postacie gry: formy bohaterów.
+    expect(second?.enemies.map((enemy) => enemy.unit)).toEqual(['swordsman_a', 'archer_a']);
+    expect(second?.gold).toBeGreaterThan(0);
     expect(content?.levels.get('w1_l1')?.rune).toBeNull();
+    expect(content?.levels.get('w1_l3')?.rune).toBe('rune_hp_100');
     expect(content?.runes.get('rune_attack_25')).toEqual({
       id: 'rune_attack_25',
       stat: 'attack',

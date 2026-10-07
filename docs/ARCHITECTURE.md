@@ -279,7 +279,7 @@ src/content/data/
   levels/world_N.json   poziomy świata w kolejności odblokowywania
   rigs/*.json           (od M2)
   clips/*.json          (od M2)
-  balance/reference-squads.json   składy referencyjne dla skryptu balansu
+  balance/reference-squads.json   skład odniesienia dla skryptu balansu poziomów: bohaterowie w kolejności kupowania (ADR 0025)
 src/content/i18n/pl.json, en.json
 ```
 
@@ -642,7 +642,7 @@ Preact jako nakładka DOM nad canvasem. Korzeń (`App.tsx`) pokazuje ekran bież
   - Panel na bieżąco pokazuje wynik `validateContent` dla treści gry z podmienionym rigiem, w tym niezgodność znacznika `hit` z `hitFraction` ataków używających klipu.
   - Eksport to wpis do obiektu `clips` w `rigs/<rig>.json`, w układzie tego pliku; import przyjmuje taki wpis albo sam obiekt klipu. Edytor nie zapisuje plików: klip wkleja się do pliku rigu ręcznie.
   - Stan początkowy z adresu: `clip`, `skin`, `stance`, `t`, `pivots=1`.
-- `scripts/balance.ts` (`pnpm balance`): dla każdego poziomu jedna walka na każdą rangę składu referencyjnego; raport w `reports/balance.md` (wynik, czas, zapas HP, najniższa wygrywająca ranga i ocena względem rangi oczekiwanej). Rangi A0–A4 to ulepszenia formy bazowej, B0–B4 formy po ewolucji; wszyscy członkowie składu mają tę samą rangę, bez run. Składy i rangi oczekiwane leżą w `src/content/data/balance/reference-squads.json`. Raport nie zawiera daty, więc jego diff między commitami pokazuje tylko zmiany balansu.
+- `scripts/balance.ts` (`pnpm balance`): balans poziomów (ADR 0025). Miarą jest złoto: `scripts/lib/reference-plan.ts` wylicza, co skład odniesienia ma za złoto zdobyte przed poziomem (najpierw brakujący bohaterowie, potem równy rozwój, zawsze całe złoto), a `scripts/lib/balance.ts` rozgrywa dla każdego poziomu trzy walki: tym składem bez run, z runami zdobytymi wcześniej (życie od frontu, atak od tyłu) i składem sprzed poprzedniej nagrody. Zwykły poziom jest „zgodny”, gdy pierwsza walka to wygrana, a trzecia przegrana; boss i poziomy po zamknięciu rozwoju składu, gdy bez run jest przegrana, a z runami wygrana. Raport w `reports/balance.md`, bez daty. Test `scripts/lib/level-rules.test.ts` pilnuje reguł autora na treści gry: suma i wzrost nagród, liczba wrogów, kolejność Akronixów, Axiny jako bossowie i ocena „zgodny” na każdym poziomie.
 - `scripts/balance-heroes.ts` (`pnpm balance:heroes`): balans bohaterów (ADR 0024). Dla każdej formy pojedynki z pozostałymi formami tego samego stopnia, z obu stron pola, i wartość w drużynie (forma w trójce ludzi swojego stopnia przeciw takiej samej trójce); dla drużyn pokazowych szczepów walki 5 na 5 bez ulepszeń i z kompletem. Raport w `reports/heroes.md`, bez daty. Logika leży w `scripts/lib/hero-balance.ts`, a test obok niej pilnuje reguł autora: ludzie słabsi od szczepów ze szkiców, żaden szczep ze szkiców nie wygrywa ani nie przegrywa ze wszystkimi, postacie walczące wręcz w skali szybkości 40–130.
 - `scripts/run-battle.ts` (`pnpm battle`): walka w konsoli z logiem zdarzeń.
 - `scripts/bench-sim.ts` (`pnpm bench`): pomiar budżetów symulacji.

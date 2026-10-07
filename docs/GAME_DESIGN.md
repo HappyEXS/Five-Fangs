@@ -245,7 +245,7 @@ Znane nierówności, zostawione świadomie:
 - **Orb** wygrywa pojedynek z każdą inną formą bazową (350 życia i strzał wobec 200 życia form walczących wręcz); to liczby ze szkicu i tylko pierwszy stopień gry.
 - **Ignitix, Ultimus i Enigmatix** wygrywają po 21 z 23 pojedynków form końcowych, **Toxic Ivy** nie wygrywa żadnego (jej pocisk bije wszystkich po trochu, więc liczy się w drużynie), **Mother-tree** żadnego nie przegrywa. Szczepy jako całość są wyrównane, więc tych liczb ze szkiców nie ruszałem.
 - **Runy mają wartości płaskie** (życie +100, +200, +400; atak +10, +25, +50) i przy niskich liczbach ludzi ważą dużo więcej niż przedtem. Do osobnej decyzji.
-- Poziomy światów 2–6 nadal mają przeciwników ze wzoru; dwuosobowy skład startowy ludzi przegrywa tam częściej niż przed zmianą (raport `reports/balance.md`).
+- Przeciwnicy i nagrody wszystkich światów są zbalansowane osobno, do pięcioosobowego składu odniesienia (§7, „Balans poziomów i nagród”).
 
 ### Szczep Akronix (wrogowie)
 
@@ -446,7 +446,7 @@ Reguły, których pilnuje walidator treści: ceny rosną ze stopniem, a ewolucja
 - Jednostek specjalnych (przeciwników takich jak Osiłek czy Herszt) nie ma w sklepie.
 - Ceny wyjściowe: każdy szczep 200 za formę bazową.
 
-Nagrody pierwszego świata („Zamek”) były policzone pod dawne koszty tak, by pierwsze przejścia opłacały ulepszenia dwóch bohaterów startowych. Przy kosztach według stopnia (§5.2) wystarczają na to z zapasem: po pięciu poziomach zostaje ok. 2500 złota na dodatkowych bohaterów. Ceny i nagrody do korekty przy docelowym balansie.
+Nagrody są policzone razem z przeciwnikami (§7, „Balans poziomów i nagród”): trzy pierwsze poziomy gry dają po 200 złota, czyli po jednym bohaterze, a cała gra ok. 60 000.
 
 ## 6. Cechy pasywne
 
@@ -489,7 +489,7 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 - Każdy świat ma własne tło, własny kształt szlaku i własne nazwy poziomów. Tło idzie za światem: mapa, walka i wynik pokazują tło świata swojego poziomu, a skład, sklep i bohaterowie zostają na tle, z którego gracz przyszedł.
 - **Mapa pokazuje jeden świat naraz.** Duże strzałki przy lewej i prawej krawędzi sceny przechodzą do sąsiedniego świata. Pod nazwą świata stoi rząd sześciu kłów, po jednym na świat: świat odbity, w toku albo zablokowany; kieł też przełącza świat. Świat otwiera się na pierwszym nieprzeszłym poziomie, a odbity na swoim bossie.
 - Świat jest **odbity**, gdy wszystkie jego poziomy są przeszłe.
-- Szósty poziom świata to **boss**: większa jednostka z unikalną cechą lub kombinacją cech, zwykle z obstawą.
+- Szósty poziom świata to **boss**: mocniejsza jednostka z obstawą; od świata 3 jest nim Axin. Boss wymaga run (niżej, „Balans poziomów i nagród”).
 - **Wrogami są zwykłe postacie z gry oraz jednostki specjalne.** Poziom może wystawić dowolną formę bohatera (np. Miecznika albo Rycerza) i jednostki, których gracz nie może zdobyć ani ewoluować (szczep Akronix, §3).
 - Poziomy odblokowują się kolejno przez całą grę: boss świata odblokowuje pierwszy poziom następnego. Przeszły poziom można powtarzać.
 - **Zablokowany poziom można obejrzeć** (przeciwnicy na scenie, nagroda na tabliczce), także w świecie, do którego gracz jeszcze nie doszedł, ale nie można na nim walczyć: przycisk walki jest nieaktywny, a pod nim stoi, który poziom trzeba przejść najpierw.
@@ -499,11 +499,12 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 {
   "id": "w2_l3",
   "enemies": [
-    { "slot": 0, "unit": "egzo_bot", "level": 2 },
+    { "slot": 0, "unit": "egzo_bot", "level": 5 },
     { "slot": 1, "unit": "egzo_bot", "level": 2 },
-    { "slot": 3, "unit": "holo_bot", "level": 2 }
+    { "slot": 2, "unit": "bot", "level": 2 },
+    { "slot": 3, "unit": "bot", "level": 5 }
   ],
-  "rewards": { "gold": 3000, "rune": "rune_hp_100" }
+  "rewards": { "gold": 600, "rune": "rune_hp_100" }
 }
 ```
 
@@ -511,81 +512,109 @@ Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania; św
 
 `level` wroga skaluje `maxHp` i `attack` tak samo jak ulepszenia bohatera: +10% wartości bazowej na poziom (wyjściowo, `upgradePercent` w `progression.json`), z zaokrągleniem w dół. Mapa pokazuje go tak samo jak ulepszenia bohatera, jako „+N” przy nazwie; wróg na poziomie 0 nie ma oznaczenia.
 
-### Poziomy (treść wstępna z 2026-10-07)
+### Balans poziomów i nagród (2026-10-07)
 
-Autor gry zamówił na razie widoki map i nazwy poziomów oraz po 2–3 przeciwników ze szczepu świata na poziom; **balans przeciwników i nagród zostaje na później**. Stan dzisiejszy:
+Decyzje autora gry (ADR 0025):
 
-- **Świat 1 jest dostrojony** do składu startowego (Miecznik w slocie 1, Łucznik w slocie 2, bez run): kolumna „Skład startowy wygrywa od” to zarazem ranga oczekiwana, której pilnuje raport `pnpm balance`. Złoto za pierwsze przejścia wystarcza na rangę oczekiwaną na następnym poziomie (od zmiany kosztów w ADR 0023 z zapasem; dawniej dokładnie). Rangi i nagrody są te same co w dawnym świecie testowym „Las”, więc nowa gra jest do przejścia.
-- **Światy 2–6 mają liczby ze wzoru**, bez balansu. Poziom siły wrogów to (numer świata − 1) + połowa z (numer etapu − 1), w dół. Złoto etapów 1–5 to (1000 + 250 × (etap − 1)) × numer świata; boss daje 1500 × numer świata i runę; drugą runę daje trzeci etap światów 2–5. Kolumna „Skład startowy wygrywa od” jest tu pomiarem, nie celem: pokazuje, jak daleko liczbom do balansu (pierwsze etapy późniejszych światów są dziś łatwiejsze niż boss Zamku, a dziewięciu poziomów dwuosobowy skład startowy nie wygrywa na żadnej randze, bo gracz ma mieć wtedy pięciu bohaterów).
-- Skład startowy nie jest dobrą miarą dla światów 2–6; składy referencyjne na dalsze światy dojdą przy balansie.
+- **Złoto:** cała gra daje za pierwsze przejścia ok. 60 000, czyli na dziesięciu maksymalnie rozwiniętych bohaterów (komplet jednej piątki to 31 600); w pierwszych światach mniej, w dalszych więcej.
+- **Liczba wrogów:** od trzech do pięciu na poziom, od świata 3 zwykle pięciu. Wyjątek: dwa pierwsze poziomy gry mają po dwóch, bo dwaj bohaterowie startowi nie pokonują trzech nawet najsłabszych wrogów.
+- **Akronix** pojawiają się w każdym świecie, raz na jakiś czas, w kolejności swojego pocztu. Axin 1 kończy świat 3, Axin 2 świat 4, Axin 3 świat 5, a w świecie 6 wracają wszyscy trzej. Finałowego bossa gry autor zaprojektuje później; do tego czasu w finale stoją trzej Axiny.
+- **Trudność: wymagająco.** Zwykłe poziomy bez zapasu, a bossowie wymagają run albo powtórzenia wcześniejszych poziomów dla złota.
 
-Rangi: litera to stopień formy (A bazowa, B po pierwszej ewolucji, C po drugiej), cyfra to liczba ulepszeń.
+Jak to jest policzone:
 
-### Świat 1: Zamek
+- **Skład odniesienia** to pięciu bohaterów: Miecznik i Łucznik ze startu oraz kupieni po kolei Bot (Robots), Monstrosity (Beasts, drogą Reaper → Tuskovator) i Orb (Immortals). Wydaje całe zdobyte złoto: najpierw kupuje brakujących bohaterów, potem rozwija wszystkich równo.
+- **Zwykły poziom:** skład odniesienia bez run wygrywa, a skład sprzed poprzedniej nagrody już nie. Poziom wymaga więc złota ze wszystkich wcześniejszych poziomów i ani trochę więcej; runy dają margines.
+- **Boss** (szósty poziom świata): skład odniesienia bez run przegrywa, z runami zdobytymi wcześniej wygrywa.
+- **Cytadela:** skład odniesienia kończy rozwój w piątym świecie, więc każdy poziom szóstego świata jest strojony jak boss, a jego złoto służy budowie drugiego składu.
+- Rangi w tabelach idą od frontu: litera to stopień formy (A bazowa, B po pierwszej ewolucji, C po drugiej), cyfra to liczba ulepszeń. „5 × B2” to pięciu bohaterów na tej samej randze.
 
-| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+Nagrody: trzy pierwsze poziomy dają po 200 złota, czyli po jednym bohaterze, więc gracz ma pełną piątkę przed czwartym poziomem gry. Dalej każda nagroda kupuje składowi odniesienia co najmniej jeden krok rozwoju. Runa życia czeka na trzecim poziomie każdego świata, runa ataku u bossa.
+
+| Świat | Złoto | Razem od początku |
+|---|---|---|
+| 1 Zamek | 1 600 | 1 600 |
+| 2 Mechanus town | 4 000 | 5 600 |
+| 3 Living swamps | 6 800 | 12 400 |
+| 4 Jungle of doom | 10 900 | 23 300 |
+| 5 Tower of time | 13 800 | 37 100 |
+| 6 Cytadela Akronix | 22 900 | 60 000 |
+
+Poziom siły przy wrogu („+N”) to +10% życia i ataku na punkt. Liczby dobrał skrypt: dla każdego poziomu najtrudniejsze ustawienie, które skład odniesienia jeszcze przechodzi. Raport `pnpm balance` (`reports/balance.md`) pokazuje wynik każdego poziomu, a test reguł pilnuje, żeby wszystkie zostały „zgodne”.
+
+### Świat 1: Zamek (1600 złota)
+
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Podgrodzie | 0: Łucznik 0; 1: Łucznik 0 | A0 | 100 |  |
-| Most zwodzony | 0: Miecznik 0; 2: Łucznik 0 | A1 | 400 | życie +100 |
-| Brama | 0: Miecznik 1; 1: Miecznik 1 | A3 | 860 |  |
-| Dziedziniec | 0: Tarczownik 0; 2: Łucznik 2; 3: Łucznik 2 | B0 | 1400 | atak +10 |
-| Zbrojownia | 0: Zbrojny 0; 1: Tarczownik 0; 3: Strzelec 1 | B2 | 2600 |  |
-| Sala tronowa | 0: Zbrojny 5; 1: Tarczownik 1; 3: Strzelec 2 | B4 | 1000 | życie +200 |
+| Podgrodzie | Łucznik, Łucznik +1 | 200 |  | 2 × A0 |
+| Most zwodzony | Miecznik +4, Łucznik +5 | 200 |  | 3 × A0 |
+| Brama | Miecznik +3, Łucznik +3, Łucznik | 200 | życie +100 | 4 × A0 |
+| Dziedziniec | Miecznik +1, Miecznik +1, Łucznik, Bowix +2 | 250 |  | 5 × A0 |
+| Zbrojownia | Tarczownik +3, Miecznik +3, Łucznik +4, Łucznik +5 | 300 |  | 5 × A1 |
+| Sala tronowa (boss) | Zbrojny +1, Tarczownik +1, Łucznik, Assasinix | 450 | atak +10 | A3 A2 A2 A2 A2, runy: 1 |
 
-### Świat 2: Mechanus town
+### Świat 2: Mechanus town (4000 złota)
 
-| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Złomowisko | 0: Bot 1; 1: Bot 1; 2: Bot 1 | A0 | 2000 |  |
-| Rogatki | 0: Egzo-bot 1; 1: Bot 1; 3: Holo-bot 1 | A4 | 2500 |  |
-| Hala montażowa | 0: Egzo-bot 2; 1: Egzo-bot 2; 3: Holo-bot 2 | B0 | 3000 | życie +100 |
-| Odlewnia | 0: Ax-bot 2; 1: Egzo-bot 2; 3: Thermobot 2 | C1 | 3500 |  |
-| Elektrownia | 0: Whirl-bot 3; 1: Ax-bot 3; 3: Holo-bot 3 | nie wygrywa | 4000 |  |
-| Rdzeń | 0: Titan-bot 3; 1: Whirl-bot 3; 3: Thermobot 3 | nie wygrywa | 3000 | atak +25 |
+| Złomowisko | Egzo-bot +2, Bot +4, Bot +5 | 450 |  | 5 × A4 |
+| Rogatki | Egzo-bot +2, Bot +4, Bot +1, Bowix +3 | 500 |  | B0 A4 A4 A4 A4 |
+| Hala montażowa | Egzo-bot +5, Egzo-bot +2, Bot +2, Bot +5 | 600 | życie +100 | B0 A4 B0 A4 A4 |
+| Odlewnia | Katanix +2, Egzo-bot +3, Bot +2, Bot +4 | 700 |  | B0 A4 B0 B0 A4 |
+| Elektrownia | Egzo-bot, Bot +3, Bot +2, Holo-bot +1, Bowix +1 | 800 |  | B1 B0 B0 B0 B0 |
+| Rdzeń (boss) | Titan-bot, Defenix +1, Bot +1, Bot +1, Holo-bot +1 | 950 | atak +10 | 5 × B1, runy: 3 |
 
-### Świat 3: Living swamps
+### Świat 3: Living swamps (6800 złota)
 
-| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Skraj bagien | 0: Bush 2; 2: Bush 2 | A0 | 3000 |  |
-| Zgniła kładka | 0: Trunk 2; 2: Bush 2; 3: Bush 2 | A2 | 3750 |  |
-| Cierniowy gąszcz | 0: Trunk 3; 2: Ivy 3; 3: Bush 3 | B0 | 4500 | atak +10 |
-| Mglista topiel | 0: Oak warrior 3; 2: Trunk 3; 3: Ivy 3 | B3 | 5250 |  |
-| Trujący gaj | 0: Oak warrior 4; 2: Toxic Ivy 4; 3: Ice Ivy 4 | nie wygrywa | 6000 |  |
-| Serce bagien | 0: Oak warrior 4; 2: Mother-tree 4; 4: Ice Ivy 4 | nie wygrywa | 4500 | życie +400 |
+| Skraj bagien | Trunk +3, Bush +3, Bush +1, Ivy +3, Bush +3 | 700 |  | 5 × B2 |
+| Zgniła kładka | Trunk, Bush +3, Poisonix +1, Bush +2, Bush +3 | 750 |  | B3 B2 B3 B3 B2 |
+| Cierniowy gąszcz | Trunk +2, Bush +2, Trunk +1, Ivy +1, Ivy | 850 | życie +200 | B4 B3 B4 B3 B3 |
+| Mglista topiel | Hornix +5, Bush +4, Bush +5, Bush +4, Bowix +6 | 1300 |  | 5 × B4 |
+| Trujący gaj | Kaisarix +1, Trunk +1, Bush +1, Ivy, Bush +2 | 1600 |  | C0 B4 B4 B4 B4 |
+| Serce bagien (boss) | Axin 1 +4, Oak warrior +3, Trunk +4, Ivy +3, Bush +4 | 1600 | atak +25 | C0 B4 C0 B4 B4, runy: 5 |
 
-### Świat 4: Jungle of doom
+### Świat 4: Jungle of doom (10900 złota)
 
-| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Ścieżka łowców | 0: Monstrosity 3; 1: Monstrosity 3; 2: Monstrosity 3 | A0 | 4000 |  |
-| Wodopój | 0: Reaper 3; 1: Monstrosity 3; 3: Batfang 3 | B0 | 5000 |  |
-| Legowisko | 0: Reaper 4; 1: Reaper 4; 3: Batfang 4 | B0 | 6000 | życie +200 |
-| Żebra olbrzyma | 0: Ironbeak 4; 1: Reaper 4; 3: Spiker 4 | B2 | 7000 |  |
-| Wąwóz kłów | 0: Tuskovator 5; 1: Ironbeak 5; 3: Spiker 5 | B3 | 8000 |  |
-| Paszcza wulkanu | 0: Tuskovator 5; 1: Ironbeak 5; 4: Ignitix 5 | nie wygrywa | 6000 | atak +50 |
+| Ścieżka łowców | Tuskovator +9, Ironbeak +9, Reaper +8, Batfang +9, Batfang +9 | 1600 |  | C0 B4 C0 C0 B4 |
+| Wodopój | Ironbeak +7, Tuskovator +7, Defenix +8, Batfang +8, Assasinix +8 | 1600 |  | C0 B4 C0 C0 C0 |
+| Legowisko | Tuskovator +2, Ironbeak +3, Reaper +3, Ignitix +3, Batfang +3 | 1700 | życie +200 | 5 × C0 |
+| Żebra olbrzyma | Hornix +6, Tuskovator +7, Ironbeak +7, Batfang +7, Poisonix +6 | 1800 |  | C1 C0 C1 C0 C0 |
+| Wąwóz kłów | Tuskovator +1, Ironbeak +2, Kaisarix, Spiker +1, Ignitix | 1900 |  | C1 C0 C1 C1 C1 |
+| Paszcza wulkanu (boss) | Axin 2 +1, Tuskovator, Reaper +2, Ignitix +2, Batfang +2 | 2300 | atak +25 | C2 C1 C1 C1 C1, runy: 7 |
 
-### Świat 5: Tower of time
+### Świat 5: Tower of time (13800 złota)
 
-| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Podnóże wieży | 1: Orb 4; 2: Orb 4 | A2 | 5000 |  |
-| Schody bez końca | 0: Guardian of hell 4; 2: Orb 4; 3: Orb 4 | B0 | 6250 |  |
-| Sala zegarów | 0: Guardian of hell 5; 2: Cardinal 5; 3: Orb 5 | B0 | 7500 | atak +25 |
-| Wahadło | 0: Xartix 5; 2: Cardinal 5; 3: Cardinal 5 | C1 | 8750 |  |
-| Komnata gwiazd | 0: Enigmatix 6; 1: Xartix 6; 4: Polaris 6 | nie wygrywa | 10000 |  |
-| Szczyt wieży | 0: Enigmatix 6; 2: Ultimus 6; 4: Polaris 6 | nie wygrywa | 7500 | życie +400 |
+| Podnóże wieży | Xartix +5, Xartix +5, Cardinal +6, Cardinal +6, Polaris +6 | 2000 |  | C2 C1 C2 C2 C2 |
+| Schody bez końca | Enigmatix +3, Xartix +3, Cardinal +4, Poisonix +4, Polaris +3 | 2100 |  | C3 C2 C3 C2 C2 |
+| Sala zegarów | Enigmatix +5, Xartix +2, Cardinal +5, Ultimus +4, Polaris +3 | 2200 | życie +400 | C3 C2 C3 C3 C3 |
+| Wahadło | Kaisarix +2, Enigmatix +5, Hornix +2, Ultimus +4, Polaris +4 | 2300 |  | C4 C3 C4 C3 C3 |
+| Komnata gwiazd | Enigmatix +3, Enigmatix +4, Xartix +1, Ultimus +3, Ultimus +1 | 2400 |  | 5 × C4 |
+| Szczyt wieży (boss) | Axin 3 +2, Enigmatix +3, Xartix +4, Ultimus +2, Polaris +3 | 2800 | atak +50 | 5 × C4, runy: 9 |
 
-### Świat 6: Cytadela Akronix
+### Świat 6: Cytadela Akronix (22900 złota)
 
-| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Czaty zwiadowców | 1: Bowix 5; 2: Assasinix 5; 3: Bowix 5 | B0 | 6000 |  |
-| Koszary | 0: Katanix 5; 1: Defenix 5; 3: Bowix 5 | B2 | 7500 |  |
-| Pracownia trucizn | 0: Defenix 6; 2: Poisonix 6; 3: Assasinix 6 | C2 | 9000 |  |
-| Stajnie bestii | 0: Hornix 6; 1: Hornix 6; 3: Poisonix 6 | C3 | 10500 |  |
-| Sala wojenna | 0: Kaisarix 7; 1: Defenix 7; 3: Poisonix 7 | nie wygrywa | 12000 |  |
-| Tron Axinów | 0: Axin 1 7; 1: Axin 2 7; 2: Axin 3 7 | nie wygrywa | 9000 | atak +50 |
+| Czaty zwiadowców | Katanix +23, Defenix +22, Bowix +23, Assasinix +22, Assasinix +22 | 3000 |  | 5 × C4, runy: 10 |
+| Koszary | Defenix +16, Defenix +17, Katanix +17, Katanix +16, Poisonix +16 | 3400 |  | 5 × C4, runy: 10 |
+| Pracownia trucizn | Kaisarix +11, Hornix +11, Defenix +10, Poisonix +11, Poisonix +11 | 3700 | życie +400 | 5 × C4, runy: 10 |
+| Stajnie bestii | Kaisarix +6, Kaisarix +8, Hornix +7, Hornix +6, Poisonix +7 | 4000 |  | 5 × C4, runy: 11 |
+| Sala wojenna | Axin 1 +5, Axin 2 +4, Kaisarix +5, Hornix +5, Poisonix +5 | 4300 |  | 5 × C4, runy: 11 |
+| Tron Axinów (boss) | Axin 3, Axin 2 +1, Axin 1 +1, Kaisarix, Poisonix +1 | 4500 | atak +50 | 5 × C4, runy: 11 |
+
+Co warto wiedzieć:
+
+- **Pierwsza nagroda jest na trzeciego bohatera.** Kto wyda ją na ulepszenia, na drugim poziomie przegra i będzie musiał powtarzać pierwszy; gra tego dziś nie podpowiada.
+- **Drugi Łucznik zamiast bohatera innego szczepu** też nie wystarcza na drugi poziom, a drugi Miecznik wystarcza ledwo: ludzie są najsłabszym wyborem (§3).
+- **Poziomy siły w Cytadeli są wysokie** (do +23), bo niskie stopnie Akronixów mają liczby dużo niższe niż rozwinięty skład gracza. Liczba maleje z poziomu na poziom, choć poziomy są coraz trudniejsze, bo stają na nich mocniejsze postacie.
+- **Mother-tree nie stoi na żadnym poziomie:** z 10 000 życia jako przeciwnik kończy walkę limitem czasu.
+- **Bossem Zamku jest Zbrojny**, nie Rycerz: forma końcowa jest za mocna na skład z form bazowych.
 
 ## 8. Prezentacja
 
@@ -607,12 +636,12 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 | Kwestia | Stan |
 |---|---|
 | Roster: sześć szczepów po siedem form | W grze. Liczby po balansie z 2026-10-07 (§3, „Balans bohaterów”, ADR 0024) do oceny autora: ludzie ok. 70% siły innych szczepów, ściśnięta skala szybkości, jedna zmiana liczby ze szkicu (leczenie Ice Ivy). Nazwy sześciu nowych form ludzi to nadal propozycja wykonawcy |
-| Runy przy niskich liczbach ludzi | Wartości płaskie (życie +100 do +400, atak +10 do +50) ważą po balansie dużo więcej u ludzi niż u innych szczepów; do decyzji, czy mają zostać płaskie |
-| Boss Zamku | Rycerza w „Sali tronowej” zastąpił Zbrojny +5, bo po balansie dwóch bohaterów po pierwszej ewolucji nie pokonuje żadnej formy końcowej walczącej wręcz; do ustalenia przy balansie poziomów |
+| Siła run | Wartości płaskie (życie +100 do +400, atak +10 do +50) ważą dużo, zwłaszcza u ludzi. Bossowie są strojeni tak, żeby run wymagać, a na zwykłych poziomach runy dają duży margines (skład odniesienia kończy wtedy zwykle z kilkunastoma albo kilkudziesięcioma procentami życia zamiast z ok. 8%). Do decyzji, czy mają zostać tak mocne |
+| Finałowy boss gry | Autor zaprojektuje go później; do tego czasu w „Tronie Axinów” stoją trzej Axiny z Kaisarixem i Poisonixem |
+| Podpowiedź na początek gry | Pierwsza nagroda jest pomyślana na trzeciego bohatera; kto wyda ją na ulepszenia, utknie na drugim poziomie. Do rozwiązania przy wprowadzeniu do gry (M6) |
 | Koszty ulepszeń i ewolucji | Reguły od autora (2026-10-07): stała cena ulepszenia, ewolucja droższa, ceny rosną ze stopniem. Liczby (50 / 200 / 800 i 400 / 1600) to propozycja wykonawcy, do oceny autora i do balansu (§5.2, ADR 0023) |
-| Sześć światów: nazwy, tła, przeciwnicy | Światy i motyw od autora (2026-10-07); w grze jest sześć światów z tłami, szlakami i nazwami poziomów (§7). Do oceny autora: nazwy „Zamek” i „Cytadela Akronix”, nazwy 36 poziomów, wygląd teł, podgląd zablokowanych poziomów. Do zrobienia: balans przeciwników i nagród światów 2–6, składy referencyjne na dalsze światy |
-| Czy w światach szczepów mają stać także Akronix | Motyw mówi o najeźdźcach, a poziomy światów 2–5 wystawiają dziś tylko formy swojego szczepu (zgodnie z zamówieniem autora) |
-| Ostateczne koszty, nagrody i ułamek za powtórki | Przy balansie; gra jest dziś tańsza niż przed zmianą kosztów (bohater do końca drogi za 6400 zamiast 10 280), a nagrody światów 2–6 pochodzą ze wzoru |
+| Sześć światów: nazwy, tła, przeciwnicy | Światy i motyw od autora (2026-10-07); w grze jest sześć światów z tłami, szlakami i nazwami poziomów (§7). Do oceny autora: nazwy „Zamek” i „Cytadela Akronix”, nazwy 36 poziomów, wygląd teł, podgląd zablokowanych poziomów. Przeciwnicy i nagrody są zbalansowane od 2026-10-07 (§7, ADR 0025); rozkład nagród, składy wrogów i skład odniesienia do oceny autora |
+| Ułamek za powtórki | 25% nagrody; przy bossach, które wymagają run albo powtórek, decyduje o tym, ile trzeba powtarzać. Nie był strojony |
 | Czy gra może być osadzana na innych stronach (`frame-ancestors`) | Przed premierą |
 | Hosting publiczny | Przed premierą (M6) |
 

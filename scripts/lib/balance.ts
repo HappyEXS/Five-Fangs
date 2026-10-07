@@ -1,140 +1,132 @@
-// Skrypt balansu: dla każdego poziomu rozgrywa walkę składu referencyjnego na każdej randze
-// i porównuje najniższą wygrywającą rangę z oczekiwaną. Walka nie ma losowości (ADR 0002),
-// więc jedna walka na rangę daje pełną odpowiedź.
-import { z } from 'zod';
-import type { ContentIssue } from '../../src/content/issues.ts';
+// Skrypt balansu poziomów (ADR 0025). Miarą jest złoto: przed każdym poziomem gracz zdobył
+// określoną sumę nagród, a skład odniesienia (reference-plan.ts) pokazuje, co za nią ma. Poziom
+// jest dobrze ustawiony, gdy ten skład wygrywa, a skład sprzed poprzedniej nagrody już nie.
+// Bossowie i poziomy po zamknięciu rozwoju składu wymagają dodatkowo run zdobytych wcześniej.
+// Walka nie ma losowości (ADR 0002), więc jedna walka daje pełną odpowiedź.
 import type { GameContent } from '../../src/content/load.ts';
-import type { CompiledLine } from '../../src/content/load-progression.ts';
+import type { CompiledLevel } from '../../src/content/load-progression.ts';
 import { levelSetup, type SquadMember } from '../../src/content/resolve-spec.ts';
+import type { Rune } from '../../src/content/schema-progression.ts';
 import { TICKS_PER_SECOND } from '../../src/core/units.ts';
-import { displayPath } from '../../src/game/evolution.ts';
 import { type BattleSetup, createBattle, runBattleToEnd, TEAM_SIZE } from '../../src/sim/index.ts';
+import { type PlannedSquad, type Reference, squadForGold, squadLabel } from './reference-plan.ts';
 
-const id = z.string().regex(/^[a-z][a-z0-9_]*$/);
-
-export const referenceSchema = z.strictObject({
-  /** Składy referencyjne: linie bohaterów na slotach. Wszyscy członkowie mają tę samą rangę. */
-  squads: z.array(
-    z.strictObject({
-      id,
-      members: z
-        .array(z.strictObject({ slot: z.number().int().min(0).max(4), line: id }))
-        .min(1)
-        .max(5),
-    }),
-  ),
-  /** Dla każdego poziomu: skład i ranga, przy której poziom ma być do przejścia. */
-  levels: z.record(id, z.strictObject({ squad: id, expectedRank: z.number().int().nonnegative() })),
-});
-
-export type Reference = z.infer<typeof referenceSchema>;
-
-/**
- * Główna droga ewolucji linii, po której idą rangi składu referencyjnego: na każdym stopniu
- * pierwsza z następnych form w kolejności z treści (ADR 0016).
- */
-function mainPath(line: CompiledLine): string[] {
-  return displayPath(line, line.base);
-}
-
-/**
- * Liczba rang: kolejne ulepszenia każdej formy głównej drogi, dla najdłuższej drogi wśród linii.
- * Linia o krótszej drodze na dalszych rangach zostaje na swojej ostatniej formie z kompletem.
- */
-export function rankCount(content: GameContent): number {
-  let tiers = 1;
-  for (const line of content.lines.values()) tiers = Math.max(tiers, mainPath(line).length);
-  return tiers * (content.progression.maxUpgrades + 1);
-}
-
-/** Etykieta rangi: litera stopnia (A forma bazowa, B pierwsza ewolucja...) i liczba ulepszeń. */
-export function rankLabel(content: GameContent, rank: number): string {
-  const perForm = content.progression.maxUpgrades + 1;
-  return `${String.fromCharCode(65 + Math.floor(rank / perForm))}${rank % perForm}`;
-}
-
-export function validateReference(content: GameContent, reference: Reference): ContentIssue[] {
-  const source = 'balance/reference-squads.json';
-  const issues: ContentIssue[] = [];
-  const squadIds = new Set<string>();
-  for (const squad of reference.squads) {
-    if (squadIds.has(squad.id)) issues.push({ source, message: `powtórzone id "${squad.id}"` });
-    squadIds.add(squad.id);
-    const slots = new Set<number>();
-    for (const member of squad.members) {
-      if (slots.has(member.slot)) {
-        issues.push({ source, message: `${squad.id}: slot ${member.slot} użyty więcej niż raz` });
-      }
-      slots.add(member.slot);
-      if (!content.lines.has(member.line)) {
-        issues.push({ source, message: `${squad.id}: nieznana linia "${member.line}"` });
-      }
-    }
-  }
-  for (const [levelId, entry] of Object.entries(reference.levels)) {
-    if (!content.levels.has(levelId)) {
-      issues.push({ source, message: `nieznany poziom "${levelId}"` });
-    }
-    if (!squadIds.has(entry.squad)) {
-      issues.push({ source, message: `${levelId}: nieznany skład "${entry.squad}"` });
-    }
-    if (entry.expectedRank >= rankCount(content)) {
-      issues.push({ source, message: `${levelId}: ranga ${entry.expectedRank} poza zakresem` });
-    }
-  }
-  for (const levelId of content.levels.keys()) {
-    if (reference.levels[levelId] === undefined) {
-      issues.push({ source, message: `brak składu referencyjnego dla poziomu "${levelId}"` });
-    }
-  }
-  return issues;
-}
-
-export interface RankResult {
+export interface FightResult {
   readonly win: boolean;
   readonly reason: 'eliminated' | 'mutual' | 'timeout';
   readonly ticks: number;
-  /** Procent początkowego HP, który został zwycięskiej stronie (gracza przy wygranej, wrogów przy przegranej). */
+  /** Procent początkowego życia, który został zwycięskiej stronie. */
   readonly remainingHpPercent: number;
 }
 
+export type Verdict = 'zgodny' | 'za łatwy' | 'za trudny';
+
 export interface LevelReport {
   readonly level: string;
+  /** Ostatni poziom świata. */
+  readonly boss: boolean;
+  /** Złoto z pierwszych przejść wszystkich wcześniejszych poziomów. */
+  readonly goldBefore: number;
+  /** Skład odniesienia przed tym poziomem, np. „5 × B2”. */
   readonly squad: string;
-  readonly expectedRank: number;
-  /** Najniższa ranga, na której skład wygrywa, albo null. */
-  readonly minWinningRank: number | null;
-  readonly verdict: 'zgodny' | 'za łatwy' | 'za trudny';
-  /** Wynik dla każdej rangi, indeks = ranga. */
-  readonly ranks: readonly RankResult[];
+  /** Liczba run zdobytych przed tym poziomem. */
+  readonly runes: number;
+  /** Poziom wymaga run: boss albo poziom po tym, jak skład kupił już wszystko. */
+  readonly needsRunes: boolean;
+  /** Skład odniesienia bez run. */
+  readonly plain: FightResult;
+  /** Skład odniesienia z runami zdobytymi wcześniej. */
+  readonly runed: FightResult;
+  /** Skład sprzed poprzedniej nagrody, bez run; null na pierwszym poziomie gry. */
+  readonly previous: FightResult | null;
+  /** Najwcześniejszy poziom, przed którym złota wystarcza na wygraną bez run; null, gdy nigdy. */
+  readonly enoughFrom: string | null;
+  readonly verdict: Verdict;
 }
 
-function squadAtRank(
-  content: GameContent,
-  squad: Reference['squads'][number],
-  rank: number,
-): (SquadMember | null)[] {
-  const perForm = content.progression.maxUpgrades + 1;
-  const members: (SquadMember | null)[] = [null, null, null, null, null];
-  for (const member of squad.members) {
-    const line = content.lines.get(member.line);
-    const path = line === undefined ? [] : mainPath(line);
-    const tier = Math.floor(rank / perForm);
-    const formId = path[Math.min(tier, path.length - 1)];
-    const unit = formId === undefined ? undefined : content.heroes.get(formId);
-    if (unit === undefined)
-      throw new Error(`Reference squad "${squad.id}": bad line "${member.line}"`);
-    const upgrades = tier < path.length ? rank % perForm : content.progression.maxUpgrades;
-    members[member.slot] = { unit, rank: upgrades, runes: [] };
+/** Poziomy w kolejności gry. */
+export function levelOrder(content: GameContent): CompiledLevel[] {
+  const order: CompiledLevel[] = [];
+  for (const world of content.worlds) {
+    for (const levelId of world.levels) {
+      const level = content.levels.get(levelId);
+      if (level !== undefined) order.push(level);
+    }
   }
-  return members;
+  return order;
+}
+
+/** Złoto z pierwszych przejść zdobyte przed każdym poziomem; ostatni element to suma całej gry. */
+export function goldBefore(content: GameContent): number[] {
+  const sums = [0];
+  for (const level of levelOrder(content)) sums.push((sums[sums.length - 1] ?? 0) + level.gold);
+  return sums;
+}
+
+/** Runy zdobyte przed poziomem o indeksie `index` w kolejności gry. */
+export function earnedRunes(content: GameContent, index: number): Rune[] {
+  const runes: Rune[] = [];
+  for (const level of levelOrder(content).slice(0, index)) {
+    const rune = level.rune === null ? undefined : content.runes.get(level.rune);
+    if (rune !== undefined) runes.push(rune);
+  }
+  return runes;
+}
+
+/**
+ * Rozdaje runy składowi odniesienia: runy życia od najmocniejszej idą po kolei od frontu, runy
+ * ataku od tyłu; pełny bohater jest pomijany, a nadmiarowe runy zostają niewłożone. Zwraca runy
+ * per bohater, w kolejności `squad.members`.
+ */
+export function assignRunes(
+  squad: PlannedSquad,
+  runes: readonly Rune[],
+  runeSlots: number,
+): Rune[][] {
+  const given: Rune[][] = squad.members.map(() => []);
+  const bySlot = squad.members.map((member, index) => ({ index, slot: member.slot }));
+  const frontFirst = [...bySlot].sort((a, b) => a.slot - b.slot).map((entry) => entry.index);
+  const deal = (stat: Rune['stat'], order: readonly number[]): void => {
+    const sorted = runes.filter((rune) => rune.stat === stat).sort((a, b) => b.value - a.value);
+    let cursor = 0;
+    for (const rune of sorted) {
+      let tries = 0;
+      while (
+        tries < order.length &&
+        (given[order[cursor % order.length] ?? 0]?.length ?? 0) >= runeSlots
+      ) {
+        cursor++;
+        tries++;
+      }
+      if (tries === order.length) return;
+      given[order[cursor % order.length] ?? 0]?.push(rune);
+      cursor++;
+    }
+  };
+  deal('maxHp', frontFirst);
+  deal('attack', [...frontFirst].reverse());
+  return given;
 }
 
 function totalHp(team: BattleSetup['player']): number {
   return team.reduce((sum, spec) => sum + (spec?.maxHp ?? 0), 0);
 }
 
-function fight(setup: BattleSetup): RankResult {
+/** Walka składu odniesienia z poziomem; `runes` to runy do rozdania składowi. */
+export function fightLevel(
+  content: GameContent,
+  level: CompiledLevel,
+  squad: PlannedSquad,
+  runes: readonly Rune[],
+): FightResult {
+  const given = assignRunes(squad, runes, content.progression.runeSlots);
+  const members: (SquadMember | null)[] = Array.from({ length: TEAM_SIZE }, () => null);
+  squad.members.forEach((member, index) => {
+    const unit = content.heroes.get(member.form);
+    if (unit === undefined) throw new Error(`Reference squad: unknown form "${member.form}"`);
+    members[member.slot] = { unit, rank: member.upgrades, runes: given[index] ?? [] };
+  });
+  const setup = levelSetup(content, level, members);
   const result = runBattleToEnd(createBattle(setup));
   const win = result.outcome === 'win';
   const first = win ? 0 : TEAM_SIZE;
@@ -151,87 +143,80 @@ function fight(setup: BattleSetup): RankResult {
   };
 }
 
-/** Raport dla wszystkich poziomów w kolejności światów. Wymaga poprawnych składów referencyjnych. */
-export function runBalance(content: GameContent, reference: Reference): LevelReport[] {
-  const reports: LevelReport[] = [];
-  for (const world of content.worlds) {
-    for (const levelId of world.levels) {
-      const level = content.levels.get(levelId);
-      const entry = reference.levels[levelId];
-      const squad = reference.squads.find((s) => s.id === entry?.squad);
-      if (level === undefined || entry === undefined || squad === undefined) {
-        throw new Error(`No reference squad for level "${levelId}"`);
-      }
-      const ranks: RankResult[] = [];
-      for (let rank = 0; rank < rankCount(content); rank++) {
-        ranks.push(fight(levelSetup(content, level, squadAtRank(content, squad, rank))));
-      }
-      const firstWin = ranks.findIndex((r) => r.win);
-      const minWinningRank = firstWin === -1 ? null : firstWin;
-      reports.push({
-        level: levelId,
-        squad: squad.id,
-        expectedRank: entry.expectedRank,
-        minWinningRank,
-        verdict:
-          minWinningRank === null || minWinningRank > entry.expectedRank
-            ? 'za trudny'
-            : minWinningRank < entry.expectedRank
-              ? 'za łatwy'
-              : 'zgodny',
-        ranks,
-      });
-    }
+function verdictOf(
+  needsRunes: boolean,
+  plain: FightResult,
+  runed: FightResult,
+  previous: FightResult | null,
+): Verdict {
+  if (needsRunes) {
+    if (plain.win) return 'za łatwy';
+    return runed.win ? 'zgodny' : 'za trudny';
   }
-  return reports;
+  if (!plain.win) return 'za trudny';
+  return previous?.win === true ? 'za łatwy' : 'zgodny';
 }
 
-const seconds = (ticks: number): string => `${(ticks / TICKS_PER_SECOND).toFixed(1)} s`;
+/** Raport dla wszystkich poziomów w kolejności gry. Wymaga poprawnego składu odniesienia. */
+export function runBalance(content: GameContent, reference: Reference): LevelReport[] {
+  const levels = levelOrder(content);
+  const gold = goldBefore(content);
+  const squads = gold.map((sum) => squadForGold(content, reference, sum));
+  return levels.map((level, index) => {
+    const squad = squads[index];
+    if (squad === undefined) throw new Error(`No budget for level "${level.id}"`);
+    const boss =
+      level.index === (content.worlds.find((w) => w.id === level.world)?.levels.length ?? 0) - 1;
+    const earlier = index === 0 ? undefined : squads[index - 1];
+    const needsRunes = boss || earlier?.maxed === true;
+    const runes = earnedRunes(content, index);
+    const plain = fightLevel(content, level, squad, []);
+    const runed = fightLevel(content, level, squad, runes);
+    const previous = earlier === undefined ? null : fightLevel(content, level, earlier, []);
+    const enough = squads.findIndex((candidate) => fightLevel(content, level, candidate, []).win);
+    return {
+      level: level.id,
+      boss,
+      goldBefore: gold[index] ?? 0,
+      squad: squadLabel(squad),
+      runes: runes.length,
+      needsRunes,
+      plain,
+      runed,
+      previous,
+      enoughFrom: enough === -1 ? null : (levels[enough]?.id ?? 'po grze'),
+      verdict: verdictOf(needsRunes, plain, runed, previous),
+    };
+  });
+}
 
-function outcomeText(result: RankResult): string {
-  if (result.win) return 'wygrana';
-  return result.reason === 'timeout' ? 'limit czasu' : 'przegrana';
+function resultText(result: FightResult | null): string {
+  if (result === null) return '';
+  const mark = result.win ? 'wygrana' : result.reason === 'timeout' ? 'limit czasu' : 'przegrana';
+  return `${mark} ${(result.ticks / TICKS_PER_SECOND).toFixed(0)} s, ${result.remainingHpPercent}%`;
 }
 
 /** Raport w Markdown. Bez daty i wersji, żeby różnice między commitami pokazywały tylko zmiany balansu. */
 export function formatBalanceReport(content: GameContent, reports: readonly LevelReport[]): string {
-  const label = (rank: number | null): string =>
-    rank === null ? 'brak' : rankLabel(content, rank);
+  const total = goldBefore(content).at(-1) ?? 0;
   const lines: string[] = [
-    '# Raport balansu',
+    '# Raport balansu poziomów',
     '',
-    'Wygenerowany przez `pnpm balance`. Nie edytuj ręcznie.',
+    'Wygenerowany przez `pnpm balance` (ADR 0025). Nie edytuj ręcznie.',
     '',
-    'Ranga składu referencyjnego: litera to stopień formy na głównej drodze ewolucji (A forma bazowa, B pierwsza ewolucja, C druga; na każdym stopniu pierwsza z dróg w kolejności z treści), cyfra to liczba ulepszeń tej formy. Wszyscy członkowie składu mają tę samą rangę, bez run. Walka nie ma losowości, więc każdy wynik to jedna walka.',
+    `Złoto z pierwszych przejść całej gry: ${total}.`,
     '',
-    '## Podsumowanie',
+    'Skład odniesienia wydaje całe złoto zdobyte przed poziomem: najpierw kupuje brakujących bohaterów, potem rozwija wszystkich równo. Rangi w kolumnie „Skład” idą od frontu: litera to stopień formy na głównej drodze ewolucji (A forma bazowa, B pierwsza ewolucja, C druga), cyfra to liczba ulepszeń. Procent przy wyniku to życie, które zostało zwycięskiej stronie.',
     '',
-    '| Poziom | Skład | Ranga oczekiwana | Najniższa wygrywająca | Ocena | Przy oczekiwanej | Czas | Zostało HP |',
-    '|---|---|---|---|---|---|---|---|',
+    'Ocena zwykłego poziomu: skład odniesienia bez run wygrywa, a skład sprzed poprzedniej nagrody przegrywa. Ocena bossa i poziomów po zamknięciu rozwoju składu: bez run przegrana, z runami zdobytymi wcześniej wygrana.',
+    '',
+    '| Poziom | Złoto przed | Skład | Runy | Bez run | Z runami | Skład sprzed nagrody | Bez run wystarcza złoto od | Ocena |',
+    '|---|---|---|---|---|---|---|---|---|',
   ];
   for (const report of reports) {
-    const expected = report.ranks[report.expectedRank];
     lines.push(
-      `| ${report.level} | ${report.squad} | ${label(report.expectedRank)} | ${label(report.minWinningRank)} | ${report.verdict} | ${expected === undefined ? '' : outcomeText(expected)} | ${expected === undefined ? '' : seconds(expected.ticks)} | ${expected === undefined ? '' : `${expected.remainingHpPercent}%`} |`,
+      `| ${report.level}${report.boss ? ' (boss)' : ''} | ${report.goldBefore} | ${report.squad} | ${report.runes}${report.needsRunes ? ' (wymagane)' : ''} | ${resultText(report.plain)} | ${resultText(report.runed)} | ${resultText(report.previous)} | ${report.enoughFrom ?? 'nigdy'} | ${report.verdict} |`,
     );
-  }
-
-  const rankHeaders = reports[0]?.ranks.map((_, rank) => label(rank)) ?? [];
-  lines.push(
-    '',
-    '## Wynik na każdej randze',
-    '',
-    'W: wygrana, P: przegrana, T: limit czasu. Procent to HP, które zostało zwycięskiej stronie.',
-    '',
-    `| Poziom | ${rankHeaders.join(' | ')} |`,
-    `|---|${rankHeaders.map(() => '---').join('|')}|`,
-  );
-  for (const report of reports) {
-    const cells = report.ranks.map((r) => {
-      const mark = r.win ? 'W' : r.reason === 'timeout' ? 'T' : 'P';
-      return `${mark} ${r.remainingHpPercent}%`;
-    });
-    lines.push(`| ${report.level} | ${cells.join(' | ')} |`);
   }
   return `${lines.join('\n')}\n`;
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { requireContent } from './load.ts';
+import type { CompiledLevel } from './load-progression.ts';
 import { levelSetup, levelVisuals, resolveUnitSpec } from './resolve-spec.ts';
 import type { Rune } from './schema-progression.ts';
 
@@ -12,11 +13,19 @@ function hero(id: string) {
   return unit;
 }
 
-function levelOf(id: string) {
-  const level = content.levels.get(id);
-  if (level === undefined) throw new Error(`no level ${id}`);
-  return level;
-}
+/** Poziom testowy, niezależny od balansu gry: Tarczownik z przodu, dwóch Łuczników +2 z tyłu. */
+const LEVEL: CompiledLevel = {
+  id: 'test',
+  world: 'world_1',
+  index: 0,
+  enemies: [
+    { slot: 0, unit: 'guard_a', level: 0 },
+    { slot: 2, unit: 'archer_a', level: 2 },
+    { slot: 3, unit: 'archer_a', level: 2 },
+  ],
+  gold: 0,
+  rune: null,
+};
 
 const attackRune: Rune = { id: 'rune_attack_25', stat: 'attack', value: 25 };
 const hpRune: Rune = { id: 'rune_hp_200', stat: 'maxHp', value: 200 };
@@ -80,7 +89,7 @@ describe('resolveUnitSpec', () => {
 
 describe('levelSetup', () => {
   it('stawia skład gracza na slotach i wrogów z poziomu z ich poziomem siły', () => {
-    const setup = levelSetup(content, levelOf('w1_l4'), [
+    const setup = levelSetup(content, LEVEL, [
       { unit: hero('swordsman_a'), rank: 2, runes: [hpRune] },
       null,
       { unit: hero('archer_a'), rank: 0, runes: [] },
@@ -92,7 +101,7 @@ describe('levelSetup', () => {
     expect(setup.player[2]?.maxHp).toBe(120);
     expect(setup.player[4]).toBeNull();
 
-    // Poziom w1_l4: Tarczownik poziomu 0 w slocie 0 i Łucznicy poziomu 2 w slotach 2 i 3.
+    // Tarczownik poziomu 0 w slocie 0 i Łucznicy poziomu 2 w slotach 2 i 3.
     expect(setup.enemy[0]?.maxHp).toBe(520);
     expect(setup.enemy[1]).toBeNull();
     expect(setup.enemy[2]?.maxHp).toBe(144);
@@ -107,7 +116,7 @@ describe('levelVisuals', () => {
       null,
       { unit: hero('archer_b'), rank: 0, runes: [] },
     ];
-    const visuals = levelVisuals(content, levelOf('w1_l4'), squad);
+    const visuals = levelVisuals(content, LEVEL, squad);
     expect(visuals).toHaveLength(10);
     expect(visuals[0]).toEqual({
       rig: 'humanoid',
@@ -124,7 +133,7 @@ describe('levelVisuals', () => {
     expect(visuals[2]?.skin).toBe('archer_b');
     expect(visuals[2]?.projectileSprite).toBe('arrow');
     expect(visuals[3]).toBeNull();
-    // Poziom w1_l4 ma Tarczownika w slocie 0 i Łuczników w slotach 2 i 3.
+    // Tarczownik w slocie 0 i Łucznicy w slotach 2 i 3.
     expect(visuals[5]?.skin).toBe('guard_a');
     expect(visuals[6]).toBeNull();
     expect(visuals[7]?.skin).toBe('archer_a');

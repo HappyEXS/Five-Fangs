@@ -27,7 +27,9 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await expect(page.locator('[data-level="w1_l1"]')).toHaveAttribute('data-state', 'open');
   await expect(page.locator('[data-level="w1_l2"]')).toHaveAttribute('data-state', 'locked');
   await expect(page.locator('.plaque')).toContainText('Podgrodzie');
-  await expect(page.locator('.unit-tag-enemy')).toHaveText(['Łucznik', 'Łucznik']);
+  // Pierwszy poziom gry: dwóch Łuczników, drugi o poziom siły mocniejszy.
+  await expect(page.locator('.unit-tag-enemy .unit-name')).toHaveText(['Łucznik', 'Łucznik']);
+  await expect(page.locator('.unit-tag-enemy .unit-level')).toHaveText(['+1']);
   // Pod bohaterami gracza podpisy jak pod przeciwnikami, bez oznaczenia przy zerze ulepszeń.
   await expect(page.locator('.unit-tag-hero')).toHaveCount(2);
   await expect(page.locator('.unit-tag-hero', { hasText: 'Miecznik' })).toHaveCount(1);
@@ -54,23 +56,23 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   const result = page.locator('.result-sheet');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
   await expect(result).toContainText('Zwycięstwo');
-  await expect(result.locator('.rewards')).toContainText('+100 złota');
+  await expect(result.locator('.rewards')).toContainText('+200 złota');
   // Po walce jest tylko informacja o nagrodach i jeden przycisk.
   await expect(result.getByRole('button')).toHaveCount(1);
 
   const save = await readSave(page);
-  expect(save.gold).toBe(100);
+  expect(save.gold).toBe(200);
   expect(save.levels).toMatchObject({ w1_l1: { cleared: true } });
 
   // OK wraca na mapę, która wybiera następny poziom.
   await result.getByRole('button', { name: 'OK' }).click();
   await expect(page.locator('.plaque')).toContainText('Most zwodzony');
-  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '200');
 
   // Po przeładowaniu strony postęp zostaje.
   await page.reload();
   await page.getByRole('button', { name: 'Graj' }).click();
-  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '200');
   await expect(page.locator('[data-level="w1_l1"]')).toHaveClass(/tile-cleared/);
   await expect(page.locator('[data-level="w1_l2"]')).toHaveAttribute('data-state', 'open');
   await expect(page.locator('[data-level="w1_l3"]')).toHaveAttribute('data-state', 'locked');

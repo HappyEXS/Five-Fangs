@@ -94,22 +94,26 @@ test('mapa sześciu światów: strzałki zmieniają tło, szlak i nazwy poziomó
   await expect(page.locator('.plaque')).toContainText('Czaty zwiadowców');
   await expect(tiles.first()).toHaveAttribute('data-state', 'locked');
   await expect(page.locator('.unit-tag-enemy .unit-name')).toHaveText([
+    'Katanix',
+    'Defenix',
     'Bowix',
     'Assasinix',
-    'Bowix',
+    'Assasinix',
   ]);
   const fight = page.getByRole('button', { name: 'Walcz' });
   await expect(fight).toBeDisabled();
   await expect(page.locator('.fight-note')).toHaveText(
     'Zablokowany. Najpierw przejdź „Szczyt wieży”.',
   );
-  // Także dalszy zablokowany poziom da się obejrzeć: finał gry z trzema Axinami.
+  // Także dalszy zablokowany poziom da się obejrzeć: finał gry z trzema Axinami i ich świtą.
   await tiles.last().click();
   await expect(page.locator('.plaque')).toContainText('Tron Axinów');
   await expect(page.locator('.unit-tag-enemy .unit-name')).toHaveText([
-    'Axin 1',
-    'Axin 2',
     'Axin 3',
+    'Axin 2',
+    'Axin 1',
+    'Kaisarix',
+    'Poisonix',
   ]);
   await expect(page.locator('.fight-note')).toHaveText(
     'Zablokowany. Najpierw przejdź „Sala wojenna”.',
@@ -145,7 +149,7 @@ test('walka toczy się na tle swojego świata, a wygrana z bossem otwiera nastę
   const castle = await skyColor(page);
 
   await page.getByRole('button', { name: 'Walcz' }).click();
-  await expect(page.locator('.hud-faces-enemy .hud-face')).toHaveCount(3);
+  await expect(page.locator('.hud-faces-enemy .hud-face')).toHaveCount(4);
   expect(await skyColor(page)).toBe(castle);
   await page.getByRole('button', { name: 'x4' }).click();
   const result = page.locator('.result-sheet');

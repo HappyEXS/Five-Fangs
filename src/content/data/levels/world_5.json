@@ -1,52 +1,68 @@
 [
   {
     "id": "w5_l1",
-    "enemies": [{ "slot": 1, "unit": "orb", "level": 4 }, { "slot": 2, "unit": "orb", "level": 4 }],
-    "rewards": { "gold": 5000 }
+    "enemies": [
+      { "slot": 0, "unit": "xartix", "level": 5 },
+      { "slot": 1, "unit": "xartix", "level": 5 },
+      { "slot": 2, "unit": "cardinal", "level": 6 },
+      { "slot": 3, "unit": "cardinal", "level": 6 },
+      { "slot": 4, "unit": "polaris", "level": 6 }
+    ],
+    "rewards": { "gold": 2000 }
   },
   {
     "id": "w5_l2",
     "enemies": [
-      { "slot": 0, "unit": "guardian_of_hell", "level": 4 },
-      { "slot": 2, "unit": "orb", "level": 4 },
-      { "slot": 3, "unit": "orb", "level": 4 }
+      { "slot": 0, "unit": "enigmatix", "level": 3 },
+      { "slot": 1, "unit": "xartix", "level": 3 },
+      { "slot": 2, "unit": "cardinal", "level": 4 },
+      { "slot": 3, "unit": "poisonix", "level": 4 },
+      { "slot": 4, "unit": "polaris", "level": 3 }
     ],
-    "rewards": { "gold": 6250 }
+    "rewards": { "gold": 2100 }
   },
   {
     "id": "w5_l3",
     "enemies": [
-      { "slot": 0, "unit": "guardian_of_hell", "level": 5 },
+      { "slot": 0, "unit": "enigmatix", "level": 5 },
+      { "slot": 1, "unit": "xartix", "level": 2 },
       { "slot": 2, "unit": "cardinal", "level": 5 },
-      { "slot": 3, "unit": "orb", "level": 5 }
+      { "slot": 3, "unit": "ultimus", "level": 4 },
+      { "slot": 4, "unit": "polaris", "level": 3 }
     ],
-    "rewards": { "gold": 7500, "rune": "rune_attack_25" }
+    "rewards": { "gold": 2200, "rune": "rune_hp_400" }
   },
   {
     "id": "w5_l4",
     "enemies": [
-      { "slot": 0, "unit": "xartix", "level": 5 },
-      { "slot": 2, "unit": "cardinal", "level": 5 },
-      { "slot": 3, "unit": "cardinal", "level": 5 }
+      { "slot": 0, "unit": "kaisarix", "level": 2 },
+      { "slot": 1, "unit": "enigmatix", "level": 5 },
+      { "slot": 2, "unit": "hornix", "level": 2 },
+      { "slot": 3, "unit": "ultimus", "level": 4 },
+      { "slot": 4, "unit": "polaris", "level": 4 }
     ],
-    "rewards": { "gold": 8750 }
+    "rewards": { "gold": 2300 }
   },
   {
     "id": "w5_l5",
     "enemies": [
-      { "slot": 0, "unit": "enigmatix", "level": 6 },
-      { "slot": 1, "unit": "xartix", "level": 6 },
-      { "slot": 4, "unit": "polaris", "level": 6 }
+      { "slot": 0, "unit": "enigmatix", "level": 3 },
+      { "slot": 1, "unit": "enigmatix", "level": 4 },
+      { "slot": 2, "unit": "xartix", "level": 1 },
+      { "slot": 3, "unit": "ultimus", "level": 3 },
+      { "slot": 4, "unit": "ultimus", "level": 1 }
     ],
-    "rewards": { "gold": 10000 }
+    "rewards": { "gold": 2400 }
   },
   {
     "id": "w5_l6",
     "enemies": [
-      { "slot": 0, "unit": "enigmatix", "level": 6 },
-      { "slot": 2, "unit": "ultimus", "level": 6 },
-      { "slot": 4, "unit": "polaris", "level": 6 }
+      { "slot": 0, "unit": "axin_3", "level": 2 },
+      { "slot": 1, "unit": "enigmatix", "level": 3 },
+      { "slot": 2, "unit": "xartix", "level": 4 },
+      { "slot": 3, "unit": "ultimus", "level": 2 },
+      { "slot": 4, "unit": "polaris", "level": 3 }
     ],
-    "rewards": { "gold": 7500, "rune": "rune_hp_400" }
+    "rewards": { "gold": 2800, "rune": "rune_attack_50" }
   }
 ]
