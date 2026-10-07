@@ -58,7 +58,7 @@ describe('evolveOptions i applyEvolve', () => {
     // obszarowo, Tarczownik ma ponad dwa razy więcej życia niż Miecznik.
     expect(knight && heroView(content, knight, SWORD)?.spec.splashRadius).toBeGreaterThan(0);
     expect(guard && heroView(content, guard, SWORD)?.spec.splashRadius).toBe(0);
-    expect(guard && heroView(content, guard, SWORD)?.spec.maxHp).toBe(1300);
+    expect(guard && heroView(content, guard, SWORD)?.spec.maxHp).toBe(520);
     // Forma spoza dróg bieżącej formy nie jest dostępna.
     expect(applyEvolve(content, save, SWORD, 'swordsman_b2')).toBeNull();
     expect(applyEvolve(content, save, SWORD, 'archer_b')).toBeNull();

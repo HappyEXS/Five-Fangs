@@ -259,6 +259,18 @@ Autor gry chce, żeby każde ulepszenie kosztowało tyle samo, ewolucje były dr
 |---|---|---|---|---|
 | M5o-1 | Tabela kosztów według stopnia w `progression.json` (ulepszenie 50 / 200 / 800, ewolucja 400 / 1600) zamiast kosztów przy każdej formie; walidator reguł autora; karta formy pokazuje „4 × cena”, okienko „i” opisuje zasadę | 0,5 | Walidator treści i testy reguł (ceny rosną ze stopniem, ewolucja droższa od ulepszeń po obu stronach, każdy stopień ma koszty); testy zakupów; testy end-to-end z nowymi kwotami; nagrody Zamku nadal wystarczają na rangi kolejnych poziomów | gotowe (liczby do oceny autora) |
 
+## M5p – Balans bohaterów (2026-10-07)
+
+Autor gry zauważył, że Miecznicy i Łucznicy mają statystyki wyższe od pozostałych szczepów, i chce odwrotnie: ludzie słabsi i mniej opłacalni. Część postaci jest też nieproporcjonalnie wolna. Jego decyzje: ludzie wyraźnie słabsi (ok. 70% siły), liczby ze szkiców zmieniać tylko tam, gdzie odstają, skalę szybkości ścisnąć dla postaci walczących wręcz (ADR 0024).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5p-1 | Miernik balansu bohaterów: `pnpm balance:heroes` z raportem `reports/heroes.md` (pojedynki form tego samego stopnia, wartość w drużynie, walki drużyn szczepów) i test reguł autora | 1 | Test reguł przechodzi na treści gry; raport bez daty | gotowe |
+| M5p-2 | Nowe liczby: życie, atak i leczenie 14 form ludzi; szybkość ośmiu postaci walczących wręcz; tempo ataków wręcz i zasięg strzelców (wartości robocze) u 16 form ze szkiców; leczenie Ice Ivy 50 → 25 | 1 | Każda forma ludzi przegrywa więcej pojedynków, niż wygrywa; drużyny ludzi przegrywają z każdym szczepem ze szkiców; żaden szczep ze szkiców nie dominuje ani nie odstaje | gotowe (liczby do oceny autora) |
+| M5p-3 | Zamek dostrojony do nowych liczb ludzi (poziomy siły wrogów na trzech poziomach, boss to Zbrojny +5); rangi światów 2–6 w składach referencyjnych zmierzone od nowa | 0,5 | Raport `pnpm balance`: sześć poziomów Zamku zgodnych z rangami oczekiwanymi | gotowe |
+
+Poza zakresem: runy (wartości płaskie ważą więcej przy niskich liczbach ludzi), przeciwnicy i nagrody światów 2–6, nierówności form bazowych i końcowych ze szkiców opisane w GAME_DESIGN §3.
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

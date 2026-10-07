@@ -76,25 +76,25 @@ Decyzja autora gry z 2026-10-06: dawne cztery linie ludzi (Miecznicy, Łucznicy,
 
 | Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Miecznik `swordsman_a` | bazowa | 600 | 40 | 60 | 1,0 na s | 30 | 15 | `slash` |
-| Zbrojny `swordsman_b` (nowa nazwa) | 1 | 950 | 85 | 60 | 0,8 na s | 30 | 25 | `cleave`, `splash` 45 |
-| Tarczownik `guard_a` | 1 | 1300 | 28 | 45 | 0,8 na s | 30 | 35 | `slash` |
-| Rycerz `swordsman_b2` | 2, ze Zbrojnego | 1300 | 115 | 60 | 0,8 na s | 30 | 30 | `cleave`, `splash` 60 |
-| Berserker `berserker` (nowa) | 2, ze Zbrojnego | 1000 | 80 | 70 | 1,2 na s | 30 | 20 | `slash`, `enrage` poniżej 50%: +80% |
-| Strażnik `guard_b` | 2, z Tarczownika | 2300 | 50 | 45 | 0,8 na s | 30 | 45 | `slash`, `periodicHeal` siebie: 45 co 3 s |
-| Pawężnik `pavise_guard` (nowa) | 2, z Tarczownika | 1900 | 45 | 45 | 0,8 na s | 30 | 110 | `slash`, `shield` 35 |
+| Miecznik `swordsman_a` | bazowa | 160 | 20 | 60 | 1,0 na s | 30 | 15 | `slash` |
+| Zbrojny `swordsman_b` (nowa nazwa) | 1 | 320 | 40 | 60 | 0,8 na s | 30 | 25 | `cleave`, `splash` 45 |
+| Tarczownik `guard_a` | 1 | 520 | 22 | 45 | 0,8 na s | 30 | 35 | `slash` |
+| Rycerz `swordsman_b2` | 2, ze Zbrojnego | 700 | 80 | 60 | 0,8 na s | 30 | 30 | `cleave`, `splash` 60 |
+| Berserker `berserker` (nowa) | 2, ze Zbrojnego | 580 | 55 | 70 | 1,2 na s | 30 | 20 | `slash`, `enrage` poniżej 50%: +80% |
+| Strażnik `guard_b` | 2, z Tarczownika | 1150 | 35 | 45 | 0,8 na s | 30 | 45 | `slash`, `periodicHeal` siebie: 30 co 3 s |
+| Pawężnik `pavise_guard` (nowa) | 2, z Tarczownika | 950 | 32 | 45 | 0,8 na s | 30 | 110 | `slash`, `shield` 35 |
 
 **Łucznicy** (linia `archer`, startowa). Łucznik → Strzelec albo Akolita; Strzelec → Strzelec wyborowy albo Łowca; Akolita → Kapłan albo Inkwizytor. Gałąź Strzelca zadaje obrażenia z daleka, gałąź Akolity wspiera.
 
 | Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Łucznik `archer_a` | bazowa | 350 | 30 | 50 | 0,8 na s | 220 | 0 | `shoot` |
-| Strzelec `archer_b` (nowa nazwa) | 1 | 480 | 75 | 50 | 0,6 na s | 300 | 0 | `snipe`, `pierce` |
-| Akolita `cleric_a` | 1 | 420 | 20 | 50 | 0,8 na s | 170 | 0 | `shoot`, `periodicHeal` drużyny: 16 co 3 s |
-| Strzelec wyborowy `archer_b2` | 2, ze Strzelca | 650 | 100 | 50 | 0,6 na s | 320 | 0 | `snipe`, `pierce` |
-| Łowca `hunter` (nowa) | 2, ze Strzelca | 560 | 70 | 50 | 0,7 na s | 1000 (całe pole) | 0 | `snipe`, `targetLast` |
-| Kapłan `cleric_b` | 2, z Akolity | 600 | 30 | 50 | 0,8 na s | 190 | 0 | `shoot`, `periodicHeal` drużyny: 28 co 2,5 s |
-| Inkwizytor `inquisitor` (nowa) | 2, z Akolity | 520 | 55 | 50 | 0,8 na s | 220 | 0 | `shoot`, `lifesteal` 50% |
+| Łucznik `archer_a` | bazowa | 120 | 14 | 50 | 0,8 na s | 220 | 0 | `shoot` |
+| Strzelec `archer_b` (nowa nazwa) | 1 | 200 | 28 | 50 | 0,6 na s | 280 | 0 | `snipe`, `pierce` |
+| Akolita `cleric_a` | 1 | 190 | 12 | 50 | 0,8 na s | 170 | 0 | `shoot`, `periodicHeal` drużyny: 8 co 3 s |
+| Strzelec wyborowy `archer_b2` | 2, ze Strzelca | 360 | 55 | 50 | 0,6 na s | 300 | 0 | `snipe`, `pierce` |
+| Łowca `hunter` (nowa) | 2, ze Strzelca | 320 | 45 | 50 | 0,7 na s | 1000 (całe pole) | 0 | `snipe`, `targetLast` |
+| Kapłan `cleric_b` | 2, z Akolity | 340 | 18 | 50 | 0,8 na s | 190 | 0 | `shoot`, `periodicHeal` drużyny: 16 co 2,5 s |
+| Inkwizytor `inquisitor` (nowa) | 2, z Akolity | 340 | 40 | 50 | 0,8 na s | 220 | 0 | `shoot`, `lifesteal` 50% |
 
 Skąd te liczby i nazwy:
 
@@ -103,13 +103,7 @@ Skąd te liczby i nazwy:
 - **Nowe formy końcowe** korzystają z cech, które gra już ma: Berserker z szału, Pawężnik z tarczy i dużego odrzutu, Łowca z celowania w koniec szyku, Inkwizytor z kradzieży życia.
 - Koszty i cena linii (200) są takie same jak u pozostałych szczepów. Dawne linie Tarczowników i Akolitów kosztowały 300.
 
-Obserwacje z walk próbnych, do decyzji autora przy balansie:
-
-- Formy końcowe Mieczników w pojedynkę z Hersztem: Berserker wygrywa w 19 s, Rycerz w 26 s, Strażnik w 57 s, Pawężnik w 64 s (zostaje mu 160 z 1900 życia). Formy obronne wygrywają wolno; ich miejsce jest w drużynie, przed strzelcami.
-- Strzelec wyborowy sam przegrywa z Hersztem (zadaje 1300 z jego 2200 życia): strzelcy potrzebują kogoś z przodu.
-- Łowca zabija Szamana stojącego za Hersztem, zanim Herszt do niego dojdzie, ale potem ginie; w składzie zdejmuje wrogich strzelców i leczących.
-- Inkwizytor pokonuje Osiłka i kończy z prawie pełnym życiem (483 z 520). Akolita sam z Osiłkiem przegrywa, Tarczownik wygrywa w 38 s.
-- Pięć form końcowych (Rycerz, Berserker, Strażnik, Pawężnik, Kapłan) przechodzi poziom Herszta w 16 s bez strat.
+Liczby ludzi w tabelach to stan po balansie z 2026-10-07 (niżej, „Balans bohaterów”): życie i atak spadły do ok. 70% siły form innych szczepów na tym samym stopniu, słabsze jest też leczenie Strażnika, Akolity i Kapłana. Szybkość, tempo ataków, odrzut i zdolności zostały.
 
 ### Szczep Beasts
 
@@ -119,12 +113,12 @@ Pierwszy z czterech szczepów autora gry (szkice z 2026-10-05; kolor szczepu: br
 
 | Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Monstrosity (melee) | bazowa | 200 | 30 | 25 | *1,0 na s* | 30 | 50 | `slash` |
-| Batfang (ranged) | 1 | 350 | 35 | 10 | co 1,2 s | *220* | 30 | `fang_spit` |
-| Reaper (melee) | 1 | 400 | 50 | 30 | *1,2 na s* | 30 | 10 | `slash` |
-| Spiker (ranged) | 2, z Batfanga | 700 | 40 | 15 | co 1,0 s | *240* | 10 | `spike_volley`, `periodicHeal` siebie: 25 co 1 s |
-| Ironbeak (melee) | 2, z Batfanga | 900 | 80 | 100 | *1,0 na s* | 30 | 180 | `peck` |
-| Tuskovator (melee) | 2, z Reapera | 800 | 90 | 30 | *0,7 na s* | 30 | 225 | `gore` |
+| Monstrosity (melee) | bazowa | 200 | 30 | 40 | *1,2 na s* | 30 | 50 | `slash` |
+| Batfang (ranged) | 1 | 350 | 35 | 10 | co 1,2 s | *320* | 30 | `fang_spit` |
+| Reaper (melee) | 1 | 400 | 50 | 50 | *1,4 na s* | 30 | 10 | `slash` |
+| Spiker (ranged) | 2, z Batfanga | 700 | 40 | 15 | co 1,0 s | *340* | 10 | `spike_volley`, `periodicHeal` siebie: 25 co 1 s |
+| Ironbeak (melee) | 2, z Batfanga | 900 | 80 | 100 | *1,2 na s* | 30 | 180 | `peck` |
+| Tuskovator (melee) | 2, z Reapera | 800 | 90 | 50 | *1,0 na s* | 30 | 225 | `gore` |
 | Ignitix (ranged) | 2, z Reapera | 1000 | 100 | 5 | co 0,8 s | 1000 (całe pole) | 50 | `fire_spit`, `targetLast` |
 
 | Typ | Zamach | Trafienie | Klip, postawa | Pocisk |
@@ -137,9 +131,8 @@ Pierwszy z czterech szczepów autora gry (szkice z 2026-10-05; kolor szczepu: br
 
 Wygląd: bestie stoją na dwóch nogach na szkielecie ludzi (wybór autora), z własnymi częściami i czterema nowymi klipami ataku (ADR 0018). Modele były rysowane trzy razy; obecne powstały 2026-10-07 po ocenie autora, że poprzednie są „zbyt przyjazne, delikatne i dziecinne” przy Immortals, Plants i Robots (ADR 0019): sierść prawie czarna, pysk to ciemność z małymi światłami oczu i zębami, a rogi, kły, kolce i czaszki są ze starej kości. Monstrosity to kopiec kudłów z rogami, Batfang nietoperz-upiór z kłami dłuższymi od brody, Reaper lisia czaszka w kapturze z sierści z kościanymi sierpami, Spiker garb najeżony kolcami, Ironbeak sęp w żelaznej masce z dziobem jak sierp, Tuskovator paszcza jak pułapka z kłem wygiętym w hak, Ignitix zwęglony gad z żarem w pęknięciach. Obserwacje z walk próbnych, do decyzji autora przy balansie:
 
-- Bestie chodzą 2–12 razy wolniej niż ludzie (45–60). Strzelcy o szybkości 10–15 często nie dochodzą na zasięg, zanim walka się rozstrzygnie, zwłaszcza gdy Ironbeak albo Tuskovator odrzucają wroga coraz dalej.
-- Odrzut 180 i 225 przesuwa trafionego o jedną piątą pola; Tuskovator o szybkości 30 długo dochodzi potem do odrzuconego wroga, więc bije rzadziej, niż wynika z 0,7 ataku na sekundę.
-- Monstrosity (200 życia) i Batfang przegrywają w pojedynkę z Osiłkiem z pierwszego poziomu. Ignitix sam pokonuje Herszta w 17 s; Spiker przegrywa z nim po 40 s.
+- Bestie walczące wręcz chodziły 2 razy wolniej niż ludzie (25–30 wobec 45–60); po balansie z 2026-10-07 mają 40–50, a strzelcy o szybkości 10–15 dostali zasięg, przy którym prawie nie muszą chodzić (niżej, „Balans bohaterów”).
+- Odrzut 180 i 225 przesuwa trafionego o jedną piątą pola; Tuskovator po każdym ciosie musi dojść do odrzuconego wroga, więc w pojedynku bije rzadziej, niż wynika z tempa ataków. W drużynie bije wtedy następnego wroga z frontu.
 
 ### Szczepy Immortals, Plants i Robots
 
@@ -159,37 +152,37 @@ Ustalenia z autorem (2026-10-05):
 | Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
 | Orb (ranged) | bazowa | 350 | 35 | 15 | co 1,5 s | *240* | 10 | `orb_gaze` |
-| Cardinal (ranged) | 1 | 450 | 45 | 10 | co 1,0 s | *260* | 20 | `cardinal_gaze` |
-| Guardian of hell (melee) | 1 | 400 | 60 | 30 | *1,0 na s* | 30 | 10 | `gore` |
+| Cardinal (ranged) | 1 | 450 | 45 | 10 | co 1,0 s | *240* | 20 | `cardinal_gaze` |
+| Guardian of hell (melee) | 1 | 400 | 60 | 45 | *1,0 na s* | 30 | 10 | `gore` |
 | Polaris (ranged) | 2, z Cardinala | 1100 | 50 | 0 | *1,0 na s* | 1000 (całe pole) | 30 | `star_cast` |
-| Ultimus (ranged) | 2, z Cardinala | 1250 | 250 | 30 | co 3,0 s | *260* | 50 | `ray_flare` |
-| Xartix (melee) | 2, z Guardiana | 850 | 90 | 75 | *1,2 na s* | 30 | 75 | `slash`, `doubleDamage` 50 |
-| Enigmatix (melee) | 2, z Guardiana | 1000 | 160 | 65 | *0,8 na s* | 30 | 100 | `cleave`, `shield` 50 |
+| Ultimus (ranged) | 2, z Cardinala | 1250 | 250 | 30 | co 3,0 s | *220* | 50 | `ray_flare` |
+| Xartix (melee) | 2, z Guardiana | 850 | 90 | 80 | *1,0 na s* | 30 | 75 | `slash`, `doubleDamage` 50 |
+| Enigmatix (melee) | 2, z Guardiana | 1000 | 160 | 65 | *0,4 na s* | 30 | 100 | `cleave`, `shield` 50 |
 
 **Plants** (kolor szczepu: jasna zieleń, świat: „Living swamps”). Bush → Trunk albo Ivy; Trunk → Oak warrior albo Mother-tree; Ivy → Ice Ivy albo Toxic Ivy.
 
 | Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
 | Bush (ranged) | bazowa | 400 | 15 | 0 | co 1,5 s | 1000 (całe pole) | 10 | `bush_thorn` |
-| Trunk (ranged) | 1 | 600 | 30 | 25 | co 1,5 s | *240* | 10 | `seed_cast` |
+| Trunk (ranged) | 1 | 600 | 30 | 25 | co 1,5 s | *300* | 10 | `seed_cast` |
 | Ivy (ranged) | 1 | 500 | 40 | 0 | co 1,7 s | 1000 (całe pole) | 30 | `ivy_thorn` |
-| Oak warrior (melee) | 2, z Trunka | 1250 | 150 | 40 | *0,6 na s* | 30 | 300 | `cleave` |
+| Oak warrior (melee) | 2, z Trunka | 1250 | 150 | 45 | *0,6 na s* | 30 | 300 | `cleave` |
 | Mother-tree (summoning) | 2, z Trunka | 10 000 | 0 | 0 | co 2,0 s (przyzwanie) | 1000 (całe pole) | 40 | `summon`: przyzywa „Bush ver. 2” |
 | Bush ver. 2 (melee, przyzywany) | – | 100 | 20 | 30 | *1,0 na s* | 30 | 0 | `peck`; nie jest bohaterem |
-| Ice Ivy (ranged) | 2, z Ivy | 900 | 20 | 0 | co 2,0 s | 1000 (całe pole) | 10 | `frost_spit`, `periodicHeal` drużyny: 50 co 1 s |
+| Ice Ivy (ranged) | 2, z Ivy | 900 | 20 | 0 | co 2,0 s | 1000 (całe pole) | 10 | `frost_spit`, `periodicHeal` drużyny: 25 co 1 s (szkic: 50) |
 | Toxic Ivy (ranged) | 2, z Ivy | 800 | 10 | 0 | co 1,0 s | 1000 (całe pole) | 30 | `spore_spit`, `pierce` |
 
 **Robots** (kolor szczepu: niebieski, świat: „Mechanus town”). Bot → Egzo-bot albo Holo-bot; Egzo-bot → Thermobot albo Ax-bot; Holo-bot → Whirl-bot albo Titan-bot.
 
 | Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Bot (melee) | bazowa | 200 | 25 | 50 | *1,0 na s* | 30 | 15 | `jab` |
+| Bot (melee) | bazowa | 200 | 25 | 50 | *1,2 na s* | 30 | 15 | `jab` |
 | Egzo-bot (melee) | 1 | 400 | 40 | 70 | *1,2 na s* | 30 | 25 | `slash` |
 | Holo-bot (ranged) | 1 | 300 | 30 | 0 | co 1,0 s | 1000 (całe pole) | 30 | `glitch_spit` |
-| Thermobot (ranged) | 2, z Egzo-bota | 900 | 100 | 80 | co 1,0 s | *220* | 25 | `slag_cast` |
-| Ax-bot (melee) | 2, z Egzo-bota | 750 | 75 | 80 | *0,8 na s* | 30 | 40 | `cleave`, `doubleDamage` 20 |
-| Whirl-bot (melee) | 2, z Holo-bota | 700 | 70 | 175 | *1,5 na s* | 30 | 30 | `slash`, `dodge` 70 |
-| Titan-bot (melee) | 2, z Holo-bota | 1200 | 75 | 40 | *0,7 na s* | 30 | 70 | `gore`, `shield` 10 |
+| Thermobot (ranged) | 2, z Egzo-bota | 900 | 100 | 80 | co 1,0 s | *200* | 25 | `slag_cast` |
+| Ax-bot (melee) | 2, z Egzo-bota | 750 | 75 | 80 | *1,25 na s* | 30 | 40 | `cleave`, `doubleDamage` 20 |
+| Whirl-bot (melee) | 2, z Holo-bota | 700 | 70 | 130 | *0,8 na s* | 30 | 30 | `slash`, `dodge` 70 |
+| Titan-bot (melee) | 2, z Holo-bota | 1200 | 75 | 45 | *0,9 na s* | 30 | 70 | `gore`, `shield` 10 |
 
 Nowe typy ataków (wszystkie z postawą `beast`, trafienie w połowie zamachu):
 
@@ -208,14 +201,51 @@ Nowe typy ataków (wszystkie z postawą `beast`, trafienie w połowie zamachu):
 | `slag_cast` | 0,6 s | `cast` | żużel, 380 jedn./s |
 | `summon` | 0,5 s | `summon` | brak; w połowie zamachu przyzwanie |
 
-Wygląd: wszystkie trzy szczepy i przerysowane bestie mają styl „mroczna baśń” (ADR 0019). Obserwacje z walk próbnych, do decyzji autora przy balansie:
+Wygląd: wszystkie trzy szczepy i bestie mają styl „mroczna baśń” (ADR 0019). Obserwacje:
 
-- **Strzelcy biją rzadko.** Po poprawce odczytu „Atk:” obrażenia na sekundę strzelców to m.in.: Bush 10, Orb 23, Ivy 24, Holo-bot 30, Cardinal 45, Ultimus 83, Thermobot 100. Ultimus sam pokonuje Herszta w 25 s (zostaje mu 278 z 1250 życia), ale z całym poziomem Herszta przegrywa.
-- **Mother-tree** przyzywa krzak co 2 s, więc pięć miejsc zapełnia się po ok. 8 s. Sama pokonuje dwóch Osiłków i Zbója w 31 s, tracąc 1600 z 10 000 życia; z poziomem Herszta przegrywa po 78 s, bo wróg przebija się przez krzaki szybciej, niż ona je rodzi.
-- Postacie stojące (Bush, Ivy, obie formy końcowe Ivy, Holo-bot, Polaris) strzelają od pierwszej sekundy. Skład samych roślin wygrywa poziom Herszta w 41 s: najwięcej zadaje Oak warrior (2850), z pnączy Toxic Ivy (1530, bo jej pocisk trafia wszystkich). Stojące giną, gdy wróg do nich dojdzie: Polaris sam przegrywa z Hersztem i Osiłkiem.
-- **Formy bazowe trzech szczepów przegrywają w pojedynkę z Osiłkiem** z pierwszego poziomu: Orb, Bush i Bot; tak samo pierwsze ewolucje Ivy, Trunk i Holo-bot. Cardinal wygrywa.
-- Whirl-bot z unikiem 70 na 100 wygrywa sam z dwoma Osiłkami i Zbójem, tracąc 405 z 700 życia. Titan-bot z tarczą 10% przegrywa z Hersztem (zadaje 1725 z jego 2200 życia).
+- **Strzelcy biją rzadko.** Obrażenia na sekundę strzelców to m.in.: Bush 10, Orb 23, Ivy 24, Holo-bot 30, Cardinal 45, Ultimus 83, Thermobot 100.
+- **Mother-tree** przyzywa krzak co 2 s, więc pięć miejsc zapełnia się po ok. 8 s. Z 10 000 życia praktycznie nie da się jej zabić w 90 sekund walki: drużyna z nią nie przegrywa przez wybicie, ale może przegrać limitem czasu, a jako przeciwnik jest ścianą.
+- Postacie stojące (Bush, Ivy, obie formy końcowe Ivy, Holo-bot, Polaris) strzelają od pierwszej sekundy i giną, gdy wróg do nich dojdzie.
 - Oak warrior odrzuca o 300 jednostek, prawie jedną trzecią pola: po każdym ciosie idzie do wroga od nowa.
+
+### Balans bohaterów (2026-10-07)
+
+Decyzje autora gry (ADR 0024):
+
+- **Miecznicy i Łucznicy mają być wyraźnie słabsi** od szczepów ze szkiców i mniej opłacalni: forma ludzi ma ok. 70% siły form innych szczepów na tym samym stopniu, a drużyna ludzi przegrywa równą walkę z drużyną każdego innego szczepu, ale wystarcza na początek gry.
+- **Liczby ze szkiców zostają punktem wyjścia.** Zmienia się tylko to, co wyraźnie odstaje, i każda taka zmiana jest wypisana.
+- **Skala szybkości jest ściśnięta dla postaci walczących wręcz**, które były tak wolne, że nie dochodziły do celu. Postacie stojące i strzelcy, którzy nie muszą wiele chodzić, zostają.
+
+Co się zmieniło:
+
+| Co | Było | Jest |
+|---|---|---|
+| Życie i atak 14 form ludzi | np. Miecznik 600 / 40, Rycerz 1300 / 115, Łucznik 350 / 30 | Miecznik 160 / 20, Rycerz 700 / 80, Łucznik 120 / 14 (pełne tabele wyżej) |
+| Leczenie ludzi | Strażnik 45, Akolita 16, Kapłan 28 | 30, 8, 16 |
+| Zasięg Strzelca i Strzelca wyborowego | 300, 320 | 280, 300 |
+| Szybkość postaci walczących wręcz (ze szkiców) | Monstrosity 25, Reaper 30, Tuskovator 30, Guardian of hell 30, Oak warrior 40, Titan-bot 40, Xartix 75, Whirl-bot 175 | 40, 50, 50, 45, 45, 45, 80, 130 |
+| Tempo ataków wręcz (wartości robocze) | Monstrosity 1,0, Bot 1,0, Reaper 1,2, Tuskovator 0,7, Ironbeak 1,0, Ax-bot 0,8, Titan-bot 0,7; Enigmatix 0,8, Xartix 1,2, Whirl-bot 1,5 | 1,2, 1,2, 1,4, 1,0, 1,2, 1,25, 0,9; 0,4, 1,0, 0,8 |
+| Zasięg strzelców (wartości robocze) | Batfang 220, Spiker 240, Trunk 240; Cardinal 260, Ultimus 260, Thermobot 220 | 320, 340, 300; 240, 220, 200 |
+| Leczenie drużyny przez Ice Ivy (ze szkicu) | 50 na sekundę | 25 na sekundę |
+
+Szybkości, które zostały: postacie stojące (0), strzelcy ze szkiców (Ignitix 5, Batfang 10, Cardinal 10, Spiker 15, Orb 15, Trunk 25, Ultimus 30, Thermobot 80), Ironbeak 100, Enigmatix 65, Bot 50, Egzo-bot 70, Ax-bot 80 i ludzie (45–70). Chodzące postacie walczące wręcz mieszczą się teraz w skali 40–130.
+
+**Jedyna zmieniona liczba ze szkiców poza szybkością to leczenie Ice Ivy.** Leczyła każdą jednostkę drużyny o 50 na sekundę, w jednej walce próbnej łącznie 16 000 punktów życia, i drużyna Plants była nie do przebicia. Enigmatix (tarcza 50%, atak 160) i Whirl-bot (unik 70 na 100) wygrywali prawie każdy pojedynek; wystarczyło im zwolnić tempo ataków, które jest wartością roboczą.
+
+Miernik: `pnpm balance:heroes` zapisuje w `reports/heroes.md` pojedynki form tego samego stopnia (z obu stron pola), wartość formy w drużynie i walki drużyn szczepów 5 na 5. Stan po zmianach:
+
+- W pojedynkach każda forma ludzi przegrywa więcej, niż wygrywa, a średni bilans obu szczepów ludzi jest na każdym stopniu niższy niż każdego szczepu ze szkiców.
+- Drużyny Mieczników, Łuczników i mieszana drużyna ludzi przegrywają z drużyną każdego szczepu ze szkiców, z obu stron pola, bez ulepszeń i z kompletem.
+- Szczepy ze szkiców wygrywają między sobą na zmianę: Robots z Immortals i Plants, Beasts z Robots, Immortals i Plants z Beasts; Immortals z Plants nie umieją się przebić w limicie czasu.
+
+Te reguły sprawdza test (`scripts/lib/hero-balance.test.ts`), więc następna zmiana liczb nie może ich po cichu odwrócić.
+
+Znane nierówności, zostawione świadomie:
+
+- **Orb** wygrywa pojedynek z każdą inną formą bazową (350 życia i strzał wobec 200 życia form walczących wręcz); to liczby ze szkicu i tylko pierwszy stopień gry.
+- **Ignitix, Ultimus i Enigmatix** wygrywają po 21 z 23 pojedynków form końcowych, **Toxic Ivy** nie wygrywa żadnego (jej pocisk bije wszystkich po trochu, więc liczy się w drużynie), **Mother-tree** żadnego nie przegrywa. Szczepy jako całość są wyrównane, więc tych liczb ze szkiców nie ruszałem.
+- **Runy mają wartości płaskie** (życie +100, +200, +400; atak +10, +25, +50) i przy niskich liczbach ludzi ważą dużo więcej niż przedtem. Do osobnej decyzji.
+- Poziomy światów 2–6 nadal mają przeciwników ze wzoru; dwuosobowy skład startowy ludzi przegrywa tam częściej niż przed zmianą (raport `reports/balance.md`).
 
 ### Szczep Akronix (wrogowie)
 
@@ -497,10 +527,10 @@ Rangi: litera to stopień formy (A bazowa, B po pierwszej ewolucji, C po drugiej
 |---|---|---|---|---|
 | Podgrodzie | 0: Łucznik 0; 1: Łucznik 0 | A0 | 100 |  |
 | Most zwodzony | 0: Miecznik 0; 2: Łucznik 0 | A1 | 400 | życie +100 |
-| Brama | 0: Miecznik 0; 1: Miecznik 0 | A3 | 860 |  |
+| Brama | 0: Miecznik 1; 1: Miecznik 1 | A3 | 860 |  |
 | Dziedziniec | 0: Tarczownik 0; 2: Łucznik 2; 3: Łucznik 2 | B0 | 1400 | atak +10 |
-| Zbrojownia | 0: Zbrojny 1; 1: Tarczownik 1; 3: Strzelec 1 | B2 | 2600 |  |
-| Sala tronowa | 0: Rycerz 0; 1: Tarczownik 2; 3: Strzelec 2 | B4 | 1000 | życie +200 |
+| Zbrojownia | 0: Zbrojny 0; 1: Tarczownik 0; 3: Strzelec 1 | B2 | 2600 |  |
+| Sala tronowa | 0: Zbrojny 5; 1: Tarczownik 1; 3: Strzelec 2 | B4 | 1000 | życie +200 |
 
 ### Świat 2: Mechanus town
 
@@ -576,7 +606,9 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 
 | Kwestia | Stan |
 |---|---|
-| Roster: sześć szczepów po siedem form | W grze. Liczby Mieczników i Łuczników oraz ich sześć nowych form to propozycja wykonawcy (§3), do oceny autora; wartości robocze pozostałych szczepów wypisane w §3 |
+| Roster: sześć szczepów po siedem form | W grze. Liczby po balansie z 2026-10-07 (§3, „Balans bohaterów”, ADR 0024) do oceny autora: ludzie ok. 70% siły innych szczepów, ściśnięta skala szybkości, jedna zmiana liczby ze szkicu (leczenie Ice Ivy). Nazwy sześciu nowych form ludzi to nadal propozycja wykonawcy |
+| Runy przy niskich liczbach ludzi | Wartości płaskie (życie +100 do +400, atak +10 do +50) ważą po balansie dużo więcej u ludzi niż u innych szczepów; do decyzji, czy mają zostać płaskie |
+| Boss Zamku | Rycerza w „Sali tronowej” zastąpił Zbrojny +5, bo po balansie dwóch bohaterów po pierwszej ewolucji nie pokonuje żadnej formy końcowej walczącej wręcz; do ustalenia przy balansie poziomów |
 | Koszty ulepszeń i ewolucji | Reguły od autora (2026-10-07): stała cena ulepszenia, ewolucja droższa, ceny rosną ze stopniem. Liczby (50 / 200 / 800 i 400 / 1600) to propozycja wykonawcy, do oceny autora i do balansu (§5.2, ADR 0023) |
 | Sześć światów: nazwy, tła, przeciwnicy | Światy i motyw od autora (2026-10-07); w grze jest sześć światów z tłami, szlakami i nazwami poziomów (§7). Do oceny autora: nazwy „Zamek” i „Cytadela Akronix”, nazwy 36 poziomów, wygląd teł, podgląd zablokowanych poziomów. Do zrobienia: balans przeciwników i nagród światów 2–6, składy referencyjne na dalsze światy |
 | Czy w światach szczepów mają stać także Akronix | Motyw mówi o najeźdźcach, a poziomy światów 2–5 wystawiają dziś tylko formy swojego szczepu (zgodnie z zamówieniem autora) |

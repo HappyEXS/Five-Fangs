@@ -24,6 +24,7 @@ pnpm bench             # walki/s, czas ticka i alokacje symulacji; --check końc
 pnpm battle a,b vs c   # walka w konsoli z logiem zdarzeń (jednostki z treści albo golden:<nazwa>)
 pnpm validate-content  # walidacja wszystkich JSON-ów treści
 pnpm balance           # walki headless wszystkich poziomów, raport do reports/balance.md
+pnpm balance:heroes    # pojedynki form i walki drużyn szczepów, raport do reports/heroes.md (ADR 0024)
 pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated (--check: tylko sprawdza aktualność)
 pnpm atlas:placeholder # grafiki placeholder jako źródła atlasu w assets/src/units
 pnpm deps:check        # granice modułów, dozwolone pakiety, zakazane API w sim (ADR 0012)
@@ -93,7 +94,8 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 - Każdy plik JSON ma schemat Zod. Nowy typ danych = nowy schemat + walidacja w `validate-content`.
 - Dane surowe są czytelne dla człowieka (sekundy, stopnie, stringowe id). Kompilacja zamienia je na struktury runtime (ticki, indeksy, tablice typowane).
 - Walidator sprawdza spójność odwołań, unikalność id i zgodność znacznika `hit` w klipie animacji z `hitFraction` ataku.
-- Balans zmieniaj w danych, nie w kodzie. Po zmianie balansu uruchom `pnpm balance` i porównaj raport.
+- Balans zmieniaj w danych, nie w kodzie. Po zmianie balansu uruchom `pnpm balance` i `pnpm balance:heroes` i porównaj raporty.
+- Reguły balansu bohaterów (ADR 0024) pilnuje test `scripts/lib/hero-balance.test.ts`: ludzie słabsi od szczepów ze szkiców, szczepy ze szkiców wyrównane między sobą, postacie walczące wręcz w skali szybkości 40–130. Liczby ze szkiców autora zmieniaj tylko, gdy wyraźnie odstają, i wypisz każdą zmianę.
 
 ## Zapis gry
 

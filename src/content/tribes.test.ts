@@ -50,7 +50,10 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     expect(next('robots', 'holo_bot')).toEqual(['whirl_bot', 'titan_bot']);
   });
 
-  it('życie, atak, ruch i odrzut zgadzają się ze szkicami autora', () => {
+  // Szybkość postaci walczących wręcz jest ściśnięta do wspólnej skali (decyzja autora
+  // z 2026-10-07, ADR 0024): Guardian of hell 30 → 45, Xartix 75 → 80, Oak warrior 40 → 45,
+  // Whirl-bot 175 → 130, Titan-bot 40 → 45. Reszta liczb jest ze szkiców.
+  it('życie, atak i odrzut zgadzają się ze szkicami autora, a szybkość ze skalą balansu', () => {
     const stats = (id: string) => {
       const { base } = unit(id);
       // Ruch i odrzut w jednostkach świata na sekundę i jednostkach świata, jak na szkicu.
@@ -89,15 +92,15 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     ).toEqual({
       orb: [350, 35, 15, 10],
       cardinal: [450, 45, 10, 20],
-      guardian_of_hell: [400, 60, 30, 10],
+      guardian_of_hell: [400, 60, 45, 10],
       polaris: [1100, 50, 0, 30],
       ultimus: [1250, 250, 30, 50],
-      xartix: [850, 90, 75, 75],
+      xartix: [850, 90, 80, 75],
       enigmatix: [1000, 160, 65, 100],
       bush: [400, 15, 0, 10],
       trunk: [600, 30, 25, 10],
       ivy: [500, 40, 0, 30],
-      oak_warrior: [1250, 150, 40, 300],
+      oak_warrior: [1250, 150, 45, 300],
       ice_ivy: [900, 20, 0, 10],
       toxic_ivy: [800, 10, 0, 30],
       bot: [200, 25, 50, 15],
@@ -105,8 +108,8 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
       holo_bot: [300, 30, 0, 30],
       thermobot: [900, 100, 80, 25],
       ax_bot: [750, 75, 80, 40],
-      whirl_bot: [700, 70, 175, 30],
-      titan_bot: [1200, 75, 40, 70],
+      whirl_bot: [700, 70, 130, 30],
+      titan_bot: [1200, 75, 45, 70],
     });
   });
 
@@ -165,9 +168,11 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     expect(traits('titan_bot')).toEqual([0, 0, 10]);
   });
 
-  it('Ice Ivy leczy całą drużynę o 50 co sekundę, pocisk Toxic Ivy przebija wszystkich', () => {
+  // Szkic podaje 50 na sekundę; przy balansie leczenie spadło do 25, bo drużyna z Ice Ivy
+  // była nie do przebicia (ADR 0024). To jedyna zmieniona liczba zdolności ze szkiców.
+  it('Ice Ivy leczy całą drużynę o 25 co sekundę, pocisk Toxic Ivy przebija wszystkich', () => {
     const ice = unit('ice_ivy').base;
-    expect([ice.healAmount, ice.healInterval, ice.healTeam]).toEqual([50, 30, true]);
+    expect([ice.healAmount, ice.healInterval, ice.healTeam]).toEqual([25, 30, true]);
     const toxic = unit('toxic_ivy').base;
     expect(toxic.pierce).toBe(true);
     expect(toxic.targetLast).toBe(false);

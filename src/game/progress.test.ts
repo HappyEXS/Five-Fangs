@@ -294,9 +294,9 @@ describe('runy', () => {
       content.progression,
     );
     expect(view.spec).toEqual(expected);
-    // 350 HP i 30 ataku + 20% + runy.
-    expect(view.spec.maxHp).toBe(420 + 200);
-    expect(view.spec.attack).toBe(36 + 25);
+    // 120 życia i 14 ataku + 20% (atak 16,8 → 16) + runy.
+    expect(view.spec.maxHp).toBe(144 + 200);
+    expect(view.spec.attack).toBe(16 + 25);
     expect(squadMembers(content, save)[1]).toEqual({ unit, rank: 2, runes: view.runes });
   });
 });

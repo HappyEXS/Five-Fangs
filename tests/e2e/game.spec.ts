@@ -440,7 +440,7 @@ test('szczepy Immortals, Plants i Robots: sklep sześciu szczepów, drzewa i wal
     'Nie atakuje. Co 2 s przyzywa sojusznika (życie 100, atak 20); najwyżej 5 naraz.',
   );
   await tree.getByRole('button', { name: 'Ice Ivy' }).click();
-  await expect(page.locator('.form-card')).toContainText('Co 1 s leczy całą drużynę o 50');
+  await expect(page.locator('.form-card')).toContainText('Co 1 s leczy całą drużynę o 25');
   await tree.getByRole('button', { name: 'Toxic Ivy' }).click();
   await expect(page.locator('.form-card')).toContainText('Pociski przebijają wszystkich wrogów');
 

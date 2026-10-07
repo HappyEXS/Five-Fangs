@@ -30,14 +30,15 @@ describe('resolveUnitSpec', () => {
 
   it('każde ulepszenie dodaje 10% bazowego maxHp i attack', () => {
     const spec = resolveUnitSpec(swordsman, 3, [], progression);
-    expect(spec.maxHp).toBe(780);
-    expect(spec.attack).toBe(52);
+    // Miecznik: 160 życia i 20 ataku.
+    expect(spec.maxHp).toBe(208);
+    expect(spec.attack).toBe(26);
   });
 
   it('zaokrągla w dół', () => {
-    // Łucznik: 350 HP i 30 ataku; 350 × 1,1 = 385, 30 × 1,1 = 33; przy randze 7: 595 i 51.
+    // Łucznik: 120 życia i 14 ataku; 120 × 1,1 = 132, 14 × 1,1 = 15,4 → 15.
     const archer = hero('archer_a');
-    expect(resolveUnitSpec(archer, 1, [], progression)).toMatchObject({ maxHp: 385, attack: 33 });
+    expect(resolveUnitSpec(archer, 1, [], progression)).toMatchObject({ maxHp: 132, attack: 15 });
     const brute = content.enemies.get('brute');
     if (brute === undefined) throw new Error('no brute');
     // Osiłek: 35 ataku × 1,3 = 45,5 → 45.
@@ -46,8 +47,8 @@ describe('resolveUnitSpec', () => {
 
   it('runy dodają wartości płaskie po przeliczeniu ulepszeń', () => {
     const spec = resolveUnitSpec(swordsman, 4, [attackRune, hpRune], progression);
-    expect(spec.maxHp).toBe(840 + 200);
-    expect(spec.attack).toBe(56 + 25);
+    expect(spec.maxHp).toBe(224 + 200);
+    expect(spec.attack).toBe(28 + 25);
   });
 
   it('przyzywany rośnie z ulepszeniami przyzywacza, ale nie z jego run', () => {
@@ -62,7 +63,7 @@ describe('resolveUnitSpec', () => {
   });
 
   it('dwie takie same runy się sumują', () => {
-    expect(resolveUnitSpec(swordsman, 0, [attackRune, attackRune], progression).attack).toBe(90);
+    expect(resolveUnitSpec(swordsman, 0, [attackRune, attackRune], progression).attack).toBe(70);
   });
 
   it('nie zmienia pozostałych statystyk ani cech', () => {
@@ -86,16 +87,16 @@ describe('levelSetup', () => {
     ]);
     expect(setup.arena).toBe(content.arena);
     expect(setup.player).toHaveLength(5);
-    expect(setup.player[0]?.maxHp).toBe(720 + 200);
+    expect(setup.player[0]?.maxHp).toBe(192 + 200);
     expect(setup.player[1]).toBeNull();
-    expect(setup.player[2]?.maxHp).toBe(350);
+    expect(setup.player[2]?.maxHp).toBe(120);
     expect(setup.player[4]).toBeNull();
 
     // Poziom w1_l4: Tarczownik poziomu 0 w slocie 0 i Łucznicy poziomu 2 w slotach 2 i 3.
-    expect(setup.enemy[0]?.maxHp).toBe(1300);
+    expect(setup.enemy[0]?.maxHp).toBe(520);
     expect(setup.enemy[1]).toBeNull();
-    expect(setup.enemy[2]?.maxHp).toBe(420);
-    expect(setup.enemy[3]?.attack).toBe(36);
+    expect(setup.enemy[2]?.maxHp).toBe(144);
+    expect(setup.enemy[3]?.attack).toBe(16);
   });
 });
 

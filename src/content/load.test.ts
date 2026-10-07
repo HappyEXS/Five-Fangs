@@ -35,7 +35,7 @@ describe('loadContent', () => {
   it('wczytuje treść gry bez problemów', () => {
     const { content, issues } = loadContent();
     expect(issues).toEqual([]);
-    expect(content?.heroes.get('swordsman_a')?.base.maxHp).toBe(600);
+    expect(content?.heroes.get('swordsman_a')?.base.maxHp).toBe(160);
     expect(content?.heroes.get('archer_a')?.base.projectileStep).toBeGreaterThan(0);
     expect(content?.heroes.get('archer_b')?.base.pierce).toBe(true);
     expect(content?.enemies.has('brute')).toBe(true);

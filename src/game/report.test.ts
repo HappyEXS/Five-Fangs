@@ -69,13 +69,13 @@ describe('statystyki dla gracza', () => {
     const archer = content.heroes.get('archer_a');
     if (archer === undefined) throw new Error('missing unit');
     const stats = displayStats(archer.base);
-    expect(stats.maxHp).toBe(350);
-    expect(stats.attack).toBe(30);
+    expect(stats.maxHp).toBe(120);
+    expect(stats.attack).toBe(14);
     expect(stats.range).toBe(220);
     expect(stats.knockback).toBe(0);
     // 0,8 ataku na sekundę to odstęp 38 ticków, czyli efektywnie 30/38.
     expect(stats.attackRate).toBeCloseTo(30 / 38, 6);
-    expect(stats.damagePerSecond).toBeCloseTo((30 * 30) / 38, 6);
+    expect(stats.damagePerSecond).toBeCloseTo((14 * 30) / 38, 6);
     expect(stats.moveSpeed).toBeCloseTo(50, 0);
   });
 
