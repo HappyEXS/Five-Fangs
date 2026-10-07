@@ -116,7 +116,7 @@ export function guardianParts(): Record<string, PartCanvas> {
     shin: fleshShin(p, 'hoof', 0.95),
     torso: torso(p),
     upper: fleshUpper(p, 0.95),
-    fore: fleshFore(p, 'paw', 0.95),
+    fore: fleshFore(p, 0.95),
     head: head(p),
     weapon: claws(p, 9.5, 1.2),
   };

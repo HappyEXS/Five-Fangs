@@ -135,7 +135,7 @@ Pierwszy z czterech szczepów autora gry (szkice z 2026-10-05; kolor szczepu: br
 | `spike_volley` | 0,6 s | 0,5 | `volley`, `beast` | kolec, 450 jedn./s |
 | `fire_spit` | 0,7 s | 0,5 | `spit`, `beast` | kula ognia, 380 jedn./s |
 
-Wygląd: bestie stoją na dwóch nogach na szkielecie ludzi (wybór autora), z własnymi częściami i czterema nowymi klipami ataku (ADR 0018). Obserwacje z walk próbnych, do decyzji autora przy balansie:
+Wygląd: bestie stoją na dwóch nogach na szkielecie ludzi (wybór autora), z własnymi częściami i czterema nowymi klipami ataku (ADR 0018). Modele były rysowane trzy razy; obecne powstały 2026-10-07 po ocenie autora, że poprzednie są „zbyt przyjazne, delikatne i dziecinne” przy Immortals, Plants i Robots (ADR 0019): sierść prawie czarna, pysk to ciemność z małymi światłami oczu i zębami, a rogi, kły, kolce i czaszki są ze starej kości. Monstrosity to kopiec kudłów z rogami, Batfang nietoperz-upiór z kłami dłuższymi od brody, Reaper lisia czaszka w kapturze z sierści z kościanymi sierpami, Spiker garb najeżony kolcami, Ironbeak sęp w żelaznej masce z dziobem jak sierp, Tuskovator paszcza jak pułapka z kłem wygiętym w hak, Ignitix zwęglony gad z żarem w pęknięciach. Obserwacje z walk próbnych, do decyzji autora przy balansie:
 
 - Bestie chodzą 2–12 razy wolniej niż ludzie (45–60). Strzelcy o szybkości 10–15 często nie dochodzą na zasięg, zanim walka się rozstrzygnie, zwłaszcza gdy Ironbeak albo Tuskovator odrzucają wroga coraz dalej.
 - Odrzut 180 i 225 przesuwa trafionego o jedną piątą pola; Tuskovator o szybkości 30 długo dochodzi potem do odrzuconego wroga, więc bije rzadziej, niż wynika z 0,7 ataku na sekundę.

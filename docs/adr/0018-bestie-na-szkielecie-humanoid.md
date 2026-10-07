@@ -34,4 +34,4 @@ Autor wybrał drogę 2. Bestie stoją na dwóch nogach i używają rigu `humanoi
 
 ## Uzupełnienie (2026-10-05, M5i)
 
-Generator przeniósł się do `scripts/lib/skins/` (katalog na szczep), a bestie zostały przerysowane w stylu „mroczna baśń” razem z trzema kolejnymi szczepami (ADR 0019). Szacunek „po ok. 70 KB na szczep” nie przetrwał zmiany stylu: atlas ma 543 KB, liczby i wnioski są w ADR 0019.
+Generator przeniósł się do `scripts/lib/skins/` (katalog na szczep), a bestie zostały przerysowane w stylu „mroczna baśń” razem z trzema kolejnymi szczepami (ADR 0019), po czym na prośbę autora narysowane od nowa, żeby dorównały im grozą (uzupełnienie ADR 0019 z 2026-10-07). Szacunek „po ok. 70 KB na szczep” nie przetrwał zmiany stylu: atlas ma 543 KB, liczby i wnioski są w ADR 0019.

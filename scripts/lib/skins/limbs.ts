@@ -5,11 +5,11 @@
 import { intersect, union } from '../raster.ts';
 import { BONE, BONE_SHADE, type Palette, type PartCanvas, partCanvas, RAG_HARD } from './kit.ts';
 
-export type Foot = 'paw' | 'hoof' | 'talon';
-export type Hand = 'paw' | 'hoof' | 'wing';
+export type Foot = 'paw' | 'hoof';
 
 // ---------------------------------------------------------------------------------------------
-// Ciało: bestie i strażnicy. Żylaste, zwężające się kończyny z kępkami sierści od tyłu.
+// Ciało: strażnicy Immortals i wierzchowiec Hornixa. Żylaste, zwężające się kończyny z kępkami
+// sierści od tyłu. Bestie mają własne, cięższe kończyny w limbs-beasts.ts.
 // ---------------------------------------------------------------------------------------------
 
 /** Udo: zwęża się od biodra do kolana. `girth` 1 to zwykła postać, więcej to masywna. */
@@ -39,7 +39,7 @@ export function fleshShin(p: Palette, foot: Foot, girth = 1): PartCanvas {
       p,
     );
     for (const x of [3.2, 5.2, 7]) c.ink(c.horn(x, 12.6, x + 1.9, 14.3, 1, 0.2), BONE, p.dark);
-  } else if (foot === 'hoof') {
+  } else {
     c.form(leg, p);
     c.form(
       c.poly([
@@ -51,18 +51,6 @@ export function fleshShin(p: Palette, foot: Foot, girth = 1): PartCanvas {
       { main: p.dark, shade: p.dark, dark: p.dark, light: p.shade },
       { rag: RAG_HARD, shadow: 0, rim: 0.5 },
     );
-  } else {
-    // Ptasia noga: cienki, łuskowaty skok i trzy palce ze szponami.
-    const scaly = { main: p.accent, shade: p.shade, dark: p.dark, light: p.light };
-    c.form(c.horn(0, 0, 0.4, 11.8, 1.7, 1.2), scaly, { rag: RAG_HARD });
-    for (const [x, y] of [
-      [7, 13.8],
-      [5.4, 11.8],
-      [-3.8, 13.8],
-    ] as const) {
-      c.form(c.horn(0.4, 12.2, x, y, 1.2, 0.45), scaly, { rag: RAG_HARD, shadow: 0 });
-      c.ink(c.horn(x, y, x + (x > 0 ? 1.8 : -1.6), y + 0.9, 0.7, 0.15), BONE_SHADE, p.dark);
-    }
   }
   return c.finish();
 }
@@ -81,37 +69,13 @@ export function fleshUpper(p: Palette, girth = 1): PartCanvas {
 }
 
 /** Przedramię z dłonią; broń (pazury) doczepia się w punkcie (0, 9). */
-export function fleshFore(p: Palette, hand: Hand, girth = 1): PartCanvas {
+export function fleshFore(p: Palette, girth = 1): PartCanvas {
   const c = partCanvas(-8, -5, 8, 21, 14);
-  if (hand === 'wing') {
-    // Złożone skrzydło: wystrzępione lotki opadające od łokcia, jedna złamana.
-    c.form(
-      union(
-        c.horn(0, 0, -3.6, 15.5, 2.8, 0.5),
-        c.horn(0, 0, -0.2, 18, 2.8, 0.5),
-        c.horn(0, 0, 3, 12, 2.8, 0.9),
-        c.horn(0, 0, 4.6, 8.5, 2.2, 0.4),
-      ),
-      p,
-    );
-    c.fill(c.line(-0.2, 3, -0.2, 15, 0.3), p.dark, 0.6);
-    c.fill(c.line(-0.6, 3, -3, 13, 0.3), p.dark, 0.6);
-    return c.finish();
-  }
   const arm = c.horn(0, 0, 0, 8.4, 2.8 * girth, 2.2 * girth);
-  if (hand === 'hoof') {
-    c.form(arm, p);
-    c.form(
-      c.box(0, 9.8, 3 * girth, 2, 0.9),
-      { main: p.dark, shade: p.dark, dark: p.dark, light: p.shade },
-      { rag: RAG_HARD, shadow: 0, rim: 0.5 },
-    );
-  } else {
-    c.form(
-      union(arm, c.dot(0, 9.2, 3 * girth), c.horn(-2 * girth, 2, -4.2 * girth, 5.5, 1.2, 0.2)),
-      p,
-    );
-  }
+  c.form(
+    union(arm, c.dot(0, 9.2, 3 * girth), c.horn(-2 * girth, 2, -4.2 * girth, 5.5, 1.2, 0.2)),
+    p,
+  );
   return c.finish();
 }
 

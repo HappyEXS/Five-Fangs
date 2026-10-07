@@ -243,6 +243,14 @@ Autor gry ustalił docelowy kształt gry: sześć map po sześć etapów. Pierws
 
 Poza zakresem, do decyzji autora albo do balansu: liczby przeciwników i nagród światów 2–6, składy referencyjne na dalsze światy, ocena nazw i teł, ewentualni Akronix w światach szczepów.
 
+## M5n – Bestie narysowane od nowa (2026-10-07)
+
+Autor gry ocenił modele szczepu Beasts jako „zbyt przyjazne, delikatne i dziecinne” przy Immortals, Plants i Robots i zamówił nowe, w stylu tamtych szczepów (uzupełnienie ADR 0019).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5n-1 | Siedem nowych skórek bestii według szkiców autora: pysk jako ciemność ze światłami oczu i zębami, kość jako drugi materiał szczepu, cięższe kończyny (`limbs-beasts.ts`), wspólne motywy w `beasts/palette.ts`; nowe kadry miniaturek | 1,5 | Arkusze podglądu każdej postaci w czterech pozach, zrzuty z walki obok pozostałych szczepów i z zakładki Bohaterowie; atlas 734 KB, pierwsze uruchomienie 931 KB z 2 MB; testy generatora skórek, atlasu i kadrów miniaturek; mechanika i liczby bez zmian | gotowe (wygląd do oceny autora) |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

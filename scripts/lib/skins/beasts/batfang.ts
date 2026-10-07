@@ -1,132 +1,194 @@
-// Batfang: pierwsza ewolucja, strzelec. Wychudzony kocio-nietoperzy łeb o postrzępionych
-// uszach i dwóch pożółkłych kłach, na grzbiecie podarte błoniaste skrzydło z pazurami na końcach
-// palców (szkic autora).
+// Batfang: pierwsza ewolucja, strzela kłami. Wychudzony nietoperz-upiór: tępy łeb o postrzępionych
+// uszach, oczy jak dwa żarzące się punkty w ciemnej przepasce, z górnej szczęki zwisają dwa kły
+// dłuższe od brody; żebra wyłażą spod skóry, a za plecami sterczy podarte skrzydło (szkic
+// autora: okrągły łeb z uszami i zębami, pasiasty tułów, skrzydło nietoperza na grzbiecie).
 import { intersect, subtract, union } from '../../raster.ts';
-import { BONE, BONE_SHADE, MAW, type Palette, type PartCanvas, partCanvas } from '../kit.ts';
-import { claws, fleshFore, fleshShin, fleshThigh, fleshUpper } from '../limbs.ts';
+import { BONE, BONE_SHADE, type Palette, type PartCanvas, partCanvas } from '../kit.ts';
+import { beastFore, beastShin, beastThigh, beastUpper, hooks } from '../limbs-beasts.ts';
+import { beast, emberEye, grime, INK, strands, teeth, VOID } from './palette.ts';
 
-export const BATFANG: Palette = {
-  main: '#4c3932',
-  shade: '#2a1e1a',
-  light: '#73574b',
-  dark: '#120b09',
-  accent: '#5c2a33',
-  glow: '#f08c2a',
-};
+/** Szarobrązowa, łysiejąca skóra. */
+const SKIN = { main: '#4b3b35', shade: '#231a17', light: '#705a50', dark: INK };
+/** Błona skrzydła: przybrudzone wino. */
+const MEMBRANE = { main: '#3f222a', shade: '#1f0f14', light: '#5e3640', dark: INK };
+
+export const BATFANG: Palette = beast(SKIN, MEMBRANE.main, '#ff5a3a');
 
 function head(p: Palette): PartCanvas {
-  const c = partCanvas(-18, -40, 20, 8, 1);
-  const membrane = { main: p.accent, shade: p.dark, dark: p.dark, light: p.light };
-  // Dalsze ucho: sama podarta błona.
+  const c = partCanvas(-17, -40, 23, 13, 1);
+  // Dalsze ucho.
   c.form(
-    subtract(
-      c.poly([
-        [-8, -14],
-        [-12, -34],
-        [0, -18],
-      ]),
-      c.dot(-10.5, -25, 2.2),
-    ),
-    membrane,
+    c.poly([
+      [-8, -14],
+      [-12, -33],
+      [-1, -19],
+    ]),
+    { main: p.shade, shade: INK, dark: INK, light: p.main },
   );
-  const skull = union(c.oval(0.5, -10.5, 10, 9.2), c.oval(9.5, -7.5, 5.2, 4.4));
+  // Dalszy kieł.
+  const farFang = c.horn(9.4, -4.6, 10.2, 5.4, 1.5, 0.2);
+  c.ink(farFang, BONE_SHADE, INK);
+  // Tępy, klinowaty łeb z kępami sierści na karku.
+  const skull = c.poly([
+    [-9, -3],
+    [-10.4, -11],
+    [-6.4, -17.6],
+    [2, -20],
+    [10, -17.4],
+    [15.6, -11.6],
+    [17.4, -7],
+    [15, -3.4],
+    [8, -1.4],
+    [-2, -0.4],
+  ]);
   const inside = c.form(
-    union(skull, c.horn(-7, -6, -12.5, -1, 2.3, 0.3), c.horn(-8, -12, -13, -11, 2, 0.3)),
-    p,
-  );
-  c.patches(intersect(inside, c.oval(9, -5.5, 7, 4.5)), p.light, 0.5, 3, 0.8);
-  // Bliższe ucho z wystrzępioną krawędzią i ciemnym wnętrzem.
-  c.form(
-    subtract(
-      c.poly([
-        [-2.5, -17],
-        [1, -39],
-        [9.5, -18],
+    union(
+      skull,
+      strands(c, [
+        [-8.6, -6, -5, 6, 2],
+        [-9.6, -11, -5.6, 3, 1.9],
+        [-3, -1.6, -2.6, 6.4, 1.8],
       ]),
-      union(c.dot(7.4, -26, 1.9), c.dot(-0.6, -29, 1.3)),
     ),
     p,
   );
+  c.patches(inside, p.light, 0.16, 2.4, 0.6);
+  // Zadarty, liściasty nos.
+  c.form(
+    c.poly([
+      [14.6, -11.4],
+      [19.4, -16.6],
+      [18, -8.4],
+    ]),
+    { main: p.shade, shade: INK, dark: INK, light: p.main },
+    { shadow: 0.5 },
+  );
+  c.fill(c.line(16.8, -11.6, 17.6, -10.4, 0.36), INK);
+  // Zapadnięte oczodoły zlewają się w jedną plamę ciemności; w niej dwoje oczu.
+  c.fill(
+    intersect(
+      inside,
+      c.ragged(
+        union(c.oval(6, -11, 3.6, 3), c.oval(11.8, -10.8, 3.2, 3.2), c.box(9, -11.4, 3, 1.4, 0.6)),
+        0.4,
+        2.4,
+      ),
+    ),
+    VOID,
+  );
+  emberEye(c, 6.2, -11, 0.85, p.glow);
+  emberEye(c, 11.6, -10.8, 1, p.glow);
+  // Rozcięcie pyska z drobnymi zębami.
+  c.fill(intersect(inside, c.line(3.6, -4.6, 16.4, -5.4, 0.9)), VOID);
+  teeth(c, [5, -5.4], [8, -5.6], 3, 1.6, BONE_SHADE, 0.5);
+  // Bliższe ucho: wysokie, naddarte, z ciemnym wnętrzem.
+  const ear = subtract(
+    c.poly([
+      [-1.6, -17],
+      [3, -38],
+      [8.6, -18],
+    ]),
+    c.dot(7.4, -27, 1.9),
+  );
+  c.form(ear, p);
   c.fill(
     c.poly([
-      [1.2, -19.5],
-      [2, -31.5],
-      [6, -19.5],
+      [1, -20],
+      [3, -33.6],
+      [5.2, -21],
     ]),
     p.accent,
   );
-  // Pomarszczony nos i rozwarty pysk; dwa długie kły wystają poniżej szczęki.
-  c.fill(c.dot(14.2, -9.4, 1.5), p.dark);
-  c.fill(
-    c.path(
-      [
-        [10, -10.5],
-        [12.2, -11.4],
-      ],
-      0.3,
-    ),
-    p.dark,
-  );
-  c.fill(intersect(inside, c.oval(8.8, -4.2, 5.8, 2.1)), MAW);
-  c.ink(c.horn(6, -5, 5.4, 3.4, 1.4, 0.2), BONE, p.dark);
-  c.ink(c.horn(10.6, -5, 11, 2.2, 1.3, 0.2), BONE_SHADE, p.dark);
-  c.eye(5, -13.2, 2.2, p, 1.2);
-  c.fill(c.horn(1, -17, 9.4, -14.6, 1.3, 0.6), p.dark);
+  // Bliższy kieł: długi szabel z brudną nasadą.
+  const fang = c.horn(13, -5.2, 14.4, 8.6, 1.8, 0.2);
+  c.ink(fang, BONE, INK);
+  grime(c, fang, [13, -5.2], 4.4);
   return c.finish();
 }
 
 function torso(p: Palette): PartCanvas {
-  const c = partCanvas(-35, -52, 12, 6, 2);
-  // Skrzydło wyrasta z łopatki; błona między trzema palcami jest podarta i dziurawa.
-  const root = [-3, -19] as const;
+  const c = partCanvas(-36, -53, 14, 10, 2);
+  const wing = { ...MEMBRANE };
+  // Skrzydło za plecami: błona rozpięta między palcami, poszarpana i dziurawa.
+  const wrist = [-11, -40] as const;
   const tips = [
-    [-13, -46],
-    [-27, -39],
-    [-31, -24],
+    [-23, -48],
+    [-33, -35],
+    [-32.6, -18],
+    [-22, -5],
   ] as const;
   const membrane = subtract(
-    c.poly([root, tips[0], tips[1], tips[2], [-7, -6]]),
+    c.poly([
+      [-4, -18],
+      wrist,
+      tips[0],
+      [-25.4, -39],
+      tips[1],
+      [-28, -27],
+      tips[2],
+      [-24.4, -13],
+      tips[3],
+      [-13.6, -8.6],
+      [-4, -9],
+    ]),
     union(
-      c.dot(-21.5, -46.5, 5.4),
-      c.dot(-32.5, -32, 5.6),
-      c.dot(-22, -11.5, 9.5),
-      c.dot(-17, -32, 2.4),
-      c.dot(-23.5, -26, 1.6),
-      c.dot(-11, -25, 1.3),
+      // Rozdarcia: długie szczeliny wzdłuż palców i wyrwa przy krawędzi.
+      c.horn(-17, -38, -24, -32.6, 0.3, 1.9),
+      c.horn(-16, -27, -25.6, -24.6, 0.3, 1.6),
+      c.horn(-12.6, -17, -20, -10.6, 0.3, 1.5),
+      c.dot(-30.6, -26, 2.4),
     ),
   );
+  const web = c.form(membrane, wing, { rag: 0.5 });
+  c.patches(web, wing.light, 0.16, 2.6, 0.6);
+  // Kości palców i ramię skrzydła; na nadgarstku hak.
+  for (const [x, y] of tips) c.fill(c.horn(wrist[0], wrist[1], x, y, 0.75, 0.3), INK);
+  c.fill(c.horn(-4, -18, wrist[0], wrist[1], 1.3, 0.8), INK);
+  c.ink(c.arc([wrist[0], wrist[1]], [-9, -47], [-5.6, -48.6], 1.1, 0.2), BONE_SHADE, INK);
+  // Kołnierz sierści sterczący za karkiem.
   c.form(
-    membrane,
-    { main: p.accent, shade: p.dark, dark: p.dark, light: p.light },
-    { shadow: 0.7 },
+    c.poly([
+      [-8.6, -17],
+      [-12.4, -31],
+      [-6.4, -25],
+      [-4, -32],
+      [-1, -21],
+    ]),
+    { main: p.shade, shade: INK, dark: INK, light: p.main },
   );
-  for (const [x, y] of tips) {
-    c.fill(c.horn(root[0], root[1], x, y, 1, 0.5), p.dark);
-    c.fill(c.horn(root[0], root[1], x, y, 0.45, 0.2), BONE_SHADE);
-    // Pazur na końcu palca.
-    c.ink(c.horn(x, y, x - 1.4, y - 3.4, 1.1, 0.2), BONE, p.dark);
+  // Wychudzony, przygarbiony tułów.
+  const body = c.poly([
+    [-7, -20],
+    [-2, -24],
+    [5, -22],
+    [8.4, -15],
+    [6.8, -7],
+    [5, 0],
+    [3.4, 5],
+    [-4, 5],
+    [-6, -2],
+    [-8.6, -11],
+  ]);
+  const inside = c.form(union(body, strands(c, [[-7.6, -6, -3.6, 5.6, 1.6]])), p);
+  // Żebra wyłażą spod skóry jak pasy.
+  for (const y of [-17.4, -13.6, -9.8, -6]) {
+    const rib = intersect(inside, c.arc([-3.4, y - 0.6], [2.6, y + 2.2], [8, y - 0.6], 0.7, 0.5));
+    c.fill(rib, p.light);
+    c.fill(intersect(inside, c.shift(rib, 0, 1)), p.shade, 0.9);
   }
-  // Chudy ogon.
-  c.form(c.arc([-5, -2], [-11.5, 0.5], [-14, -6.5], 1.6, 0.3), p);
-  const body = c.oval(0, -11.5, 7.4, 13.2);
-  const inside = c.form(body, p);
-  c.patches(intersect(inside, c.oval(4, -9, 4, 9)), p.light, 0.45, 3, 0.8);
-  // Żebra: wychudzony tułów.
-  for (const y of [-16, -12.5, -9, -5.5]) {
-    c.fill(intersect(inside, c.arc([0.4, y], [3.6, y + 1.9], [6.8, y - 0.2], 0.32, 0.32)), p.shade);
-  }
+  c.patches(inside, p.shade, 0.16, 2.4, 0.7);
   return c.finish();
 }
 
 export function batfangParts(): Record<string, PartCanvas> {
   const p = BATFANG;
   return {
-    thigh: fleshThigh(p, 0.85),
-    shin: fleshShin(p, 'paw', 0.85),
+    thigh: beastThigh(p, 0.8),
+    shin: beastShin(p, 'paw', 0.82),
     torso: torso(p),
-    upper: fleshUpper(p, 0.8),
-    fore: fleshFore(p, 'paw', 0.8),
+    upper: beastUpper(p, 0.72),
+    fore: beastFore(p, 'paw', 0.76),
     head: head(p),
-    weapon: claws(p, 6.5),
+    weapon: hooks(p, 7),
   };
 }

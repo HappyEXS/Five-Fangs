@@ -50,3 +50,18 @@ Dziesięć skórek Akronixów (`scripts/lib/skins/akronix/`) jest narysowanych t
 - **Druga ręka.** Tarcza Defenixa i druga broń Axinów wymagały nowej, opcjonalnej kości `offhand` w rigu `humanoid` (ARCHITECTURE.md §5.3). Pozostałe skórki jej nie mają i rysują się jak dotąd.
 - **Znak szczepu ze szkicu** (koło przekreślone krzyżem) jest na pawęży Defenixa, proporcu i napierśniku generała.
 - Atlas urósł z 585 KB do 704 KB (454 sprite'y); pierwsze uruchomienie to 893 KB wobec budżetu 2 MB. Wrogowie świata, w którym wystąpi Akronix, powinni docelowo trafić do leniwie ładowanego atlasu tego świata (M6-2).
+
+## Uzupełnienie z 2026-10-07: bestie narysowane od nowa
+
+Autor gry ocenił, że Immortals, Plants i Robots trafiają w styl, a bestie, rysowane jako pierwsze, są przy nich „zbyt przyjazne, delikatne i dziecinne”, i zamówił nowe modele w stylu tamtych trzech szczepów. Porównanie pokazało, czym się różniły: bestie były rozpoznawalnymi zwierzakami z kreskówki (lis, jeż, ptak, dzik) o smukłych ludzkich proporcjach, z okiem pod brwią i jasnym pyskiem, a postacie pozostałych szczepów mają maski, kaptury i dziuple zamiast twarzy, twarde bryły i jeden mocny znak w sylwetce.
+
+Siedem skórek (`scripts/lib/skins/beasts/`) powstało od zera; szkice autora zostają źródłem tego, kim każda bestia jest. Reguły, które doszły dla tego szczepu:
+
+- **Pysk to ciemność.** Bestia nie ma „buzi”: w miejscu pyska jest czerń, w niej małe światła oczu i zęby. Tak samo działają kaptur Enigmatixa i dziuple Plants.
+- **Drugim materiałem szczepu jest stara kość**: rogi, kły, kolce, sierpy, czaszki i płyty na czole, pożółkłe i spękane. Kolor szczepu (brąz) zszedł do prawie czarnej sierści i garbowanej skóry; każda bestia ma własny kolor światła w oczach.
+- **Cięższe kończyny** (`limbs-beasts.ts`): grube uda i barki, długie kosmyki zamiast krótkich kępek, kościana ostroga na pięcie i łokciu, pazury jak haki. Dawne kończyny (`limbs.ts`) zostały przy strażnikach Immortals i wierzchowcu Hornixa.
+- **Wspólne motywy** leżą w `beasts/palette.ts`: kosmyki, rząd zębów z cienkim obrysem, szpara oka, światło w oczodole, pęknięcie i brud u nasady rogu.
+
+Postacie: **Monstrosity** to kopiec kudłów z dwoma rogami, skośnymi oczami i wyszczerzem kwadratowych zębów; **Batfang** to nietoperz-upiór z kłami dłuższymi od brody, żebrami na wierzchu i podartym skrzydłem; **Reaper** ma gołą lisią czaszkę w kapturze z sierści i po trzy kościane sierpy w łapach; **Spiker** to garb najeżony kolcami, z łbem pod kościaną płytą i mchem w ranach; **Ironbeak** to sęp w nitowanej żelaznej masce z dziobem jak sierp; **Tuskovator** ma paszczę jak pułapkę, romb czerwonego oka i kieł wygięty w hak; **Ignitix** jest zwęglony, a w pęknięciach i w paszczy świeci żar.
+
+Skutki: atlas urósł z 704 KB do 734 KB (części bestii są większe), pierwsze uruchomienie to 931 KB z 2 MB. Kadry miniaturek siedmiu bestii mają nowe środki i rozmiary. Mechanika, liczby, klipy animacji i pociski się nie zmieniły. Wygląd czeka na ocenę autora.

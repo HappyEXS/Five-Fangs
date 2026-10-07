@@ -252,8 +252,8 @@
     "skin": "monstrosity",
     "scale": 0.9,
     "portrait": {
-      "center": [2, -13],
-      "size": 34
+      "center": [6, -13],
+      "size": 44
     }
   },
   {
@@ -268,8 +268,8 @@
     "attackType": "fang_spit",
     "skin": "batfang",
     "portrait": {
-      "center": [2, -15],
-      "size": 38
+      "center": [3, -13],
+      "size": 44
     }
   },
   {
@@ -285,8 +285,8 @@
     "skin": "reaper",
     "scale": 1.05,
     "portrait": {
-      "center": [4, -14],
-      "size": 38
+      "center": [6, -15],
+      "size": 44
     }
   },
   {
@@ -310,8 +310,8 @@
     "skin": "spiker",
     "scale": 1.1,
     "portrait": {
-      "center": [2, -11],
-      "size": 36
+      "center": [5, -9],
+      "size": 38
     }
   },
   {
@@ -327,8 +327,8 @@
     "skin": "ironbeak",
     "scale": 1.15,
     "portrait": {
-      "center": [9, -27],
-      "size": 38
+      "center": [10, -27],
+      "size": 44
     }
   },
   {
@@ -344,8 +344,8 @@
     "skin": "tuskovator",
     "scale": 1.25,
     "portrait": {
-      "center": [9, -7],
-      "size": 46
+      "center": [11, -6],
+      "size": 50
     }
   },
   {
@@ -366,8 +366,8 @@
     "skin": "ignitix",
     "scale": 1.2,
     "portrait": {
-      "center": [11, -27],
-      "size": 40
+      "center": [14, -30],
+      "size": 44
     }
   },
   {
