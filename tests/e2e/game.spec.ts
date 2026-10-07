@@ -240,7 +240,7 @@ test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async
   await expect(page.locator('.form-card')).toContainText('Ostatni stopień tej drogi');
   // Koszty zależą od stopnia formy: ewolucja na trzeci stopień i cztery równe ulepszenia.
   await expect(page.locator('.form-card .form-origin')).toContainText('1 600');
-  await expect(page.locator('.form-card .form-upgrades')).toHaveText(/Ulepszenias*4 ×s*800/);
+  await expect(page.locator('.form-card .form-upgrades')).toHaveText(/Ulepszenia\s*4 ×\s*800/);
   await expect(page.locator('.form-card')).toContainText('Tarcza: otrzymuje o 35% mniej obrażeń');
   await expect(page.locator('.path-name')).toHaveText(['Miecznik', 'Tarczownik', 'Pawężnik']);
   expect(errors).toEqual([]);

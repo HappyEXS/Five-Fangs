@@ -112,13 +112,14 @@ test('przyciski „i”: zasady ekranów i kart są w okienkach, nie na scenie',
   );
   await expect(popup).toContainText('Po 4 ulepszeniach bohater może ewoluować');
   await expect(popup).toContainText('Ulepszenia i ewolucję kupujesz na ekranie składu.');
-  // Wybór formy w drzewie zamyka okienko; karta formy po ewolucji wyjaśnia swoje strzałki.
+  // Wybór formy w drzewie zamyka okienko. Karta formy po ewolucji pokazuje same liczby tej
+  // formy: bez strzałek, bez porównania z poprzednią i bez przycisku „i”.
   await page.locator('.tree-node[data-form="guard_a"]').click();
   await expect(popup).toHaveCount(0);
   await expect(formCard.locator('.form-origin')).toContainText('Miecznik');
-  await expect(
-    await openInfo(page, formCard.getByRole('button', { name: 'Informacje: Tarczownik' })),
-  ).toHaveText('Wartości po strzałkach: ta forma względem formy, z której powstaje.');
+  await expect(formCard.locator('.stat-next')).toHaveCount(0);
+  await expect(formCard.locator('.info-btn')).toHaveCount(0);
+  await expect(formCard.locator('.stat').first()).toHaveText(/^Życie\s*520$/);
   await page.getByRole('button', { name: 'Wróć' }).click();
 
   // Sklep: jedno okienko zamiast tekstu pod nagłówkiem.

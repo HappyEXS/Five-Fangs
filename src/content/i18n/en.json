@@ -183,7 +183,6 @@
   "heroes.from": "Evolves from {name} for",
   "heroes.into": "Can evolve into: {names}",
   "heroes.last": "Last tier of this path",
-  "heroes.compare": "Values after the arrows: this form compared with the one it evolves from.",
   "heroes.upgrade.costs": "Upgrades",
   "info.about": "Info: {topic}",
   "squad.info.move": "Grab a hero and move them to another slot or onto \"Not in squad\".",

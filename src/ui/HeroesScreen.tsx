@@ -12,7 +12,6 @@ import { t } from '../game/i18n.ts';
 import { formStands } from '../game/stage-stands.ts';
 import { Gold, lineName, ScreenHead, StatTable, tierLabel, unitName } from './common.tsx';
 import { FoeTribe, tribeName } from './FoeTribe.tsx';
-import { InfoButton } from './InfoButton.tsx';
 import { Portrait } from './Portrait.tsx';
 
 /** Drzewo form linii jako siatka przycisków; wybrana forma jest wyróżniona. */
@@ -58,14 +57,13 @@ function Tree(props: { game: Game; stage: StageControls; line: CompiledLine; for
 
 /**
  * Karta formy: stopień, skąd się bierze (forma bazowa ze sklepu, pozostałe z ewolucji) i za ile,
- * dokąd prowadzi, statystyki i koszty ulepszeń.
+ * dokąd prowadzi, statystyki tej formy bez ulepszeń i koszty ulepszeń.
  */
 function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine; form: string }) {
   const { game, line, form } = props;
   const node = line.forms.get(form);
   const unit = game.content.heroes.get(form);
   if (node === undefined || unit === undefined) return null;
-  const parent = node.from === null ? undefined : game.content.heroes.get(node.from);
   return (
     <section class="sheet form-card" data-details={form}>
       <header class="card-head">
@@ -77,9 +75,6 @@ function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine;
             <span>{tierLabel(node.tier)}</span>
           </p>
         </div>
-        {parent !== undefined && (
-          <InfoButton topic={unitName(form)} lines={[t('heroes.compare')]} />
-        )}
       </header>
       <p class="form-origin">
         <span>
@@ -94,8 +89,8 @@ function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine;
           ? t('heroes.last')
           : t('heroes.into', { names: node.next.map((next) => unitName(next)).join(', ') })}
       </p>
-      {/* Forma po ewolucji zaczyna bez ulepszeń, więc porównujemy wartości bazowe obu form. */}
-      <StatTable spec={parent?.base ?? unit.base} next={parent === undefined ? null : unit.base} />
+      {/* Same liczby tej formy: porównanie z poprzednią formą strzałkami myliło (uwaga autora). */}
+      <StatTable spec={unit.base} />
       <div class="form-upgrades">
         <span class="sheet-title">{t('heroes.upgrade.costs')}</span>
         {/* Każde ulepszenie formy kosztuje tyle samo (ADR 0023): liczba ulepszeń razy cena. */}

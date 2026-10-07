@@ -183,7 +183,6 @@
   "heroes.from": "Powstaje z formy {name} za",
   "heroes.into": "Może ewoluować w: {names}",
   "heroes.last": "Ostatni stopień tej drogi",
-  "heroes.compare": "Wartości po strzałkach: ta forma względem formy, z której powstaje.",
   "heroes.upgrade.costs": "Ulepszenia",
   "info.about": "Informacje: {topic}",
   "squad.info.move": "Złap bohatera i przesuń go na inny slot albo na „Poza składem”.",
