@@ -5,6 +5,8 @@ import { TRIBE_SKINS, tribeSprites } from './index.ts';
 import { partCanvas } from './kit.ts';
 
 const RIG_PARTS = ['thigh', 'shin', 'torso', 'upper', 'fore', 'head', 'weapon'];
+/** Skórki z częścią opcjonalną „offhand”: tarcza Defenixa i druga broń Axinów. */
+const OFFHAND = ['defenix', 'axin_1', 'axin_2', 'axin_3'];
 
 function alphaAt(image: { width: number; data: Uint8ClampedArray }, x: number, y: number): number {
   return image.data[(y * image.width + x) * 4 + 3] ?? 0;
@@ -42,7 +44,7 @@ describe('skórki szczepów', () => {
   const byName = new Map(sprites.map((sprite) => [sprite.name, sprite]));
   const skins = Object.values(TRIBE_SKINS).flat();
 
-  it('cztery szczepy, każdy z siedmioma formami w kolejności drzewa ewolucji', () => {
+  it('cztery szczepy po siedem form w kolejności drzewa ewolucji i dziesięciu Akronixów', () => {
     expect(TRIBE_SKINS).toEqual({
       beasts: ['monstrosity', 'batfang', 'reaper', 'spiker', 'ironbeak', 'tuskovator', 'ignitix'],
       immortals: [
@@ -66,6 +68,19 @@ describe('skórki szczepów', () => {
         'sprout',
       ],
       robots: ['bot', 'egzo_bot', 'holo_bot', 'thermobot', 'ax_bot', 'whirl_bot', 'titan_bot'],
+      // Szczep wrogów bez ewolucji: postacie w kolejności siły, na końcu trzej bossowie.
+      akronix: [
+        'bowix',
+        'assasinix',
+        'katanix',
+        'defenix',
+        'poisonix',
+        'hornix',
+        'kaisarix',
+        'axin_1',
+        'axin_2',
+        'axin_3',
+      ],
     });
   });
 
@@ -75,9 +90,12 @@ describe('skórki szczepów', () => {
         expect(byName.has(`${skin}/${part}`), `${skin}/${part}`).toBe(true);
     }
     const fx = sprites.filter((sprite) => sprite.name.startsWith('fx/'));
-    // Dwanaście pocisków i znak uniku.
-    expect(fx).toHaveLength(13);
-    expect(sprites).toHaveLength(skins.length * RIG_PARTS.length + fx.length);
+    // Piętnaście pocisków, znak uniku oraz znaczki krwawienia i trucizny.
+    expect(fx).toHaveLength(18);
+    expect(sprites.filter((sprite) => sprite.name.endsWith('/offhand')).map((s) => s.name)).toEqual(
+      OFFHAND.map((skin) => `${skin}/offhand`),
+    );
+    expect(sprites).toHaveLength(skins.length * RIG_PARTS.length + OFFHAND.length + fx.length);
   });
 
   it('każda forma bohatera z linii szczepu ma swoją skórkę i sprite pocisku', () => {

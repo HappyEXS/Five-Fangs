@@ -43,6 +43,11 @@ export const rigSchema = z.strictObject({
         sprite: id,
         /** Kończyna po dalszej stronie postaci: rysowana w wariancie przyciemnionym. */
         back: z.boolean().default(false),
+        /**
+         * Część, której skórka nie musi mieć (np. to, co postać trzyma w drugiej ręce): bez
+         * sprite'a kość po prostu się nie rysuje.
+         */
+        optional: z.boolean().default(false),
       }),
     )
     .min(1),

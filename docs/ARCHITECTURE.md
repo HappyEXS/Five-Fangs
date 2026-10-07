@@ -419,7 +419,8 @@ Renderer może używać `Math.sin/cos` i floatów. Zakaz dotyczy tylko `sim`.
 
 Rig z klipami leży w jednym pliku treści (`rigs/humanoid.json`: dane z załącznika A briefu) i jest kompilowany przez renderer przy starcie (`render/rig.ts`, `render/clips.ts`).
 
-- **Kość**: rodzic (albo `root`), punkt zaczepienia względem pivota rodzica, nazwa części, flaga `back`. Kości są zapisane w kolejności obliczeń (rodzic przed dzieckiem); kolejność rysowania to osobna lista `drawOrder`.
+- **Kość**: rodzic (albo `root`), punkt zaczepienia względem pivota rodzica, nazwa części, flagi `back` i `optional`. Kości są zapisane w kolejności obliczeń (rodzic przed dzieckiem); kolejność rysowania to osobna lista `drawOrder`.
+- **Druga ręka** (`offhand`, kość opcjonalna): to, co postać trzyma w dalszej ręce (tarcza Defenixa, druga broń Axinów). Wisi na dalszym przedramieniu, ale rysuje się przed tułowiem i głową, tuż przed bliższą ręką, bo tylko tak tarcza zasłania postać. Skórka bez tej części po prostu jej nie rysuje, a kontrola atlasu (`content-asset-checks.ts`) nie wymaga części opcjonalnych. Kąt chwytu podają postawy `shield` i `dual`.
 - **Skórka** (`skin` jednostki) wyznacza sprite'y: `<skórka>/<część>` w atlasie. Formy bohaterów dzielą rig i klipy, a różnią się skórką.
 - **Poza** to `channelCount` liczb: kąt każdej kości w radianach, potem `bob` i `dx` korzenia w jednostkach rigu.
 - **Klip**: klatki kluczowe `[czas 0..1, wartość]` per kanał, w `Float32Array`; interpolacja smoothstep; znaczniki (`hit`). Kanały, których klip nie animuje, biorą wartość z **postawy** typu ataku (np. kąt chwytu miecza albo łuku w idle i chodzie).

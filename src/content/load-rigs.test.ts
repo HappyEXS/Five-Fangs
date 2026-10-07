@@ -56,6 +56,7 @@ describe('rig humanoid z treści gry', () => {
       'head',
       'armB',
       'foreB',
+      'offhand',
       'thighB',
       'shinB',
       'thighF',
@@ -64,6 +65,9 @@ describe('rig humanoid z treści gry', () => {
       'foreF',
       'weapon',
     ]);
+    // Drugą rękę (tarcza, druga broń) mają tylko niektóre skórki; rysuje się przed bliższą ręką.
+    expect(humanoid?.bones.filter((b) => b.optional).map((b) => b.id)).toEqual(['offhand']);
+    expect(humanoid?.drawOrder.slice(-4)).toEqual(['offhand', 'armF', 'weapon', 'foreF']);
     expect(humanoid?.bones.filter((b) => b.back).map((b) => b.id)).toEqual([
       'armB',
       'foreB',

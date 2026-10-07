@@ -12,9 +12,9 @@ const stick: RawRig = {
   scale: 1,
   strideLength: 20,
   bones: [
-    { id: 'body', parent: 'root', at: [0, 0], sprite: 'torso', back: false },
-    { id: 'arm', parent: 'body', at: [0, -5], sprite: 'upper', back: true },
-    { id: 'hand', parent: 'arm', at: [0, 4], sprite: 'fore', back: false },
+    { id: 'body', parent: 'root', at: [0, 0], sprite: 'torso', back: false, optional: false },
+    { id: 'arm', parent: 'body', at: [0, -5], sprite: 'upper', back: true, optional: false },
+    { id: 'hand', parent: 'arm', at: [0, 4], sprite: 'fore', back: false, optional: false },
   ],
   drawOrder: ['arm', 'hand', 'body'],
   portrait: { bone: 'arm', center: [1, -2], size: 12 },
@@ -91,8 +91,9 @@ describe('compileRig', () => {
     const raw = requireContent().rigs.get('humanoid');
     if (raw === undefined) throw new Error('no humanoid rig');
     const humanoid = compileRig(raw);
-    expect(humanoid.boneCount).toBe(11);
-    expect(humanoid.channelCount).toBe(13);
+    // Jedenaście części ciała i broni oraz opcjonalna druga ręka (tarcza, druga broń).
+    expect(humanoid.boneCount).toBe(12);
+    expect(humanoid.channelCount).toBe(14);
     expect([...humanoid.clips.keys()]).toEqual([
       'idle',
       'walk',
@@ -115,7 +116,7 @@ describe('compileRig', () => {
     humanoid.parent.forEach((p, bone) => {
       expect(p).toBeLessThan(bone);
     });
-    expect(new Set(humanoid.drawOrder).size).toBe(11);
+    expect(new Set(humanoid.drawOrder).size).toBe(humanoid.boneCount);
   });
 });
 
