@@ -1,15 +1,17 @@
-// Bohaterowie wystawieni na scenie poza walką: w sklepie stoją linie na sprzedaż, na ekranie
-// informacji o bohaterach obie formy wybranej linii. Ten moduł ustala, gdzie kto stoi; korzysta
-// z niego canvas (battle-stage.ts) i ekrany UI, żeby metki trafiały dokładnie pod postacie.
+// Postacie wystawione na scenie poza walką: w sklepie stoją linie na sprzedaż, na ekranie
+// informacji o bohaterach droga ewolucji wybranej linii albo stopień szczepu wrogów. Ten moduł
+// ustala, gdzie kto stoi; korzysta z niego canvas (battle-stage.ts) i ekrany UI, żeby metki
+// trafiały dokładnie pod postacie.
 import type { UnitVisual } from '../content/compile.ts';
 import type { GameContent } from '../content/load.ts';
+import { findUnit } from '../content/resolve-spec.ts';
 import type { BattleSetup, UnitSpec } from '../sim/types.ts';
 import { displayPath } from './evolution.ts';
 import { SQUAD_SLOTS } from './save-schema.ts';
 import { arenaXAt } from './stage-geometry.ts';
 
 export interface Stand {
-  /** Id jednostki bohatera stojącej na stanowisku. */
+  /** Id jednostki stojącej na stanowisku: formy bohatera albo wroga ze szczepu wrogów. */
   readonly unitId: string;
   /** Pozycja na scenie jako ułamek jej szerokości, 0..1. */
   readonly position: number;
@@ -34,6 +36,9 @@ const EDGE_CROWDED = 0.08;
 const PATH_FROM = 0.12;
 const PATH_TO_SHORT = 0.5;
 const PATH_TO_LONG = 0.56;
+/** Stopień szczepu wrogów stoi w tej samej części sceny: środek grupy i odstęp między postaciami. */
+const RANK_CENTER = 0.34;
+const RANK_STEP = 0.2;
 
 /**
  * Miejsca slotów składu na ekranie zarządzania składem, jako ułamek szerokości sceny. Szerzej
@@ -106,6 +111,43 @@ export function formStands(content: GameContent, lineId: string, form: string | 
   }));
 }
 
+/**
+ * Stanowiska stopnia szczepu wrogów: wybrana postać i pozostałe z tego samego stopnia, od
+ * najsłabszej z lewej. Stoją po stronie przeciwnika, czyli patrzą w lewo i mają czerwone paski
+ * życia, tak jak gracz zobaczy je w walce. Bez wybranej postaci: pierwszy stopień szczepu.
+ */
+export function tribeStands(content: GameContent, tribeId: string, unitId: string | null): Stand[] {
+  const tribe = content.enemyTribes.get(tribeId);
+  if (tribe === undefined) return [];
+  const selected = tribe.members.find((member) => member.unit === unitId) ?? tribe.members[0];
+  if (selected === undefined) return [];
+  const mates = tribe.members
+    .filter((member) => member.rank === selected.rank)
+    .slice(0, SQUAD_SLOTS);
+  const first = RANK_CENTER - ((mates.length - 1) * RANK_STEP) / 2;
+  return mates.map((member, index) => ({
+    unitId: member.unit,
+    position: first + index * RANK_STEP,
+    side: 1 as const,
+    slot: index,
+  }));
+}
+
+/**
+ * Stanowiska ekranu informacji o bohaterach dla wybranej zakładki: droga ewolucji linii albo
+ * stopień szczepu wrogów. Linie i szczepy wrogów dzielą przestrzeń id (pilnuje tego walidator).
+ */
+export function heroesStands(
+  content: GameContent,
+  group: string | null,
+  unitId: string | null,
+): Stand[] {
+  if (group === null) return [];
+  return content.lines.has(group)
+    ? formStands(content, group, unitId)
+    : tribeStands(content, group, unitId);
+}
+
 export interface StandScene {
   readonly setup: BattleSetup;
   /** Wygląd jednostek pod ich `unitId`, jak w `levelVisuals`. */
@@ -113,7 +155,7 @@ export interface StandScene {
 }
 
 /**
- * Wejście symulacji, które ustawia bohaterów na ich stanowiskach. Nikt tu nie walczy: renderer
+ * Wejście symulacji, które ustawia postacie na ich stanowiskach. Nikt tu nie walczy: renderer
  * pokazuje tę „walkę” w ticku zerowym. Puste sloty lewej strony leżą na lewej krawędzi, prawej
  * na prawej.
  */
@@ -125,7 +167,7 @@ export function standScene(content: GameContent, stands: readonly Stand[]): Stan
   const enemy = new Array<UnitSpec | null>(SQUAD_SLOTS).fill(null);
   const visuals = new Array<UnitVisual | null>(SQUAD_SLOTS * 2).fill(null);
   for (const stand of stands) {
-    const unit = content.heroes.get(stand.unitId);
+    const unit = findUnit(content, stand.unitId);
     if (unit === undefined) continue;
     const x = arenaXAt(stand.position, width);
     if (stand.side === 0) {

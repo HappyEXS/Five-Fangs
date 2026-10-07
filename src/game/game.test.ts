@@ -144,6 +144,17 @@ describe('sceny', () => {
     expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman', form: 'swordsman_a' });
   });
 
+  it('informacje o bohaterach otwierają też szczep wrogów na wskazanej albo pierwszej postaci', () => {
+    const game = start();
+    game.openHeroes('akronix');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'akronix', form: 'bowix' });
+    game.openHeroes('akronix', 'axin_2');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'akronix', form: 'axin_2' });
+    // Postać spoza szczepu (także bohater): pierwsza postać szczepu.
+    game.openHeroes('akronix', 'swordsman_a');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'akronix', form: 'bowix' });
+  });
+
   it('zablokowanego poziomu nie da się wybrać na mapie ani uruchomić', () => {
     const game = start();
     game.openMap('w1_l2');

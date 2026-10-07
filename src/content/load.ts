@@ -247,6 +247,15 @@ export function loadContent(raw: RawContent = rawContent): ContentResult {
   const progression = loadProgression(raw, heroes, enemies, issues);
   const enemyTribes = loadEnemyTribes(raw['enemy-tribes.json'], enemies, issues);
   if (progression === null || enemyTribes === null) return { content: null, issues };
+  // Zakładki ekranu Bohaterowie rozróżniają linie i szczepy wrogów po samym id.
+  for (const id of enemyTribes.keys()) {
+    if (progression.lines.has(id)) {
+      issues.push({
+        source: 'enemy-tribes.json',
+        message: `${id}: id szczepu wrogów jest zajęte przez linię bohaterów`,
+      });
+    }
+  }
 
   return {
     content: {

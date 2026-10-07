@@ -45,6 +45,7 @@ export type Scene =
    * `line` to linia bohatera, której drzewo ewolucji pokazuje ekran (null, gdy gra nie ma
    * linii), a `form` wybrana w nim forma.
    */
+  // `line` to id linii bohaterów albo szczepu wrogów, `form` wybrana forma albo postać.
   | { readonly name: 'heroes'; readonly line: string | null; readonly form: string | null }
   | { readonly name: 'shop' }
   | { readonly name: 'battle'; readonly level: string }
@@ -82,7 +83,8 @@ export interface Game {
   openMap(selected?: string): void;
   /**
    * Otwiera informacje o bohaterach na wskazanej linii i formie. Bez linii albo dla nieznanej
-   * linii: pierwsza linia; bez formy albo dla formy spoza linii: jej forma bazowa.
+   * linii: pierwsza linia; bez formy albo dla formy spoza linii: jej forma bazowa. Zamiast linii
+   * można podać szczep wrogów (np. Akronix) i jedną z jego postaci; bez postaci: pierwsza z nich.
    */
   openHeroes(line?: string, form?: string): void;
   /** Zaczyna walkę bieżącym składem. False, gdy skład jest pusty albo poziom zablokowany. */
@@ -166,6 +168,12 @@ export function createGame(options: GameOptions): Game {
     },
     openMap,
     openHeroes(line, form) {
+      const tribe = line === undefined ? undefined : content.enemyTribes.get(line);
+      if (tribe !== undefined) {
+        const member = tribe.members.find((entry) => entry.unit === form) ?? tribe.members[0];
+        scene.value = { name: 'heroes', line: tribe.id, form: member?.unit ?? null };
+        return;
+      }
       const [first] = content.lines.values();
       const shown = (line === undefined ? undefined : content.lines.get(line)) ?? first;
       if (shown === undefined) {

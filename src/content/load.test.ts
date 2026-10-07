@@ -265,6 +265,13 @@ describe('szczepy wrogów', () => {
     expect(messages(withTribes(twice))).toEqual(['enemy-tribes.json: powtórzone id "akronix"']);
   });
 
+  it('odrzuca szczep wrogów o id zajętym przez linię bohaterów', () => {
+    const clash = [{ id: 'beasts', ranks: [{ rank: 'scout', units: ['bowix'] }] }];
+    expect(messages(withTribes(clash))).toEqual([
+      'enemy-tribes.json: beasts: id szczepu wrogów jest zajęte przez linię bohaterów',
+    ]);
+  });
+
   it('odrzuca szczep bez stopni i stopień bez jednostek', () => {
     expect(loadContent(withTribes(tribe([]))).content).toBeNull();
     expect(loadContent(withTribes(tribe([{ rank: 'scout', units: [] }]))).content).toBeNull();

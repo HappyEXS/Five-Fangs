@@ -211,5 +211,8 @@
   "rank.soldier": "Żołnierz",
   "rank.warrior": "Wojownik",
   "rank.general": "Generał",
-  "rank.boss": "Boss"
+  "rank.boss": "Boss",
+  "heroes.foes.roster": "Poczet szczepu",
+  "heroes.foes.info.enemy": "To szczep wrogów: jego postaci nie da się kupić ani rozwijać. Spotkasz je tylko w walce.",
+  "heroes.foes.info.level": "Karta pokazuje statystyki bez wzmocnień. Na poziomach wróg bywa silniejszy: mówi o tym „+N” przy jego nazwie."
 }

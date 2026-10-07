@@ -28,7 +28,7 @@ import type { Game, Scene } from './game.ts';
 import { contentPortraits } from './portraits.ts';
 import { currentLevel, squadMembers } from './progress.ts';
 import { attachStage, get2dContext } from './stage.ts';
-import { formStands, shopStands, squadFieldSetup, standScene } from './stage-stands.ts';
+import { heroesStands, shopStands, squadFieldSetup, standScene } from './stage-stands.ts';
 import { guardedLoad } from './update.ts';
 
 /** Poziom bez przeciwników: podgląd samego składu gracza. */
@@ -175,14 +175,13 @@ export function startStage(
 
     if (scene.name === 'shop' || scene.name === 'heroes') {
       const stands =
-        scene.name === 'shop'
-          ? shopStands(content)
-          : scene.line === null
-            ? []
-            : formStands(content, scene.line, scene.form);
+        scene.name === 'shop' ? shopStands(content) : heroesStands(content, scene.line, scene.form);
       const stand = standScene(content, stands);
       showPreview(renderer, stand.setup, stand.visuals);
-      renderer.setShowcase(true);
+      // Bohaterowie mają paski w kolorze gracza po obu stronach sceny; szczep wrogów zostaje
+      // przy czerwonych, jak w walce.
+      const foes = scene.name === 'heroes' && scene.line !== null && !content.lines.has(scene.line);
+      renderer.setShowcase(!foes);
       return;
     }
 

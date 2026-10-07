@@ -134,6 +134,8 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
     'Immortals',
     'Plants',
     'Robots',
+    // Szczep wrogów: zakładka informacyjna, bez kupowania (akronix.spec.ts).
+    'Akronix',
   ]);
   // Tarczownik i Strażnik to dziś ewolucje Miecznika, Akolita i Kapłan ewolucje Łucznika.
   await expect(info).toContainText('Tarczownik');

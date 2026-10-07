@@ -2,7 +2,8 @@
 // (kolumna to stopień, rozwidlenie to wybór drogi; każda forma ma swoją miniaturkę), na scenie
 // postacie drogi przez wybraną formę, z prawej jej karta. Tu niczego się nie kupuje: bohaterów
 // sprzedaje sklep, a ulepszenia i ewolucje ekran składu. Zasady ulepszeń i ewolucji są pod
-// przyciskiem „i” przy tytule.
+// przyciskiem „i” przy tytule. Za zakładkami szczepów bohaterów stoją zakładki szczepów wrogów
+// (Akronix): zamiast drzewa mają poczet postaci (FoeTribe.tsx).
 import type { CompiledLine } from '../content/load-progression.ts';
 import type { StageControls } from '../game/battle-stage.ts';
 import { formPath, treeLayout } from '../game/evolution.ts';
@@ -10,6 +11,7 @@ import type { Game } from '../game/game.ts';
 import { t } from '../game/i18n.ts';
 import { formStands } from '../game/stage-stands.ts';
 import { Gold, lineName, ScreenHead, StatTable, tierLabel, unitName } from './common.tsx';
+import { FoeTribe, tribeName } from './FoeTribe.tsx';
 import { InfoButton } from './InfoButton.tsx';
 import { Portrait } from './Portrait.tsx';
 
@@ -117,6 +119,7 @@ export function HeroesScreen(props: {
   const { game, stage } = props;
   const { content } = game;
   const line = props.line === null ? undefined : content.lines.get(props.line);
+  const tribe = props.line === null ? undefined : content.enemyTribes.get(props.line);
   const form = line === undefined ? null : (props.form ?? line.base);
   const stands = line === undefined ? [] : formStands(content, line.id, form);
   const { maxUpgrades, upgradePercent } = content.progression;
@@ -126,11 +129,15 @@ export function HeroesScreen(props: {
       <ScreenHead
         game={game}
         title={t('nav.heroes')}
-        info={[
-          t('heroes.info.upgrade', { percent: upgradePercent }),
-          t('heroes.info.evolve', { max: maxUpgrades }),
-          t('heroes.info.where'),
-        ]}
+        info={
+          tribe === undefined
+            ? [
+                t('heroes.info.upgrade', { percent: upgradePercent }),
+                t('heroes.info.evolve', { max: maxUpgrades }),
+                t('heroes.info.where'),
+              ]
+            : [t('heroes.foes.info.enemy'), t('heroes.foes.info.level')]
+        }
       />
       <nav class="line-tabs" aria-label={t('heroes.lines')}>
         {[...content.lines.values()].map((option) => (
@@ -145,7 +152,24 @@ export function HeroesScreen(props: {
             {lineName(option.id)}
           </button>
         ))}
+        {/* Szczepy wrogów: te same zakładki, odsunięte od szczepów, które gracz może mieć. */}
+        {[...content.enemyTribes.values()].map((option, index) => (
+          <button
+            key={option.id}
+            type="button"
+            class={index === 0 ? 'btn foe-tab foe-tab-first' : 'btn foe-tab'}
+            data-line={option.id}
+            aria-pressed={option.id === props.line}
+            onClick={() => game.openHeroes(option.id)}
+          >
+            {tribeName(option.id)}
+          </button>
+        ))}
       </nav>
+
+      {tribe !== undefined && props.form !== null && (
+        <FoeTribe game={game} stage={stage} tribe={tribe} unit={props.form} />
+      )}
 
       {line !== undefined && form !== null && (
         <>

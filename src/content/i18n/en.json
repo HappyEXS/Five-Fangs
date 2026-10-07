@@ -211,5 +211,8 @@
   "rank.soldier": "Soldier",
   "rank.warrior": "Warrior",
   "rank.general": "General",
-  "rank.boss": "Boss"
+  "rank.boss": "Boss",
+  "heroes.foes.roster": "Tribe roster",
+  "heroes.foes.info.enemy": "This is an enemy tribe: its characters cannot be bought or upgraded. You only meet them in battle.",
+  "heroes.foes.info.level": "The card shows stats without boosts. In a level an enemy may be stronger: the \"+N\" next to its name says so."
 }

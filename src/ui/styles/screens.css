@@ -94,6 +94,45 @@
   content: "";
 }
 
+/* Poczet szczepu wrogów: kolumna to stopień, pod jego nazwą postacie od najsłabszej. */
+.roster {
+  display: grid;
+  gap: 0 0.9em;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  align-items: start;
+}
+
+.roster-rank {
+  display: grid;
+  gap: 0.3em;
+  align-content: start;
+}
+
+.roster-title {
+  color: var(--ink-soft);
+  font-size: 0.85em;
+  font-weight: 800;
+}
+
+/* Zakładka szczepu wrogów stoi osobno i ma atramentowy pasek od strony szczepów bohaterów. */
+.foe-tab {
+  background-color: var(--sheet-shade);
+}
+
+.foe-tab-first {
+  margin-left: 0.9em;
+}
+
+.foe-tab:hover:not(:disabled) {
+  background-color: var(--sheet);
+}
+
+.foe-tab[aria-pressed="true"] {
+  background-color: var(--madder);
+  color: var(--paper);
+}
+
 .tree-node {
   --portrait: 1.85em;
 

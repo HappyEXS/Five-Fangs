@@ -8,10 +8,12 @@ import { SQUAD_SLOTS } from './save-schema.ts';
 import { arenaXAt } from './stage-geometry.ts';
 import {
   formStands,
+  heroesStands,
   SQUAD_FIELD_AT,
   shopStands,
   squadFieldSetup,
   standScene,
+  tribeStands,
 } from './stage-stands.ts';
 
 const content = requireContent();
@@ -102,6 +104,55 @@ describe('formStands', () => {
       expect(battle.state.x[stand.slot]).toBe(arenaXAt(stand.position, content.arena.width));
       expect(scene.setup.player[stand.slot]).toBe(content.heroes.get(stand.unitId)?.base);
     }
+  });
+});
+
+describe('tribeStands', () => {
+  it('stawia stopień wybranej postaci po stronie przeciwnika, od najsłabszej z lewej', () => {
+    const stands = tribeStands(content, 'akronix', 'axin_2');
+    expect(stands.map((stand) => stand.unitId)).toEqual(['axin_1', 'axin_2', 'axin_3']);
+    expect(stands.every((stand) => stand.side === 1)).toBe(true);
+    expect(stands.map((stand) => stand.slot)).toEqual([0, 1, 2]);
+    const positions = stands.map((stand) => stand.position);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+    // Cała grupa mieści się w lewej części sceny, przed kartą postaci.
+    expect(Math.min(...positions)).toBeGreaterThan(0.1);
+    expect(Math.max(...positions)).toBeLessThan(0.58);
+  });
+
+  it('generał stoi sam, a bez wybranej postaci staje pierwszy stopień', () => {
+    expect(tribeStands(content, 'akronix', 'kaisarix').map((stand) => stand.unitId)).toEqual([
+      'kaisarix',
+    ]);
+    expect(tribeStands(content, 'akronix', null).map((stand) => stand.unitId)).toEqual([
+      'bowix',
+      'assasinix',
+    ]);
+    expect(tribeStands(content, 'nobody', null)).toEqual([]);
+  });
+
+  it('wrogowie na stanowiskach dają poprawne wejście symulacji', () => {
+    const stands = tribeStands(content, 'akronix', 'axin_3');
+    const scene = standScene(content, stands);
+    expect(validateSetup(scene.setup)).toEqual([]);
+    const battle = createBattle(scene.setup);
+    for (const stand of stands) {
+      const unitId = 5 + stand.slot;
+      expect(battle.state.x[unitId]).toBe(arenaXAt(stand.position, content.arena.width));
+      expect(scene.setup.enemy[stand.slot]).toBe(content.enemies.get(stand.unitId)?.base);
+      expect(scene.visuals[unitId]).toBe(content.enemies.get(stand.unitId)?.visual);
+    }
+    expect(scene.setup.player.every((unit) => unit === null)).toBe(true);
+  });
+
+  it('heroesStands wybiera drogę ewolucji dla linii i stopień dla szczepu wrogów', () => {
+    expect(heroesStands(content, 'swordsman', 'guard_a')).toEqual(
+      formStands(content, 'swordsman', 'guard_a'),
+    );
+    expect(heroesStands(content, 'akronix', 'hornix')).toEqual(
+      tribeStands(content, 'akronix', 'hornix'),
+    );
+    expect(heroesStands(content, null, null)).toEqual([]);
   });
 });
 
