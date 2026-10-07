@@ -7,8 +7,10 @@ import { effect, type Signal, signal } from '@preact/signals';
 import type { UnitVisual } from '../content/compile.ts';
 import type { CompiledLevel } from '../content/load-progression.ts';
 import { levelSetup, levelVisuals } from '../content/resolve-spec.ts';
+import type { BackdropId } from '../content/schema-progression.ts';
 import { TICKS_PER_SECOND } from '../core/units.ts';
 import { loadUnitsAtlas } from '../render/atlas.ts';
+import { DEFAULT_BACKDROP } from '../render/backdrops/index.ts';
 import { drawBackground } from '../render/background.ts';
 import { createCanvasRenderer } from '../render/canvas-renderer.ts';
 import type { PortraitSheet } from '../render/portrait.ts';
@@ -27,6 +29,7 @@ import { createFrameLoop } from './frame-loop.ts';
 import type { Game, Scene } from './game.ts';
 import { contentPortraits } from './portraits.ts';
 import { currentLevel, squadMembers } from './progress.ts';
+import { sceneBackdrop } from './scene-world.ts';
 import { attachStage, get2dContext } from './stage.ts';
 import { heroesStands, shopStands, squadFieldSetup, standScene } from './stage-stands.ts';
 import { guardedLoad } from './update.ts';
@@ -105,6 +108,8 @@ export function startStage(
   /** Scena i skład, dla których zbudowano bieżącą zawartość canvasu. */
   let shownScene: Scene | null = null;
   let shownSquad = '';
+  /** Tło ostatniej sceny, która ma swój świat; ekrany bez świata (skład, sklep) go nie zmieniają. */
+  let backdrop: BackdropId = DEFAULT_BACKDROP;
 
   function ensureRenderer(): void {
     if (assets.value !== 'idle' && assets.value !== 'failed') return;
@@ -150,6 +155,9 @@ export function startStage(
     const scene = game.scene.value;
     const save = game.save.value;
     const ready = assets.value === 'ready';
+    // Tło idzie za światem sceny także wtedy, gdy reszta canvasu zostaje bez zmian.
+    backdrop = sceneBackdrop(content, save, scene) ?? backdrop;
+    renderer?.setBackdrop(backdrop);
     // Podgląd odświeżamy po zmianie składu, ulepszeń i run; trwająca walka ich nie śledzi.
     const showsSquad = scene.name === 'title' || scene.name === 'map' || scene.name === 'squad';
     const squadKey = showsSquad ? JSON.stringify([save.squad, save.heroes]) : '';
@@ -244,7 +252,7 @@ export function startStage(
     } else if (preview !== null && renderer !== null) {
       renderer.draw(viewport, 1, frameMs);
     } else {
-      drawBackground(ctx, viewport);
+      drawBackground(ctx, viewport, backdrop);
     }
   }).start();
 

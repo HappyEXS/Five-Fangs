@@ -1,0 +1,56 @@
+[
+  {
+    "id": "w6_l1",
+    "enemies": [
+      { "slot": 1, "unit": "bowix", "level": 5 },
+      { "slot": 2, "unit": "assasinix", "level": 5 },
+      { "slot": 3, "unit": "bowix", "level": 5 }
+    ],
+    "rewards": { "gold": 6000 }
+  },
+  {
+    "id": "w6_l2",
+    "enemies": [
+      { "slot": 0, "unit": "katanix", "level": 5 },
+      { "slot": 1, "unit": "defenix", "level": 5 },
+      { "slot": 3, "unit": "bowix", "level": 5 }
+    ],
+    "rewards": { "gold": 7500 }
+  },
+  {
+    "id": "w6_l3",
+    "enemies": [
+      { "slot": 0, "unit": "defenix", "level": 6 },
+      { "slot": 2, "unit": "poisonix", "level": 6 },
+      { "slot": 3, "unit": "assasinix", "level": 6 }
+    ],
+    "rewards": { "gold": 9000 }
+  },
+  {
+    "id": "w6_l4",
+    "enemies": [
+      { "slot": 0, "unit": "hornix", "level": 6 },
+      { "slot": 1, "unit": "hornix", "level": 6 },
+      { "slot": 3, "unit": "poisonix", "level": 6 }
+    ],
+    "rewards": { "gold": 10500 }
+  },
+  {
+    "id": "w6_l5",
+    "enemies": [
+      { "slot": 0, "unit": "kaisarix", "level": 7 },
+      { "slot": 1, "unit": "defenix", "level": 7 },
+      { "slot": 3, "unit": "poisonix", "level": 7 }
+    ],
+    "rewards": { "gold": 12000 }
+  },
+  {
+    "id": "w6_l6",
+    "enemies": [
+      { "slot": 0, "unit": "axin_1", "level": 7 },
+      { "slot": 1, "unit": "axin_2", "level": 7 },
+      { "slot": 2, "unit": "axin_3", "level": 7 }
+    ],
+    "rewards": { "gold": 9000, "rune": "rune_attack_50" }
+  }
+]

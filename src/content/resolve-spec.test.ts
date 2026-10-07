@@ -79,7 +79,7 @@ describe('resolveUnitSpec', () => {
 
 describe('levelSetup', () => {
   it('stawia skład gracza na slotach i wrogów z poziomu z ich poziomem siły', () => {
-    const setup = levelSetup(content, levelOf('w1_l3'), [
+    const setup = levelSetup(content, levelOf('w1_l4'), [
       { unit: hero('swordsman_a'), rank: 2, runes: [hpRune] },
       null,
       { unit: hero('archer_a'), rank: 0, runes: [] },
@@ -91,10 +91,11 @@ describe('levelSetup', () => {
     expect(setup.player[2]?.maxHp).toBe(350);
     expect(setup.player[4]).toBeNull();
 
-    // Poziom w1_l3: osiłek poziomu 4 w slocie 0 i szaman poziomu 4 w slocie 2.
-    expect(setup.enemy[0]?.maxHp).toBe(1120);
+    // Poziom w1_l4: Tarczownik poziomu 0 w slocie 0 i Łucznicy poziomu 2 w slotach 2 i 3.
+    expect(setup.enemy[0]?.maxHp).toBe(1300);
     expect(setup.enemy[1]).toBeNull();
     expect(setup.enemy[2]?.maxHp).toBe(420);
+    expect(setup.enemy[3]?.attack).toBe(36);
   });
 });
 
@@ -105,7 +106,7 @@ describe('levelVisuals', () => {
       null,
       { unit: hero('archer_b'), rank: 0, runes: [] },
     ];
-    const visuals = levelVisuals(content, levelOf('w1_l3'), squad);
+    const visuals = levelVisuals(content, levelOf('w1_l4'), squad);
     expect(visuals).toHaveLength(10);
     expect(visuals[0]).toEqual({
       rig: 'humanoid',
@@ -122,9 +123,9 @@ describe('levelVisuals', () => {
     expect(visuals[2]?.skin).toBe('archer_b');
     expect(visuals[2]?.projectileSprite).toBe('arrow');
     expect(visuals[3]).toBeNull();
-    // Poziom w1_l3 ma osiłka w slocie 0 i szamana w slocie 2.
-    expect(visuals[5]?.skin).toBe('brute');
+    // Poziom w1_l4 ma Tarczownika w slocie 0 i Łuczników w slotach 2 i 3.
+    expect(visuals[5]?.skin).toBe('guard_a');
     expect(visuals[6]).toBeNull();
-    expect(visuals[7]?.skin).toBe('shaman');
+    expect(visuals[7]?.skin).toBe('archer_a');
   });
 });

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "w5_l1",
+    "enemies": [{ "slot": 1, "unit": "orb", "level": 4 }, { "slot": 2, "unit": "orb", "level": 4 }],
+    "rewards": { "gold": 5000 }
+  },
+  {
+    "id": "w5_l2",
+    "enemies": [
+      { "slot": 0, "unit": "guardian_of_hell", "level": 4 },
+      { "slot": 2, "unit": "orb", "level": 4 },
+      { "slot": 3, "unit": "orb", "level": 4 }
+    ],
+    "rewards": { "gold": 6250 }
+  },
+  {
+    "id": "w5_l3",
+    "enemies": [
+      { "slot": 0, "unit": "guardian_of_hell", "level": 5 },
+      { "slot": 2, "unit": "cardinal", "level": 5 },
+      { "slot": 3, "unit": "orb", "level": 5 }
+    ],
+    "rewards": { "gold": 7500, "rune": "rune_attack_25" }
+  },
+  {
+    "id": "w5_l4",
+    "enemies": [
+      { "slot": 0, "unit": "xartix", "level": 5 },
+      { "slot": 2, "unit": "cardinal", "level": 5 },
+      { "slot": 3, "unit": "cardinal", "level": 5 }
+    ],
+    "rewards": { "gold": 8750 }
+  },
+  {
+    "id": "w5_l5",
+    "enemies": [
+      { "slot": 0, "unit": "enigmatix", "level": 6 },
+      { "slot": 1, "unit": "xartix", "level": 6 },
+      { "slot": 4, "unit": "polaris", "level": 6 }
+    ],
+    "rewards": { "gold": 10000 }
+  },
+  {
+    "id": "w5_l6",
+    "enemies": [
+      { "slot": 0, "unit": "enigmatix", "level": 6 },
+      { "slot": 2, "unit": "ultimus", "level": 6 },
+      { "slot": 4, "unit": "polaris", "level": 6 }
+    ],
+    "rewards": { "gold": 7500, "rune": "rune_hp_400" }
+  }
+]

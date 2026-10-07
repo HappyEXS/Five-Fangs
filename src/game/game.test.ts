@@ -155,12 +155,29 @@ describe('sceny', () => {
     expect(game.scene.value).toEqual({ name: 'heroes', line: 'akronix', form: 'bowix' });
   });
 
-  it('zablokowanego poziomu nie da się wybrać na mapie ani uruchomić', () => {
+  it('zablokowany poziom można obejrzeć na mapie, ale nie da się go uruchomić', () => {
     const game = start();
     game.openMap('w1_l2');
-    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l2' });
     expect(game.startBattle('w1_l2')).toBe(false);
     expect(game.scene.value.name).toBe('map');
+    // Nieznany poziom: mapa wraca do pierwszego nieprzeszłego.
+    game.openMap('nie_ma');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
+  });
+
+  it('przełączanie świata wybiera w nim poziom do pokazania', () => {
+    const game = start();
+    game.openMap();
+    // Świat, do którego gracz nie doszedł: jego pierwszy poziom, do obejrzenia.
+    game.openWorld('world_3');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w3_l1' });
+    expect(game.startBattle('w3_l1')).toBe(false);
+    game.openWorld('world_1');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
+    // Nieznany świat niczego nie zmienia.
+    game.openWorld('world_9');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
   });
 
   it('walka nie zaczyna się z pustym składem', () => {

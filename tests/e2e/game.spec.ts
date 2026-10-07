@@ -21,11 +21,13 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await expect(page.getByRole('button')).toHaveCount(1);
   await page.getByRole('button', { name: 'Graj' }).click();
 
-  // Ekranem głównym jest mapa z wybranym pierwszym poziomem; składu nie da się tu zmienić.
-  await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
-  await expect(page.locator('[data-level="w1_l2"]')).toBeDisabled();
-  await expect(page.locator('.plaque')).toContainText('Skraj lasu');
-  await expect(page.locator('.unit-tag-enemy')).toContainText('Osiłek');
+  // Ekranem głównym jest mapa pierwszego świata z wybranym pierwszym poziomem; składu nie da
+  // się tu zmienić. Kolejne poziomy są zablokowane.
+  await expect(page.locator('.world-name')).toHaveText('Zamek');
+  await expect(page.locator('[data-level="w1_l1"]')).toHaveAttribute('data-state', 'open');
+  await expect(page.locator('[data-level="w1_l2"]')).toHaveAttribute('data-state', 'locked');
+  await expect(page.locator('.plaque')).toContainText('Podgrodzie');
+  await expect(page.locator('.unit-tag-enemy')).toHaveText(['Łucznik', 'Łucznik']);
   // Pod bohaterami gracza podpisy jak pod przeciwnikami, bez oznaczenia przy zerze ulepszeń.
   await expect(page.locator('.unit-tag-hero')).toHaveCount(2);
   await expect(page.locator('.unit-tag-hero', { hasText: 'Miecznik' })).toHaveCount(1);
@@ -33,22 +35,22 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await expect(page.locator('.hero-chip')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Walcz' }).click();
-  // W dolnych rogach miniaturki żywych postaci: dwóch bohaterów z lewej, przeciwnik z prawej.
+  // W dolnych rogach miniaturki żywych postaci: dwóch bohaterów z lewej, przeciwnicy z prawej.
   const allies = page.locator('.hud-faces-player .hud-face');
   const foes = page.locator('.hud-faces-enemy .hud-face');
   await expect(allies).toHaveCount(2);
-  await expect(foes).toHaveCount(1);
-  await expect(foes).toHaveAttribute('data-unit', 'brute');
-  await expect(page.locator('.hud-face[data-alive="true"]')).toHaveCount(3);
-  await expect.poll(() => paintedPortraits(page, '.hud-face .portrait-face')).toBe(3);
+  await expect(foes).toHaveCount(2);
+  await expect(foes.first()).toHaveAttribute('data-unit', 'archer_a');
+  await expect(page.locator('.hud-face[data-alive="true"]')).toHaveCount(4);
+  await expect.poll(() => paintedPortraits(page, '.hud-face .portrait-face')).toBe(4);
   await page.getByRole('button', { name: 'x4' }).click();
-  // Pokonany przeciwnik traci miniaturkę, zanim brama zamknie pole walki.
+  // Pokonani przeciwnicy tracą miniaturki, zanim brama zamknie pole walki.
   await expect
     .poll(() => page.locator('.hud-faces-enemy .hud-face[data-alive="false"]').count(), {
       intervals: [100],
       timeout: 90_000,
     })
-    .toBe(1);
+    .toBe(2);
   const result = page.locator('.result-sheet');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
   await expect(result).toContainText('Zwycięstwo');
@@ -62,7 +64,7 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
 
   // OK wraca na mapę, która wybiera następny poziom.
   await result.getByRole('button', { name: 'OK' }).click();
-  await expect(page.locator('.plaque')).toContainText('Zasadzka');
+  await expect(page.locator('.plaque')).toContainText('Most zwodzony');
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
 
   // Po przeładowaniu strony postęp zostaje.
@@ -70,8 +72,9 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await page.getByRole('button', { name: 'Graj' }).click();
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
   await expect(page.locator('[data-level="w1_l1"]')).toHaveClass(/tile-cleared/);
-  await expect(page.locator('[data-level="w1_l2"]')).toBeEnabled();
-  await expect(page.locator('.plaque')).toContainText('Zasadzka');
+  await expect(page.locator('[data-level="w1_l2"]')).toHaveAttribute('data-state', 'open');
+  await expect(page.locator('[data-level="w1_l3"]')).toHaveAttribute('data-state', 'locked');
+  await expect(page.locator('.plaque')).toContainText('Most zwodzony');
 
   expect(errors).toEqual([]);
 });

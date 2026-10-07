@@ -5,6 +5,11 @@ import arenaJson from './data/arena.json' with { type: 'json' };
 import attacksJson from './data/attacks.json' with { type: 'json' };
 import enemyTribesJson from './data/enemy-tribes.json' with { type: 'json' };
 import world1LevelsJson from './data/levels/world_1.json' with { type: 'json' };
+import world2LevelsJson from './data/levels/world_2.json' with { type: 'json' };
+import world3LevelsJson from './data/levels/world_3.json' with { type: 'json' };
+import world4LevelsJson from './data/levels/world_4.json' with { type: 'json' };
+import world5LevelsJson from './data/levels/world_5.json' with { type: 'json' };
+import world6LevelsJson from './data/levels/world_6.json' with { type: 'json' };
 import linesJson from './data/lines.json' with { type: 'json' };
 import progressionJson from './data/progression.json' with { type: 'json' };
 import humanoidRigJson from './data/rigs/humanoid.json' with { type: 'json' };
@@ -57,7 +62,14 @@ export const rawContent: RawContent = {
   'lines.json': linesJson,
   'runes.json': runesJson,
   'worlds.json': worldsJson,
-  levels: { world_1: world1LevelsJson },
+  levels: {
+    world_1: world1LevelsJson,
+    world_2: world2LevelsJson,
+    world_3: world3LevelsJson,
+    world_4: world4LevelsJson,
+    world_5: world5LevelsJson,
+    world_6: world6LevelsJson,
+  },
 };
 
 export interface GameContent extends ProgressionContent {

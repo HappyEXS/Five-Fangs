@@ -1,0 +1,56 @@
+[
+  {
+    "id": "w4_l1",
+    "enemies": [
+      { "slot": 0, "unit": "monstrosity", "level": 3 },
+      { "slot": 1, "unit": "monstrosity", "level": 3 },
+      { "slot": 2, "unit": "monstrosity", "level": 3 }
+    ],
+    "rewards": { "gold": 4000 }
+  },
+  {
+    "id": "w4_l2",
+    "enemies": [
+      { "slot": 0, "unit": "reaper", "level": 3 },
+      { "slot": 1, "unit": "monstrosity", "level": 3 },
+      { "slot": 3, "unit": "batfang", "level": 3 }
+    ],
+    "rewards": { "gold": 5000 }
+  },
+  {
+    "id": "w4_l3",
+    "enemies": [
+      { "slot": 0, "unit": "reaper", "level": 4 },
+      { "slot": 1, "unit": "reaper", "level": 4 },
+      { "slot": 3, "unit": "batfang", "level": 4 }
+    ],
+    "rewards": { "gold": 6000, "rune": "rune_hp_200" }
+  },
+  {
+    "id": "w4_l4",
+    "enemies": [
+      { "slot": 0, "unit": "ironbeak", "level": 4 },
+      { "slot": 1, "unit": "reaper", "level": 4 },
+      { "slot": 3, "unit": "spiker", "level": 4 }
+    ],
+    "rewards": { "gold": 7000 }
+  },
+  {
+    "id": "w4_l5",
+    "enemies": [
+      { "slot": 0, "unit": "tuskovator", "level": 5 },
+      { "slot": 1, "unit": "ironbeak", "level": 5 },
+      { "slot": 3, "unit": "spiker", "level": 5 }
+    ],
+    "rewards": { "gold": 8000 }
+  },
+  {
+    "id": "w4_l6",
+    "enemies": [
+      { "slot": 0, "unit": "tuskovator", "level": 5 },
+      { "slot": 1, "unit": "ironbeak", "level": 5 },
+      { "slot": 4, "unit": "ignitix", "level": 5 }
+    ],
+    "rewards": { "gold": 6000, "rune": "rune_attack_50" }
+  }
+]

@@ -6,7 +6,7 @@
 
 Gra otwiera się **ekranem startowym** z przyciskiem „Graj”. Ekranem głównym jest **mapa**: z niej gracz przechodzi do **składu**, **informacji o bohaterach** i **sklepu** i na nią wraca po każdej walce. Z tych trzech ekranów wraca się tylko na mapę.
 
-1. Na **mapie** gracz wybiera poziom (5 światów po 6 poziomów, odblokowywane kolejno), widzi jego przeciwników i nagrody i zaczyna walkę bieżącym składem. Mapa nie pozwala zmieniać składu.
+1. Na **mapie** gracz wybiera poziom (6 światów po 6 poziomów, odblokowywane kolejno; strzałki po bokach mapy przełączają świat), widzi jego przeciwników i nagrody i zaczyna walkę bieżącym składem. Mapa nie pozwala zmieniać składu.
 2. Na ekranie **składu** ustawia do 5 bohaterów na 5 slotach, ulepsza ich, ewoluuje i wkłada im runy (do 2 na bohatera).
 3. W **sklepie** kupuje za złoto nowych bohaterów; sklep służy tylko do kupowania.
 4. W **informacjach o bohaterach** ogląda obie formy każdej linii, ich statystyki i cechy oraz drogę ulepszeń i ewolucji z kosztami.
@@ -46,9 +46,9 @@ Typ ataku ma **stały czas zamachu** (`swingDuration`, np. 0,4 s) i `hitFraction
 
 Odstęp nie może być krótszy niż zamach; walidator treści odrzuca takie dane. Gracz widzi w UI wartości efektywne, po zaokrągleniu do ticków.
 
-### Jednostki specjalne świata „Las”
+### Jednostki specjalne dawnego świata „Las”
 
-Wrogowie, których gracz nie zdobywa. Nazwy i liczby są tymczasowe; balans pilnuje `pnpm balance`. Bohaterów opisują kolejne sekcje, po jednej na szczep.
+Wrogowie, których gracz nie zdobywa. Pochodzą ze świata testowego „Las”, który ustąpił sześciu światom z §7: zostają w treści (piaskownica, testy), ale **nie stoją dziś na żadnym poziomie**. Nazwy i liczby są tymczasowe. Bohaterów opisują kolejne sekcje, po jednej na szczep.
 
 | Jednostka | `maxHp` | `attack` | `moveSpeed` | `attackSpeed` | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|
@@ -408,7 +408,7 @@ Koszty (wyjściowe, do balansu): ulepszenia formy bazowej `50, 80, 120, 180`; ew
 - Jednostek specjalnych (przeciwników takich jak Osiłek czy Herszt) nie ma w sklepie.
 - Ceny wyjściowe: każdy szczep 200 za formę bazową.
 
-Nagrody świata „Las” są policzone tak, by pierwsze przejścia opłacały ulepszenia dwóch bohaterów startowych. Zakup dodatkowych bohaterów wymaga więc powtarzania poziomów albo rezygnacji z części ulepszeń; ceny i nagrody do korekty przy docelowym balansie.
+Nagrody pierwszego świata („Zamek”) są policzone tak, by pierwsze przejścia opłacały ulepszenia dwóch bohaterów startowych. Zakup dodatkowych bohaterów wymaga więc powtarzania poziomów albo rezygnacji z części ulepszeń; ceny i nagrody do korekty przy docelowym balansie.
 
 ## 6. Cechy pasywne
 
@@ -436,46 +436,124 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 
 ## 7. Poziomy i światy
 
-- **5 światów po 6 poziomów.** Każdy świat ma własne tło i własny zestaw wrogów. Na razie istnieje jeden świat testowy, „Las”; motywy pozostałych poda autor gry.
+- **6 światów po 6 poziomów** (decyzja autora z 2026-10-07, ADR 0022). Motyw: Akronix zaatakowali wszystkie światy, a gracz **odbija** je po kolei, aż zdobędzie ich siedzibę. Pierwszy świat to zamek Mieczników i Łuczników, cztery kolejne należą do szczepów bohaterów, ostatni to cytadela Akronixów: najtrudniejszy, końcowy etap gry.
+
+| # | Świat (pl / en) | Przeciwnicy | Tło i szlak na mapie |
+|---|---|---|---|
+| 1 | Zamek / The Castle | Miecznicy i Łucznicy | Zmierzch nad murami: blanki, baszty z proporcami, brama; szlak zygzakiem |
+| 2 | Mechanus town | Robots | Stalowy smog: hale o zębatych dachach, kominy, koła zębate, żuraw; szlak jak taśma na dwóch poziomach |
+| 3 | Living swamps | Plants | Mętna zieleń: księżyc we mgle, drzewa na cienkich pniach, pnącza, trzciny, świetliki; szlak meandrem |
+| 4 | Jungle of doom | Beasts | Duszny zmierzch: dymiący wulkan, palmy i liany, żebra olbrzyma; szlak przez stok wulkanu |
+| 5 | Tower of time | Immortals | Fioletowa noc ze złotem: tarcza zegara na niebie, iglice, kolumnada, wieża poza kadr; szlak schodami w górę |
+| 6 | Cytadela Akronix / Akronix citadel | Akronix | Niebo jak wino: czerwony księżyc, mur z kolcami, brama z kłami, proporce; szlak w dół i z powrotem w górę, do tronu |
+
+- Kolejność światów szczepów wynika z numerów na szkicach autora (Robots 2, Plants 3, Beasts 4, Immortals 5), a ich nazwy z tych samych szkiców. Nazwy „Zamek” i „Cytadela Akronix”, nazwy wszystkich poziomów i wygląd teł to propozycja wykonawcy, do oceny autora.
+- Każdy świat ma własne tło, własny kształt szlaku i własne nazwy poziomów. Tło idzie za światem: mapa, walka i wynik pokazują tło świata swojego poziomu, a skład, sklep i bohaterowie zostają na tle, z którego gracz przyszedł.
+- **Mapa pokazuje jeden świat naraz.** Duże strzałki przy lewej i prawej krawędzi sceny przechodzą do sąsiedniego świata. Pod nazwą świata stoi rząd sześciu kłów, po jednym na świat: świat odbity, w toku albo zablokowany; kieł też przełącza świat. Świat otwiera się na pierwszym nieprzeszłym poziomie, a odbity na swoim bossie.
+- Świat jest **odbity**, gdy wszystkie jego poziomy są przeszłe.
 - Szósty poziom świata to **boss**: większa jednostka z unikalną cechą lub kombinacją cech, zwykle z obstawą.
-- **Wrogami są zwykłe postacie z gry oraz jednostki specjalne.** Poziom może wystawić dowolną formę bohatera (np. Miecznika albo Rycerza) i jednostki, których gracz nie może zdobyć ani ewoluować (Osiłek, Łupieżca, Szaman, Herszt).
-- Poziomy odblokowują się kolejno. Przeszły poziom można powtarzać.
+- **Wrogami są zwykłe postacie z gry oraz jednostki specjalne.** Poziom może wystawić dowolną formę bohatera (np. Miecznika albo Rycerza) i jednostki, których gracz nie może zdobyć ani ewoluować (szczep Akronix, §3).
+- Poziomy odblokowują się kolejno przez całą grę: boss świata odblokowuje pierwszy poziom następnego. Przeszły poziom można powtarzać.
+- **Zablokowany poziom można obejrzeć** (przeciwnicy na scenie, nagroda na tabliczce), także w świecie, do którego gracz jeszcze nie doszedł, ale nie można na nim walczyć: przycisk walki jest nieaktywny, a pod nim stoi, który poziom trzeba przejść najpierw.
 - Poziom to skład wrogów na slotach, z poziomem siły każdej jednostki, oraz nagrody:
 
 ```json
 {
-  "id": "w2_l1",
+  "id": "w2_l3",
   "enemies": [
-    { "slot": 0, "unit": "brute", "level": 7 },
-    { "slot": 1, "unit": "brute", "level": 7 },
-    { "slot": 3, "unit": "archer", "level": 6 }
+    { "slot": 0, "unit": "egzo_bot", "level": 2 },
+    { "slot": 1, "unit": "egzo_bot", "level": 2 },
+    { "slot": 3, "unit": "holo_bot", "level": 2 }
   ],
-  "rewards": { "gold": 120, "rune": "rune_attack_25" }
+  "rewards": { "gold": 3000, "rune": "rune_hp_100" }
 }
 ```
 
-Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania. Nazwa poziomu to tekst `level.<id>.name` w słownikach, nazwa świata `world.<id>.name`.
+Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania; świat wskazuje swoje tło w `worlds.json` (`backdrop`, zamknięty zestaw sześciu teł). Nazwa poziomu to tekst `level.<id>.name` w słownikach, nazwa świata `world.<id>.name`.
 
 `level` wroga skaluje `maxHp` i `attack` tak samo jak ulepszenia bohatera: +10% wartości bazowej na poziom (wyjściowo, `upgradePercent` w `progression.json`), z zaokrągleniem w dół. Mapa pokazuje go tak samo jak ulepszenia bohatera, jako „+N” przy nazwie; wróg na poziomie 0 nie ma oznaczenia.
 
-### Świat 1: Las (testowy)
+### Poziomy (treść wstępna z 2026-10-07)
 
-| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Ranga oczekiwana | Złoto | Runa |
+Autor gry zamówił na razie widoki map i nazwy poziomów oraz po 2–3 przeciwników ze szczepu świata na poziom; **balans przeciwników i nagród zostaje na później**. Stan dzisiejszy:
+
+- **Świat 1 jest dostrojony** do składu startowego (Miecznik w slocie 1, Łucznik w slocie 2, bez run): kolumna „Skład startowy wygrywa od” to zarazem ranga oczekiwana, której pilnuje raport `pnpm balance`. Złoto za pierwsze przejście poziomu wystarcza dokładnie na rangę oczekiwaną na następnym. Rangi i nagrody są te same co w dawnym świecie testowym „Las”, więc nowa gra jest do przejścia.
+- **Światy 2–6 mają liczby ze wzoru**, bez balansu. Poziom siły wrogów to (numer świata − 1) + połowa z (numer etapu − 1), w dół. Złoto etapów 1–5 to (1000 + 250 × (etap − 1)) × numer świata; boss daje 1500 × numer świata i runę; drugą runę daje trzeci etap światów 2–5. Kolumna „Skład startowy wygrywa od” jest tu pomiarem, nie celem: pokazuje, jak daleko liczbom do balansu (pierwsze etapy późniejszych światów są dziś łatwiejsze niż boss Zamku, a dziewięciu poziomów dwuosobowy skład startowy nie wygrywa na żadnej randze, bo gracz ma mieć wtedy pięciu bohaterów).
+- Skład startowy nie jest dobrą miarą dla światów 2–6; składy referencyjne na dalsze światy dojdą przy balansie.
+
+Rangi: litera to stopień formy (A bazowa, B po pierwszej ewolucji, C po drugiej), cyfra to liczba ulepszeń.
+
+### Świat 1: Zamek
+
+| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
 |---|---|---|---|---|
-| Skraj lasu | 0: Osiłek 0 | A0 | 100 | |
-| Zasadzka | 0: Miecznik 0; 2: Łucznik 0 | A1 | 400 | życie +100 |
-| Obóz szamana | 0: Osiłek 4; 2: Szaman 4 | A3 | 860 | |
-| Łupieżcy | 0, 1: Łupieżca 3; 3: Łucznik 3 | B0 | 1400 | atak +10 |
-| Straż herszta | 0: Rycerz 1; 1: Osiłek 5; 3: Strzelec wyborowy 1 | B2 | 2600 | |
-| Herszt | 0: Herszt 3; 1: Łupieżca 5; 3: Szaman 4 | B4 | 1000 | życie +200 |
+| Podgrodzie | 0: Łucznik 0; 1: Łucznik 0 | A0 | 100 |  |
+| Most zwodzony | 0: Miecznik 0; 2: Łucznik 0 | A1 | 400 | życie +100 |
+| Brama | 0: Miecznik 0; 1: Miecznik 0 | A3 | 860 |  |
+| Dziedziniec | 0: Tarczownik 0; 2: Łucznik 2; 3: Łucznik 2 | B0 | 1400 | atak +10 |
+| Zbrojownia | 0: Zbrojny 1; 1: Tarczownik 1; 3: Strzelec 1 | B2 | 2600 |  |
+| Sala tronowa | 0: Rycerz 0; 1: Tarczownik 2; 3: Strzelec 2 | B4 | 1000 | życie +200 |
 
-Ranga oczekiwana to najniższa ranga obu bohaterów składu referencyjnego (Miecznik w slocie 1, Łucznik w slocie 2, bez run), przy której poziom da się wygrać; pilnuje jej raport `pnpm balance`. Złoto za pierwsze przejście poziomu wystarcza dokładnie na rangę oczekiwaną na następnym. Każda cecha pasywna występuje w tym świecie co najmniej raz.
+### Świat 2: Mechanus town
+
+| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+|---|---|---|---|---|
+| Złomowisko | 0: Bot 1; 1: Bot 1; 2: Bot 1 | A0 | 2000 |  |
+| Rogatki | 0: Egzo-bot 1; 1: Bot 1; 3: Holo-bot 1 | A4 | 2500 |  |
+| Hala montażowa | 0: Egzo-bot 2; 1: Egzo-bot 2; 3: Holo-bot 2 | B0 | 3000 | życie +100 |
+| Odlewnia | 0: Ax-bot 2; 1: Egzo-bot 2; 3: Thermobot 2 | C1 | 3500 |  |
+| Elektrownia | 0: Whirl-bot 3; 1: Ax-bot 3; 3: Holo-bot 3 | nie wygrywa | 4000 |  |
+| Rdzeń | 0: Titan-bot 3; 1: Whirl-bot 3; 3: Thermobot 3 | nie wygrywa | 3000 | atak +25 |
+
+### Świat 3: Living swamps
+
+| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+|---|---|---|---|---|
+| Skraj bagien | 0: Bush 2; 2: Bush 2 | A0 | 3000 |  |
+| Zgniła kładka | 0: Trunk 2; 2: Bush 2; 3: Bush 2 | A2 | 3750 |  |
+| Cierniowy gąszcz | 0: Trunk 3; 2: Ivy 3; 3: Bush 3 | B0 | 4500 | atak +10 |
+| Mglista topiel | 0: Oak warrior 3; 2: Trunk 3; 3: Ivy 3 | B3 | 5250 |  |
+| Trujący gaj | 0: Oak warrior 4; 2: Toxic Ivy 4; 3: Ice Ivy 4 | nie wygrywa | 6000 |  |
+| Serce bagien | 0: Oak warrior 4; 2: Mother-tree 4; 4: Ice Ivy 4 | nie wygrywa | 4500 | życie +400 |
+
+### Świat 4: Jungle of doom
+
+| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+|---|---|---|---|---|
+| Ścieżka łowców | 0: Monstrosity 3; 1: Monstrosity 3; 2: Monstrosity 3 | A0 | 4000 |  |
+| Wodopój | 0: Reaper 3; 1: Monstrosity 3; 3: Batfang 3 | B0 | 5000 |  |
+| Legowisko | 0: Reaper 4; 1: Reaper 4; 3: Batfang 4 | B0 | 6000 | życie +200 |
+| Żebra olbrzyma | 0: Ironbeak 4; 1: Reaper 4; 3: Spiker 4 | B2 | 7000 |  |
+| Wąwóz kłów | 0: Tuskovator 5; 1: Ironbeak 5; 3: Spiker 5 | B3 | 8000 |  |
+| Paszcza wulkanu | 0: Tuskovator 5; 1: Ironbeak 5; 4: Ignitix 5 | nie wygrywa | 6000 | atak +50 |
+
+### Świat 5: Tower of time
+
+| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+|---|---|---|---|---|
+| Podnóże wieży | 1: Orb 4; 2: Orb 4 | A2 | 5000 |  |
+| Schody bez końca | 0: Guardian of hell 4; 2: Orb 4; 3: Orb 4 | B0 | 6250 |  |
+| Sala zegarów | 0: Guardian of hell 5; 2: Cardinal 5; 3: Orb 5 | B0 | 7500 | atak +25 |
+| Wahadło | 0: Xartix 5; 2: Cardinal 5; 3: Cardinal 5 | C1 | 8750 |  |
+| Komnata gwiazd | 0: Enigmatix 6; 1: Xartix 6; 4: Polaris 6 | nie wygrywa | 10000 |  |
+| Szczyt wieży | 0: Enigmatix 6; 2: Ultimus 6; 4: Polaris 6 | nie wygrywa | 7500 | życie +400 |
+
+### Świat 6: Cytadela Akronix
+
+| Poziom | Przeciwnicy (slot: jednostka, poziom siły) | Skład startowy wygrywa od | Złoto | Runa |
+|---|---|---|---|---|
+| Czaty zwiadowców | 1: Bowix 5; 2: Assasinix 5; 3: Bowix 5 | B0 | 6000 |  |
+| Koszary | 0: Katanix 5; 1: Defenix 5; 3: Bowix 5 | B2 | 7500 |  |
+| Pracownia trucizn | 0: Defenix 6; 2: Poisonix 6; 3: Assasinix 6 | C2 | 9000 |  |
+| Stajnie bestii | 0: Hornix 6; 1: Hornix 6; 3: Poisonix 6 | C3 | 10500 |  |
+| Sala wojenna | 0: Kaisarix 7; 1: Defenix 7; 3: Poisonix 7 | nie wygrywa | 12000 |  |
+| Tron Axinów | 0: Axin 1 7; 1: Axin 2 7; 2: Axin 3 7 | nie wygrywa | 9000 | atak +50 |
 
 ## 8. Prezentacja
 
 - Widok z boku, animacja wycinankowa (cutout). Grafika gładka, rysowana w 2× rozdzielczości logicznej 1280×720.
 - **Scena jest płaska, bez perspektywy** (decyzja autora z 2026-10-02): wszystkie postacie stoją i chodzą dokładnie po linii podłogi, na jednej wysokości. Sloty w interfejsie leżą w jednym rzędzie.
-- Interfejs to teatrzyk z wycinanek (ADR 0015): na każdym ekranie ta sama scena z linią podłogi, a przyciski, kafle mapy i karty to papierowe rekwizyty. Pięć kłów pod linią podłogi oznacza pięć slotów składu.
+- Interfejs to teatrzyk z wycinanek (ADR 0015): na każdym ekranie ta sama scena z linią podłogi, a przyciski, kafle mapy i karty to papierowe rekwizyty. Tło sceny to dekoracja świata: warstwy płaskich sylwetek, inne w każdym z sześciu światów (ADR 0022). Pięć kłów pod linią podłogi oznacza pięć slotów składu.
 - Walkę oddziela od reszty gry metalowa brama: zamyka się po ekranie startowym, przed walką i po niej; wynik walki wisi na zamkniętej bramie (ADR 0015).
 - Każda postać ma animacje: idle, chód, atak, błysk przy trafieniu, śmierć (obrót wokół stóp i zanikanie).
 - Nad każdą postacią jest pasek życia z bieżącym życiem jako liczbą (decyzja autora z 2026-10-03: sam pasek nie pokazuje skali).
@@ -492,7 +570,8 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 |---|---|
 | Roster: sześć szczepów po siedem form | W grze. Liczby Mieczników i Łuczników oraz ich sześć nowych form to propozycja wykonawcy (§3), do oceny autora; wartości robocze pozostałych szczepów wypisane w §3 |
 | Koszty ewolucji i ulepszeń trzeciego stopnia | Liczby robocze, te same dla wszystkich szczepów (ewolucja 250 i 1200, ulepszenia 1000–2200) |
-| Motywy, wrogowie i bossowie światów 2–5 | Autor poda później; do tego czasu istnieje jeden świat testowy „Las” |
+| Sześć światów: nazwy, tła, przeciwnicy | Światy i motyw od autora (2026-10-07); w grze jest sześć światów z tłami, szlakami i nazwami poziomów (§7). Do oceny autora: nazwy „Zamek” i „Cytadela Akronix”, nazwy 36 poziomów, wygląd teł, podgląd zablokowanych poziomów. Do zrobienia: balans przeciwników i nagród światów 2–6, składy referencyjne na dalsze światy |
+| Czy w światach szczepów mają stać także Akronix | Motyw mówi o najeźdźcach, a poziomy światów 2–5 wystawiają dziś tylko formy swojego szczepu (zgodnie z zamówieniem autora) |
 | Ostateczne koszty ulepszeń, nagrody i ułamek za powtórki | Po ustaleniu pełnego rosteru, na podstawie raportu balansu |
 | Czy gra może być osadzana na innych stronach (`frame-ancestors`) | Przed premierą |
 | Hosting publiczny | Przed premierą (M6) |

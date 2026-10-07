@@ -48,7 +48,18 @@ export const runeSchema = z.strictObject({
   value: z.number().int().positive(),
 });
 
-export const worldSchema = z.strictObject({ id });
+/**
+ * Tła sceny: zamknięty zestaw, każde jest narysowane kodem w rendererze (render/backdrops).
+ * Nowe tło = nowy wpis tutaj i jego rysunek; typ pilnuje, że renderer zna każde z nich.
+ */
+export const BACKDROP_IDS = ['castle', 'mechanus', 'swamps', 'jungle', 'tower', 'citadel'] as const;
+export type BackdropId = (typeof BACKDROP_IDS)[number];
+
+export const worldSchema = z.strictObject({
+  id,
+  /** Tło sceny na mapie tego świata i w jego walkach. */
+  backdrop: z.enum(BACKDROP_IDS),
+});
 
 export const levelSchema = z.strictObject({
   id,

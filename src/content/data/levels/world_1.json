@@ -1,7 +1,10 @@
 [
   {
     "id": "w1_l1",
-    "enemies": [{ "slot": 0, "unit": "brute", "level": 0 }],
+    "enemies": [
+      { "slot": 0, "unit": "archer_a", "level": 0 },
+      { "slot": 1, "unit": "archer_a", "level": 0 }
+    ],
     "rewards": { "gold": 100 }
   },
   {
@@ -15,17 +18,17 @@
   {
     "id": "w1_l3",
     "enemies": [
-      { "slot": 0, "unit": "brute", "level": 4 },
-      { "slot": 2, "unit": "shaman", "level": 4 }
+      { "slot": 0, "unit": "swordsman_a", "level": 0 },
+      { "slot": 1, "unit": "swordsman_a", "level": 0 }
     ],
     "rewards": { "gold": 860 }
   },
   {
     "id": "w1_l4",
     "enemies": [
-      { "slot": 0, "unit": "raider", "level": 3 },
-      { "slot": 1, "unit": "raider", "level": 3 },
-      { "slot": 3, "unit": "archer_a", "level": 3 }
+      { "slot": 0, "unit": "guard_a", "level": 0 },
+      { "slot": 2, "unit": "archer_a", "level": 2 },
+      { "slot": 3, "unit": "archer_a", "level": 2 }
     ],
     "rewards": { "gold": 1400, "rune": "rune_attack_10" }
   },
@@ -33,7 +36,7 @@
     "id": "w1_l5",
     "enemies": [
       { "slot": 0, "unit": "swordsman_b", "level": 1 },
-      { "slot": 1, "unit": "brute", "level": 5 },
+      { "slot": 1, "unit": "guard_a", "level": 1 },
       { "slot": 3, "unit": "archer_b", "level": 1 }
     ],
     "rewards": { "gold": 2600 }
@@ -41,9 +44,9 @@
   {
     "id": "w1_l6",
     "enemies": [
-      { "slot": 0, "unit": "chieftain", "level": 3 },
-      { "slot": 1, "unit": "raider", "level": 5 },
-      { "slot": 3, "unit": "shaman", "level": 4 }
+      { "slot": 0, "unit": "swordsman_b2", "level": 0 },
+      { "slot": 1, "unit": "guard_a", "level": 2 },
+      { "slot": 3, "unit": "archer_b", "level": 2 }
     ],
     "rewards": { "gold": 1000, "rune": "rune_hp_200" }
   }

@@ -1,4 +1,5 @@
 // Pomiar budżetów renderera (/tools.html?view=perf) na walce 5 na 5, która się nie kończy.
+// Parametr `backdrop=<id>` wybiera tło świata; bez niego pomiar idzie na tle domyślnym.
 //
 // Trzy przebiegi:
 //   1. czas klatki liczonej w pętli, bez czekania na odświeżanie ekranu – koszt kodu gry
@@ -22,6 +23,7 @@ import { createCanvasRenderer } from '../render/canvas-renderer.ts';
 import { debugStats } from '../render/debug.ts';
 import { melee, ranged } from '../sim/fixtures.ts';
 import { type BattleSetup, OUTCOME_IN_PROGRESS, validateSetup } from '../sim/index.ts';
+import { backdropFromQuery } from './backdrop-param.ts';
 
 const WARMUP_FRAMES = 1200;
 const TIMED_FRAMES = 3000;
@@ -91,6 +93,8 @@ export async function startPerf(
   const viewport = attachStage(stage, canvas);
   const atlas = await guardedLoad('atlas:units', loadUnitsAtlas);
   const renderer = createCanvasRenderer(ctx, { atlas, rigs: content.rigs });
+  const backdrop = backdropFromQuery(new URLSearchParams(location.search));
+  if (backdrop !== null) renderer.setBackdrop(backdrop);
 
   const setup = endlessSetup(content.arena);
   const problems = validateSetup(setup);

@@ -16,6 +16,7 @@ import { loadUnitsAtlas } from '../render/atlas.ts';
 import { createCanvasRenderer } from '../render/canvas-renderer.ts';
 import { debugOptions } from '../render/debug.ts';
 import { OUTCOME_IN_PROGRESS, OUTCOME_WIN, validateSetup } from '../sim/index.ts';
+import { backdropFromQuery } from './backdrop-param.ts';
 import { type DebugFlags, type PlaybackState, SandboxPanel } from './SandboxPanel.tsx';
 import {
   allUnitIds,
@@ -43,6 +44,9 @@ export async function startSandbox(
   const viewport = attachStage(stage, canvas);
   const atlas = await guardedLoad('atlas:units', loadUnitsAtlas);
   const renderer = createCanvasRenderer(ctx, { atlas, rigs: content.rigs });
+  // Walkę da się obejrzeć na tle każdego świata: ?backdrop=<id>.
+  const backdrop = backdropFromQuery(query);
+  if (backdrop !== null) renderer.setBackdrop(backdrop);
 
   const config = signal<SandboxConfig>(configFromQuery(content, query));
   const debugQuery = query.get('debug') ?? '';
@@ -89,6 +93,7 @@ export async function startSandbox(
       .map(([key]) => key)
       .join('');
     if (flags !== '') params.set('debug', flags);
+    if (backdrop !== null) params.set('backdrop', backdrop);
     history.replaceState(null, '', `?${params.toString()}`);
   }
 

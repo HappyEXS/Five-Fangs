@@ -83,7 +83,7 @@ Cel: grywalna całość na treści testowej, od menu do nagrody, z zapisem.
 | M4-1 | Sceny i stan aplikacji w sygnałach | 1 | Przejście menu → mapa → skład → walka → wynik → mapa | gotowe |
 | M4-2 | Zapis v1: schemat, wczytanie z walidacją, kopia zapasowa, szkielet migracji, eksport i import pliku | 1,5 | Testy: uszkodzony zapis nie wywraca gry; fixture v1 w `tests/fixtures/saves/` | gotowe |
 | M4-3 | Menu główne i ustawienia: język, wersja, „Zgłoś problem” | 1 | Raport w schowku zawiera wersję, błędy i setup ostatniej walki | gotowe |
-| M4-4 | Mapa poziomów: 5 światów po 6, odblokowywanie kolejno | 1,5 | Zablokowany poziom nie daje się uruchomić | gotowe (na razie jeden świat testowy w treści; mapa rysuje tyle światów, ile jest w danych) |
+| M4-4 | Mapa poziomów: 5 światów po 6, odblokowywanie kolejno | 1,5 | Zablokowany poziom nie daje się uruchomić | gotowe (wtedy jeden świat testowy w treści; sześć światów i przełączanie mapy doszły w M5m) |
 | M4-5 | Budowanie składu: wybór bohaterów, przeciąganie na sloty, podgląd statystyk efektywnych | 2 | Działa myszą i dotykiem; skład zapisuje się automatycznie | gotowe (mysz sprawdzona w przeglądarce; dotyk tym samym kodem Pointer Events, bez testu na urządzeniu) |
 | M4-6 | Scena walki i HUD: pauza, prędkość, wyjście; leniwe ładowanie atlasu świata z obsługą błędu | 1,5 | Wyjście z walki zwalnia sim i renderer (brak wycieku w profilerze) | gotowe; sterta po 5/35/65 walkach: 9157/9261/9310 KB |
 | M4-7 | Wynik i nagrody: złoto, runa, odblokowanie linii; 25% złota za powtórkę | 1 | Testy logiki nagród w `game` | gotowe |
@@ -231,12 +231,24 @@ Autor gry dodał szkic szczepu Akronix: dziesięć postaci, które są wyłączn
 | M5l-3 | Dziesięć jednostek Akronix w treści: statystyki, sześć typów ataku, cechy, nazwy; plik `enemy-tribes.json` z pocztem i stopniami; znaczki krwawienia i trucizny przy pasku życia | 1 | Walidator treści; testy: poczet, statystyki Axinów ze szkicu, zdolności, każda postać wygrywa pojedynek z poprzednią z obu stron pola; walki próbne w piaskownicy ze zrzutami | gotowe |
 | M5l-4 | Zakładka „Akronix” w Bohaterach: poczet dziesięciu postaci w kolumnach stopni zamiast drzewa, stopień wybranej postaci na scenie po stronie przeciwnika, karta bez cen i kosztów, okienko „i” o wrogach | 0,5 | Testy sceny i stanowisk; dwa testy end-to-end (poczet, karty ze zdolnościami, brak w sklepie; małe okno po angielsku); zrzuty ekranu; pomiar renderera bez zmian | gotowe |
 
+## M5m – Sześć światów na mapie (2026-10-07)
+
+Autor gry ustalił docelowy kształt gry: sześć map po sześć etapów. Pierwsza to zamek Mieczników i Łuczników, potem po jednej na szczep bohaterów, na końcu siedziba Akronixów jako najtrudniejszy etap. Motyw: Akronix zaatakowali wszystkie światy, gracz odbija je po kolei. Na mapie duże strzałki z lewej i prawej przełączają świat, a z nim tło i nazwy poziomów. Zamówienie obejmuje widoki map, nazwy poziomów i po 2–3 przeciwników ze szczepu świata na poziom; balans przeciwników zostaje na później (ADR 0022).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5m-1 | Treść sześciu światów: `worlds.json` z tłem per świat, 36 poziomów w `levels/world_1..6.json` (świat „Las” zastąpiony Zamkiem), nazwy światów i poziomów po polsku i angielsku, wpisy wszystkich poziomów w składach referencyjnych | 1 | Walidator treści; Zamek do przejścia składem startowym na tych samych rangach co dawny Las (raport balansu zgodny); światy 2–6 ze wzoru, z pomiarem w raporcie (9 poziomów poza zasięgiem składu startowego, do balansu) | gotowe |
+| M5m-2 | Sześć teł rysowanych kodem (`render/backdrops/`): warstwy płaskich sylwetek, ścieżki budowane raz na tło; `Renderer.setBackdrop`; tło idzie za światem sceny (`game/scene-world.ts`); parametr `backdrop` w narzędziach dev | 1,5 | Testy geometrii i czytelności (kontrast napisów z niebem i ziemią, duże warstwy blisko nieba); czas JS klatki i alokacje bez zmian, 0 zgubionych klatek; bez nowych plików w transferze | gotowe |
+| M5m-3 | Mapa z przełączaniem światów: duże strzałki po bokach, rząd sześciu kłów ze stanem świata, własny kształt szlaku na świat, podgląd zablokowanych poziomów z informacją, co je odblokowuje; `openWorld`, `worldEntryLevel`, `isWorldCleared` | 1 | Testy reguł, sceny i układu szlaku; trzy testy end-to-end (strzałki, kły, tło i nazwy każdego świata, podgląd zablokowanych; boss otwiera następny świat; małe okno po angielsku) | gotowe |
+
+Poza zakresem, do decyzji autora albo do balansu: liczby przeciwników i nagród światów 2–6, składy referencyjne na dalsze światy, ocena nazw i teł, ewentualni Akronix w światach szczepów.
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
 | M6-1 | Docelowe grafiki bohaterów i wrogów (praca graficzna poza tym szacunkiem; tu tylko integracja) | 0,5 na zestaw | Zestaw przechodzi `pnpm atlas` i budżet rozmiaru | — |
-| M6-2 | Tła światów, podział atlasów, leniwe ładowanie | 1,5 | Pierwsze uruchomienie < 2 MB, atlas świata < 1 MB | — |
+| M6-2 | Podział atlasów na światy i leniwe ładowanie (tła światów są od M5m rysowane kodem, bez plików) | 1,5 | Pierwsze uruchomienie < 2 MB, atlas świata < 1 MB | — |
 | M6-3 | Dźwięk: efekty walki i UI, format zgodny z Safari | 1,5 | Dźwięki z puli, wyciszenie w ustawieniach | — |
 | M6-4 | Onboarding pierwszej walki | 1 | Nowy gracz przechodzi poziom 1 bez instrukcji z zewnątrz | — |
 | M6-5 | Testy w przeglądarkach desktopowych i na telefonie | 1 | Lista znalezionych problemów zamknięta lub świadomie odłożona | — |

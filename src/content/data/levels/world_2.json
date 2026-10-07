@@ -1,0 +1,56 @@
+[
+  {
+    "id": "w2_l1",
+    "enemies": [
+      { "slot": 0, "unit": "bot", "level": 1 },
+      { "slot": 1, "unit": "bot", "level": 1 },
+      { "slot": 2, "unit": "bot", "level": 1 }
+    ],
+    "rewards": { "gold": 2000 }
+  },
+  {
+    "id": "w2_l2",
+    "enemies": [
+      { "slot": 0, "unit": "egzo_bot", "level": 1 },
+      { "slot": 1, "unit": "bot", "level": 1 },
+      { "slot": 3, "unit": "holo_bot", "level": 1 }
+    ],
+    "rewards": { "gold": 2500 }
+  },
+  {
+    "id": "w2_l3",
+    "enemies": [
+      { "slot": 0, "unit": "egzo_bot", "level": 2 },
+      { "slot": 1, "unit": "egzo_bot", "level": 2 },
+      { "slot": 3, "unit": "holo_bot", "level": 2 }
+    ],
+    "rewards": { "gold": 3000, "rune": "rune_hp_100" }
+  },
+  {
+    "id": "w2_l4",
+    "enemies": [
+      { "slot": 0, "unit": "ax_bot", "level": 2 },
+      { "slot": 1, "unit": "egzo_bot", "level": 2 },
+      { "slot": 3, "unit": "thermobot", "level": 2 }
+    ],
+    "rewards": { "gold": 3500 }
+  },
+  {
+    "id": "w2_l5",
+    "enemies": [
+      { "slot": 0, "unit": "whirl_bot", "level": 3 },
+      { "slot": 1, "unit": "ax_bot", "level": 3 },
+      { "slot": 3, "unit": "holo_bot", "level": 3 }
+    ],
+    "rewards": { "gold": 4000 }
+  },
+  {
+    "id": "w2_l6",
+    "enemies": [
+      { "slot": 0, "unit": "titan_bot", "level": 3 },
+      { "slot": 1, "unit": "whirl_bot", "level": 3 },
+      { "slot": 3, "unit": "thermobot", "level": 3 }
+    ],
+    "rewards": { "gold": 3000, "rune": "rune_attack_25" }
+  }
+]

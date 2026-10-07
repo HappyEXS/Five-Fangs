@@ -4,10 +4,12 @@ import type { ContentIssue } from './issues.ts';
 import { type CompiledLine, compileLine } from './load-lines.ts';
 import { indexById, parse } from './parse.ts';
 import {
+  type BackdropId,
   levelsSchema,
   linesSchema,
   type Progression,
   progressionSchema,
+  type RawWorld,
   type Rune,
   runesSchema,
   worldsSchema,
@@ -34,6 +36,8 @@ export interface CompiledLevel {
 
 export interface CompiledWorld {
   readonly id: string;
+  /** Tło sceny tego świata. */
+  readonly backdrop: BackdropId;
   /** Id poziomów w kolejności odblokowywania. */
   readonly levels: readonly string[];
 }
@@ -57,7 +61,7 @@ export interface RawProgression {
 
 function loadLevels(
   raw: RawProgression,
-  worldIds: readonly string[],
+  worldList: ReadonlyMap<string, RawWorld>,
   progression: Progression,
   heroes: ReadonlyMap<string, CompiledUnit>,
   enemies: ReadonlyMap<string, CompiledUnit>,
@@ -67,6 +71,7 @@ function loadLevels(
   const worlds: CompiledWorld[] = [];
   const levels = new Map<string, CompiledLevel>();
 
+  const worldIds = [...worldList.keys()];
   for (const file of Object.keys(raw.levels)) {
     if (!worldIds.includes(file)) {
       issues.push({ source: `levels/${file}.json`, message: 'plik poziomów nieznanego świata' });
@@ -120,7 +125,7 @@ function loadLevels(
         rune,
       });
     });
-    worlds.push({ id: world, levels: order });
+    worlds.push({ id: world, backdrop: worldList.get(world)?.backdrop ?? 'castle', levels: order });
   }
   return { worlds, levels };
 }
@@ -141,8 +146,16 @@ export function loadProgression(
   }
 
   const runes = indexById('runes.json', runeList, new Set(), issues);
-  const worldIds = [...indexById('worlds.json', worldList, new Set(), issues).keys()];
-  const { worlds, levels } = loadLevels(raw, worldIds, progression, heroes, enemies, runes, issues);
+  const worldsById = indexById('worlds.json', worldList, new Set(), issues);
+  const { worlds, levels } = loadLevels(
+    raw,
+    worldsById,
+    progression,
+    heroes,
+    enemies,
+    runes,
+    issues,
+  );
 
   const lines = new Map<string, CompiledLine>();
   const usedForms = new Set<string>();

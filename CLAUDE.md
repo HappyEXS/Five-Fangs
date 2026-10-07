@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Przeglądarkowy auto-battler 2D (widok z boku), single player, bez backendu. Gracz układa skład do 5 bohaterów (melee/ranged), walki toczą się automatycznie i bez losowości, 30 poziomów w 5 światach. Postacie animowane techniką cutout (części ciała obracane w stawach według klatek kluczowych).
+Przeglądarkowy auto-battler 2D (widok z boku), single player, bez backendu. Gracz układa skład do 5 bohaterów (melee/ranged), walki toczą się automatycznie i bez losowości, 36 poziomów w 6 światach. Postacie animowane techniką cutout (części ciała obracane w stawach według klatek kluczowych).
 
 Projekt rozwijany przez wiele miesięcy. Priorytety: **determinizm i poprawność symulacji → wydajność → czytelna architektura → tempo dostarczania**.
 
@@ -51,7 +51,7 @@ Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo 
 src/core     narzędzia czyste: matematyka całkowita, hash, pętla stałego kroku, pule, i18n, RNG (tylko efekty w render)
 src/sim      symulacja walki – czysta logika
 src/content  dane JSON + schematy Zod + kompilacja do struktur runtime
-src/render   Canvas 2D, rig, animacje, atlas, efekty, miniaturki postaci, debug overlay
+src/render   Canvas 2D, rig, animacje, atlas, efekty, miniaturki postaci, tła światów, debug overlay
 src/game     sceny, progresja, zapis
 src/ui       Preact (ekran startowy, mapa jako ekran główny, skład, bohaterowie, sklep, HUD, wynik)
 src/tools    narzędzia dev (edytor animacji, piaskownica walki) – osobne wejście tools.html, nie trafiają do builda prod

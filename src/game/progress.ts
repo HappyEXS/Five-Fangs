@@ -133,10 +133,38 @@ export function nextLevel(content: GameContent, levelId: string): string | null 
   return index < 0 ? null : (order[index + 1] ?? null);
 }
 
+/** Poprzedni poziom w kolejności odblokowywania (ten, który odblokowuje wskazany) albo null. */
+export function previousLevel(content: GameContent, levelId: string): string | null {
+  const order = levelOrder(content);
+  const index = order.indexOf(levelId);
+  return index <= 0 ? null : (order[index - 1] ?? null);
+}
+
 /** Pierwszy poziom, którego gracz jeszcze nie przeszedł; po przejściu wszystkich ostatni. */
 export function currentLevel(content: GameContent, save: Save): string | null {
   const order = levelOrder(content);
   return order.find((id) => !isLevelCleared(save, id)) ?? order[order.length - 1] ?? null;
+}
+
+/** Świat odbity z rąk najeźdźców: wszystkie jego poziomy są przeszłe. */
+export function isWorldCleared(content: GameContent, save: Save, worldId: string): boolean {
+  const world = content.worlds.find((entry) => entry.id === worldId);
+  return world?.levels.every((id) => isLevelCleared(save, id)) ?? false;
+}
+
+/**
+ * Poziom, na którym mapa otwiera wskazany świat: pierwszy jeszcze nieprzeszły, a w świecie
+ * odbitym ostatni (boss). W świecie, do którego gracz jeszcze nie doszedł, jest to jego pierwszy
+ * poziom: mapa pokazuje go jako zablokowany. Null dla nieznanego świata.
+ */
+export function worldEntryLevel(content: GameContent, save: Save, worldId: string): string | null {
+  const world = content.worlds.find((entry) => entry.id === worldId);
+  if (world === undefined) return null;
+  return (
+    world.levels.find((id) => !isLevelCleared(save, id)) ??
+    world.levels[world.levels.length - 1] ??
+    null
+  );
 }
 
 export interface Rewards {

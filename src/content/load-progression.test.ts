@@ -27,7 +27,10 @@ const sixLevels = (first: Record<string, unknown> = {}) => [
 const messages = (overrides: Partial<RawContent>) =>
   loadContent({ ...rawContent, ...overrides }).issues.map((i) => `${i.source}: ${i.message}`);
 
-const withLevels = (levels: unknown) => messages({ levels: { world_1: levels } });
+/** Gra z jednym światem: testy walidacji poziomów podmieniają tylko jego plik. */
+const ONE_WORLD = [{ id: 'world_1', backdrop: 'castle' }];
+const withLevels = (levels: unknown) =>
+  messages({ 'worlds.json': ONE_WORLD, levels: { world_1: levels } });
 
 describe('dane progresji gry', () => {
   const { content, issues } = loadContent();
@@ -82,10 +85,27 @@ describe('dane progresji gry', () => {
     ]);
   });
 
-  it('światy mają poziomy w kolejności, a poziom zna swój świat i nagrody', () => {
-    expect(content?.worlds).toEqual([
-      { id: 'world_1', levels: ['w1_l1', 'w1_l2', 'w1_l3', 'w1_l4', 'w1_l5', 'w1_l6'] },
+  it('sześć światów po sześć poziomów, każdy z własnym tłem', () => {
+    expect(content?.worlds.map((world) => [world.id, world.backdrop])).toEqual([
+      ['world_1', 'castle'],
+      ['world_2', 'mechanus'],
+      ['world_3', 'swamps'],
+      ['world_4', 'jungle'],
+      ['world_5', 'tower'],
+      ['world_6', 'citadel'],
     ]);
+    for (const [index, world] of (content?.worlds ?? []).entries()) {
+      expect(world.levels).toEqual([1, 2, 3, 4, 5, 6].map((l) => `w${index + 1}_l${l}`));
+    }
+    expect(content?.levels.size).toBe(36);
+  });
+
+  it('światy mają poziomy w kolejności, a poziom zna swój świat i nagrody', () => {
+    expect(content?.worlds[0]).toEqual({
+      id: 'world_1',
+      backdrop: 'castle',
+      levels: ['w1_l1', 'w1_l2', 'w1_l3', 'w1_l4', 'w1_l5', 'w1_l6'],
+    });
     expect(content?.levels.get('w1_l2')).toEqual({
       id: 'w1_l2',
       world: 'world_1',
@@ -191,7 +211,8 @@ describe('walidacja linii', () => {
 
 describe('walidacja światów i poziomów', () => {
   it('wymaga pliku poziomów dla każdego świata i odrzuca plik nieznanego świata', () => {
-    expect(messages({ 'worlds.json': [{ id: 'world_1' }, { id: 'world_2' }] })).toEqual([
+    const two = [...ONE_WORLD, { id: 'world_2', backdrop: 'mechanus' }];
+    expect(messages({ 'worlds.json': two, levels: { world_1: sixLevels() } })).toEqual([
       'worlds.json: world_2: brak pliku levels/world_2.json',
     ]);
     expect(messages({ levels: { ...rawContent.levels, world_9: sixLevels() } })).toEqual([
@@ -236,7 +257,11 @@ describe('walidacja światów i poziomów', () => {
 
   it('odrzuca poziom bez wrogów, slot spoza zakresu i ujemne złoto', () => {
     const load = (first: Record<string, unknown>) =>
-      loadContent({ ...rawContent, levels: { world_1: sixLevels(first) } });
+      loadContent({
+        ...rawContent,
+        'worlds.json': ONE_WORLD,
+        levels: { world_1: sixLevels(first) },
+      });
     expect(load({ enemies: [] }).issues).not.toEqual([]);
     expect(load({ enemies: [{ slot: 5, unit: 'brute', level: 0 }] }).issues).not.toEqual([]);
     expect(load({ rewards: { gold: -1 } }).issues).not.toEqual([]);
@@ -247,8 +272,19 @@ describe('walidacja światów i poziomów', () => {
     expect(messages({ 'runes.json': [rune, rune] })).toContain(
       'runes.json: powtórzone id "rune_attack_25"',
     );
-    expect(messages({ 'worlds.json': [{ id: 'world_1' }, { id: 'world_1' }] })).toEqual([
-      'worlds.json: powtórzone id "world_1"',
-    ]);
+    expect(
+      messages({
+        'worlds.json': [...ONE_WORLD, ...ONE_WORLD],
+        levels: { world_1: rawContent.levels.world_1 },
+      }),
+    ).toEqual(['worlds.json: powtórzone id "world_1"']);
+  });
+
+  it('świat musi mieć jedno z teł, które renderer umie narysować', () => {
+    const load = (world: unknown) =>
+      loadContent({ ...rawContent, 'worlds.json': [world], levels: { world_1: sixLevels() } });
+    expect(load({ id: 'world_1' }).content).toBeNull();
+    expect(load({ id: 'world_1', backdrop: 'moon' }).content).toBeNull();
+    expect(load({ id: 'world_1', backdrop: 'tower' }).content?.worlds[0]?.backdrop).toBe('tower');
   });
 });

@@ -1,0 +1,55 @@
+[
+  {
+    "id": "w3_l1",
+    "enemies": [
+      { "slot": 0, "unit": "bush", "level": 2 },
+      { "slot": 2, "unit": "bush", "level": 2 }
+    ],
+    "rewards": { "gold": 3000 }
+  },
+  {
+    "id": "w3_l2",
+    "enemies": [
+      { "slot": 0, "unit": "trunk", "level": 2 },
+      { "slot": 2, "unit": "bush", "level": 2 },
+      { "slot": 3, "unit": "bush", "level": 2 }
+    ],
+    "rewards": { "gold": 3750 }
+  },
+  {
+    "id": "w3_l3",
+    "enemies": [
+      { "slot": 0, "unit": "trunk", "level": 3 },
+      { "slot": 2, "unit": "ivy", "level": 3 },
+      { "slot": 3, "unit": "bush", "level": 3 }
+    ],
+    "rewards": { "gold": 4500, "rune": "rune_attack_10" }
+  },
+  {
+    "id": "w3_l4",
+    "enemies": [
+      { "slot": 0, "unit": "oak_warrior", "level": 3 },
+      { "slot": 2, "unit": "trunk", "level": 3 },
+      { "slot": 3, "unit": "ivy", "level": 3 }
+    ],
+    "rewards": { "gold": 5250 }
+  },
+  {
+    "id": "w3_l5",
+    "enemies": [
+      { "slot": 0, "unit": "oak_warrior", "level": 4 },
+      { "slot": 2, "unit": "toxic_ivy", "level": 4 },
+      { "slot": 3, "unit": "ice_ivy", "level": 4 }
+    ],
+    "rewards": { "gold": 6000 }
+  },
+  {
+    "id": "w3_l6",
+    "enemies": [
+      { "slot": 0, "unit": "oak_warrior", "level": 4 },
+      { "slot": 2, "unit": "mother_tree", "level": 4 },
+      { "slot": 4, "unit": "ice_ivy", "level": 4 }
+    ],
+    "rewards": { "gold": 4500, "rune": "rune_hp_400" }
+  }
+]

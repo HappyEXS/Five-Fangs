@@ -1,1 +1,8 @@
-[{ "id": "world_1" }]
+[
+  { "id": "world_1", "backdrop": "castle" },
+  { "id": "world_2", "backdrop": "mechanus" },
+  { "id": "world_3", "backdrop": "swamps" },
+  { "id": "world_4", "backdrop": "jungle" },
+  { "id": "world_5", "backdrop": "tower" },
+  { "id": "world_6", "backdrop": "citadel" }
+]

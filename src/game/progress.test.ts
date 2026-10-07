@@ -12,16 +12,19 @@ import {
   heroView,
   isLevelUnlocked,
   isSquadEmpty,
+  isWorldCleared,
   levelOrder,
   newSave,
   nextLevel,
   ownedCount,
   placeInSquad,
+  previousLevel,
   reconcileSave,
   removeFromSquad,
   squadMembers,
   upgradeCost,
   victoryRewards,
+  worldEntryLevel,
 } from './progress.ts';
 import type { Save } from './save-schema.ts';
 
@@ -83,12 +86,41 @@ describe('odblokowywanie poziomów', () => {
     ]);
     expect(currentLevel(content, save)).toBe('w1_l3');
     expect(nextLevel(content, 'w1_l2')).toBe('w1_l3');
-    expect(nextLevel(content, 'w1_l6')).toBeNull();
+    // Boss świata odblokowuje pierwszy poziom następnego; po ostatnim poziomie gry nie ma nic.
+    expect(nextLevel(content, 'w1_l6')).toBe('w2_l1');
+    expect(nextLevel(content, 'w6_l6')).toBeNull();
+    expect(previousLevel(content, 'w2_l1')).toBe('w1_l6');
+    expect(previousLevel(content, 'w1_l1')).toBeNull();
+    expect(previousLevel(content, 'nie_ma')).toBeNull();
   });
 
   it('po przejściu wszystkich poziomów bieżącym zostaje ostatni', () => {
     const save = cleared(levelOrder(content));
-    expect(currentLevel(content, save)).toBe('w1_l6');
+    expect(currentLevel(content, save)).toBe('w6_l6');
+  });
+
+  it('świat jest odbity, gdy przeszłe są wszystkie jego poziomy', () => {
+    const world1 = levelOrder(content).slice(0, 6);
+    expect(isWorldCleared(content, fresh(), 'world_1')).toBe(false);
+    expect(isWorldCleared(content, cleared(world1.slice(0, 5)), 'world_1')).toBe(false);
+    const freed = cleared(world1);
+    expect(isWorldCleared(content, freed, 'world_1')).toBe(true);
+    expect(isWorldCleared(content, freed, 'world_2')).toBe(false);
+    expect(isWorldCleared(content, freed, 'nie_ma')).toBe(false);
+    // Przejście z bossa pierwszego świata prowadzi do drugiego.
+    expect(currentLevel(content, freed)).toBe('w2_l1');
+    expect(isLevelUnlocked(content, freed, 'w2_l1')).toBe(true);
+    expect(isLevelUnlocked(content, freed, 'w2_l2')).toBe(false);
+  });
+
+  it('mapa otwiera świat na pierwszym nieprzeszłym poziomie, a odbity na bossie', () => {
+    const save = cleared(levelOrder(content).slice(0, 8));
+    expect(worldEntryLevel(content, save, 'world_1')).toBe('w1_l6');
+    expect(worldEntryLevel(content, save, 'world_2')).toBe('w2_l3');
+    // Świat, do którego gracz jeszcze nie doszedł: jego pierwszy poziom, choć zablokowany.
+    expect(worldEntryLevel(content, save, 'world_5')).toBe('w5_l1');
+    expect(isLevelUnlocked(content, save, 'w5_l1')).toBe(false);
+    expect(worldEntryLevel(content, save, 'nie_ma')).toBeNull();
   });
 
   it('zablokowanego poziomu nie da się zaliczyć', () => {

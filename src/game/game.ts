@@ -20,6 +20,7 @@ import {
   type Rewards,
   reconcileSave,
   removeFromSquad,
+  worldEntryLevel,
 } from './progress.ts';
 import { decodeSave, loadSave, type SaveStorage, storeSave } from './save.ts';
 import type { BattleSpeed, Save } from './save-schema.ts';
@@ -38,7 +39,11 @@ export interface BattleOutcome {
  */
 export type Scene =
   | { readonly name: 'title' }
-  /** `selected` to poziom, którego przeciwników i nagrody pokazuje mapa; null, gdy gra nie ma poziomów. */
+  /**
+   * `selected` to poziom, którego przeciwników i nagrody pokazuje mapa; null, gdy gra nie ma
+   * poziomów. Może być zablokowany: mapa pokazuje wtedy, co czeka gracza, ale walki nie zacznie.
+   * Świat wybranego poziomu to świat, którego szlak i tło widać na mapie.
+   */
   | { readonly name: 'map'; readonly selected: string | null }
   | { readonly name: 'squad' }
   /**
@@ -77,10 +82,15 @@ export interface Game {
 
   go(scene: Scene): void;
   /**
-   * Otwiera mapę z wybranym poziomem. Bez argumentu albo dla poziomu zablokowanego wybiera
-   * pierwszy poziom, którego gracz jeszcze nie przeszedł.
+   * Otwiera mapę z wybranym poziomem, także zablokowanym (do obejrzenia). Bez argumentu albo
+   * dla nieznanego poziomu wybiera pierwszy poziom, którego gracz jeszcze nie przeszedł.
    */
   openMap(selected?: string): void;
+  /**
+   * Przełącza mapę na wskazany świat: wybiera w nim pierwszy nieprzeszły poziom, a w świecie
+   * odbitym ostatni. Nieznany świat nic nie zmienia.
+   */
+  openWorld(world: string): void;
   /**
    * Otwiera informacje o bohaterach na wskazanej linii i formie. Bez linii albo dla nieznanej
    * linii: pierwsza linia; bez formy albo dla formy spoza linii: jej forma bazowa. Zamiast linii
@@ -148,10 +158,10 @@ export function createGame(options: GameOptions): Game {
   };
 
   const openMap = (selected?: string): void => {
-    const valid = selected !== undefined && isLevelUnlocked(content, save.value, selected);
+    const known = selected !== undefined && content.levels.has(selected);
     scene.value = {
       name: 'map',
-      selected: valid ? selected : currentLevel(content, save.value),
+      selected: known ? selected : currentLevel(content, save.value),
     };
   };
 
@@ -167,6 +177,10 @@ export function createGame(options: GameOptions): Game {
       scene.value = next;
     },
     openMap,
+    openWorld(world) {
+      const entry = worldEntryLevel(content, save.value, world);
+      if (entry !== null) scene.value = { name: 'map', selected: entry };
+    },
     openHeroes(line, form) {
       const tribe = line === undefined ? undefined : content.enemyTribes.get(line);
       if (tribe !== undefined) {
