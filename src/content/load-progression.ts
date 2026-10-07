@@ -1,7 +1,7 @@
 // Wczytanie danych progresji: linie bohaterów, runy, światy i poziomy, ze sprawdzeniem odwołań.
 import type { CompiledUnit } from './compile.ts';
 import type { ContentIssue } from './issues.ts';
-import { type CompiledLine, compileLine } from './load-lines.ts';
+import { type CompiledLine, checkTierCosts, compileLine } from './load-lines.ts';
 import { indexById, parse } from './parse.ts';
 import {
   type BackdropId,
@@ -145,6 +145,7 @@ export function loadProgression(
     return null;
   }
 
+  checkTierCosts(progression, issues);
   const runes = indexById('runes.json', runeList, new Set(), issues);
   const worldsById = indexById('worlds.json', worldList, new Set(), issues);
   const { worlds, levels } = loadLevels(

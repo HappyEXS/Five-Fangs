@@ -377,12 +377,20 @@ A0 → A1 → … → A4 ─────┤
                       └→ [ewolucja] → B'0 … B'4 → [ewolucja] → C'0 … C'4
 ```
 
-- Ulepszenie kosztuje złoto i zwiększa `maxHp` oraz `attack` o 10% wartości bazowej formy (wyjściowo). Pozostałe statystyki się nie zmieniają.
-- Po 4 ulepszeniach bieżącej formy dostępna jest **ewolucja** w jedną z jej następnych form: osobny zakup za złoto (koszt zależy od formy docelowej), zamienia bohatera na tę formę bez ulepszeń. Gdy następnych form jest kilka, gracz wybiera jedną.
+- Ulepszenie kosztuje złoto i zwiększa `maxHp` oraz `attack` o 10% wartości bazowej formy (wyjściowo). Pozostałe statystyki się nie zmieniają. **Każde ulepszenie formy kosztuje tyle samo** (decyzja autora z 2026-10-07, ADR 0023).
+- Po 4 ulepszeniach bieżącej formy dostępna jest **ewolucja** w jedną z jej następnych form: osobny zakup za złoto (koszt zależy od stopnia formy docelowej i jest wyższy niż ulepszenia), zamienia bohatera na tę formę bez ulepszeń. Gdy następnych form jest kilka, gracz wybiera jedną.
 - Każda forma ma własne 4 ulepszenia. Forma bez następnych jest końcem drogi.
 - Ulepszenia i ewolucja są nieodwracalne, także wybór drogi. Kto chce drugiej drogi, kupuje w sklepie kolejny egzemplarz linii.
 
-Koszty (wyjściowe, do balansu): ulepszenia formy bazowej `50, 80, 120, 180`; ewolucja na drugi stopień `250`, jego ulepszenia `300, 400, 550, 750`; ewolucja na trzeci stopień `1200`, jego ulepszenia `1000, 1300, 1700, 2200` (trzeci stopień to na razie liczby robocze).
+**Koszty zależą tylko od stopnia formy** i są takie same dla wszystkich szczepów (reguły autora z 2026-10-07; liczby to propozycja wykonawcy, do balansu; ADR 0023):
+
+| Stopień formy | Ewolucja w tę formę | Każde z 4 ulepszeń | Komplet ulepszeń |
+|---|---|---|---|
+| bazowa (ze sklepu) | — | 50 | 200 |
+| po pierwszej ewolucji | 400 | 200 | 800 |
+| po drugiej ewolucji | 1600 | 800 | 3200 |
+
+Reguły, których pilnuje walidator treści: ceny rosną ze stopniem, a ewolucja kosztuje więcej niż ulepszenie formy przed nią i po niej. W tych liczbach każdy stopień jest cztery razy droższy od poprzedniego, a ewolucja to dwa ulepszenia nowej formy. Bohater od zakupu (200) do końca drogi kosztuje 6400 złota. Dawne koszty rosły z każdym ulepszeniem (`50, 80, 120, 180`, ewolucja `250`, `300–750`, ewolucja `1200`, `1000–2200`).
 
 ### 5.3 Runy
 
@@ -408,7 +416,7 @@ Koszty (wyjściowe, do balansu): ulepszenia formy bazowej `50, 80, 120, 180`; ew
 - Jednostek specjalnych (przeciwników takich jak Osiłek czy Herszt) nie ma w sklepie.
 - Ceny wyjściowe: każdy szczep 200 za formę bazową.
 
-Nagrody pierwszego świata („Zamek”) są policzone tak, by pierwsze przejścia opłacały ulepszenia dwóch bohaterów startowych. Zakup dodatkowych bohaterów wymaga więc powtarzania poziomów albo rezygnacji z części ulepszeń; ceny i nagrody do korekty przy docelowym balansie.
+Nagrody pierwszego świata („Zamek”) były policzone pod dawne koszty tak, by pierwsze przejścia opłacały ulepszenia dwóch bohaterów startowych. Przy kosztach według stopnia (§5.2) wystarczają na to z zapasem: po pięciu poziomach zostaje ok. 2500 złota na dodatkowych bohaterów. Ceny i nagrody do korekty przy docelowym balansie.
 
 ## 6. Cechy pasywne
 
@@ -477,7 +485,7 @@ Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania; św
 
 Autor gry zamówił na razie widoki map i nazwy poziomów oraz po 2–3 przeciwników ze szczepu świata na poziom; **balans przeciwników i nagród zostaje na później**. Stan dzisiejszy:
 
-- **Świat 1 jest dostrojony** do składu startowego (Miecznik w slocie 1, Łucznik w slocie 2, bez run): kolumna „Skład startowy wygrywa od” to zarazem ranga oczekiwana, której pilnuje raport `pnpm balance`. Złoto za pierwsze przejście poziomu wystarcza dokładnie na rangę oczekiwaną na następnym. Rangi i nagrody są te same co w dawnym świecie testowym „Las”, więc nowa gra jest do przejścia.
+- **Świat 1 jest dostrojony** do składu startowego (Miecznik w slocie 1, Łucznik w slocie 2, bez run): kolumna „Skład startowy wygrywa od” to zarazem ranga oczekiwana, której pilnuje raport `pnpm balance`. Złoto za pierwsze przejścia wystarcza na rangę oczekiwaną na następnym poziomie (od zmiany kosztów w ADR 0023 z zapasem; dawniej dokładnie). Rangi i nagrody są te same co w dawnym świecie testowym „Las”, więc nowa gra jest do przejścia.
 - **Światy 2–6 mają liczby ze wzoru**, bez balansu. Poziom siły wrogów to (numer świata − 1) + połowa z (numer etapu − 1), w dół. Złoto etapów 1–5 to (1000 + 250 × (etap − 1)) × numer świata; boss daje 1500 × numer świata i runę; drugą runę daje trzeci etap światów 2–5. Kolumna „Skład startowy wygrywa od” jest tu pomiarem, nie celem: pokazuje, jak daleko liczbom do balansu (pierwsze etapy późniejszych światów są dziś łatwiejsze niż boss Zamku, a dziewięciu poziomów dwuosobowy skład startowy nie wygrywa na żadnej randze, bo gracz ma mieć wtedy pięciu bohaterów).
 - Skład startowy nie jest dobrą miarą dla światów 2–6; składy referencyjne na dalsze światy dojdą przy balansie.
 
@@ -569,10 +577,10 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 | Kwestia | Stan |
 |---|---|
 | Roster: sześć szczepów po siedem form | W grze. Liczby Mieczników i Łuczników oraz ich sześć nowych form to propozycja wykonawcy (§3), do oceny autora; wartości robocze pozostałych szczepów wypisane w §3 |
-| Koszty ewolucji i ulepszeń trzeciego stopnia | Liczby robocze, te same dla wszystkich szczepów (ewolucja 250 i 1200, ulepszenia 1000–2200) |
+| Koszty ulepszeń i ewolucji | Reguły od autora (2026-10-07): stała cena ulepszenia, ewolucja droższa, ceny rosną ze stopniem. Liczby (50 / 200 / 800 i 400 / 1600) to propozycja wykonawcy, do oceny autora i do balansu (§5.2, ADR 0023) |
 | Sześć światów: nazwy, tła, przeciwnicy | Światy i motyw od autora (2026-10-07); w grze jest sześć światów z tłami, szlakami i nazwami poziomów (§7). Do oceny autora: nazwy „Zamek” i „Cytadela Akronix”, nazwy 36 poziomów, wygląd teł, podgląd zablokowanych poziomów. Do zrobienia: balans przeciwników i nagród światów 2–6, składy referencyjne na dalsze światy |
 | Czy w światach szczepów mają stać także Akronix | Motyw mówi o najeźdźcach, a poziomy światów 2–5 wystawiają dziś tylko formy swojego szczepu (zgodnie z zamówieniem autora) |
-| Ostateczne koszty ulepszeń, nagrody i ułamek za powtórki | Po ustaleniu pełnego rosteru, na podstawie raportu balansu |
+| Ostateczne koszty, nagrody i ułamek za powtórki | Przy balansie; gra jest dziś tańsza niż przed zmianą kosztów (bohater do końca drogi za 6400 zamiast 10 280), a nagrody światów 2–6 pochodzą ze wzoru |
 | Czy gra może być osadzana na innych stronach (`frame-ancestors`) | Przed premierą |
 | Hosting publiczny | Przed premierą (M6) |
 

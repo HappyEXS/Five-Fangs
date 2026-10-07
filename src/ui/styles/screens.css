@@ -210,7 +210,13 @@
 
 .form-upgrade-costs {
   display: flex;
-  gap: 0.7em;
+  align-items: center;
+  gap: 0.3em;
+}
+
+/* Liczba ulepszeń stoi przy cenie tym samym krojem co kwota. */
+.form-upgrade-count {
+  font-weight: 800;
 }
 
 .path-name {

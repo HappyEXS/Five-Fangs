@@ -315,7 +315,7 @@ describe('validateContent', () => {
         id: 'nameless',
         price: 100,
         starter: true,
-        forms: [{ unit: 'swordsman', upgradeCosts: [1, 2, 3, 4] }],
+        forms: [{ unit: 'swordsman' }],
       },
     ];
     const issues = validateContent({ ...withHeroes([unit]), 'lines.json': nameless });

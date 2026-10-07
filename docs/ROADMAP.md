@@ -251,6 +251,14 @@ Autor gry ocenił modele szczepu Beasts jako „zbyt przyjazne, delikatne i dzie
 |---|---|---|---|---|
 | M5n-1 | Siedem nowych skórek bestii według szkiców autora: pysk jako ciemność ze światłami oczu i zębami, kość jako drugi materiał szczepu, cięższe kończyny (`limbs-beasts.ts`), wspólne motywy w `beasts/palette.ts`; nowe kadry miniaturek | 1,5 | Arkusze podglądu każdej postaci w czterech pozach, zrzuty z walki obok pozostałych szczepów i z zakładki Bohaterowie; atlas 734 KB, pierwsze uruchomienie 931 KB z 2 MB; testy generatora skórek, atlasu i kadrów miniaturek; mechanika i liczby bez zmian | gotowe (wygląd do oceny autora) |
 
+## M5o – Prostsze zakupy: koszty według stopnia formy (2026-10-07)
+
+Autor gry chce, żeby każde ulepszenie kosztowało tyle samo, ewolucje były droższe niż ulepszenia, a ceny rosły ze stopniem postaci; liczby miał zaproponować wykonawca, bez balansu (ADR 0023).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5o-1 | Tabela kosztów według stopnia w `progression.json` (ulepszenie 50 / 200 / 800, ewolucja 400 / 1600) zamiast kosztów przy każdej formie; walidator reguł autora; karta formy pokazuje „4 × cena”, okienko „i” opisuje zasadę | 0,5 | Walidator treści i testy reguł (ceny rosną ze stopniem, ewolucja droższa od ulepszeń po obu stronach, każdy stopień ma koszty); testy zakupów; testy end-to-end z nowymi kwotami; nagrody Zamku nadal wystarczają na rangi kolejnych poziomów | gotowe (liczby do oceny autora) |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

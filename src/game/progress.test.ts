@@ -212,7 +212,7 @@ describe('sklep', () => {
 describe('ulepszenia i ewolucja', () => {
   const rich = (gold: number): Save => ({ ...fresh(), gold });
 
-  it('ulepszenie kosztuje kolejne kwoty z danych linii', () => {
+  it('każde ulepszenie formy kosztuje tyle samo', () => {
     let save = rich(1000);
     const paid: number[] = [];
     for (let i = 0; i < 4; i++) {
@@ -222,8 +222,8 @@ describe('ulepszenia i ewolucja', () => {
       paid.push(cost);
       save = next;
     }
-    expect(paid).toEqual([50, 80, 120, 180]);
-    expect(save.gold).toBe(1000 - 430);
+    expect(paid).toEqual([50, 50, 50, 50]);
+    expect(save.gold).toBe(1000 - 200);
     expect(save.heroes[0]?.upgrades).toBe(4);
     expect(upgradeCost(content, save, SWORD)).toBeNull();
     expect(applyUpgrade(content, save, SWORD)).toBeNull();

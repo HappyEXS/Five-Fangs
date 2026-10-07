@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent, type RawContent, rawContent } from './load.ts';
 
-const COSTS = [50, 80, 120, 180];
-const base = { unit: 'swordsman_a', upgradeCosts: COSTS };
-const evolved = { unit: 'swordsman_b', from: 'swordsman_a', evolveCost: 250, upgradeCosts: COSTS };
+const base = { unit: 'swordsman_a' };
+const evolved = { unit: 'swordsman_b', from: 'swordsman_a' };
 const line = { id: 'swordsman', forms: [base, evolved], price: 200, starter: true };
 /** Linia z podanymi formami; reszta jak w `line`. */
 const withForms = (forms: unknown[]) => ({ ...line, forms });
@@ -43,10 +42,15 @@ describe('dane progresji gry', () => {
       runeSlots: 2,
       replayGoldPercent: 25,
       levelsPerWorld: 6,
+      tiers: [
+        { upgradeCost: 50 },
+        { evolveCost: 400, upgradeCost: 200 },
+        { evolveCost: 1600, upgradeCost: 800 },
+      ],
     });
   });
 
-  it('linie mają drzewo form z kosztami, cenę w sklepie i flagę linii startowej', () => {
+  it('linie mają drzewo form z kosztami swojego stopnia, cenę w sklepie i flagę linii startowej', () => {
     const archer = content?.lines.get('archer');
     expect(archer).toMatchObject({ id: 'archer', base: 'archer_a', price: 200, starter: true });
     expect([...(archer?.forms.keys() ?? [])]).toEqual([
@@ -62,15 +66,15 @@ describe('dane progresji gry', () => {
       unit: 'archer_a',
       from: null,
       evolveCost: 0,
-      upgradeCosts: [50, 80, 120, 180],
+      upgradeCost: 50,
       next: ['archer_b', 'cleric_a'],
       tier: 0,
     });
     expect(archer?.forms.get('inquisitor')).toEqual({
       unit: 'inquisitor',
       from: 'cleric_a',
-      evolveCost: 1200,
-      upgradeCosts: [1000, 1300, 1700, 2200],
+      evolveCost: 1600,
+      upgradeCost: 800,
       next: [],
       tier: 2,
     });
@@ -129,41 +133,24 @@ describe('dane progresji gry', () => {
 
 describe('walidacja linii', () => {
   it('odrzuca nieznaną formę i formę użytą w dwóch liniach', () => {
-    const ghost = { unit: 'ghost', from: 'swordsman_a', evolveCost: 250, upgradeCosts: COSTS };
+    const ghost = { unit: 'ghost', from: 'swordsman_a' };
     expect(messages({ 'lines.json': [withForms([base, ghost])] })).toEqual([
       'lines.json: swordsman: nieznana forma "ghost"',
     ]);
     const second = {
       ...line,
       id: 'copy',
-      forms: [
-        { unit: 'archer_b', upgradeCosts: COSTS },
-        { ...base, from: 'archer_b', evolveCost: 1 },
-      ],
+      forms: [{ unit: 'archer_b' }, { ...base, from: 'archer_b' }],
     };
     expect(messages({ 'lines.json': [line, second] })).toEqual([
       'lines.json: copy: forma "swordsman_a" należy już do innej linii',
     ]);
   });
 
-  it('wymaga kompletu kosztów ulepszeń dla każdej formy', () => {
-    const short = { ...base, upgradeCosts: [50, 80, 120] };
-    expect(messages({ 'lines.json': [withForms([short, evolved])] })).toEqual([
-      'lines.json: swordsman: forma "swordsman_a" musi mieć 4 kosztów ulepszeń (jest 3)',
-    ]);
-  });
-
   it('wymaga dokładnie jednej formy bazowej', () => {
-    const second = { unit: 'swordsman_b', upgradeCosts: COSTS };
+    const second = { unit: 'swordsman_b' };
     expect(messages({ 'lines.json': [withForms([base, second])] })).toEqual([
       'lines.json: swordsman: musi mieć dokładnie jedną formę bazową, bez "from" (ma 2)',
-    ]);
-  });
-
-  it('forma po ewolucji podaje razem, z czego powstaje i ile kosztuje ewolucja', () => {
-    const { evolveCost: _cost, ...noCost } = evolved;
-    expect(messages({ 'lines.json': [withForms([base, noCost])] })).toEqual([
-      'lines.json: swordsman: forma "swordsman_b": "from" i "evolveCost" podaje się razem',
     ]);
   });
 
@@ -177,7 +164,7 @@ describe('walidacja linii', () => {
     const loop = [
       base,
       { ...evolved, from: 'archer_b' },
-      { unit: 'archer_b', from: 'swordsman_b', evolveCost: 1, upgradeCosts: COSTS },
+      { unit: 'archer_b', from: 'swordsman_b' },
     ];
     expect(messages({ 'lines.json': [withForms(loop)] })).toEqual([
       'lines.json: swordsman: forma "swordsman_b" nie jest osiągalna z formy bazowej (cykl ewolucji)',
@@ -203,9 +190,111 @@ describe('walidacja linii', () => {
 
   it('odrzuca błędny kształt linii', () => {
     expect(loadContent({ ...rawContent, 'lines.json': [withForms([])] }).content).toBeNull();
-    const freeEvolve = { ...evolved, evolveCost: 0 };
-    const zero = withForms([base, freeEvolve]);
-    expect(loadContent({ ...rawContent, 'lines.json': [zero] }).content).toBeNull();
+    // Koszty nie należą do formy: wynikają z jej stopnia (ADR 0023).
+    const priced = withForms([base, { ...evolved, evolveCost: 250 }]);
+    expect(loadContent({ ...rawContent, 'lines.json': [priced] }).content).toBeNull();
+    const steps = withForms([{ ...base, upgradeCosts: [50, 80, 120, 180] }, evolved]);
+    expect(loadContent({ ...rawContent, 'lines.json': [steps] }).content).toBeNull();
+  });
+});
+
+describe('koszty według stopnia formy', () => {
+  const { content } = loadContent();
+  const progression = rawContent['progression.json'] as Record<string, unknown>;
+  const withTiers = (tiers: unknown) => messages({ 'progression.json': { ...progression, tiers } });
+
+  it('każda forma każdej linii płaci według swojego stopnia', () => {
+    const tiers = content?.progression.tiers ?? [];
+    expect(tiers).toHaveLength(3);
+    let forms = 0;
+    for (const line of content?.lines.values() ?? []) {
+      for (const form of line.forms.values()) {
+        forms++;
+        expect(form.upgradeCost, form.unit).toBe(tiers[form.tier]?.upgradeCost);
+        expect(form.evolveCost, form.unit).toBe(tiers[form.tier]?.evolveCost ?? 0);
+      }
+    }
+    expect(forms).toBe(42);
+  });
+
+  it('ceny rosną ze stopniem, a ewolucja kosztuje więcej niż ulepszenia po obu jej stronach', () => {
+    for (const line of content?.lines.values() ?? []) {
+      for (const form of line.forms.values()) {
+        const parent = form.from === null ? undefined : line.forms.get(form.from);
+        if (parent === undefined) continue;
+        expect(form.upgradeCost, form.unit).toBeGreaterThan(parent.upgradeCost);
+        expect(form.evolveCost, form.unit).toBeGreaterThan(parent.upgradeCost);
+        expect(form.evolveCost, form.unit).toBeGreaterThan(form.upgradeCost);
+        expect(form.evolveCost, form.unit).toBeGreaterThan(parent.evolveCost);
+      }
+    }
+  });
+
+  it('forma bazowa nie ma kosztu ewolucji, a każdy wyższy stopień go ma', () => {
+    expect(
+      withTiers([
+        { evolveCost: 10, upgradeCost: 50 },
+        { evolveCost: 400, upgradeCost: 200 },
+        { evolveCost: 1600, upgradeCost: 800 },
+      ]),
+    ).toEqual([
+      'progression.json: stopień 0 to forma bazowa ze sklepu: nie może mieć "evolveCost"',
+    ]);
+    expect(
+      withTiers([
+        { upgradeCost: 50 },
+        { upgradeCost: 200 },
+        { evolveCost: 1600, upgradeCost: 800 },
+      ]),
+    ).toEqual(['progression.json: stopień 1 musi mieć "evolveCost"']);
+  });
+
+  it('odrzuca ulepszenie, które nie drożeje ze stopniem', () => {
+    expect(
+      withTiers([
+        { upgradeCost: 50 },
+        { evolveCost: 400, upgradeCost: 50 },
+        { evolveCost: 1600, upgradeCost: 800 },
+      ]),
+    ).toEqual([
+      'progression.json: stopień 1: ulepszenie (50) musi kosztować więcej niż na stopniu 0 (50)',
+    ]);
+  });
+
+  it('odrzuca ewolucję nie droższą od ulepszeń i od poprzedniej ewolucji', () => {
+    // Tak wyglądały dawne koszty: ewolucja 250 przy ulepszeniach formy docelowej od 300.
+    expect(
+      withTiers([
+        { upgradeCost: 50 },
+        { evolveCost: 250, upgradeCost: 300 },
+        { evolveCost: 1600, upgradeCost: 800 },
+      ]),
+    ).toEqual([
+      'progression.json: stopień 1: ewolucja (250) musi kosztować więcej niż ulepszenie formy przed nią (50) i po niej (300)',
+    ]);
+    expect(
+      withTiers([
+        { upgradeCost: 50 },
+        { evolveCost: 900, upgradeCost: 200 },
+        { evolveCost: 900, upgradeCost: 800 },
+      ]),
+    ).toEqual([
+      'progression.json: stopień 2: ewolucja (900) musi kosztować więcej niż ewolucja na stopień 1 (900)',
+    ]);
+  });
+
+  it('każdy stopień drzewa musi mieć koszty', () => {
+    expect(
+      messages({
+        'progression.json': { ...progression, tiers: [{ upgradeCost: 50 }] },
+        'lines.json': [line],
+      }),
+    ).toEqual([
+      'lines.json: swordsman: forma "swordsman_b" jest na stopniu 1, a progression.json podaje koszty 1 stopni',
+    ]);
+    expect(
+      loadContent({ ...rawContent, 'progression.json': { ...progression, tiers: [] } }).content,
+    ).toBeNull();
   });
 });
 

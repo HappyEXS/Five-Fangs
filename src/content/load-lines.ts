@@ -1,6 +1,7 @@
 // Linie bohaterów: drzewo form połączonych ewolucjami (ADR 0016). Kompilacja sprawdza, że
 // drzewo jest drzewem: jedna forma bazowa, każda inna osiągalna z niej dokładnie jedną drogą,
-// każda forma to znana jednostka bohatera należąca tylko do tej linii.
+// każda forma to znana jednostka bohatera należąca tylko do tej linii. Koszty ulepszeń
+// i ewolucji forma dostaje z tabeli stopni w progression.json (ADR 0023).
 import type { CompiledUnit } from './compile.ts';
 import type { ContentIssue } from './issues.ts';
 import type { Progression, RawLine } from './schema-progression.ts';
@@ -12,8 +13,8 @@ export interface CompiledForm {
   readonly from: string | null;
   /** Koszt ewolucji w tę formę; 0 dla formy bazowej. */
   readonly evolveCost: number;
-  /** Koszty kolejnych ulepszeń tej formy. */
-  readonly upgradeCosts: readonly number[];
+  /** Koszt każdego ulepszenia tej formy. */
+  readonly upgradeCost: number;
   /** Formy, w które ta może ewoluować, w kolejności z treści; pusta, gdy to ostatni stopień. */
   readonly next: readonly string[];
   /** Stopień w drzewie: 0 = forma bazowa, 1 = pierwsza ewolucja itd. */
@@ -30,6 +31,45 @@ export interface CompiledLine {
   readonly price: number;
   /** Gracz zaczyna grę z jednym bohaterem tej linii. */
   readonly starter: boolean;
+}
+
+/**
+ * Sprawdza tabelę kosztów według stopnia (ADR 0023): forma bazowa nie ma kosztu ewolucji,
+ * każdy wyższy stopień go ma, ceny rosną ze stopniem, a ewolucja kosztuje więcej niż ulepszenie
+ * formy, z której się ewoluuje, i formy, w którą się ewoluuje.
+ */
+export function checkTierCosts(progression: Progression, issues: ContentIssue[]): void {
+  const problem = (message: string): void => {
+    issues.push({ source: 'progression.json', message });
+  };
+  progression.tiers.forEach((tier, index) => {
+    const previous = progression.tiers[index - 1];
+    if (previous === undefined) {
+      if (tier.evolveCost !== undefined) {
+        problem('stopień 0 to forma bazowa ze sklepu: nie może mieć "evolveCost"');
+      }
+      return;
+    }
+    if (tier.upgradeCost <= previous.upgradeCost) {
+      problem(
+        `stopień ${index}: ulepszenie (${tier.upgradeCost}) musi kosztować więcej niż na stopniu ${index - 1} (${previous.upgradeCost})`,
+      );
+    }
+    if (tier.evolveCost === undefined) {
+      problem(`stopień ${index} musi mieć "evolveCost"`);
+      return;
+    }
+    if (tier.evolveCost <= Math.max(tier.upgradeCost, previous.upgradeCost)) {
+      problem(
+        `stopień ${index}: ewolucja (${tier.evolveCost}) musi kosztować więcej niż ulepszenie formy przed nią (${previous.upgradeCost}) i po niej (${tier.upgradeCost})`,
+      );
+    }
+    if (previous.evolveCost !== undefined && tier.evolveCost <= previous.evolveCost) {
+      problem(
+        `stopień ${index}: ewolucja (${tier.evolveCost}) musi kosztować więcej niż ewolucja na stopień ${index - 1} (${previous.evolveCost})`,
+      );
+    }
+  });
 }
 
 /**
@@ -55,14 +95,6 @@ export function compileLine(
     if (!heroes.has(form.unit)) problem(`nieznana forma "${form.unit}"`);
     if (usedForms.has(form.unit)) problem(`forma "${form.unit}" należy już do innej linii`);
     usedForms.add(form.unit);
-    if (form.upgradeCosts.length !== progression.maxUpgrades) {
-      problem(
-        `forma "${form.unit}" musi mieć ${progression.maxUpgrades} kosztów ulepszeń (jest ${form.upgradeCosts.length})`,
-      );
-    }
-    if ((form.from === undefined) !== (form.evolveCost === undefined)) {
-      problem(`forma "${form.unit}": "from" i "evolveCost" podaje się razem`);
-    }
     if (form.from !== undefined && !line.forms.some((other) => other.unit === form.from)) {
       problem(`forma "${form.unit}" powstaje z "${form.from}", której nie ma w tej linii`);
     }
@@ -95,11 +127,17 @@ export function compileLine(
       problem(`forma "${form.unit}" nie jest osiągalna z formy bazowej (cykl ewolucji)`);
       continue;
     }
+    const costs = progression.tiers[tier];
+    if (costs === undefined) {
+      problem(
+        `forma "${form.unit}" jest na stopniu ${tier}, a progression.json podaje koszty ${progression.tiers.length} stopni`,
+      );
+    }
     forms.set(form.unit, {
       unit: form.unit,
       from: form.from ?? null,
-      evolveCost: form.evolveCost ?? 0,
-      upgradeCosts: form.upgradeCosts,
+      evolveCost: costs?.evolveCost ?? 0,
+      upgradeCost: costs?.upgradeCost ?? 0,
       next: line.forms.filter((other) => other.from === form.unit).map((other) => other.unit),
       tier,
     });

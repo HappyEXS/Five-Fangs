@@ -3,5 +3,10 @@
   "upgradePercent": 10,
   "runeSlots": 2,
   "replayGoldPercent": 25,
-  "levelsPerWorld": 6
+  "levelsPerWorld": 6,
+  "tiers": [
+    { "upgradeCost": 50 },
+    { "evolveCost": 400, "upgradeCost": 200 },
+    { "evolveCost": 1600, "upgradeCost": 800 }
+  ]
 }

@@ -98,12 +98,10 @@ function FormCard(props: { game: Game; stage: StageControls; line: CompiledLine;
       <StatTable spec={parent?.base ?? unit.base} next={parent === undefined ? null : unit.base} />
       <div class="form-upgrades">
         <span class="sheet-title">{t('heroes.upgrade.costs')}</span>
+        {/* Każde ulepszenie formy kosztuje tyle samo (ADR 0023): liczba ulepszeń razy cena. */}
         <span class="form-upgrade-costs">
-          {node.upgradeCosts.map((cost, step) => (
-            <span key={`${step}:${cost}`} title={t('heroes.path.upgrade', { step: step + 1 })}>
-              <Gold amount={cost} />
-            </span>
-          ))}
+          <span class="form-upgrade-count">{game.content.progression.maxUpgrades} ×</span>
+          <Gold amount={node.upgradeCost} />
         </span>
       </div>
     </section>

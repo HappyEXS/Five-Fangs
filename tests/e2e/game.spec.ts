@@ -111,6 +111,8 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   await expect(field.locator('.upgrade-bar')).toHaveAttribute('data-upgrades', '1');
   await expect(sheet).toContainText('Ulepszenia 1 z 4');
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '550');
+  // Każde ulepszenie formy kosztuje tyle samo: drugie jest za tę samą kwotę co pierwsze.
+  await expect(field.getByRole('button', { name: 'Kup ulepszenie za 50 złota' })).toBeVisible();
 
   // Runa: gniazdo nad bohaterem otwiera wybór, wybrany żeton trafia do gniazda.
   await field.locator('[data-socket="0"]').click();
@@ -129,7 +131,7 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   const info = page.locator('.heroes');
   await expect(info).toContainText('Miecznik');
   await expect(info).toContainText('Rycerz');
-  await expect(info.locator('.tree-cost').first()).toContainText('250');
+  await expect(info.locator('.tree-cost').first()).toContainText('400');
   await expect(info.locator('.line-tabs button')).toHaveText([
     'Miecznicy',
     'Łucznicy',
@@ -209,7 +211,7 @@ test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async
   await expect(picker).toContainText('Zbrojny');
   await expect(picker).toContainText('Tarczownik');
   await picker
-    .getByRole('button', { name: 'Kup ewolucję w formę Tarczownik za 250 złota' })
+    .getByRole('button', { name: 'Kup ewolucję w formę Tarczownik za 400 złota' })
     .click();
   await expect(picker).toHaveCount(0);
   await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Tarczownik');
@@ -234,6 +236,9 @@ test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async
   await tree.getByRole('button', { name: 'Pawężnik' }).click();
   await expect(page.locator('.form-card')).toContainText('Ewolucja 2. stopnia');
   await expect(page.locator('.form-card')).toContainText('Ostatni stopień tej drogi');
+  // Koszty zależą od stopnia formy: ewolucja na trzeci stopień i cztery równe ulepszenia.
+  await expect(page.locator('.form-card .form-origin')).toContainText('1 600');
+  await expect(page.locator('.form-card .form-upgrades')).toHaveText(/Ulepszenias*4 ×s*800/);
   await expect(page.locator('.form-card')).toContainText('Tarcza: otrzymuje o 35% mniej obrażeń');
   await expect(page.locator('.path-name')).toHaveText(['Miecznik', 'Tarczownik', 'Pawężnik']);
   expect(errors).toEqual([]);
@@ -513,7 +518,8 @@ test('zapis w wersji 3 z dawnymi liniami ludzi wczytuje się do dwóch szczepów
   await seedSave(page, {
     saveVersion: 3,
     gameVersion: '0.1.0',
-    gold: 1500,
+    // Złota wystarcza na ewolucję na trzeci stopień (1600).
+    gold: 2000,
     heroes: [
       // Dawna linia Tarczowników, kopia formy z testowego drzewa i dawna linia Akolitów.
       { id: 1, line: 'guard', form: 'guard_b', upgrades: 2, runes: [null, null] },
@@ -528,7 +534,7 @@ test('zapis w wersji 3 z dawnymi liniami ludzi wczytuje się do dwóch szczepów
     settings: { lang: 'pl', battleSpeed: 1 },
   });
   await play(page);
-  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '1500');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '2000');
   await page.getByRole('button', { name: 'Skład' }).click();
   // Nikt nie przepadł i nikt nie stracił ulepszeń.
   await expect(page.locator('.stage-hero')).toHaveCount(4);

@@ -271,8 +271,9 @@ src/content/data/
   units/enemies.json    wrogowie i bossowie
   units/summons.json    jednostki przyzywane (ADR 0020); gracz ich nie kupuje, poziomy ich nie wystawiają
   enemy-tribes.json     szczepy wrogów (Akronix): stopnie i jednostki z units/enemies.json w kolejności siły
-  progression.json      stałe progresji: liczba ulepszeń, procent na ulepszenie, sloty run, złoto za powtórkę
-  lines.json            linie bohaterów: drzewo form, koszty ulepszeń i ewolucji, cena, linia startowa
+  progression.json      stałe progresji: liczba ulepszeń, procent na ulepszenie, sloty run, złoto za powtórkę,
+                        koszty ulepszeń i ewolucji według stopnia formy (ADR 0023)
+  lines.json            linie bohaterów: drzewo form, cena w sklepie, linia startowa
   runes.json
   worlds.json           światy w kolejności gry: id i tło sceny (`backdrop`, zamknięty zestaw `BACKDROP_IDS`)
   levels/world_N.json   poziomy świata w kolejności odblokowywania
@@ -330,9 +331,14 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
 
 // lines.json: drzewo form (ADR 0016); forma bez "from" jest bazowa
 { "id": "archer", "price": 200, "starter": true, "forms": [
-  { "unit": "archer_a", "upgradeCosts": [50, 80, 120, 180] },
-  { "unit": "archer_b", "from": "archer_a", "evolveCost": 250, "upgradeCosts": [300, 400, 550, 750] },
-  { "unit": "archer_c", "from": "archer_a", "evolveCost": 250, "upgradeCosts": [300, 400, 550, 750] } ] }
+  { "unit": "archer_a" },
+  { "unit": "archer_b", "from": "archer_a" },
+  { "unit": "cleric_a", "from": "archer_a" } ] }
+
+// progression.json, pole "tiers": koszty według stopnia formy (ADR 0023); indeks 0 to forma bazowa
+[ { "upgradeCost": 50 },
+  { "evolveCost": 400, "upgradeCost": 200 },
+  { "evolveCost": 1600, "upgradeCost": 800 } ]
 
 // runes.json
 { "id": "rune_attack_25", "stat": "attack", "value": 25 }
@@ -383,7 +389,8 @@ function levelSetup(
 - procenty cech w zakresach: `doubleDamage` 1–100, `dodge` i `shield` 1–99;
 - wróg na poziomie to dowolna jednostka: forma bohatera albo jednostka specjalna z `units/enemies.json`;
 - górne ograniczenie liczby żywych pocisków mieści się w puli;
-- każda linia jest drzewem form (jedna forma bazowa, każda inna osiągalna z niej jedną drogą; ADR 0016) z kompletem kosztów, forma należy do jednej linii, a każdy bohater do jakiejś linii;
+- każda linia jest drzewem form (jedna forma bazowa, każda inna osiągalna z niej jedną drogą; ADR 0016), forma należy do jednej linii, a każdy bohater do jakiejś linii;
+- tabela kosztów według stopnia (ADR 0023) opisuje każdy stopień, na którym stoi jakaś forma; ceny rosną ze stopniem, a ewolucja kosztuje więcej niż ulepszenie formy przed nią i po niej;
 - każdy świat ma plik poziomów z wymaganą liczbą poziomów (`levelsPerWorld`); w poziomie sloty wrogów się nie powtarzają;
 - najwyżej jedna cecha danego typu na jednostkę;
 - kadr miniaturki rigu (`portrait`) wskazuje istniejącą kość.

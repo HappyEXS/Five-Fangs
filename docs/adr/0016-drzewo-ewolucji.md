@@ -9,7 +9,7 @@ Do tej pory linia bohatera miała dokładnie dwie formy: bazową i jedną po ewo
 
 ## Decyzja
 
-**Linia to drzewo form.** W `lines.json` linia ma listę form; każda forma poza bazową wskazuje formę, z której powstaje (`from`), i koszt ewolucji w nią (`evolveCost`). Każda forma ma własne koszty ulepszeń.
+**Linia to drzewo form.** W `lines.json` linia ma listę form; każda forma poza bazową wskazuje formę, z której powstaje (`from`), i koszt ewolucji w nią (`evolveCost`). Każda forma ma własne koszty ulepszeń. (Od 2026-10-07 koszty nie stoją przy formie: wynikają z jej stopnia, ADR 0023.)
 
 ```json
 { "id": "swordsman", "price": 200, "starter": true, "forms": [

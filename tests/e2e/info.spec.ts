@@ -108,7 +108,7 @@ test('przyciski „i”: zasady ekranów i kart są w okienkach, nie na scenie',
   await expect(formCard.locator('.info-btn')).toHaveCount(0);
   const heroesInfo = page.getByRole('button', { name: 'Informacje: Bohaterowie' });
   await expect(await openInfo(page, heroesInfo)).toContainText(
-    'Każde ulepszenie dodaje 10% życia i ataku formy.',
+    'Każde ulepszenie dodaje 10% życia i ataku formy i kosztuje tyle samo.',
   );
   await expect(popup).toContainText('Po 4 ulepszeniach bohater może ewoluować');
   await expect(popup).toContainText('Ulepszenia i ewolucję kupujesz na ekranie składu.');

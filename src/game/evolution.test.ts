@@ -42,8 +42,8 @@ describe('evolveOptions i applyEvolve', () => {
       save = upgraded(save, 1);
     }
     expect(evolveOptions(content, save, SWORD)).toEqual([
-      { unitId: 'swordsman_b', cost: 250 },
-      { unitId: 'guard_a', cost: 250 },
+      { unitId: 'swordsman_b', cost: 400 },
+      { unitId: 'guard_a', cost: 400 },
     ]);
   });
 
@@ -53,7 +53,7 @@ describe('evolveOptions i applyEvolve', () => {
     const guard = applyEvolve(content, save, SWORD, 'guard_a');
     expect(knight?.heroes[0]).toMatchObject({ form: 'swordsman_b', upgrades: 0 });
     expect(guard?.heroes[0]).toMatchObject({ form: 'guard_a', upgrades: 0 });
-    expect(knight?.gold).toBe(save.gold - 250);
+    expect(knight?.gold).toBe(save.gold - 400);
     // Po ewolucji bohater ma jednostkę, statystyki i cechy wybranej formy: Zbrojny bije
     // obszarowo, Tarczownik ma ponad dwa razy więcej życia niż Miecznik.
     expect(knight && heroView(content, knight, SWORD)?.spec.splashRadius).toBeGreaterThan(0);
@@ -67,30 +67,31 @@ describe('evolveOptions i applyEvolve', () => {
   it('każda forma ma własne ulepszenia; trzeci stopień jest końcem drogi', () => {
     let save = upgraded(rich(20_000));
     save = applyEvolve(content, save, SWORD, 'guard_a') ?? save;
-    expect(upgradeCost(content, save, SWORD)).toBe(300);
+    expect(upgradeCost(content, save, SWORD)).toBe(200);
     expect(evolveOptions(content, save, SWORD)).toEqual([]);
     save = upgraded(save);
     // Z wybranej drogi prowadzą tylko jej dwie formy końcowe, nie formy drugiej gałęzi.
     expect(evolveOptions(content, save, SWORD)).toEqual([
-      { unitId: 'guard_b', cost: 1200 },
-      { unitId: 'pavise_guard', cost: 1200 },
+      { unitId: 'guard_b', cost: 1600 },
+      { unitId: 'pavise_guard', cost: 1600 },
     ]);
     expect(applyEvolve(content, save, SWORD, 'berserker')).toBeNull();
     save = applyEvolve(content, save, SWORD, 'pavise_guard') ?? save;
     expect(save.heroes[0]).toMatchObject({ form: 'pavise_guard', upgrades: 0 });
-    expect(upgradeCost(content, save, SWORD)).toBe(1000);
+    expect(upgradeCost(content, save, SWORD)).toBe(800);
     save = upgraded(save);
     expect(upgradeCost(content, save, SWORD)).toBeNull();
     expect(evolveOptions(content, save, SWORD)).toEqual([]);
   });
 
   it('ewolucja wymaga złota i zachowuje runy', () => {
-    let save: Save = { ...rich(430), runes: ['rune_hp_200'] };
+    let save: Save = { ...rich(200), runes: ['rune_hp_200'] };
     save = equipRune(content, save, SWORD, 1, 'rune_hp_200') ?? save;
     save = upgraded(save);
     expect(save.gold).toBe(0);
     expect(applyEvolve(content, save, SWORD, 'swordsman_b')).toBeNull();
-    const evolved = applyEvolve(content, { ...save, gold: 250 }, SWORD, 'swordsman_b');
+    expect(applyEvolve(content, { ...save, gold: 399 }, SWORD, 'swordsman_b')).toBeNull();
+    const evolved = applyEvolve(content, { ...save, gold: 400 }, SWORD, 'swordsman_b');
     expect(evolved?.heroes[0]?.runes).toEqual([null, 'rune_hp_200']);
   });
 
@@ -147,7 +148,7 @@ describe('drzewo form', () => {
         { unit: 'x_c', from: 'x_a', next: [], tier: 1 },
         { unit: 'x_d', from: 'x_b', next: [], tier: 2 },
         { unit: 'x_e', from: 'x_b', next: [], tier: 2 },
-      ].map((form) => [form.unit, { ...form, evolveCost: 1, upgradeCosts: [1, 1, 1, 1] }]),
+      ].map((form) => [form.unit, { ...form, evolveCost: 1, upgradeCost: 1 }]),
     );
     const tree: CompiledLine = { id: 'x', base: 'x_a', forms, price: 1, starter: false };
     expect(treeLayout(tree).map((cell) => [cell.unit, cell.row, cell.rows])).toEqual([

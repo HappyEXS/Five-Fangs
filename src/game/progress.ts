@@ -223,11 +223,14 @@ export function withHero(save: Save, next: HeroState): Save {
   return { ...save, heroes: save.heroes.map((hero) => (hero.id === next.id ? next : hero)) };
 }
 
-/** Koszt następnego ulepszenia albo null, gdy forma ma już komplet (albo bohatera nie ma). */
+/**
+ * Koszt następnego ulepszenia albo null, gdy forma ma już komplet (albo bohatera nie ma). Każde
+ * ulepszenie formy kosztuje tyle samo; cena zależy od stopnia formy (ADR 0023).
+ */
 export function upgradeCost(content: GameContent, save: Save, heroId: number): number | null {
   const found = heroAndLine(content, save, heroId);
   if (found === null || found.hero.upgrades >= content.progression.maxUpgrades) return null;
-  return found.line.forms.get(found.hero.form)?.upgradeCosts[found.hero.upgrades] ?? null;
+  return found.line.forms.get(found.hero.form)?.upgradeCost ?? null;
 }
 
 /** Kupuje ulepszenie. Null, gdy brakuje złota albo forma ma komplet. */
