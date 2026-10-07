@@ -191,5 +191,9 @@
   "squad.info.front": "Slot 1 is the front: it stands closest to the enemy.",
   "squad.info.buy": "You buy runes, upgrades and evolution next to a hero who is in the squad.",
   "shop.info.copy": "Every hero you buy is a separate copy with its own upgrades and runes.",
-  "shop.info.again": "You can buy the same hero more than once."
+  "shop.info.again": "You can buy the same hero more than once.",
+  "trait.bleed": "Bleeding: the target loses {damage} health every {every} s for {seconds} s. Another hit restarts the timer.",
+  "trait.poison": "Poison: the target loses {damage} health every {every} s for {seconds} s. Another hit restarts the timer.",
+  "trait.charge": "Charge: the first blow of a battle deals {bonus}% more damage.",
+  "trait.charge.times": "Charge: the first blow of a battle deals {times} times the damage."
 }

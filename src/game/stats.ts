@@ -4,7 +4,7 @@
 import type { MessageKey } from '../content/i18n/index.ts';
 import type { MessageParams } from '../core/i18n.ts';
 import { subunitsToUnits, TICKS_PER_SECOND } from '../core/units.ts';
-import { TEAM_SIZE, type UnitSpec } from '../sim/types.ts';
+import { DOT_BLEED, TEAM_SIZE, type UnitSpec } from '../sim/types.ts';
 
 // UI nie importuje z symulacji; typ specyfikacji dostaje stąd.
 export type { UnitSpec };
@@ -71,6 +71,24 @@ export function traitsOf(spec: UnitSpec): TraitView[] {
     traits.push({
       key: spec.healTeam ? 'trait.heal.team' : 'trait.heal.self',
       params: { amount: spec.healAmount, seconds: tenths(spec.healInterval / TICKS_PER_SECOND) },
+    });
+  }
+  if (spec.chargePercent > 0) {
+    // Krotność zamiast procentu, gdy wychodzi równo: +200% to „potrójne obrażenia”.
+    traits.push(
+      spec.chargePercent % 100 === 0
+        ? { key: 'trait.charge.times', params: { times: spec.chargePercent / 100 + 1 } }
+        : { key: 'trait.charge', params: { bonus: spec.chargePercent } },
+    );
+  }
+  if (spec.dotDamage > 0) {
+    traits.push({
+      key: spec.dotKind === DOT_BLEED ? 'trait.bleed' : 'trait.poison',
+      params: {
+        damage: spec.dotDamage,
+        every: tenths(spec.dotInterval / TICKS_PER_SECOND),
+        seconds: tenths((spec.dotInterval * spec.dotTicks) / TICKS_PER_SECOND),
+      },
     });
   }
   if (spec.doubleDamagePercent > 0) {

@@ -103,6 +103,8 @@ Cechy `doubleDamage`, `dodge` i `shield` to procenty w `UnitSpec` (`doubleDamage
 
 Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009). Poza polami z listingu specyfikacja ma: `enrageHpPercent` i `enrageAttackPercent` (szał), `lifestealPercent` (kradzież życia) oraz `splashRadius` w podjednostkach (cios obszarowy); zero oznacza brak cechy. Próg HP i obrażenia w szale symulacja liczy raz, przy tworzeniu walki, więc w tickach zostaje jedno porównanie. Wejście symulacji zapisane przez starszą wersję gry (bez tych pól) piaskownica wczytuje z wartościami zerowymi.
 
+**Obrażenia w czasie i szarża** (ADR 0021): `dotDamage`, `dotInterval`, `dotTicks`, `dotKind` (`DOT_BLEED` albo `DOT_POISON`) oraz `chargePercent`; zero oznacza brak cechy. Efekt nakłada `afflict` wołane z `queueHit`, tyka go `tickDots` w fazie cech (`sim/dot.ts`); premię szarży dolicza `nextAttackDamage`. Walka bez tych cech ma flagi `hasDot` i `hasCharge` równe `false` i nie tworzy ich tablic. `validateSetup` sprawdza pola tych cech tylko u jednostki, która cechę ma.
+
 **Przyzywacz** (ADR 0020) to jednostka z polem `summon: UnitSpec | null` niosącym specyfikację tego, co przyzywa; u zwykłej jednostki jest tam `null`. Przyzywana jednostka sama nie może przyzywać, a przyzywacz nie może mieć pocisku. `validateSetup` sprawdza zagnieżdżoną specyfikację tak samo jak jednostki składu i wlicza ją do reguły mijania oraz do limitu pocisków (pięciu przyzwanych na stronę ponad skład).
 
 `createBattle` sprawdza niezmienniki setupu (`validateSetup`) i rzuca błąd, gdy są złamane: wartości całkowite, zależności pól ataku, sloty gracza na lewo od slotów przeciwnika, największy `moveStep` nie większy niż najmniejszy `range`, pula pocisków wystarczająca dla składu.
@@ -117,6 +119,8 @@ Nowa cecha pasywna dodaje pola do `UnitSpec` (ADR 0009). Poza polami z listingu 
 |---|---|---|
 | Walka | `tick`, `outcome`, `reason` | `tick` to liczba wykonanych ticków |
 | Jednostki (`unitSpan`: 10 albo 20) | `status`, `x`, `prevX`, `hp`, `target`, `swingTick`, `sinceAttack`, `traitTimer`, `doubleCharge`, `dodgeCharge` | `status`: Empty, Idle, Moving, Attacking, Dead; `target` i `swingTick` mają -1 dla „brak” |
+| Szarża (tylko gdy `hasCharge`) | `chargeBonus` | Premia procentowa czekająca na pierwszy atak jednostki; po nim 0 |
+| Obrażenia w czasie (tylko gdy `hasDot`; `unitSpan × 2`) | `dotLeft`, `dotNext`, `dotDamage`, `dotInterval`, `dotSource` | Jeden efekt każdego rodzaju na jednostkę, indeks `rodzaj * unitSpan + unitId`. `dotLeft`: pozostałe tyknięcia (0 = brak efektu); `dotNext`: numer ticka następnego tyknięcia; `dotSource`: kto nałożył efekt |
 | Przyzywanie | `summonedBy` (per miejsce), `summonCursor` (per strona) | `summonedBy`: `unitId` przyzywacza jednostki w miejscu przyzwanych, -1 dla reszty; `summonCursor`: od którego miejsca strona szuka wolnego (kolejka okrężna) |
 | Pociski (pula 64) | `projCount`, `nextProjId`, `projId`, `projX`, `projPrevX`, `projStep`, `projOwner`, `projDamage`, `projKnockback`, `projMode`, `projHitMask`, `projTarget` | Aktywne zajmują indeksy `0..projCount-1` w kolejności wystrzelenia; `projId` rośnie przez całą walkę. `projMode`: pierwszy na drodze, przebijający albo wycelowany; `projTarget` to cel pocisku wycelowanego (dla pozostałych -1) |
 | Statystyki | `damageDealt`, `damageTaken`, `healingDone` | Per `unitId` |
@@ -140,7 +144,7 @@ Fazy w stałej kolejności; każda iteruje po `unitId` rosnąco, chyba że zazna
 | 2 | Ruch | Każda jednostka niezależnie; sojusznicy się nie blokują. |
 | 3 | Ataki | W `hitTick`: melee dopisuje obrażenia i odrzut do kolejki, ranged tworzy pocisk, przyzywacz dopisuje prośbę o jednostkę. Przyzywacz zaczyna zamach tylko wtedy, gdy jego strona ma wolne miejsce. |
 | 4 | Pociski | Trafienie = wróg był przed pociskiem na początku ticka i nie jest przed nim po ruchu obu. Dopisuje obrażenia i odrzut do kolejki. Pocisk wycelowany sprawdza w ten sposób tylko swój cel. |
-| 5 | Cechy okresowe | Leczenie dopisywane do kolejki. |
+| 5 | Cechy okresowe | Leczenie dopisywane do kolejki. Potem tyknięcia obrażeń w czasie: wpis, którego `dotNext` równa się numerowi ticka, dopisuje obrażenia do kolejki (tylko gdy `hasDot`). |
 | 6 | Rozstrzygnięcie | Dla wszystkich naraz: `hp = min(maxHp, hp − obrażenia + leczenie)`, potem przesunięcie o zsumowany odrzut w stronę własnej krawędzi, z przycięciem do pola. |
 | 7 | Śmierci, przyzwani i koniec | Zdarzenia `Died`; potem na polu stają przyzwani z tego ticka (`sim/summon.ts`), w pozycji przyzywacza, w pierwszym wolnym miejscu od `summonCursor`; warunek końca liczy żywych obu stron razem z przyzwanymi; limit czasu. |
 
@@ -170,6 +174,7 @@ Bufor o stałej pojemności (1024, co mieści najgorszy możliwy tick) w układz
 | `BattleEnded` | wynik | powód | |
 | `Dodged` | jednostka, która uniknęła | źródło trafienia | |
 | `Summoned` | miejsce (`unitId`), w którym stanął przyzwany | przyzywacz | pozycja |
+| `Afflicted` | jednostka, na którą nałożono nowy efekt obrażeń w czasie | rodzaj efektu | źródło |
 
 `Healed` powstaje w rozstrzygnięciu, po przycięciu do `maxHp`, więc zgłasza sumę leczenia jednostki w ticku, bez źródła. Przy prędkości x4 w jednej klatce wykonuje się kilka ticków, więc konsument wywołuje `drainEvents(battle, out)` po każdym `stepBattle` i sam zbiera zdarzenia do swojej klatki.
 
@@ -210,7 +215,7 @@ interface BattleResult {
 
 ### 3.7 Hash
 
-FNV-1a 32-bit (`Math.imul`) po wszystkich tablicach stanu i liczniku ticków; w walce z przyzywaczem także po miejscach przyzwanych, `summonedBy` i `summonCursor`. `eventHash` narasta w każdym ticku, w którym zaszły zdarzenia: obejmuje numer ticka i zawartość bufora, więc te same zdarzenia w innym momencie dają inny hash. Testy golden w `tests/golden/` przechowują parę hashy dla każdego ustalonego `BattleSetup`.
+FNV-1a 32-bit (`Math.imul`) po wszystkich tablicach stanu i liczniku ticków; w walce z przyzywaczem także po miejscach przyzwanych, `summonedBy` i `summonCursor`, a w walce z obrażeniami w czasie albo szarżą także po ich tablicach (w pozostałych walkach są puste, więc starsze hashe się nie zmieniły). `eventHash` narasta w każdym ticku, w którym zaszły zdarzenia: obejmuje numer ticka i zawartość bufora, więc te same zdarzenia w innym momencie dają inny hash. Testy golden w `tests/golden/` przechowują parę hashy dla każdego ustalonego `BattleSetup`.
 
 ### 3.8 Wydajność
 
@@ -244,6 +249,13 @@ Pomiar po dodaniu przyzywania (2026-10-06, ADR 0020). Pojedynczy przebieg `pnpm 
 - Przy okazji wyszło, że `createBattle` kosztuje 28 µs, czyli 6% całej walki, z czego 21 µs to alokacja czternastu tablic typowanych większych niż 64 bajty (pociski i zdarzenia): V8 daje każdej osobny bufor poza stertą, ok. 1 µs na sztukę. Wycinanie ich z jednego bufora (`core/int-arrays.ts`) skróciło `createBattle` do 13,5 µs.
 - Bilans dla zwykłej walki: ok. 9 µs dłuższe ticki, 14,5 µs krótsze tworzenie. Osiem par przebiegów `pnpm bench` na przemian dało medianę 1951 walk na sekundę wobec 1932 przed zmianą (tego dnia cała maszyna mierzyła o kilka procent niżej niż rano, gdy ten sam kod sprzed zmiany dawał 2040–2110).
 - Walka z przyzywaczami (golden `summon`, 924 ticki, do szesnastu jednostek naraz): ok. 1000 walk na sekundę, 1,1 µs na tick.
+
+Pomiar po dodaniu obrażeń w czasie i szarży (2026-10-07, ADR 0021), tą samą metodą A/B w jednym procesie:
+
+- Same ticki zwykłej walki: 0,99–1,01 czasu sprzed zmiany. W ticku doszły trzy sprawdzenia flag (`hasDot` w fazie cech i przy trafieniu, `hasCharge` przy ataku).
+- `createBattle`: 9,6 → 10,0 µs. Pierwsza wersja sprawdzała pola nowych cech w ogólnej pętli walidacji i kosztowała 0,7 µs; teraz walidator czyta je tylko u jednostki, która cechę ma.
+- Pełne walki: 1,01–1,02 czasu sprzed zmiany, ale **pomiar kontrolny tej samej wersji po obu stronach** daje 1,00–1,01 na minimach i do 1,03 na medianach. To dolna granica tego, co ta metoda rozróżnia; strona wczytana jako druga wypada odrobinę wolniej.
+- `pnpm bench` tego dnia: 2154 walk na sekundę.
 
 **Budżet 2000 walk na sekundę jest na styk**: wynik zależy dziś bardziej od obciążenia maszyny niż od kodu. Kolejna zmiana symulacji musi zacząć od pomiaru A/B w jednym procesie; pojedynczy `pnpm bench` nie rozróżni 2%. Dalsze przyspieszenie ticka wymagałoby jednej wspólnej tablicy na wszystkie pola jednostek kosztem czytelności. Przy zerowej losowości skrypt balansu rozgrywa setki, a nie setki tysięcy walk, więc na razie nie jest to potrzebne.
 
@@ -311,6 +323,9 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
 { "type": "doubleDamage", "percent": 50 }                 // co drugi atak podwójny (stały rytm)
 { "type": "dodge", "percent": 70 }                        // 70 na 100 trafień unikniętych
 { "type": "shield", "percent": 10 }                       // o 10% mniejsze obrażenia
+{ "type": "bleed", "damage": 30, "duration": 10 }         // trafiony traci 30 co sekundę przez 10 s
+{ "type": "poison", "damage": 15, "interval": 1, "duration": 4 }
+{ "type": "charge", "bonus": 200 }                        // pierwszy atak w walce potrójny
 
 // lines.json: drzewo form (ADR 0016); forma bez "from" jest bazowa
 { "id": "archer", "price": 200, "starter": true, "forms": [

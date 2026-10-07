@@ -25,6 +25,15 @@ export function hashState(state: BattleState): number {
   h = hashInts(h, state.traitTimer, units);
   h = hashInts(h, state.doubleCharge, units);
   h = hashInts(h, state.dodgeCharge, units);
+  // Tablice rzadkich cech są puste w walkach bez nich, więc starsze walki golden mają ten sam hash.
+  if (state.chargeBonus.length > 0) h = hashInts(h, state.chargeBonus);
+  if (state.dotLeft.length > 0) {
+    h = hashInts(h, state.dotLeft);
+    h = hashInts(h, state.dotNext);
+    h = hashInts(h, state.dotDamage);
+    h = hashInts(h, state.dotInterval);
+    h = hashInts(h, state.dotSource);
+  }
   if (units > SQUAD_UNITS) {
     h = hashInts(h, state.summonedBy, units);
     h = hashInts(h, state.summonCursor);

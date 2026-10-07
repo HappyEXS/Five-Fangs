@@ -1,6 +1,6 @@
 // Sprawdzenie niezmienników, na których opiera się symulacja. Wołane przy tworzeniu walki
 // oraz przez walidator treści dla każdego poziomu. Zwraca listę problemów; pusta = poprawne.
-import { type BattleSetup, MAX_PROJECTILES, TEAM_SIZE, type UnitSpec } from './types.ts';
+import { type BattleSetup, DOT_KINDS, MAX_PROJECTILES, TEAM_SIZE, type UnitSpec } from './types.ts';
 
 const INTEGER_FIELDS = [
   'maxHp',
@@ -23,6 +23,13 @@ const INTEGER_FIELDS = [
   'shieldPercent',
 ] as const;
 
+/**
+ * Pola cech, których prawie żadna jednostka nie ma (ADR 0021). Walidacja biegnie przy każdym
+ * tworzeniu walki, więc sprawdzamy je tylko u jednostki, która taką cechę ma: bez niej symulacja
+ * tych pól nie czyta.
+ */
+const RARE_FIELDS = ['dotDamage', 'dotInterval', 'dotTicks', 'dotKind', 'chargePercent'] as const;
+
 /** Problemy pojedynczej specyfikacji jednostki, niezależne od składu i areny. */
 export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
   const problems: string[] = [];
@@ -30,6 +37,14 @@ export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
     const value = spec[field];
     if (!Number.isInteger(value) || value < 0) {
       problems.push(`${label}: ${field} musi być nieujemną liczbą całkowitą (jest ${value})`);
+    }
+  }
+  if (spec.dotDamage !== 0 || spec.chargePercent !== 0) {
+    for (const field of RARE_FIELDS) {
+      const value = spec[field];
+      if (!Number.isInteger(value) || value < 0) {
+        problems.push(`${label}: ${field} musi być nieujemną liczbą całkowitą (jest ${value})`);
+      }
     }
   }
   if (problems.length > 0) return problems;
@@ -70,6 +85,14 @@ export function validateUnitSpec(label: string, spec: UnitSpec): string[] {
   if (spec.dodgePercent > 99) problems.push(`${label}: dodgePercent musi być w przedziale 0..99`);
   if (spec.shieldPercent > 99) {
     problems.push(`${label}: shieldPercent musi być w przedziale 0..99`);
+  }
+  if (spec.dotDamage > 0) {
+    if (spec.dotInterval < 1 || spec.dotTicks < 1) {
+      problems.push(`${label}: dotInterval i dotTicks muszą być co najmniej 1, gdy dotDamage > 0`);
+    }
+    if (spec.dotKind >= DOT_KINDS) {
+      problems.push(`${label}: dotKind musi być w przedziale 0..${DOT_KINDS - 1}`);
+    }
   }
   if (spec.targetLast && spec.projectileStep === 0) {
     problems.push(`${label}: targetLast wymaga ataku z pociskiem`);

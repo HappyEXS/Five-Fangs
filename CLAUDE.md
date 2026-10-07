@@ -69,7 +69,8 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 - Stan wyłącznie w liczbach całkowitych w tablicach typowanych: pozycje i zasięgi w podjednostkach (1 jednostka świata = 256), HP i obrażenia jako inty.
 - Zakaz funkcji przestępnych (`Math.sin/cos/tan/exp/log/pow`, `**` z niecałkowitym wykładnikiem). Dozwolone: `+ - * /` z jawnym zaokrągleniem, `abs`, `min`, `max`, `floor`, `ceil`, `round`, `trunc`, `Math.imul`.
 - Iteracja w stałej kolejności (po `unitId`). Remisy rozstrzygane jawnie (niższe id).
-- Fazy ticka: decyzje → ruch → ataki → pociski → cechy okresowe → **jednoczesne** nałożenie obrażeń, leczenia i odrzutu → śmierci → pojawienie się przyzwanych.
+- Fazy ticka: decyzje → ruch → ataki → pociski → cechy okresowe i obrażenia w czasie → **jednoczesne** nałożenie obrażeń, leczenia i odrzutu → śmierci → pojawienie się przyzwanych.
+- Stan rzadkich cech (obrażenia w czasie, szarża; ADR 0021) istnieje tylko w walce, w której ktoś je ma: nowa rzadka cecha dostaje flagę walki, puste tablice bez niej i warunkowy udział w hashu, żeby starsze walki golden nie zmieniały hashy.
 - Jednostki składów mają `unitId` 0–4 (gracz) i 5–9 (przeciwnik); przyzwani 10–14 i 15–19 (ADR 0020). Pętla po drużynie obejmuje oba zakresy, a walka bez przyzywaczy nie może płacić za drugi.
 - Cechy pasywne to zamknięty zestaw (ADR 0009): nowa cecha = wariant schematu + pola `UnitSpec` + kod w sim + testy.
 - Symulacja nie wywołuje renderera. Komunikuje się przez bufor zdarzeń.

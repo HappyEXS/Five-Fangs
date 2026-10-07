@@ -220,6 +220,17 @@ Uwaga autora gry: na ekranach jest za dużo informacji dodatkowych i wskazówek,
 |---|---|---|---|---|
 | M5k-1 | Przycisk „i” z okienkiem (`InfoButton.tsx`): zasady Składu, Bohaterów i Sklepu przy tytule ekranu, wyjaśnienie strzałek w nagłówku karty bohatera i karty formy; cena formy bazowej przeniesiona na jej kartę; teksty podpowiedzi usunięte ze sceny | 0,5 | Test end-to-end: treść okienek w czterech miejscach, okienko w granicach sceny (także okno 700×620 i język angielski), zamykanie przyciskiem, Escape i kliknięciem obok, jedno okienko naraz, okienko znika ze zmianą bohatera i ekranu; zrzuty ekranu w trzech rozmiarach okna | gotowe |
 
+## M5l – Akronix: szczep wrogów (2026-10-07)
+
+Autor gry dodał szkic szczepu Akronix: dziesięć postaci, które są wyłącznie wrogami. Nie mają ewolucji (każda to jedna forma) i nie da się ich kupić, ale mają być opisane w zakładce Bohaterowie. Siedem postaci w czterech stopniach (zwiadowcy Bowix i Assasinix, żołnierze Katanix i Defenix, wojownicy Poisonix i Hornix, generał Kaisarix) nie ma statystyk na szkicu; trzy Axiny mają. Ustalenia z autorem: nazwy odczytane poprawnie; Axiny to bossowie na szczycie drabinki siły; „+30” przy Axinie 2 to krwawienie (trafiony traci 30 życia co sekundę przez 10 s), a Poisonix ma truciznę o tej samej mechanice; Hornix dostaje szarżę (pierwszy cios potrójny). Statystyki siódemki i tempo ataków Axinów są robocze, rosnące w kolejności postaci. Poziomów z Akronixem na razie nie ma: balans i poziomy autor zaplanuje później.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5l-1 | Obrażenia w czasie (krwawienie, trucizna) i szarża w symulacji (ADR 0021): cechy `bleed`, `poison`, `charge` w schemacie i kompilacji, stan efektów, zdarzenie `Afflicted`, opisy cech dla gracza | 1 | Testy symulacji (rytm, odnawianie, kilka źródeł, tarcza, unik, śmierć, pociski, przyzwani, szarża); walka golden `afflictions`, 16 starszych bez zmiany hashy; pomiar A/B: zwykła walka nie wolniejsza ponad rozrzut pomiaru | gotowe |
+| M5l-2 | Dziesięć skórek Akronix w stylu „mroczna baśń” na szkielecie `humanoid`, pociski (strzałka, kolba), klipy ataków | 1,5 | Atlas w budżecie; testy generatora skórek i potoku atlasu; zrzuty każdej postaci | |
+| M5l-3 | Dziesięć jednostek Akronix w treści: statystyki, typy ataku, cechy, nazwy; znaczniki krwawienia i trucizny nad paskiem życia | 1 | Walidator treści; testy treści szczepu (kolejność siły); walki próbne w piaskownicy | |
+| M5l-4 | Zakładka „Akronix” w Bohaterach: poczet dziesięciu postaci zamiast drzewa, karta bez cen i kosztów | 0,5 | Test end-to-end zakładki; sklep i skład bez zmian | |
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

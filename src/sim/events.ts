@@ -26,6 +26,8 @@ export const EVENT_BATTLE_ENDED = 10;
 export const EVENT_DODGED = 11;
 /** miejsce (`unitId`), w którym stanęła przyzwana jednostka; przyzywacz; pozycja */
 export const EVENT_SUMMONED = 12;
+/** jednostka, na którą nałożono nowy efekt obrażeń w czasie; rodzaj efektu; źródło */
+export const EVENT_AFFLICTED = 13;
 
 /**
  * Górne ograniczenie liczby zdarzeń jednego ticka: pocisk trafia jednego wroga, a przebijający

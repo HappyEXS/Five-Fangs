@@ -81,6 +81,11 @@ describe('compileUnit', () => {
         doubleDamagePercent: 0,
         dodgePercent: 0,
         shieldPercent: 0,
+        dotDamage: 0,
+        dotInterval: 0,
+        dotTicks: 0,
+        dotKind: 0,
+        chargePercent: 0,
         summon: null,
       },
       visual: {
@@ -242,6 +247,38 @@ describe('cechy pasywne', () => {
     };
     const { base } = compileUnit(fighter, slash);
     expect([base.doubleDamagePercent, base.dodgePercent, base.shieldPercent]).toEqual([20, 70, 10]);
+  });
+
+  it('krwawienie i trucizna: obrażenia tyknięcia, odstęp w tickach i liczba tyknięć', () => {
+    // Ze szkicu Axina 2: 30 życia co sekundę przez 10 sekund; odstęp domyślny to sekunda.
+    const bleeding: RawUnit = {
+      ...swordsman,
+      traits: [{ type: 'bleed', damage: 30, interval: 1, duration: 10 }],
+    };
+    const bleed = compileUnit(bleeding, slash).base;
+    expect([bleed.dotDamage, bleed.dotInterval, bleed.dotTicks, bleed.dotKind]).toEqual([
+      30, 30, 10, 0,
+    ]);
+    const poisoning: RawUnit = {
+      ...swordsman,
+      traits: [{ type: 'poison', damage: 15, interval: 0.5, duration: 4 }],
+    };
+    const poison = compileUnit(poisoning, slash).base;
+    expect([poison.dotDamage, poison.dotInterval, poison.dotTicks, poison.dotKind]).toEqual([
+      15, 15, 8, 1,
+    ]);
+    // Czas krótszy niż odstęp daje jedno tyknięcie, nigdy zero.
+    const brief: RawUnit = {
+      ...swordsman,
+      traits: [{ type: 'poison', damage: 5, interval: 2, duration: 1 }],
+    };
+    expect(compileUnit(brief, slash).base.dotTicks).toBe(1);
+  });
+
+  it('szarża zapisuje premię w procentach', () => {
+    const charger: RawUnit = { ...swordsman, traits: [{ type: 'charge', bonus: 200 }] };
+    expect(compileUnit(charger, slash).base.chargePercent).toBe(200);
+    expect(compileUnit(swordsman, slash).base.chargePercent).toBe(0);
   });
 
   it('pierce ustawia flagę i łączy się z leczeniem', () => {

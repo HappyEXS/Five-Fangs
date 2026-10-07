@@ -259,7 +259,13 @@ Obrażenia i odrzut pocisku to `attack` i `knockback` strzelca z chwili wystrza�
 
 ### 4.5 Cechy okresowe
 
-Cechy działające co interwał (np. leczenie) dopisują swój efekt do kolejki.
+Cechy działające co interwał (np. leczenie) dopisują swój efekt do kolejki. W tej samej fazie tykają **obrażenia w czasie** (krwawienie, trucizna; cechy `bleed` i `poison`, ADR 0021):
+
+- Trafienie jednostki z taką cechą, które doszło celu, nakłada na trafionego efekt: co `interval` sekund traci `damage` życia, przez `duration` sekund. Pierwsze tyknięcie przychodzi pełny odstęp po trafieniu.
+- Kolejne trafienie **nie sumuje** efektu: odnawia liczbę tyknięć, a rytm tyknięć biegnie dalej. Po ostatnim trafieniu efekt tyka jeszcze pełną liczbę razy.
+- Jednostka może mieć naraz jedno krwawienie i jedną truciznę; działają obok siebie. W obrębie rodzaju słabsze trafienie niczego nie zmienia, a równe albo silniejsze przejmuje efekt.
+- Tyknięcie to nie trafienie: nie odrzuca, nie da się go uniknąć i nie daje kradzieży życia. Tarcza trafionego zmniejsza je tak jak ciosy.
+- Efekt trwa po śmierci tego, kto go nałożył, i jemu liczą się obrażenia; śmierć trafionego kończy efekt.
 
 ### 4.6 Rozstrzygnięcie
 
@@ -271,7 +277,7 @@ hp = min(maxHp, hp − suma_obrażeń + suma_leczenia)
 
 Kolejność jednostek nie daje przewagi. Dwie jednostki mogą zabić się nawzajem w tym samym ticku. Leczenie z tego samego ticka może uratować jednostkę przed śmiercią. Martwych jednostek nie da się uleczyć.
 
-Formuła obrażeń: **obrażenia = `attack`**, bez modyfikatorów.
+Formuła obrażeń: **obrażenia = `attack`**, bez modyfikatorów poza cechami (szał, szarża, podwojenie w rytmie, tarcza trafionego; §6).
 
 **Odrzut.** Każde trafienie (cios melee albo pocisk) odpycha trafionego o:
 
@@ -380,6 +386,8 @@ Jednostka może mieć kilka cech różnych typów, najwyżej jedną danego typu.
 | `doubleDamage` | `percent` (1–100) | Podwójne obrażenia w **stałym rytmie**: `percent` na każde 100 ataków jest podwójnych, równo rozłożonych (50 to co drugi atak, zaczynając od drugiego; 20 to co piąty). Atak to cios wręcz, który doszedł celu, albo wystrzał; pocisk niesie obrażenia z chwili wystrzału, a cios obszarowy podwaja je wszystkim trafionym. Podwojenie liczy się po premii szału. |
 | `dodge` | `percent` (1–99) | Unik w stałym rytmie: `percent` na każde 100 trafień jednostka unika w całości, bez obrażeń, odrzutu i kradzieży życia przez atakującego. Trafienia jednego ticka liczą się w kolejności `unitId` atakujących, potem pocisków. Zwykły pocisk, którego cel uniknął, znika; przebijający leci dalej. |
 | `shield` | `percent` (1–99) | Tarcza: obrażenia każdego trafienia są mniejsze o `percent` procent (zaokrąglenie w dół). Nie zmienia odrzutu. Kradzież życia atakującego liczy obrażenia po tarczy. |
+| `bleed`, `poison` | `damage`; `interval` (s, domyślnie 1); `duration` (s) | Obrażenia w czasie (§4.5): każde trafienie nakłada na trafionego krwawienie albo truciznę. Dwa rodzaje tego samego mechanizmu; jednostka może mieć jedną z tych cech. Obrażenia efektu nie rosną z ulepszeniami ani z poziomem wroga. |
+| `charge` | `bonus` (procent) | Szarża: pierwszy atak jednostki w walce zadaje o `bonus` procent więcej (200 to cios potrójny). Atak to cios wręcz, który doszedł celu, albo wystrzał; zamach, którego cel zginął wcześniej, nie zużywa szarży, a unik trafionego ją zużywa. Premia liczy się po premii szału i przed podwojeniem z rytmu. |
 | `enrage` | `hpBelow` (1–99, procent życia), `attackBonus` (procent) | Gdy HP jednostki jest niższe niż `hpBelow` procent `maxHp`, jej ataki zadają o `attackBonus` procent więcej (zaokrąglenie w dół). Liczy się HP z chwili trafienia wręcz albo wystrzału; pocisk niesie obrażenia z chwili wystrzału. Uleczenie powyżej progu kończy szał. |
 
 **Szanse ze szkiców to rytm, nie los** (decyzja autora gry z 2026-10-05). Szkice postaci podają zdolności jako szanse („50% chance of dealing double damage”, „70% chance of avoiding enemy's attack”). Walka nie ma losowości, więc szansa `p`% oznacza w grze dokładnie `p` zdarzeń na każde 100, w stałej kolejności: licznik jednostki rośnie o `p` przy każdym ataku (trafieniu), a gdy osiągnie 100, zdarzenie zachodzi i licznik spada o 100. Gracz może ten rytm policzyć i na nim polegać.

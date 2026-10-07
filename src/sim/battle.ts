@@ -1,5 +1,6 @@
 // Walka: niezmienne wejście (arena, specyfikacje) i zmienny stan.
 import { mulDivCeil, mulDivFloor } from '../core/int.ts';
+import { clearDots } from './dot.ts';
 import { createEventBuffer, type EventBuffer } from './events.ts';
 import { EVENT_HASH_SEED } from './hash.ts';
 import {
@@ -44,6 +45,12 @@ export interface Battle {
   readonly hasDoubleDamage: boolean;
   readonly hasGuards: boolean;
   /**
+   * Czy którakolwiek jednostka nakłada obrażenia w czasie albo ma szarżę (ADR 0021). Bez nich
+   * walka nie ma tablic tych cech i żadna faza ticka do nich nie zagląda.
+   */
+  readonly hasDot: boolean;
+  readonly hasCharge: boolean;
+  /**
    * Czy w walce jest przyzywacz (ADR 0020). Bez nich walka ma tylko jednostki składów
    * i żadna faza ticka nie zagląda do miejsc przyzwanych.
    */
@@ -87,6 +94,15 @@ export function placeUnit(battle: Battle, unitId: number, spec: UnitSpec, x: num
   specs.dodgePercent[unitId] = spec.dodgePercent;
   specs.shieldPercent[unitId] = spec.shieldPercent;
   specs.summoner[unitId] = spec.summon === null ? 0 : 1;
+  if (battle.hasDot) {
+    specs.dotDamage[unitId] = spec.dotDamage;
+    specs.dotInterval[unitId] = spec.dotInterval;
+    specs.dotTicks[unitId] = spec.dotTicks;
+    specs.dotKind[unitId] = spec.dotKind;
+    // Efekty poprzednika z tego miejsca (przyzwanego, który zginął) nie przechodzą na następcę.
+    clearDots(state, unitId);
+  }
+  if (battle.hasCharge) state.chargeBonus[unitId] = spec.chargePercent;
 
   state.status[unitId] = STATUS_IDLE;
   state.x[unitId] = x;
@@ -112,6 +128,8 @@ export function createBattle(setup: BattleSetup): Battle {
   let hasTargetLast = false;
   let hasDoubleDamage = false;
   let hasGuards = false;
+  let hasDot = false;
+  let hasCharge = false;
   // Leczący przyzwani: leczenie okresowe musi wtedy zaglądać do miejsc przyzwanych tej strony.
   let healingPlayerSummons = false;
   let healingEnemySummons = false;
@@ -124,11 +142,15 @@ export function createBattle(setup: BattleSetup): Battle {
     if (spec.targetLast) hasTargetLast = true;
     if (spec.doubleDamagePercent > 0) hasDoubleDamage = true;
     if (spec.dodgePercent > 0 || spec.shieldPercent > 0) hasGuards = true;
+    if (spec.dotDamage > 0) hasDot = true;
+    if (spec.chargePercent > 0) hasCharge = true;
     if (summon === null) continue;
     // Cechy przyzwanych liczą się tak samo jak cechy składu: mogą pojawić się w walce.
     if (summon.targetLast) hasTargetLast = true;
     if (summon.doubleDamagePercent > 0) hasDoubleDamage = true;
     if (summon.dodgePercent > 0 || summon.shieldPercent > 0) hasGuards = true;
+    if (summon.dotDamage > 0) hasDot = true;
+    if (summon.chargePercent > 0) hasCharge = true;
     summoners.push(unitId);
     if (summon.healAmount > 0) {
       if (unitId < TEAM_SIZE) healingPlayerSummons = true;
@@ -140,14 +162,16 @@ export function createBattle(setup: BattleSetup): Battle {
   const battle: Battle = {
     width: setup.arena.width,
     timeLimitTicks: setup.arena.timeLimitTicks,
-    specs: createSpecs(unitSpan),
-    state: createState(unitSpan),
+    specs: createSpecs(unitSpan, hasDot),
+    state: createState(unitSpan, { dot: hasDot, charge: hasCharge }),
     events: createEventBuffer(),
     pending: createPending(unitSpan),
     healers,
     hasTargetLast,
     hasDoubleDamage,
     hasGuards,
+    hasDot,
+    hasCharge,
     hasSummons,
     summoners,
     summonSpecs,

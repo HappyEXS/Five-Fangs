@@ -191,5 +191,9 @@
   "squad.info.front": "Slot 1 to front: stoi najbliżej wroga.",
   "squad.info.buy": "Runy, ulepszenia i ewolucję kupujesz przy bohaterze, który stoi w składzie.",
   "shop.info.copy": "Każdy kupiony bohater to osobny egzemplarz z własnymi ulepszeniami i runami.",
-  "shop.info.again": "Tego samego bohatera można kupić kilka razy."
+  "shop.info.again": "Tego samego bohatera można kupić kilka razy.",
+  "trait.bleed": "Krwawienie: trafiony traci {damage} życia co {every} s przez {seconds} s. Kolejne trafienie odnawia czas.",
+  "trait.poison": "Trucizna: trafiony traci {damage} życia co {every} s przez {seconds} s. Kolejne trafienie odnawia czas.",
+  "trait.charge": "Szarża: pierwszy cios w walce zadaje o {bonus}% większe obrażenia.",
+  "trait.charge.times": "Szarża: pierwszy cios w walce zadaje obrażenia razy {times}."
 }

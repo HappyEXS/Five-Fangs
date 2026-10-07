@@ -1,5 +1,16 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`walki golden > afflictions 1`] = `
+{
+  "eventHash": "1d318aed",
+  "finalHp": "-13 -28 275 0 0 -14 -4 -4 0 0 0 0 0 0 0 -4 -4 -4 -4 -4",
+  "outcome": "win",
+  "reason": "eliminated",
+  "stateHash": "914f37fb",
+  "ticks": 899,
+}
+`;
+
 exports[`walki golden > archer-vs-melee 1`] = `
 {
   "eventHash": "16d76926",
