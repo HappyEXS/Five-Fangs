@@ -195,5 +195,21 @@
   "trait.bleed": "Bleeding: the target loses {damage} health every {every} s for {seconds} s. Another hit restarts the timer.",
   "trait.poison": "Poison: the target loses {damage} health every {every} s for {seconds} s. Another hit restarts the timer.",
   "trait.charge": "Charge: the first blow of a battle deals {bonus}% more damage.",
-  "trait.charge.times": "Charge: the first blow of a battle deals {times} times the damage."
+  "trait.charge.times": "Charge: the first blow of a battle deals {times} times the damage.",
+  "unit.bowix.name": "Bowix",
+  "unit.assasinix.name": "Assasinix",
+  "unit.katanix.name": "Katanix",
+  "unit.defenix.name": "Defenix",
+  "unit.poisonix.name": "Poisonix",
+  "unit.hornix.name": "Hornix",
+  "unit.kaisarix.name": "Kaisarix",
+  "unit.axin_1.name": "Axin 1",
+  "unit.axin_2.name": "Axin 2",
+  "unit.axin_3.name": "Axin 3",
+  "tribe.akronix.name": "Akronix",
+  "rank.scout": "Scout",
+  "rank.soldier": "Soldier",
+  "rank.warrior": "Warrior",
+  "rank.general": "General",
+  "rank.boss": "Boss"
 }

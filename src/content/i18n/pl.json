@@ -195,5 +195,21 @@
   "trait.bleed": "Krwawienie: trafiony traci {damage} życia co {every} s przez {seconds} s. Kolejne trafienie odnawia czas.",
   "trait.poison": "Trucizna: trafiony traci {damage} życia co {every} s przez {seconds} s. Kolejne trafienie odnawia czas.",
   "trait.charge": "Szarża: pierwszy cios w walce zadaje o {bonus}% większe obrażenia.",
-  "trait.charge.times": "Szarża: pierwszy cios w walce zadaje obrażenia razy {times}."
+  "trait.charge.times": "Szarża: pierwszy cios w walce zadaje obrażenia razy {times}.",
+  "unit.bowix.name": "Bowix",
+  "unit.assasinix.name": "Assasinix",
+  "unit.katanix.name": "Katanix",
+  "unit.defenix.name": "Defenix",
+  "unit.poisonix.name": "Poisonix",
+  "unit.hornix.name": "Hornix",
+  "unit.kaisarix.name": "Kaisarix",
+  "unit.axin_1.name": "Axin 1",
+  "unit.axin_2.name": "Axin 2",
+  "unit.axin_3.name": "Axin 3",
+  "tribe.akronix.name": "Akronix",
+  "rank.scout": "Zwiadowca",
+  "rank.soldier": "Żołnierz",
+  "rank.warrior": "Wojownik",
+  "rank.general": "Generał",
+  "rank.boss": "Boss"
 }

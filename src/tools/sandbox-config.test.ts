@@ -128,6 +128,17 @@ describe('buildBattle', () => {
       'raider',
       'shaman',
       'chieftain',
+      // Szczep wrogów Akronix w kolejności siły.
+      'bowix',
+      'assasinix',
+      'katanix',
+      'defenix',
+      'poisonix',
+      'hornix',
+      'kaisarix',
+      'axin_1',
+      'axin_2',
+      'axin_3',
     ]);
   });
 });

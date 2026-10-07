@@ -1,0 +1,27 @@
+[
+  {
+    "id": "akronix",
+    "ranks": [
+      {
+        "rank": "scout",
+        "units": ["bowix", "assasinix"]
+      },
+      {
+        "rank": "soldier",
+        "units": ["katanix", "defenix"]
+      },
+      {
+        "rank": "warrior",
+        "units": ["poisonix", "hornix"]
+      },
+      {
+        "rank": "general",
+        "units": ["kaisarix"]
+      },
+      {
+        "rank": "boss",
+        "units": ["axin_1", "axin_2", "axin_3"]
+      }
+    ]
+  }
+]

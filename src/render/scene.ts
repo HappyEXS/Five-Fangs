@@ -45,6 +45,8 @@ export interface Scene {
   readonly plusSprite: Sprite | null;
   /** Znak uniku unoszący się nad postacią, która uniknęła trafienia. */
   readonly dodgeSprite: Sprite | null;
+  /** Znaczki efektów obrażeń w czasie przy pasku życia; indeks to rodzaj efektu (ADR 0021). */
+  readonly statusSprites: (Sprite | null)[];
   /** Jednostka rysowana na wierzchu pozostałych albo -1. */
   topUnit: number;
   /** Scena pokazowa: paski życia obu stron w kolorze gracza. */
@@ -95,6 +97,8 @@ export function createScene(
     digitSprites,
     plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
     dodgeSprite: atlas.sprites.get('fx/dodge') ?? null,
+    // W kolejności DOT_BLEED, DOT_POISON.
+    statusSprites: [atlas.sprites.get('fx/bleed') ?? null, atlas.sprites.get('fx/poison') ?? null],
     topUnit: -1,
     showcase: false,
     reachBack: new Float32Array(LOOK_ROWS),

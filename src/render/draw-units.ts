@@ -1,8 +1,9 @@
 // Rysowanie jednostki w walce: poza z animatora, macierze kości, postać (draw-rig.ts), pasek HP
-// z liczbą życia.
+// z liczbą życia i znaczkami efektów (krwawienie, trucizna).
 // Gorąca ścieżka: bez alokacji.
 import {
   type Battle,
+  DOT_KINDS,
   isAlive,
   isPlayerUnit,
   SQUAD_UNITS,
@@ -35,6 +36,10 @@ const HP_NUMBER_ADVANCE = 9.2;
 const HP_NUMBER_RISE = 10;
 /** Indeks pierwszej cyfry zestawu `hp` w `scene.digitSprites`. */
 const HP_DIGITS = 20;
+/** Znaczki efektów za prawym końcem paska: skala, odstęp od paska i między znaczkami. */
+const MARK_SCALE = 1.3;
+const MARK_GAP = 9;
+const MARK_ADVANCE = 12;
 const HALF_PI = Math.PI / 2;
 
 function drawHpBar(scene: Scene, battle: Battle, unit: number, x: number, top: number): void {
@@ -75,6 +80,30 @@ function drawHpNumber(scene: Scene, battle: Battle, unit: number, viewport: View
       blit(scene, image, sprite, local, 0, viewport);
     }
     at += HP_NUMBER_ADVANCE;
+  }
+}
+
+/**
+ * Znaczki efektów obrażeń w czasie (ADR 0021) za paskiem życia: kropla krwawienia i kropla
+ * trucizny. Czytane wprost ze stanu symulacji, bo efekty mają tylko żywe jednostki. Wołane tylko
+ * w walce, w której ktoś takie efekty nakłada.
+ *
+ * Środek pierwszego znaczka przychodzi w `scene.local[4]` i `[5]` (powód przy drawHpNumber).
+ */
+function drawStatusMarks(scene: Scene, battle: Battle, unit: number, viewport: Viewport): void {
+  const image = scene.atlas.images[VARIANT_NORMAL];
+  if (image === undefined) return;
+  const { dotLeft, unitSpan } = battle.state;
+  const { local } = scene;
+  local[0] = MARK_SCALE;
+  local[1] = 0;
+  local[2] = 0;
+  local[3] = MARK_SCALE;
+  for (let kind = 0; kind < DOT_KINDS; kind++) {
+    if ((dotLeft[kind * unitSpan + unit] ?? 0) === 0) continue;
+    const sprite = scene.statusSprites[kind];
+    if (sprite !== null && sprite !== undefined) blit(scene, image, sprite, local, 0, viewport);
+    local[4] = (local[4] ?? 0) + MARK_ADVANCE;
   }
 }
 
@@ -172,6 +201,12 @@ export function drawUnit(
     scene.local[4] = x;
     scene.local[5] = barTop - HP_NUMBER_RISE;
     drawHpNumber(scene, battle, unit, viewport);
+  }
+  if (battle.hasDot) {
+    const width = unit < SQUAD_UNITS ? HP_BAR_WIDTH : HP_BAR_WIDTH_SUMMON;
+    scene.local[4] = x + width / 2 + MARK_GAP;
+    scene.local[5] = barTop + HP_BAR_HEIGHT / 2;
+    drawStatusMarks(scene, battle, unit, viewport);
   }
 
   if (import.meta.env.DEV && debugOptions.ranges) {

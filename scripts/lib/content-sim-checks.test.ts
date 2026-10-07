@@ -61,6 +61,7 @@ describe('contentSimIssues', () => {
       ],
       'units/heroes.json': [spammer],
       'units/enemies.json': [],
+      'enemy-tribes.json': [],
     });
     expect(issues.at(-1)).toContain('pocisków w locie');
   });

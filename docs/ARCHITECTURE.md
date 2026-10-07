@@ -270,6 +270,7 @@ src/content/data/
   units/heroes.json     formy bohaterów
   units/enemies.json    wrogowie i bossowie
   units/summons.json    jednostki przyzywane (ADR 0020); gracz ich nie kupuje, poziomy ich nie wystawiają
+  enemy-tribes.json     szczepy wrogów (Akronix): stopnie i jednostki z units/enemies.json w kolejności siły
   progression.json      stałe progresji: liczba ulepszeń, procent na ulepszenie, sloty run, złoto za powtórkę
   lines.json            linie bohaterów: drzewo form, koszty ulepszeń i ewolucji, cena, linia startowa
   runes.json

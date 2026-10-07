@@ -10,6 +10,16 @@ export function lineNameKey(lineId: string): string {
   return `line.${lineId}.name`;
 }
 
+/** Klucz i18n z nazwą szczepu wrogów. */
+export function tribeNameKey(tribeId: string): string {
+  return `tribe.${tribeId}.name`;
+}
+
+/** Klucz i18n z nazwą stopnia w szczepie wrogów (zwiadowca, generał, boss). */
+export function rankNameKey(rank: string): string {
+  return `rank.${rank}`;
+}
+
 /** Klucz i18n z nazwą świata. */
 export function worldNameKey(worldId: string): string {
   return `world.${worldId}.name`;

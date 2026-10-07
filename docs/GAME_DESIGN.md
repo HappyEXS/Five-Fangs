@@ -217,6 +217,44 @@ Wygląd: wszystkie trzy szczepy i przerysowane bestie mają styl „mroczna baś
 - Whirl-bot z unikiem 70 na 100 wygrywa sam z dwoma Osiłkami i Zbójem, tracąc 405 z 700 życia. Titan-bot z tarczą 10% przegrywa z Hersztem (zadaje 1725 z jego 2200 życia).
 - Oak warrior odrzuca o 300 jednostek, prawie jedną trzecią pola: po każdym ciosie idzie do wroga od nowa.
 
+### Szczep Akronix (wrogowie)
+
+Piąty szkic autora gry (2026-10-07) to szczep, który **jest wyłącznie przeciwnikiem**: jego postaci nie da się kupić, nie mają ewolucji (każda to jedna forma) ani ulepszeń, a w zakładce Bohaterowie mają własny poczet z opisem. Dziesięć postaci: siedem w czterech stopniach i trzej Axiny, którzy są bossami. Nazwy są własne i takie same w obu językach. Poziom wroga skaluje ich życie i atak jak u każdej jednostki (§7).
+
+Szkic podaje statystyki tylko dla Axinów (życie, atak, szybkość, odrzut); pozostałe liczby są **robocze** (kursywa) i dobrane tak, żeby każda kolejna postać była mocniejsza od poprzedniej. Miarą jest pojedynek jeden na jednego na poziomie 0: każda postać wygrywa z poprzednią z obu stron pola (pilnuje tego test `tests/content/akronix.test.ts`).
+
+| Postać | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
+|---|---|---|---|---|---|---|---|---|
+| Bowix (ranged) | zwiadowca | *220* | *25* | *110* | *co 1,0 s* | *240* | *5* | `barb_shot` |
+| Assasinix (ranged) | zwiadowca | *300* | *35* | *140* | *co 1,2 s* | 1000 (całe pole) | *5* | `dart_shot`, `targetLast` |
+| Katanix (melee) | żołnierz | *450* | *45* | *120* | *1,4 na s* | 30 | *15* | `slash`, `doubleDamage` 25% (co czwarty cios) |
+| Defenix (melee) | żołnierz | *700* | *60* | *70* | *0,8 na s* | 30 | *60* | `shield_chop`, `shield` 20% (ze szkicu) |
+| Poisonix (ranged) | wojownik | *750* | *55* | *80* | *co 1,5 s* | *220* | *10* | `flask_throw`, `poison`: *20 co sekundę przez 5 s* |
+| Hornix (melee) | wojownik | *850* | *80* | *220* | *0,7 na s* | 30 | *250* | `horn_charge`, `charge` +200% (pierwszy cios potrójny) |
+| Kaisarix (melee) | generał | *950* | *95* | *60* | *0,7 na s* | 30 | *80* | `cleave`, `splash` *60*, `enrage` *poniżej 50%: +60%* |
+| Axin 1 (melee) | boss | 1000 | 100 | 400 | *1,2 na s* | 30 | 150 | `dual_cleave` |
+| Axin 2 (melee) | boss | 2000 | 90 | 400 | *1,0 na s* | 30 | 300 | `dual_cleave`, `bleed`: 30 co sekundę przez 10 s (ramka „+30” ze szkicu) |
+| Axin 3 (melee) | boss | 3000 | 300 | 200 | *0,7 na s* | 30 | 200 | `dual_cleave`, `shield` 10% (ze szkicu) |
+
+| Typ | Zamach | Trafienie | Klip, postawa | Pocisk |
+|---|---|---|---|---|
+| `barb_shot` | 0,6 s | 0,5 | `shoot`, `bow` | strzała, 420 jedn./s |
+| `dart_shot` | 0,5 s | 0,5 | `cast`, `beast` | strzałka, 620 jedn./s |
+| `shield_chop` | 0,5 s | 0,5 | `slash`, `shield` (pawęż w drugiej ręce) | brak |
+| `flask_throw` | 0,6 s | 0,5 | `cast`, `beast` | kolba, 340 jedn./s |
+| `horn_charge` | 0,8 s | 0,6 | `gore`, `sword` | brak |
+| `dual_cleave` | 0,7 s | 0,6 | `cleave`, `dual` (broń w obu rękach) | brak |
+
+Ustalenia z autorem (2026-10-07) i moje wybory do jego oceny:
+
+- Nazwy odczytane ze szkicu poprawnie; Axiny to bossowie na szczycie drabinki; „+30” to krwawienie, trucizna Poisonixa działa tak samo (ADR 0021); Hornix dostał szarżę. „Rozkaz generała” autor odrzucił, więc Kaisarix ma istniejące cechy (cios obszarowy i szał).
+- **Atak Axina 2** odczytałem jako 90 (mniej niż Axina 1); autor przy pytaniu o „+30” go nie poprawił. Z krwawieniem Axin 2 zadaje ok. 120 na sekundę, tyle co Axin 1, przy dwukrotnie większym życiu.
+- Trucizna Poisonixa (20 przez 5 s) jest słabsza niż krwawienie bossa. Kolba trafia jeden cel: cios obszarowy działa dziś tylko wręcz.
+- Assasinix celuje w ostatniego wroga w szyku (istniejąca cecha `targetLast`), jak przystało na skrytobójcę.
+- Szybkość 400 Axinów 1 i 2 (ze szkicu) to ponad dwa razy więcej niż u najszybszego bohatera (Whirl-bot, 175): dobiegają do składu gracza w pół sekundy, a ich odrzut (150 i 300) spycha bohaterów na krawędź pola.
+- Dla skali, pojedynki na poziomie 0: cała siódemka przegrywa z Hersztem i z Rycerzem; Axin 1 i 2 przegrywają z Enigmatixem (tarcza 50%), Axin 3 wygrywa z każdym z nich.
+- Akronix nie stoi na razie na żadnym poziomie: poziomy i balans autor zaplanuje później. Postacie da się wystawić w piaskownicy walki i w `pnpm battle`.
+
 ## 4. Przebieg walki
 
 Symulacja działa w stałym kroku 30 ticków na sekundę. Każdy tick ma te same fazy, w tej kolejności.
