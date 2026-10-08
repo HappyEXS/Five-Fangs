@@ -193,8 +193,8 @@
   white-space: nowrap;
 }
 
-/* Kolor runy mówi, co wzmacnia: zielony życie, czerwony atak, granatowy odrzut, błękitny
-   szybkość. */
+/* Kolor runy mówi, co wzmacnia: zielony życie, czerwony atak, ciemnopomarańczowy odrzut,
+   błękitny szybkość. */
 .rune-hp {
   background: var(--moss);
   color: var(--ink);
@@ -206,8 +206,8 @@
 }
 
 .rune-knockback {
-  background: var(--dusk);
-  color: var(--paper);
+  background: var(--rust);
+  color: var(--ink);
 }
 
 .rune-speed {

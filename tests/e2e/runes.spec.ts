@@ -60,6 +60,12 @@ test('żeton run: plakietka na mapie, wybór runy w drzewku, runa w gnieździe b
   await shopTab.click();
   const tree = page.locator('.rune-tree');
   await expectInsideStage(page, tree);
+  // Arkusz drzewka jest mały, żeby nie przytłaczał sceny z bohaterami (uwaga autora).
+  const sheetBox = await tree.boundingBox();
+  const stageBox = await page.locator('#stage').boundingBox();
+  if (sheetBox === null || stageBox === null) throw new Error('no tree or stage box');
+  expect(sheetBox.width / stageBox.width).toBeLessThan(0.36);
+  expect(sheetBox.height / stageBox.height).toBeLessThan(0.32);
   await expect(tree.locator('.rune-branch-name')).toHaveText([
     'Życie',
     'Atak',

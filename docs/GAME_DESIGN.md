@@ -441,7 +441,7 @@ System od autora gry (2026-10-07, ADR 0026); liczba run w kierunku i ich wartoś
 - Premia z runy dodaje się po przeliczeniu ulepszeń. Runy nie mają poziomów i się nie zużywają.
 - **Odrzut** jest w walce zarazem siłą odrzutu i oporem przed nim (§4.6), więc runa daje jedno i drugie.
 - **Szybkość** to szybkość ruchu. Runa nie działa na bohatera, który stoi w miejscu (szybkość 0). Jej wartość musi być wielokrotnością 15, żeby karta bohatera pokazywała równe liczby.
-- Run nie widać na postaci; nie ma przedmiotów ani ich grafik. Kolor żetonu mówi, co runa wzmacnia: zielony życie, czerwony atak, granatowy odrzut, błękitny szybkość.
+- Run nie widać na postaci; nie ma przedmiotów ani ich grafik. Kolor żetonu mówi, co runa wzmacnia: zielony życie, czerwony atak, ciemnopomarańczowy odrzut, błękitny szybkość.
 
 Co pokazał pomiar (ADR 0026):
 

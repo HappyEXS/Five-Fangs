@@ -107,9 +107,9 @@ Wynik po przestrojeniu, na 11 poziomach wymagających run:
 
 ### Interfejs
 
-- **Sklep** ma u góry arkusz „Drzewko run”: z lewej zapas żetonów, z niego pień, z pnia cztery kierunki, w każdym sześć run coraz większych. Runy posiadane są w kolorze; następna w kierunku ma nagietkową obwódkę, gdy gracz ma żeton; dalsze są bezbarwnymi wycinankami. Kliknięcie runy otwiera pod nią potwierdzenie z przyciskiem „Weź”. Zasady są pod przyciskiem „i” przy tytule arkusza.
+- **Sklep** ma u góry mały arkusz „Drzewko run” (ok. jednej trzeciej szerokości sceny; większy autor uznał za przytłaczający): z lewej zapas żetonów, z niego pień, z pnia cztery kierunki, w każdym sześć run coraz większych. Runy posiadane są w kolorze; następna w kierunku ma nagietkową obwódkę, gdy gracz ma żeton; dalsze są bezbarwnymi wycinankami. Kliknięcie runy otwiera pod nią potwierdzenie z przyciskiem „Weź”. Zasady są pod przyciskiem „i” przy tytule arkusza.
 - **Mapa** pokazuje żeton do wydania plakietką z liczbą na zakładce sklepu, a nagrodę poziomu („Żeton run”) na jego tabliczce. **Ekran wyniku** wymienia żeton obok złota.
-- **Kolory run:** zielony życie, czerwony atak, granatowy odrzut, błękitny szybkość. Nazwa kierunku w drzewku ma kolor jego run.
+- **Kolory run:** zielony życie, czerwony atak, ciemnopomarańczowy odrzut (na prośbę autora, zamiast granatu), błękitny szybkość. Nazwa kierunku w drzewku ma kolor jego run.
 - Wybór runy w gnieździe bohatera pokazuje runy w kolejności drzewka; licznik takich samych run zniknął, bo każda istnieje raz.
 
 ## Konsekwencje

@@ -292,6 +292,7 @@ Autor gry: karta formy w Bohaterach ma pokazywać same statystyki tej formy, bo 
 | M5r-2 | Drzewko run w treści i regułach gry: cztery kierunki po sześć run w `runes.json`, żeton run w nagrodach poziomów, żetony liczone z postępu, runy odrzutu i szybkości w statystykach, zapis v5 z migracją dawnych run | 1,5 | Testy kompilacji drzewka, reguł żetonów i odblokowywania, statystyk z runami; plik `v5.json` i test migracji z v4; walidator sprawdza drzewko i krok najszybszego bohatera z runami | gotowe |
 | M5r-3 | Balans z drzewkiem: plan run składu odniesienia, wartości run z pomiaru, bossowie i Cytadela przestrojeni, raport z tabelą innych dróg przez drzewko | 1 | `pnpm balance`: 36 poziomów „zgodnych”; test reguł: 12 żetonów, 24 runy, każdy kierunek wygrywa kilka poziomów wymagających run | gotowe (wartości do oceny autora) |
 | M5r-4 | Drzewko run w sklepie z potwierdzeniem wzięcia runy; żeton na zakładce sklepu, tabliczce poziomu i ekranie wyniku; cztery kolory run | 1 | Testy e2e `runes.spec.ts`: żeton, wybór runy, runa w gnieździe, małe okno i język angielski | gotowe (wygląd do oceny autora) |
+| M5r-5 | Poprawki autora po obejrzeniu sklepu (2026-10-08): arkusz drzewka o jedną trzecią mniejszy w każdym wymiarze, runa odrzutu ciemnopomarańczowa zamiast granatowej | 0,25 | Test e2e: arkusz zajmuje najwyżej 36% szerokości i 32% wysokości sceny; zrzuty sklepu i składu | gotowe |
 
 Poza zakresem: cofanie wyboru w drzewku, inne działanie run odrzutu i szybkości (w obecnych regułach walki pomagają tylko w części walk), finałowy boss gry.
 

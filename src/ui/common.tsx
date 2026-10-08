@@ -26,7 +26,10 @@ export function tierLabel(tier: number): string {
   return tier === 0 ? t('heroes.tier.base') : t('heroes.tier', { tier });
 }
 
-/** Klasa koloru statystyki run: zielony życie, czerwony atak, granatowy odrzut, błękitny szybkość. */
+/**
+ * Klasa koloru statystyki run: zielony życie, czerwony atak, ciemnopomarańczowy odrzut, błękitny
+ * szybkość.
+ */
 export const RUNE_COLORS = {
   maxHp: 'rune-hp',
   attack: 'rune-attack',

@@ -104,8 +104,9 @@ Autor gry uznał, że na ekranach jest za dużo wyjaśnień, których gracz sam 
 
 Autor gry poprosił o drzewko run w sklepie (ADR 0026). Rozszerza to punkt o polu bohatera:
 
-- **Runy mają cztery kolory**, po jednym na kierunek drzewka: zielony życie, czerwony atak, granatowy odrzut, błękitny szybkość. Błękit (`--gale`) jest jedynym nowym kolorem palety.
+- **Runy mają cztery kolory**, po jednym na kierunek drzewka: zielony życie, czerwony atak, ciemnopomarańczowy odrzut, błękitny szybkość. Błękit (`--gale`) i ciemny pomarańcz (`--rust`) to jedyne nowe kolory palety. Odrzut był najpierw granatowy; autor poprosił o ciemny pomarańcz, żeby runa wyraźniej odróżniała się od pozostałych (2026-10-08).
 - **Żeton run** to jasny sześciokątny kamień z wyrytym znakiem drzewka (`RuneMark`). Stoi wszędzie tam, gdzie mowa o żetonach: w korzeniu drzewka i na przycisku „Weź” przy liczbie, tak jak moneta przy kwocie, a na tabliczce poziomu, w wyniku walki i na plakietce zakładki sklepu jako znak nagrody.
+- **Drzewko jest małe:** ok. jednej trzeciej szerokości sceny i nieco ponad ćwierć jej wysokości. Pierwsza wersja zajmowała prawie połowę szerokości i dwie piąte wysokości, a autor uznał ją za przytłaczającą (2026-10-08): sklep to przede wszystkim scena z bohaterami.
 - **Drzewko** jest arkuszem starego papieru u góry sklepu, nad bohaterami na sprzedaż. Leży na boku: z lewej zapas żetonów, z niego pień, z pnia cztery kierunki. Nazwa kierunku ma kolor jego run, więc widać, co wzmacniają runy jeszcze zamknięte. Runy rosną z każdym krokiem kierunku: dalsza jest mocniejsza i większa.
 - **Stan runy widać bez tekstu:** posiadana to żeton w kolorze z twardym cieniem, taki sam jak w gnieździe bohatera; następna do wzięcia ma nagietkową obwódkę; pozostałe są bezbarwnymi wycinankami z przerywanym konturem. Odcinek gałęzi przed runą jest pełny, gdy gracz ją ma, i przerywany, gdy nie.
 - **Wzięcie runy wymaga potwierdzenia** w okienku pod nią, bo wyboru nie da się cofnąć. To jedyne miejsce w sklepie z dwoma kliknięciami; zakup bohatera zostaje jednym.
