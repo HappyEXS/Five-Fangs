@@ -116,10 +116,10 @@ Pierwszy z czterech szczepów autora gry (szkice z 2026-10-05; kolor szczepu: br
 | Monstrosity (melee) | bazowa | 200 | 30 | 40 | *1,2 na s* | 30 | 50 | `slash` |
 | Batfang (ranged) | 1 | 350 | 35 | 10 | co 1,2 s | *320* | 30 | `fang_spit` |
 | Reaper (melee) | 1 | 400 | 50 | 50 | *1,4 na s* | 30 | 10 | `slash` |
-| Spiker (ranged) | 2, z Batfanga | 700 | 40 | 15 | co 1,0 s | *340* | 10 | `spike_volley`, `periodicHeal` siebie: 25 co 1 s |
+| Spiker (ranged) | 2, z Batfanga | 700 | 40 | 15 | co 1,0 s | *340* | 10 | `spike_volley`, `periodicHeal` siebie: 25 co 1 s, `pierce` |
 | Ironbeak (melee) | 2, z Batfanga | 900 | 80 | 100 | *1,2 na s* | 30 | 180 | `peck` |
 | Tuskovator (melee) | 2, z Reapera | 800 | 90 | 50 | *1,0 na s* | 30 | 225 | `gore` |
-| Ignitix (ranged) | 2, z Reapera | 1000 | 100 | 5 | co 0,8 s | 1000 (całe pole) | 50 | `fire_spit`, `targetLast` |
+| Ignitix (ranged) | 2, z Reapera | 1000 | 100 | 5 | co 1,2 s (szkic: 0,8) | 1000 (całe pole) | 50 | `fire_spit`, `targetLast` |
 
 | Typ | Zamach | Trafienie | Klip, postawa | Pocisk |
 |---|---|---|---|---|
@@ -151,11 +151,11 @@ Ustalenia z autorem (2026-10-05):
 
 | Forma | Stopień | `maxHp` | `attack` | `moveSpeed` | Tempo ataków | `range` | `knockback` | Typ ataku i cechy |
 |---|---|---|---|---|---|---|---|---|
-| Orb (ranged) | bazowa | 350 | 35 | 15 | co 1,5 s | *240* | 10 | `orb_gaze` |
-| Cardinal (ranged) | 1 | 450 | 45 | 10 | co 1,0 s | *240* | 20 | `cardinal_gaze` |
+| Orb (ranged) | bazowa | 350 | 35 | 30 (szkic: 15) | co 1,5 s | *240* | 10 | `orb_gaze` |
+| Cardinal (ranged) | 1 | 450 | 45 | 25 (szkic: 10) | co 1,0 s | 300 | 20 | `cardinal_gaze` |
 | Guardian of hell (melee) | 1 | 400 | 60 | 45 | *1,0 na s* | 30 | 10 | `gore` |
-| Polaris (ranged) | 2, z Cardinala | 1100 | 50 | 0 | *1,0 na s* | 1000 (całe pole) | 30 | `star_cast` |
-| Ultimus (ranged) | 2, z Cardinala | 1250 | 250 | 30 | co 3,0 s | *220* | 50 | `ray_flare` |
+| Polaris (ranged) | 2, z Cardinala | 1100 | 80 (szkic: 50) | 0 | co 3,0 s | 1000 (całe pole) | 30 | `star_cast`, `pierce` |
+| Ultimus (ranged) | 2, z Cardinala | 1250 | 250 | 50 (szkic: 30) | co 2,5 s (szkic: 3,0) | 320 | 50 | `ray_flare` |
 | Xartix (melee) | 2, z Guardiana | 850 | 90 | 80 | *1,0 na s* | 30 | 75 | `slash`, `doubleDamage` 50 |
 | Enigmatix (melee) | 2, z Guardiana | 1000 | 160 | 65 | *0,4 na s* | 30 | 100 | `cleave`, `shield` 50 |
 
@@ -167,10 +167,10 @@ Ustalenia z autorem (2026-10-05):
 | Trunk (ranged) | 1 | 600 | 30 | 25 | co 1,5 s | *300* | 10 | `seed_cast` |
 | Ivy (ranged) | 1 | 500 | 40 | 0 | co 1,7 s | 1000 (całe pole) | 30 | `ivy_thorn` |
 | Oak warrior (melee) | 2, z Trunka | 1250 | 150 | 45 | *0,6 na s* | 30 | 300 | `cleave` |
-| Mother-tree (summoning) | 2, z Trunka | 10 000 | 0 | 0 | co 2,0 s (przyzwanie) | 1000 (całe pole) | 40 | `summon`: przyzywa „Bush ver. 2” |
+| Mother-tree (summoning) | 2, z Trunka | 5000 (szkic: 10 000) | 0 | 0 | co 2,0 s (przyzwanie) | 1000 (całe pole) | 40 | `summon`: przyzywa „Bush ver. 2” |
 | Bush ver. 2 (melee, przyzywany) | – | 100 | 20 | 30 | *1,0 na s* | 30 | 0 | `peck`; nie jest bohaterem |
-| Ice Ivy (ranged) | 2, z Ivy | 900 | 20 | 0 | co 2,0 s | 1000 (całe pole) | 10 | `frost_spit`, `periodicHeal` drużyny: 25 co 1 s (szkic: 50) |
-| Toxic Ivy (ranged) | 2, z Ivy | 800 | 10 | 0 | co 1,0 s | 1000 (całe pole) | 30 | `spore_spit`, `pierce` |
+| Ice Ivy (ranged) | 2, z Ivy | 600 (szkic: 900) | 20 | 0 | co 2,0 s | 1000 (całe pole) | 10 | `frost_spit`, `periodicHeal` drużyny: 25 co 1 s (szkic: 50) |
+| Toxic Ivy (ranged) | 2, z Ivy | 500 (szkic: 800) | 10 | 0 | co 1,0 s | 1000 (całe pole) | 30 | `spore_spit`, `pierce`, `poison`: 20 co 1 s przez 5 s |
 
 **Robots** (kolor szczepu: niebieski, świat: „Mechanus town”). Bot → Egzo-bot albo Holo-bot; Egzo-bot → Thermobot albo Ax-bot; Holo-bot → Whirl-bot albo Titan-bot.
 
@@ -179,9 +179,9 @@ Ustalenia z autorem (2026-10-05):
 | Bot (melee) | bazowa | 200 | 25 | 50 | *1,2 na s* | 30 | 15 | `jab` |
 | Egzo-bot (melee) | 1 | 400 | 40 | 70 | *1,2 na s* | 30 | 25 | `slash` |
 | Holo-bot (ranged) | 1 | 300 | 30 | 0 | co 1,0 s | 1000 (całe pole) | 30 | `glitch_spit` |
-| Thermobot (ranged) | 2, z Egzo-bota | 900 | 100 | 80 | co 1,0 s | *200* | 25 | `slag_cast` |
+| Thermobot (ranged) | 2, z Egzo-bota | 900 | 130 (szkic: 100) | 80 | co 1,0 s | *200* | 25 | `slag_cast` |
 | Ax-bot (melee) | 2, z Egzo-bota | 750 | 75 | 80 | *1,25 na s* | 30 | 40 | `cleave`, `doubleDamage` 20 |
-| Whirl-bot (melee) | 2, z Holo-bota | 700 | 70 | 130 | *0,8 na s* | 30 | 30 | `slash`, `dodge` 70 |
+| Whirl-bot (melee) | 2, z Holo-bota | 400 (szkic: 700) | 70 | 130 | *0,8 na s* | 30 | 30 | `slash`, `dodge` 70 |
 | Titan-bot (melee) | 2, z Holo-bota | 1200 | 75 | 45 | *0,9 na s* | 30 | 70 | `gore`, `shield` 10 |
 
 Nowe typy ataków (wszystkie z postawą `beast`, trafienie w połowie zamachu):
@@ -203,8 +203,8 @@ Nowe typy ataków (wszystkie z postawą `beast`, trafienie w połowie zamachu):
 
 Wygląd: wszystkie trzy szczepy i bestie mają styl „mroczna baśń” (ADR 0019). Obserwacje:
 
-- **Strzelcy biją rzadko.** Obrażenia na sekundę strzelców to m.in.: Bush 10, Orb 23, Ivy 24, Holo-bot 30, Cardinal 45, Ultimus 83, Thermobot 100.
-- **Mother-tree** przyzywa krzak co 2 s, więc pięć miejsc zapełnia się po ok. 8 s. Z 10 000 życia praktycznie nie da się jej zabić w 90 sekund walki: drużyna z nią nie przegrywa przez wybicie, ale może przegrać limitem czasu, a jako przeciwnik jest ścianą.
+- **Strzelcy biją rzadko.** Obrażenia na sekundę strzelców to m.in.: Bush 10, Orb 23, Ivy 24, Holo-bot 30, Cardinal 45, Ultimus 100, Thermobot 130.
+- **Mother-tree** przyzywa krzak co 2 s, więc pięć miejsc zapełnia się po ok. 8 s. Ze szkicowymi 10 000 życia praktycznie nie dało się jej zabić w 90 sekund walki: drużyna z nią nie przegrywała przez wybicie, ale mogła przegrać limitem czasu, a jako przeciwnik była ścianą. Autor obniżył jej życie do 5000 (2026-10-08).
 - Postacie stojące (Bush, Ivy, obie formy końcowe Ivy, Holo-bot, Polaris) strzelają od pierwszej sekundy i giną, gdy wróg do nich dojdzie.
 - Oak warrior odrzuca o 300 jednostek, prawie jedną trzecią pola: po każdym ciosie idzie do wroga od nowa.
 
@@ -225,12 +225,12 @@ Co się zmieniło:
 | Zasięg Strzelca i Strzelca wyborowego | 300, 320 | 280, 300 |
 | Szybkość postaci walczących wręcz (ze szkiców) | Monstrosity 25, Reaper 30, Tuskovator 30, Guardian of hell 30, Oak warrior 40, Titan-bot 40, Xartix 75, Whirl-bot 175 | 40, 50, 50, 45, 45, 45, 80, 130 |
 | Tempo ataków wręcz (wartości robocze) | Monstrosity 1,0, Bot 1,0, Reaper 1,2, Tuskovator 0,7, Ironbeak 1,0, Ax-bot 0,8, Titan-bot 0,7; Enigmatix 0,8, Xartix 1,2, Whirl-bot 1,5 | 1,2, 1,2, 1,4, 1,0, 1,2, 1,25, 0,9; 0,4, 1,0, 0,8 |
-| Zasięg strzelców (wartości robocze) | Batfang 220, Spiker 240, Trunk 240; Cardinal 260, Ultimus 260, Thermobot 220 | 320, 340, 300; 240, 220, 200 |
+| Zasięg strzelców (wartości robocze) | Batfang 220, Spiker 240, Trunk 240; Cardinal 260, Ultimus 260, Thermobot 220 | 320, 340, 300; 240, 220, 200 (Cardinal i Ultimus mają od 2026-10-08 liczby autora: 300 i 320) |
 | Leczenie drużyny przez Ice Ivy (ze szkicu) | 50 na sekundę | 25 na sekundę |
 
-Szybkości, które zostały: postacie stojące (0), strzelcy ze szkiców (Ignitix 5, Batfang 10, Cardinal 10, Spiker 15, Orb 15, Trunk 25, Ultimus 30, Thermobot 80), Ironbeak 100, Enigmatix 65, Bot 50, Egzo-bot 70, Ax-bot 80 i ludzie (45–70). Chodzące postacie walczące wręcz mieszczą się teraz w skali 40–130.
+Szybkości, które zostały: postacie stojące (0), strzelcy ze szkiców (Ignitix 5, Batfang 10, Cardinal 10, Spiker 15, Orb 15, Trunk 25, Ultimus 30, Thermobot 80), Ironbeak 100, Enigmatix 65, Bot 50, Egzo-bot 70, Ax-bot 80 i ludzie (45–70). Chodzące postacie walczące wręcz mieszczą się teraz w skali 40–130. Szybkość Orba, Cardinala i Ultimusa autor zmienił potem sam (niżej, „Zmiany autora z 2026-10-08”).
 
-**Jedyna zmieniona liczba ze szkiców poza szybkością to leczenie Ice Ivy.** Leczyła każdą jednostkę drużyny o 50 na sekundę, w jednej walce próbnej łącznie 16 000 punktów życia, i drużyna Plants była nie do przebicia. Enigmatix (tarcza 50%, atak 160) i Whirl-bot (unik 70 na 100) wygrywali prawie każdy pojedynek; wystarczyło im zwolnić tempo ataków, które jest wartością roboczą.
+**Przy balansie z 2026-10-07 jedyną zmienioną liczbą ze szkiców poza szybkością było leczenie Ice Ivy.** Leczyła każdą jednostkę drużyny o 50 na sekundę, w jednej walce próbnej łącznie 16 000 punktów życia, i drużyna Plants była nie do przebicia. Enigmatix (tarcza 50%, atak 160) i Whirl-bot (unik 70 na 100) wygrywali prawie każdy pojedynek; wystarczyło im zwolnić tempo ataków, które jest wartością roboczą.
 
 Miernik: `pnpm balance:heroes` zapisuje w `reports/heroes.md` pojedynki form tego samego stopnia (z obu stron pola), wartość formy w drużynie i walki drużyn szczepów 5 na 5. Stan po zmianach:
 
@@ -240,11 +240,26 @@ Miernik: `pnpm balance:heroes` zapisuje w `reports/heroes.md` pojedynki form teg
 
 Te reguły sprawdza test (`scripts/lib/hero-balance.test.ts`), więc następna zmiana liczb nie może ich po cichu odwrócić.
 
+**Zmiany autora z 2026-10-08.** Autor gry zmienił liczby sam, w danych:
+
+- **Immortals:** Orb szybkość 15 → 30; Cardinal szybkość 10 → 30 i zasięg 240 → 340; Polaris atak 50 → 80, strzał co 2 s zamiast co 1 s i `pierce`; Ultimus szybkość 30 → 50, odstęp 3 → 2,5 s, zasięg 220 → 320.
+- **Beasts:** Spiker dostał `pierce`; Ignitix strzela co 1,2 s zamiast co 0,8 s.
+- **Plants:** Mother-tree życie 10 000 → 5000; Ice Ivy 900 → 600; Toxic Ivy 800 → 500 i trucizna (20 co sekundę przez 5 s).
+- **Robots:** Thermobot atak 100 → 130; Whirl-bot życie 700 → 400.
+
+Dwie korekty wykonawcy do tych liczb, uzgodnione z autorem, żeby reguły balansu dalej przechodziły:
+
+- **Polaris strzela co 3 s** (zamiast co 2 s). Z atakiem 80 i przebijaniem przy szybszym strzale drużyna Immortals wygrywała z każdym innym szczepem. Podniesienie życia Mother-tree nie pomagało: wtedy Robots przegrywali ze wszystkimi.
+- **Cardinal: szybkość 25 i zasięg 300** (autor poprosił o obniżenie swoich 30 i 340). W drużynie jest teraz wart tyle co Ivy, najlepsza dotąd forma pierwszej ewolucji; z 30 i 340 wyraźnie odstawał.
+
+Cardinal wygrywa mimo to wszystkie pojedynki swojego stopnia i jest wyjątkiem w teście reguł. Przy liczbach ze szkicu przegrywał z Trunkiem i Holo-botem tylko dlatego, że z szybkością 10 nie nadążał wracać po odrzucie; każda szybkość od 12 albo zasięg od 260 usuwa obie przegrane. Osłabienie ataku nie pomaga: Cardinal przegrywa wtedy z Reaperem, a wszystkie pojedynki wygrywa Reaper, którego jedyną przegraną był Cardinal.
+
 Znane nierówności, zostawione świadomie:
 
 - **Orb** wygrywa pojedynek z każdą inną formą bazową (350 życia i strzał wobec 200 życia form walczących wręcz); to liczby ze szkicu i tylko pierwszy stopień gry.
-- **Ignitix, Ultimus i Enigmatix** wygrywają po 21 z 23 pojedynków form końcowych, **Toxic Ivy** nie wygrywa żadnego (jej pocisk bije wszystkich po trochu, więc liczy się w drużynie), **Mother-tree** żadnego nie przegrywa. Szczepy jako całość są wyrównane, więc tych liczb ze szkiców nie ruszałem.
-- **Runy mają wartości płaskie** (§5.3), więc ta sama runa waży więcej u bohatera o niskich liczbach, czyli u ludzi. Od wprowadzenia drzewka run pierwsze runy są mniejsze niż dawniej (życie +60 zamiast +100).
+- **Ultimus** wygrywa 22 z 23 pojedynków form końcowych, **Enigmatix** 20, **Ignitix** 18; **Toxic Ivy** wygrywa 3 (jej pocisk bije wszystkich po trochu, więc liczy się w drużynie), **Mother-tree** przegrywa jeden. Szczepy jako całość są wyrównane: żaden nie wygrywa i żaden nie przegrywa ze wszystkimi pozostałymi.
+- **Cardinal** wygrywa wszystkie 11 pojedynków pierwszej ewolucji. To drugi po Orbie opisany wyjątek od reguły „żadna forma nie wygrywa wszystkiego” (niżej, „Zmiany autora z 2026-10-08”).
+- **Runy mają wartości płaskie** (§5.3), więc ta sama runa waży więcej u bohatera o niskich liczbach, czyli u ludzi. Od wprowadzenia drzewka run pierwsze runy są mniejsze niż dawniej (życie +50 zamiast +100).
 - Przeciwnicy i nagrody wszystkich światów są zbalansowane osobno, do pięcioosobowego składu odniesienia (§7, „Balans poziomów i nagród”).
 
 ### Szczep Akronix (wrogowie)
@@ -424,17 +439,19 @@ Reguły, których pilnuje walidator treści: ceny rosną ze stopniem, a ewolucja
 
 ### 5.3 Runy i drzewko run
 
-System od autora gry (2026-10-07, ADR 0026); liczba run w kierunku i ich wartości to propozycja wykonawcy z pomiarów.
+System od autora gry (2026-10-07, ADR 0026); liczba run w kierunku to propozycja wykonawcy.
 
 - Runa to żeton z płaską premią do jednej statystyki. Każdy bohater ma **2 gniazda na runy**; gniazda zostają po ewolucji. Runy można dowolnie wkładać, wyjmować i przekładać między bohaterami, bez kosztu.
 - Runy bierze się z **drzewka run** w sklepie. Drzewko ma cztery kierunki, po jednym na statystykę, a w każdym sześć run, coraz mocniejszych:
 
 | Kierunek | Runy od pierwszej do szóstej |
 |---|---|
-| Życie | +60, +100, +160, +240, +340, +460 |
-| Atak | +6, +10, +16, +24, +34, +46 |
-| Odrzut | +20, +40, +60, +90, +120, +160 |
+| Życie | +50, +100, +150, +200, +250, +300 |
+| Atak | +5, +10, +15, +20, +25, +30 |
+| Odrzut | +20, +40, +60, +80, +100, +120 |
 | Szybkość | +15, +30, +45, +60, +75, +90 |
+
+Wartości życia, ataku i odrzutu ustawił autor gry 2026-10-08 (równe kroki); pierwsza wersja wykonawcy rosła szybciej (życie do +460, atak do +46, odrzut do +160).
 
 - Runę odblokowuje **żeton run**. Żeton jest nagrodą za **pierwsze przejście** drugiego i piątego poziomu każdego świata, czyli jest ich 12 w całej grze, a run w drzewku 24. Gracz weźmie więc połowę drzewka: dwa kierunki do końca, każdy do połowy albo coś pomiędzy.
 - Żeton odblokowuje **następną runę wybranego kierunku**; kierunku nie da się przeskoczyć. Każda odblokowana runa to osobny przedmiot, więc słabsze runy kierunku zostają graczowi i też trafiają do gniazd. Wyboru nie da się cofnąć; sklep pyta o potwierdzenie.
@@ -559,9 +576,9 @@ Nagrody: trzy pierwsze poziomy dają po 200 złota, czyli po jednym bohaterze, w
 | 5 Tower of time | 13 800 | 37 100 |
 | 6 Cytadela Akronix | 22 900 | 60 000 |
 
-Poziom siły przy wrogu („+N”) to +10% życia i ataku na punkt. Liczby dobrał skrypt: dla każdego poziomu najtrudniejsze ustawienie, które skład odniesienia jeszcze przechodzi. Raport `pnpm balance` (`reports/balance.md`) pokazuje wynik każdego poziomu, a test reguł pilnuje, żeby wszystkie zostały „zgodne”. Po wprowadzeniu drzewka run (ADR 0026) bossowie i poziomy Cytadeli dostali nowe poziomy siły wrogów, dobrane do run z drzewka; zwykłe poziomy nie zależą od run i zostały bez zmian.
+Poziom siły przy wrogu („+N”) to +10% życia i ataku na punkt. Liczby dobrał skrypt: dla każdego poziomu najtrudniejsze ustawienie, które skład odniesienia jeszcze przechodzi. Raport `pnpm balance` (`reports/balance.md`) pokazuje wynik każdego poziomu, a test reguł pilnuje, żeby wszystkie zostały „zgodne”. Po wprowadzeniu drzewka run (ADR 0026) bossowie i poziomy Cytadeli dostali nowe poziomy siły wrogów, dobrane do run z drzewka. Po zmianach liczb bohaterów i run przez autora (2026-10-08, §3 i §5.3) wszystkie 36 poziomów przeszło wyszukiwanie od nowa; na kilku zmienił się też wariant składu wrogów.
 
-Raport ma też tabelę „Inne drogi przez drzewko run”: ten sam skład na poziomach wymagających run, gdy żetony pójdą inaczej. Na 11 takich poziomach plan odniesienia wygrywa wszystkie, „najpierw życie” 10, „najpierw odrzut” 7, „najpierw atak” 6, „najpierw szybkość” 4, a wszystkie kierunki po równo 2.
+Raport ma też tabelę „Inne drogi przez drzewko run”: ten sam skład na poziomach wymagających run, gdy żetony pójdą inaczej. Na 11 takich poziomach plan odniesienia wygrywa wszystkie, „najpierw życie” i „najpierw atak” po 10, „najpierw odrzut” 7, „najpierw szybkość” 4, a wszystkie kierunki po równo 4.
 
 ### Świat 1: Zamek (1600 złota)
 
@@ -570,74 +587,74 @@ Raport ma też tabelę „Inne drogi przez drzewko run”: ten sam skład na poz
 | Podgrodzie | Łucznik, Łucznik +1 | 200 |  | 2 × A0 |
 | Most zwodzony | Miecznik +4, Łucznik +5 | 200 | tak | 3 × A0 |
 | Brama | Miecznik +3, Łucznik +3, Łucznik | 200 |  | 4 × A0 |
-| Dziedziniec | Miecznik +1, Miecznik +1, Łucznik, Bowix +2 | 250 |  | 5 × A0 |
-| Zbrojownia | Tarczownik +3, Miecznik +3, Łucznik +4, Łucznik +5 | 300 | tak | 5 × A1 |
-| Sala tronowa (boss) | Zbrojny, Tarczownik, Łucznik +1, Assasinix | 450 |  | A3 A2 A2 A2 A2, runy: 2 |
+| Dziedziniec | Miecznik +1, Miecznik +1, Łucznik +3, Bowix +2 | 250 |  | 5 × A0 |
+| Zbrojownia | Tarczownik +4, Miecznik +3, Łucznik +2, Łucznik +2 | 300 | tak | 5 × A1 |
+| Sala tronowa (boss) | Zbrojny +1, Miecznik +1, Łucznik +1, Assasinix +1 | 450 |  | A3 A2 A2 A2 A2, runy: 2 |
 
 ### Świat 2: Mechanus town (4000 złota)
 
 | Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
 | Złomowisko | Egzo-bot +2, Bot +4, Bot +5 | 450 |  | 5 × A4 |
-| Rogatki | Egzo-bot +2, Bot +4, Bot +1, Bowix +3 | 500 | tak | B0 A4 A4 A4 A4 |
-| Hala montażowa | Egzo-bot +5, Egzo-bot +2, Bot +2, Bot +5 | 600 |  | B0 A4 B0 A4 A4 |
-| Odlewnia | Katanix +2, Egzo-bot +3, Bot +2, Bot +4 | 700 |  | B0 A4 B0 B0 A4 |
-| Elektrownia | Egzo-bot, Bot +3, Bot +2, Holo-bot +1, Bowix +1 | 800 | tak | B1 B0 B0 B0 B0 |
-| Rdzeń (boss) | Titan-bot +1, Defenix +1, Bot, Bot +1, Holo-bot | 950 |  | 5 × B1, runy: 4 |
+| Rogatki | Egzo-bot, Bot +1, Holo-bot +1, Bowix | 500 | tak | B0 A4 A4 A4 A4 |
+| Hala montażowa | Egzo-bot +2, Bot +4, Bot +4, Holo-bot +1 | 600 |  | B0 A4 B0 A4 A4 |
+| Odlewnia | Katanix +2, Bot +3, Bot +3, Holo-bot +1 | 700 |  | B0 A4 B0 B0 A4 |
+| Elektrownia | Egzo-bot +3, Egzo-bot +3, Bot +4, Bot +4, Holo-bot +1 | 800 | tak | B1 B0 B0 B0 B0 |
+| Rdzeń (boss) | Titan-bot, Defenix, Bot +3, Bot +3, Holo-bot +2 | 950 |  | 5 × B1, runy: 4 |
 
 ### Świat 3: Living swamps (6800 złota)
 
 | Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Skraj bagien | Trunk +3, Bush +3, Bush +1, Ivy +3, Bush +3 | 700 |  | 5 × B2 |
-| Zgniła kładka | Trunk, Bush +3, Poisonix +1, Bush +2, Bush +3 | 750 | tak | B3 B2 B3 B3 B2 |
-| Cierniowy gąszcz | Trunk +2, Bush +2, Trunk +1, Ivy +1, Ivy | 850 |  | B4 B3 B4 B3 B3 |
-| Mglista topiel | Hornix +5, Bush +4, Bush +5, Bush +4, Bowix +6 | 1300 |  | 5 × B4 |
-| Trujący gaj | Kaisarix +1, Trunk +1, Bush +1, Ivy, Bush +2 | 1600 | tak | C0 B4 B4 B4 B4 |
-| Serce bagien (boss) | Axin 1 +4, Oak warrior +3, Trunk +3, Ivy +4, Bush +4 | 1600 |  | C0 B4 C0 B4 B4, runy: 6 |
+| Skraj bagien | Trunk +3, Bush +5, Bush +3, Ivy +3, Bush +4 | 700 |  | 5 × B2 |
+| Zgniła kładka | Trunk +3, Bush +1, Poisonix +1, Bush +3, Bush +2 | 750 | tak | B3 B2 B3 B3 B2 |
+| Cierniowy gąszcz | Trunk +1, Bush +2, Trunk +3, Ivy +1, Ivy +3 | 850 |  | B4 B3 B4 B3 B3 |
+| Mglista topiel | Hornix +5, Trunk +4, Bush +5, Bush +4, Bush +5 | 1300 |  | 5 × B4 |
+| Trujący gaj | Kaisarix +1, Trunk +2, Bush +1, Ivy +2, Bush +2 | 1600 | tak | C0 B4 B4 B4 B4 |
+| Serce bagien (boss) | Axin 1 +4, Oak warrior +5, Trunk +3, Ivy +4, Bush +5 | 1600 |  | C0 B4 C0 B4 B4, runy: 6 |
 
 ### Świat 4: Jungle of doom (10900 złota)
 
 | Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Ścieżka łowców | Tuskovator +9, Ironbeak +9, Reaper +8, Batfang +9, Batfang +9 | 1600 |  | C0 B4 C0 C0 B4 |
-| Wodopój | Ironbeak +7, Tuskovator +7, Defenix +8, Batfang +8, Assasinix +8 | 1600 | tak | C0 B4 C0 C0 C0 |
-| Legowisko | Tuskovator +2, Ironbeak +3, Reaper +3, Ignitix +3, Batfang +3 | 1700 |  | 5 × C0 |
-| Żebra olbrzyma | Hornix +6, Tuskovator +7, Ironbeak +7, Batfang +7, Poisonix +6 | 1800 |  | C1 C0 C1 C0 C0 |
-| Wąwóz kłów | Tuskovator +1, Ironbeak +2, Kaisarix, Spiker +1, Ignitix | 1900 | tak | C1 C0 C1 C1 C1 |
-| Paszcza wulkanu (boss) | Axin 2 +2, Tuskovator +3, Reaper +2, Ignitix, Batfang +3 | 2300 |  | C2 C1 C1 C1 C1, runy: 8 |
+| Ścieżka łowców | Tuskovator +10, Ironbeak +10, Reaper +11, Batfang +10, Batfang +10 | 1600 |  | C0 B4 C0 C0 B4 |
+| Wodopój | Ironbeak +8, Tuskovator +7, Defenix +7, Batfang +8, Assasinix +8 | 1600 | tak | C0 B4 C0 C0 C0 |
+| Legowisko | Tuskovator +6, Ironbeak +6, Reaper +4, Ignitix +6, Batfang +6 | 1700 |  | 5 × C0 |
+| Żebra olbrzyma | Hornix +8, Tuskovator +10, Ironbeak +7, Batfang +10, Poisonix +10 | 1800 |  | C1 C0 C1 C0 C0 |
+| Wąwóz kłów | Tuskovator +4, Ironbeak +4, Kaisarix +1, Spiker +1, Ignitix +1 | 1900 | tak | C1 C0 C1 C1 C1 |
+| Paszcza wulkanu (boss) | Axin 2 +2, Tuskovator +3, Ironbeak +2, Ignitix +2, Spiker +2 | 2300 |  | C2 C1 C1 C1 C1, runy: 8 |
 
 ### Świat 5: Tower of time (13800 złota)
 
 | Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Podnóże wieży | Xartix +5, Xartix +5, Cardinal +6, Cardinal +6, Polaris +6 | 2000 |  | C2 C1 C2 C2 C2 |
-| Schody bez końca | Enigmatix +3, Xartix +3, Cardinal +4, Poisonix +4, Polaris +3 | 2100 | tak | C3 C2 C3 C2 C2 |
-| Sala zegarów | Enigmatix +5, Xartix +2, Cardinal +5, Ultimus +4, Polaris +3 | 2200 |  | C3 C2 C3 C3 C3 |
-| Wahadło | Kaisarix +2, Enigmatix +5, Hornix +2, Ultimus +4, Polaris +4 | 2300 |  | C4 C3 C4 C3 C3 |
-| Komnata gwiazd | Enigmatix +3, Enigmatix +4, Xartix +1, Ultimus +3, Ultimus +1 | 2400 | tak | 5 × C4 |
-| Szczyt wieży (boss) | Axin 3 +1, Enigmatix +4, Xartix +4, Ultimus +4, Polaris +3 | 2800 |  | 5 × C4, runy: 10 |
+| Podnóże wieży | Xartix +6, Xartix +4, Cardinal +5, Cardinal +6, Polaris +4 | 2000 |  | C2 C1 C2 C2 C2 |
+| Schody bez końca | Enigmatix +3, Xartix +2, Cardinal +3, Poisonix +3, Polaris +3 | 2100 | tak | C3 C2 C3 C2 C2 |
+| Sala zegarów | Enigmatix +1, Xartix +2, Cardinal +3, Ultimus +1, Polaris +2 | 2200 |  | C3 C2 C3 C3 C3 |
+| Wahadło | Kaisarix +2, Enigmatix +3, Hornix +3, Ultimus, Polaris +2 | 2300 |  | C4 C3 C4 C3 C3 |
+| Komnata gwiazd | Enigmatix +3, Enigmatix +1, Xartix +1, Ultimus, Ultimus +1 | 2400 | tak | 5 × C4 |
+| Szczyt wieży (boss) | Axin 3, Enigmatix +2, Xartix +2, Ultimus, Polaris +2 | 2800 |  | 5 × C4, runy: 10 |
 
 ### Świat 6: Cytadela Akronix (22900 złota)
 
 | Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Czaty zwiadowców | Katanix +21, Defenix +22, Bowix +22, Assasinix +21, Assasinix +22 | 3000 |  | 5 × C4, runy: 10 |
-| Koszary | Defenix +15, Defenix +17, Katanix +16, Katanix +16, Poisonix +16 | 3400 | tak | 5 × C4, runy: 10 |
-| Pracownia trucizn | Kaisarix +14, Hornix +12, Defenix +13, Poisonix +12, Poisonix +14 | 3700 |  | 5 × C4, runy: 11 |
-| Stajnie bestii | Kaisarix +9, Kaisarix +10, Hornix +10, Hornix +10, Poisonix +10 | 4000 |  | 5 × C4, runy: 11 |
-| Sala wojenna | Axin 1 +5, Axin 2 +4, Kaisarix +4, Hornix +5, Poisonix +5 | 4300 | tak | 5 × C4, runy: 11 |
-| Tron Axinów (boss) | Axin 3 +1, Axin 2, Axin 1 +1, Kaisarix, Poisonix | 4500 |  | 5 × C4, runy: 12 |
+| Czaty zwiadowców | Katanix +25, Defenix +24, Bowix +23, Assasinix +25, Assasinix +25 | 3000 |  | 5 × C4, runy: 10 |
+| Koszary | Defenix +18, Defenix +19, Katanix +18, Katanix +19, Poisonix +19 | 3400 | tak | 5 × C4, runy: 10 |
+| Pracownia trucizn | Kaisarix +10, Hornix +11, Defenix +12, Poisonix +12, Poisonix +12 | 3700 |  | 5 × C4, runy: 11 |
+| Stajnie bestii | Kaisarix +10, Kaisarix +12, Hornix +11, Hornix +11, Poisonix +10 | 4000 |  | 5 × C4, runy: 11 |
+| Sala wojenna | Axin 1 +5, Axin 2 +4, Kaisarix +6, Hornix +4, Poisonix +6 | 4300 | tak | 5 × C4, runy: 11 |
+| Tron Axinów (boss) | Axin 3 +1, Axin 2 +3, Axin 1 +1, Kaisarix +1, Poisonix +3 | 4500 |  | 5 × C4, runy: 12 |
 
 Co warto wiedzieć:
 
 - **Pierwsza nagroda jest na trzeciego bohatera.** Kto wyda ją na ulepszenia, na drugim poziomie przegra i będzie musiał powtarzać pierwszy; gra tego dziś nie podpowiada.
 - **Drugi Łucznik zamiast bohatera innego szczepu** też nie wystarcza na drugi poziom, a drugi Miecznik wystarcza ledwo: ludzie są najsłabszym wyborem (§3).
-- **Poziomy siły w Cytadeli są wysokie** (do +22), bo niskie stopnie Akronixów mają liczby dużo niższe niż rozwinięty skład gracza. Liczba maleje z poziomu na poziom, choć poziomy są coraz trudniejsze, bo stają na nich mocniejsze postacie.
-- **Mother-tree nie stoi na żadnym poziomie:** z 10 000 życia jako przeciwnik kończy walkę limitem czasu.
+- **Poziomy siły w Cytadeli są wysokie** (do +25), bo niskie stopnie Akronixów mają liczby dużo niższe niż rozwinięty skład gracza. Liczba maleje z poziomu na poziom, choć poziomy są coraz trudniejsze, bo stają na nich mocniejsze postacie.
+- **Mother-tree nie stoi na żadnym poziomie:** z 10 000 życia jako przeciwnik kończyła walkę limitem czasu. Po obniżeniu życia do 5000 nie była sprawdzana jako wróg.
 - **Bossem Zamku jest Zbrojny**, nie Rycerz: forma końcowa jest za mocna na skład z form bazowych.
-- **W Cytadeli odrzut jest mocniejszy niż plan odniesienia.** Poziom siły wroga skaluje życie i atak, ale nie odrzut, więc mocni wrogowie dają się odpychać jak słabi. Droga „najpierw odrzut” wygrywa pięć z sześciu poziomów Cytadeli z zapasem 12–41% życia (plan odniesienia: 8–9%) i przegrywa tylko finał.
-- **Drzewko po równo jest słabe:** dalsze runy są mocniejsze, więc opłaca się iść w głąb kierunku.
+- **W Cytadeli odrzut jest mocniejszy niż plan odniesienia.** Poziom siły wroga skaluje życie i atak, ale nie odrzut, więc mocni wrogowie dają się odpychać jak słabi. Droga „najpierw odrzut” wygrywa pięć z sześciu poziomów Cytadeli z zapasem 28–57% życia (plan odniesienia: 8–9%) i przegrywa tylko finał.
+- **Drzewko po równo jest słabe** (4 z 11 poziomów wymagających run): dalsze runy są mocniejsze, więc opłaca się iść w głąb kierunku.
 
 ## 8. Prezentacja
 
@@ -658,10 +675,10 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 
 | Kwestia | Stan |
 |---|---|
-| Roster: sześć szczepów po siedem form | W grze. Liczby po balansie z 2026-10-07 (§3, „Balans bohaterów”, ADR 0024) do oceny autora: ludzie ok. 70% siły innych szczepów, ściśnięta skala szybkości, jedna zmiana liczby ze szkicu (leczenie Ice Ivy). Nazwy sześciu nowych form ludzi to nadal propozycja wykonawcy |
-| Drzewko run | System i cztery kierunki od autora (2026-10-07, §5.3, ADR 0026). Do jego oceny: sześć run w kierunku przy dwunastu żetonach, wartości run, to, że wyboru nie da się cofnąć, i wygląd drzewka w sklepie. „Szybkość” jest odczytana jako szybkość ruchu, nie tempo ataków |
+| Roster: sześć szczepów po siedem form | W grze. 2026-10-08 autor zmienił sam liczby jedenastu form (§3, „Zmiany autora z 2026-10-08”). Pozostałe liczby po balansie z 2026-10-07 (§3, „Balans bohaterów”, ADR 0024) do oceny autora: ludzie ok. 70% siły innych szczepów, ściśnięta skala szybkości, jedna zmiana liczby ze szkicu (leczenie Ice Ivy). Nazwy sześciu nowych form ludzi to nadal propozycja wykonawcy |
+| Drzewko run | System i cztery kierunki od autora (2026-10-07, §5.3, ADR 0026). Wartości run ustawił autor 2026-10-08. Do jego oceny: sześć run w kierunku przy dwunastu żetonach i to, że wyboru nie da się cofnąć. „Szybkość” jest odczytana jako szybkość ruchu, nie tempo ataków |
 | Odrzut i szybkość jako kierunki | W obecnych regułach walki nie są zwykłą siłą: pomagają w jednych walkach, szkodzą w innych (§5.3). Odrzut jest przy tym bardzo mocny w Cytadeli (§7). Do decyzji, czy tak ma zostać, czy runy tych kierunków mają działać inaczej (np. sam opór przed odrzutem) |
-| Siła run | Wartości płaskie ważą dużo, zwłaszcza u ludzi. Bossowie są strojeni tak, żeby run wymagać, a na zwykłych poziomach runy życia i ataku dają duży margines (skład odniesienia kończy wtedy zwykle z 20–35% życia zamiast z ok. 8%). Do decyzji, czy mają zostać tak mocne |
+| Siła run | Wartości płaskie ważą dużo, zwłaszcza u ludzi. Bossowie są strojeni tak, żeby run wymagać, a na zwykłych poziomach runy życia i ataku dają duży margines (skład odniesienia kończy wtedy zwykle z 20–33% życia zamiast z ok. 8%). Do decyzji, czy mają zostać tak mocne |
 | Finałowy boss gry | Autor zaprojektuje go później; do tego czasu w „Tronie Axinów” stoją trzej Axiny z Kaisarixem i Poisonixem |
 | Podpowiedź na początek gry | Pierwsza nagroda jest pomyślana na trzeciego bohatera; kto wyda ją na ulepszenia, utknie na drugim poziomie. Do rozwiązania przy wprowadzeniu do gry (M6) |
 | Koszty ulepszeń i ewolucji | Reguły od autora (2026-10-07): stała cena ulepszenia, ewolucja droższa, ceny rosną ze stopniem. Liczby (50 / 200 / 800 i 400 / 1600) to propozycja wykonawcy, do oceny autora i do balansu (§5.2, ADR 0023) |

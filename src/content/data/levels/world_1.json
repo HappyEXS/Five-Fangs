@@ -29,7 +29,7 @@
     "enemies": [
       { "slot": 0, "unit": "swordsman_a", "level": 1 },
       { "slot": 1, "unit": "swordsman_a", "level": 1 },
-      { "slot": 2, "unit": "archer_a", "level": 0 },
+      { "slot": 2, "unit": "archer_a", "level": 3 },
       { "slot": 3, "unit": "bowix", "level": 2 }
     ],
     "rewards": { "gold": 250 }
@@ -37,20 +37,20 @@
   {
     "id": "w1_l5",
     "enemies": [
-      { "slot": 0, "unit": "guard_a", "level": 3 },
+      { "slot": 0, "unit": "guard_a", "level": 4 },
       { "slot": 1, "unit": "swordsman_a", "level": 3 },
-      { "slot": 2, "unit": "archer_a", "level": 4 },
-      { "slot": 3, "unit": "archer_a", "level": 5 }
+      { "slot": 2, "unit": "archer_a", "level": 2 },
+      { "slot": 3, "unit": "archer_a", "level": 2 }
     ],
     "rewards": { "gold": 300, "runeToken": true }
   },
   {
     "id": "w1_l6",
     "enemies": [
-      { "slot": 0, "unit": "swordsman_b", "level": 0 },
-      { "slot": 1, "unit": "guard_a", "level": 0 },
+      { "slot": 0, "unit": "swordsman_b", "level": 1 },
+      { "slot": 1, "unit": "swordsman_a", "level": 1 },
       { "slot": 2, "unit": "archer_a", "level": 1 },
-      { "slot": 3, "unit": "assasinix", "level": 0 }
+      { "slot": 3, "unit": "assasinix", "level": 1 }
     ],
     "rewards": { "gold": 450 }
   }

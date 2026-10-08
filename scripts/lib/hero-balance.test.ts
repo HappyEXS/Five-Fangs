@@ -1,6 +1,6 @@
 // Reguły balansu bohaterów z decyzji autora gry (ADR 0024), sprawdzane symulacją na treści gry.
 // Test nie przypina liczb: pilnuje kierunku, który liczby mają utrzymać po każdej zmianie.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { rawContent, requireContent } from '../../src/content/load.ts';
 import {
   formRows,
@@ -14,6 +14,10 @@ import {
   tribeBalance,
   versus,
 } from './hero-balance.ts';
+
+// Te testy rozgrywają setki walk. CI liczy pokrycie (pnpm test:coverage), a instrumentacja
+// spowalnia symulację kilkukrotnie, więc domyślne 5 s na test nie wystarcza.
+vi.setConfig({ testTimeout: 60_000 });
 
 const content = requireContent();
 const rows = formRows(content);
@@ -123,12 +127,21 @@ describe('szczepy ze szkiców są wyrównane między sobą', () => {
     }
   });
 
-  it('żadna forma nie wygrywa wszystkich pojedynków swojego stopnia poza formami bazowymi', () => {
+  it('żadna forma nie wygrywa wszystkich pojedynków swojego stopnia poza Orbem i Cardinalem', () => {
     // Na stopniu bazowym jest tylko sześć form i Orb wygrywa ze wszystkimi; to stan znany,
-    // opisany w ADR 0024.
+    // opisany w ADR 0024. Cardinal jest drugim wyjątkiem (2026-10-08): autor gry podniósł mu
+    // szybkość z 10 do 25 i zasięg z 240 do 300. Dotąd Cardinal przegrywał z Trunkiem
+    // i Holo-botem tylko dlatego, że był za wolny, żeby wracać po odrzucie; każda szybkość od 12
+    // albo zasięg od 260 usuwa obie przegrane, więc bez tego wyjątku musiałby zostać przy 10 i 240.
+    const known = ['cardinal'];
     for (const row of rows.filter((entry) => entry.tier > 0)) {
       const peers = row.wins + row.draws + row.losses;
-      expect(row.wins, row.unit).toBeLessThan(peers);
+      if (known.includes(row.unit)) {
+        // Wyjątek ma być prawdziwy: gdy forma przestanie wygrywać wszystko, trzeba go zdjąć.
+        expect(row.wins, row.unit).toBe(peers);
+      } else {
+        expect(row.wins, row.unit).toBeLessThan(peers);
+      }
     }
   });
 });

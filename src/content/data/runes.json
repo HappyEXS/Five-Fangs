@@ -1,52 +1,8 @@
 {
   "branches": [
-    {
-      "id": "hp",
-      "stat": "maxHp",
-      "values": [
-        50,
-        100,
-        150,
-        200,
-        250,
-        300
-      ]
-    },
-    {
-      "id": "attack",
-      "stat": "attack",
-      "values": [
-        5,
-        10,
-        15,
-        20,
-        25,
-        30
-      ]
-    },
-    {
-      "id": "knockback",
-      "stat": "knockback",
-      "values": [
-        20,
-        40,
-        60,
-        80,
-        100,
-        120
-      ]
-    },
-    {
-      "id": "speed",
-      "stat": "moveSpeed",
-      "values": [
-        15,
-        30,
-        45,
-        60,
-        75,
-        90
-      ]
-    }
+    { "id": "hp", "stat": "maxHp", "values": [50, 100, 150, 200, 250, 300] },
+    { "id": "attack", "stat": "attack", "values": [5, 10, 15, 20, 25, 30] },
+    { "id": "knockback", "stat": "knockback", "values": [20, 40, 60, 80, 100, 120] },
+    { "id": "speed", "stat": "moveSpeed", "values": [15, 30, 45, 60, 75, 90] }
   ]
 }

@@ -33,6 +33,8 @@ Założenia wykonawcy, podane autorowi razem z pytaniami: żeton wpada za pierws
 | `knockback` | odrzut | +20, +40, +60, +90, +120, +160 |
 | `speed` | szybkość ruchu | +15, +30, +45, +60, +75, +90 |
 
+To wartości z chwili decyzji. Dzień później autor ustawił własne wartości życia, ataku i odrzutu: patrz uzupełnienie na końcu.
+
 - Runa nie ma własnego id w danych: dostaje je z kierunku i miejsca w nim (`hp_3`). Kompilacja (`content/load-runes.ts`) przelicza premię na jednostki symulacji i odrzuca kierunek, w którym dalsza runa nie jest mocniejsza od poprzedniej, oraz drugi kierunek tej samej statystyki.
 - **Sześć run w kierunku, dwanaście żetonów w grze.** Drzewko ma 24 runy, więc gracz weźmie połowę: dwa kierunki do końca, każdy do połowy albo coś pomiędzy. Gdyby żetonów starczało na wszystko, wybór byłby tylko kolejnością.
 - **Kierunek odblokowuje się po kolei.** Następną runą kierunku jest pierwsza, której gracz nie ma. Wyboru nie da się cofnąć, dlatego sklep pyta o potwierdzenie.
@@ -132,3 +134,29 @@ Wynik po przestrojeniu, na 11 poziomach wymagających run:
 - **Zaokrąglanie szybkości na karcie bohatera** zamiast reguły wielokrotności 15: karta pokazuje wartości efektywne z symulacji (GAME_DESIGN §3) i tak ma zostać.
 - **Osobny ekran albo zakładki w sklepie:** drzewko mieści się nad bohaterami na sprzedaż, a sklep zostaje jednym ekranem do wydawania tego, co gracz zdobył.
 - **Branie runy jednym kliknięciem:** wybór jest nieodwracalny, a żetonów mało.
+
+## Uzupełnienie z 2026-10-08: wartości run od autora
+
+Autor gry ustawił w `runes.json` własne wartości, w równych krokach:
+
+| Kierunek | Runy 1–6 |
+|---|---|
+| `hp` | +50, +100, +150, +200, +250, +300 |
+| `attack` | +5, +10, +15, +20, +25, +30 |
+| `knockback` | +20, +40, +60, +80, +100, +120 |
+| `speed` | bez zmian |
+
+Tego samego dnia zmienił liczby jedenastu bohaterów (ADR 0024, uzupełnienie). Runy życia i ataku są teraz słabsze na końcu kierunku (+300 zamiast +460, +30 zamiast +46), więc skład odniesienia ma mniej z run, a wszystkie 36 poziomów przeszło wyszukiwanie od nowa. Wynik na 11 poziomach wymagających run:
+
+| Droga | Wygrane |
+|---|---|
+| plan odniesienia (życie i atak na zmianę) | 11 |
+| najpierw życie | 10 |
+| najpierw atak | 10 |
+| najpierw odrzut | 7 |
+| najpierw szybkość | 4 |
+| wszystkie kierunki po równo | 4 |
+
+Wnioski z decyzji zostają: odrzut i szybkość są narzędziami na konkretne walki, a w Cytadeli odrzut jest mocniejszy od planu odniesienia (pięć z sześciu poziomów z zapasem 28–57% życia, przy poziomach siły wrogów do +25). Sam atak wygrywa teraz tyle co samo życie, bo bossowie są strojeni do słabszych run.
+
+Wyszukiwanie poziomów dostało przy okazji ostrzejszy warunek: zwykły poziom musi przegrać każdy wcześniejszy skład odniesienia, nie tylko ten sprzed poprzedniej nagrody. Walka nie jest monotoniczna i na jednym poziomie skład o dwa zakupy słabszy wygrywał tam, gdzie skład o jeden zakup słabszy przegrywał.

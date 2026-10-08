@@ -343,7 +343,7 @@ Kod wczytujący: `schema.ts` i `schema-progression.ts` (schematy), `compile.ts` 
 
 // runes.json: drzewko run (ADR 0026); runa dostaje id z kierunku i miejsca w nim: hp_1, hp_2…
 { "branches": [
-  { "id": "hp", "stat": "maxHp", "values": [60, 100, 160, 240, 340, 460] },
+  { "id": "hp", "stat": "maxHp", "values": [50, 100, 150, 200, 250, 300] },
   { "id": "speed", "stat": "moveSpeed", "values": [15, 30, 45, 60, 75, 90] } ] }
 
 // nagrody poziomu w levels/world_N.json: żeton run za pierwsze przejście

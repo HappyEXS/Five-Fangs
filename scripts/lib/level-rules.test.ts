@@ -1,11 +1,15 @@
 // Reguły rozmieszczenia przeciwników, nagród i drzewka run z decyzji autora gry (ADR 0025
 // i 0026), sprawdzane na treści gry. Test nie przypina liczb poziomów: pilnuje zasad, które mają przetrwać strojenie.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { requireContent } from '../../src/content/load.ts';
 import { goldBefore, levelOrder, runBalance } from './balance.ts';
 import { squadForGold, squadLabel } from './reference-plan.ts';
 import { loadReference } from './reference-squads.ts';
 import { runePaths, runPaths } from './rune-paths.ts';
+
+// Te testy rozgrywają setki walk. CI liczy pokrycie (pnpm test:coverage), a instrumentacja
+// spowalnia symulację kilkukrotnie, więc domyślne 5 s na test nie wystarcza.
+vi.setConfig({ testTimeout: 60_000 });
 
 const content = requireContent();
 const { reference } = loadReference(content);

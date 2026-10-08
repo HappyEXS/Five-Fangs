@@ -48,6 +48,8 @@ describe('szczep Beasts w treści gry', () => {
   it('Spiker leczy sam siebie co sekundę; pozostałe bestie nie mają cech', () => {
     const { base } = unit('spiker');
     expect([base.healAmount, base.healInterval, base.healTeam]).toEqual([25, 30, false]);
+    // Przebijające kolce dodał autor gry 2026-10-08.
+    expect(base.pierce).toBe(true);
     for (const id of ['monstrosity', 'batfang', 'reaper', 'ironbeak', 'tuskovator']) {
       const spec = unit(id).base;
       expect([spec.healAmount, spec.targetLast, spec.pierce, spec.splashRadius], id).toEqual([
@@ -60,12 +62,15 @@ describe('szczep Beasts w treści gry', () => {
   });
 
   it('odstęp między atakami strzelców to liczba „Atk:” ze szkicu, w sekundach', () => {
-    // Batfang 1,2 s, Spiker 1,0 s, Ignitix 0,8 s; przy 30 tickach na sekundę.
+    // Batfang 1,2 s, Spiker 1,0 s; przy 30 tickach na sekundę. Ignitix miał na szkicu 0,8 s,
+    // autor wydłużył odstęp do 1,2 s (2026-10-08).
     expect(['batfang', 'spiker', 'ignitix'].map((id) => unit(id).base.attackInterval)).toEqual([
-      36, 30, 24,
+      36, 30, 36,
     ]);
-    // Zamach Ignitixa mieści się w jego krótkim odstępie.
-    expect(unit('ignitix').base.swingTicks).toBeLessThanOrEqual(24);
+    // Zamach każdego mieści się w jego odstępie.
+    for (const id of ['batfang', 'spiker', 'ignitix']) {
+      expect(unit(id).base.swingTicks, id).toBeLessThanOrEqual(unit(id).base.attackInterval);
+    }
   });
 
   it('strzelcy mają własne pociski, każdy z innej wysokości', () => {

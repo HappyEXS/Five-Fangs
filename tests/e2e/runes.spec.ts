@@ -3,6 +3,18 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
 import { collectErrors, play, readSave, seedSave } from './helpers.ts';
 
+/** Odrzut Miecznika bez run (units/heroes.json). */
+const SWORDSMAN_KNOCKBACK = 15;
+
+/**
+ * Premie run kierunku odczytane z drzewka na stronie. Wartości run należą do balansu i autor gry
+ * zmienia je w danych, więc test ich nie przypina: sprawdza drzewko, nie balans.
+ */
+async function branchValues(tree: Locator, branch: string): Promise<number[]> {
+  const texts = await tree.locator(`[data-branch="${branch}"] .rune-node`).allTextContents();
+  return texts.map((label) => Number(label.trim().replace('+', '')));
+}
+
 const cleared = (ids: readonly string[]) =>
   Object.fromEntries(ids.map((id) => [id, { cleared: true, bestTicks: 500 }]));
 
@@ -73,14 +85,17 @@ test('żeton run: plakietka na mapie, wybór runy w drzewku, runa w gnieździe b
     'Szybkość',
   ]);
   await expect(tree.locator('.rune-root .rune-tokens')).toHaveAttribute('data-tokens', '1');
-  await expect(tree.locator('[data-branch="hp"] .rune-node')).toHaveText([
-    '+60',
-    '+100',
-    '+160',
-    '+240',
-    '+340',
-    '+460',
-  ]);
+  await expect(tree.locator('.rune-node')).toHaveCount(24);
+  const hp = await branchValues(tree, 'hp');
+  expect(hp).toHaveLength(6);
+  // Im dalej w kierunku, tym mocniejsza runa.
+  for (let depth = 1; depth < hp.length; depth++) {
+    expect(hp[depth]).toBeGreaterThan(hp[depth - 1] ?? 0);
+  }
+  const [HP_1 = 0] = hp;
+  const [KNOCKBACK_1 = 0] = await branchValues(tree, 'knockback');
+  const [SPEED_1 = 0] = await branchValues(tree, 'speed');
+  expect(Math.min(HP_1, KNOCKBACK_1, SPEED_1)).toBeGreaterThan(0);
   const node = (rune: string) => tree.locator(`[data-rune="${rune}"]`);
   await expect(node('hp_1')).toHaveAttribute('data-state', 'owned');
   await expect(node('hp_1')).toBeDisabled();
@@ -89,13 +104,15 @@ test('żeton run: plakietka na mapie, wybór runy w drzewku, runa w gnieździe b
   await expect(node('hp_3')).toHaveAttribute('data-state', 'locked');
   await expect(node('hp_3')).toBeDisabled();
   await expect(node('knockback_1')).toBeEnabled();
-  await expect(node('knockback_1')).toHaveAccessibleName('Odrzut +20: następna runa kierunku');
+  await expect(node('knockback_1')).toHaveAccessibleName(
+    `Odrzut +${KNOCKBACK_1}: następna runa kierunku`,
+  );
   await expect(tree.locator('.rune-node:enabled')).toHaveCount(4);
 
   // Kliknięcie runy niczego jeszcze nie wydaje: pod runą pojawia się potwierdzenie.
   const take = page.locator('.rune-take');
   await node('knockback_1').click();
-  await expect(take).toContainText('Odrzut +20');
+  await expect(take).toContainText(`Odrzut +${KNOCKBACK_1}`);
   await expectInsideStage(page, take);
   await expect(node('knockback_1')).toHaveAttribute('aria-expanded', 'true');
   expect((await readSave(page)).runes).toEqual(['hp_1']);
@@ -103,11 +120,11 @@ test('żeton run: plakietka na mapie, wybór runy w drzewku, runa w gnieździe b
   await page.keyboard.press('Escape');
   await expect(take).toHaveCount(0);
   await node('speed_1').click();
-  await expect(take).toContainText('Szybkość +15');
+  await expect(take).toContainText(`Szybkość +${SPEED_1}`);
   await node('knockback_1').click();
   await expect(take).toHaveCount(1);
-  await expect(take).toContainText('Odrzut +20');
-  await take.getByRole('button', { name: 'Weź runę Odrzut +20 za żeton run' }).click();
+  await expect(take).toContainText(`Odrzut +${KNOCKBACK_1}`);
+  await take.getByRole('button', { name: `Weź runę Odrzut +${KNOCKBACK_1} za żeton run` }).click();
 
   // Żeton wydany: runa jest w drzewku, następna w kierunku czeka na kolejny żeton.
   await expect(take).toHaveCount(0);
@@ -135,16 +152,20 @@ test('żeton run: plakietka na mapie, wybór runy w drzewku, runa w gnieździe b
   await page.getByRole('button', { name: 'Skład' }).click();
   const field = page.locator('[data-drop="slot:0"]');
   const sheet = page.locator('.hero-sheet');
-  await expect(field.locator('[data-socket="0"] .rune-token')).toHaveText('+60');
-  await expect(sheet.locator('.stat', { hasText: 'Odrzut' })).toHaveText(/^Odrzut\s*15$/);
+  await expect(field.locator('[data-socket="0"] .rune-token')).toHaveText(`+${HP_1}`);
+  await expect(sheet.locator('.stat', { hasText: 'Odrzut' })).toHaveText(
+    new RegExp(`^Odrzut\\s*${SWORDSMAN_KNOCKBACK}$`),
+  );
   await field.locator('[data-socket="1"]').click();
   const picker = page.locator('.rune-picker');
   await expect(picker.locator('[data-rune]')).toHaveCount(1);
   await expect(picker.locator('[data-rune="knockback_1"]')).toContainText('Odrzut');
   await picker.locator('[data-rune="knockback_1"]').click();
-  await expect(field.locator('[data-socket="1"] .rune-token')).toHaveText('+20');
+  await expect(field.locator('[data-socket="1"] .rune-token')).toHaveText(`+${KNOCKBACK_1}`);
   await expect(field.locator('[data-socket="1"] .rune-token')).toHaveClass(/rune-knockback/);
-  await expect(sheet.locator('.stat', { hasText: 'Odrzut' })).toHaveText(/^Odrzut\s*35$/);
+  await expect(sheet.locator('.stat', { hasText: 'Odrzut' })).toHaveText(
+    new RegExp(`^Odrzut\\s*${SWORDSMAN_KNOCKBACK + KNOCKBACK_1}$`),
+  );
   const heroes = (await readSave(page)).heroes as { runes: unknown }[];
   expect(heroes[0]?.runes).toEqual(['hp_1', 'knockback_1']);
 
@@ -209,11 +230,12 @@ test('drzewko run mieści się w scenie w małym oknie i po angielsku', async ({
     'Speed',
   ]);
   // Ostatnia runa najniższego kierunku: potwierdzenie pod nią musi zmieścić się w scenie.
+  const [SPEED_1 = 0] = await branchValues(tree, 'speed');
   await tree.locator('[data-rune="speed_1"]').click();
   const take = page.locator('.rune-take');
-  await expect(take).toContainText('Speed +15');
+  await expect(take).toContainText(`Speed +${SPEED_1}`);
   await expect(
-    take.getByRole('button', { name: 'Take the rune Speed +15 for a rune token' }),
+    take.getByRole('button', { name: `Take the rune Speed +${SPEED_1} for a rune token` }),
   ).toBeVisible();
   await expectInsideStage(page, take);
   // Kliknięcie obok zamyka potwierdzenie bez wydania żetonu.

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { requireContent } from '../../src/content/load.ts';
 import type { Rune } from '../../src/content/load-progression.ts';
 import { levelOrder, runBalance } from './balance.ts';
@@ -6,6 +6,10 @@ import { type Reference, squadForGold } from './reference-plan.ts';
 import { assignRunes, runesForTokens, tokensBefore } from './reference-runes.ts';
 import { loadReference } from './reference-squads.ts';
 import { runePaths, runPaths } from './rune-paths.ts';
+
+// Te testy rozgrywają setki walk. CI liczy pokrycie (pnpm test:coverage), a instrumentacja
+// spowalnia symulację kilkukrotnie, więc domyślne 5 s na test nie wystarcza.
+vi.setConfig({ testTimeout: 60_000 });
 
 const content = requireContent();
 const reference: Reference = loadReference(content).reference ?? { squad: [], runes: ['hp'] };

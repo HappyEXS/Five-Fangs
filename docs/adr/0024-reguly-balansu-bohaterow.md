@@ -67,3 +67,27 @@ Startowi bohaterowie i wrogowie pierwszego świata to ludzie, więc Zamek trzeba
 - **Ścisnąć także szybkości strzelców:** autor chciał zostawić postacie, które nie muszą wiele chodzić; wystarczył dłuższy zasięg.
 - **Osłabić Ignitixa, Ultimusa i Enigmatixa liczbami ze szkiców:** szczepy są już wyrównane jako całość, a reguła 2 każe ruszać szkice tylko tam, gdzie trzeba.
 - **Podnieść atak Toxic Ivy z 10 do 20:** drużyna Plants wygrywała wtedy ze wszystkimi szczepami poza Robots.
+
+## Uzupełnienie z 2026-10-08: liczby zmienione przez autora
+
+Autor gry zmienił liczby sam, w `heroes.json`, w tym kilka ze szkiców:
+
+- **Immortals:** Orb szybkość 15 → 30; Cardinal szybkość 10 → 30 i zasięg 240 → 340; Polaris atak 50 → 80, strzał co 2 s zamiast co 1 s i przebijanie; Ultimus szybkość 30 → 50, odstęp 3 → 2,5 s, zasięg 220 → 320.
+- **Beasts:** Spiker dostał przebijanie; Ignitix strzela co 1,2 s zamiast co 0,8 s.
+- **Plants:** Mother-tree życie 10 000 → 5000; Ice Ivy 900 → 600; Toxic Ivy 800 → 500 i trucizna.
+- **Robots:** Thermobot atak 100 → 130; Whirl-bot życie 700 → 400.
+
+Po tych zmianach dwie reguły z tego ADR przestały przechodzić. Autor wybrał poprawienie liczb zamiast luzowania reguł:
+
+- **Polaris strzela co 3 s.** Z atakiem 80, przebijaniem i strzałem co 2 s drużyna Immortals wygrywała z każdym innym szczepem ze szkiców. Wystarczyła jedna liczba; to samo dawał atak 60 przy odstępie 2,4 s. Podniesienie życia Mother-tree nie pomagało, bo wtedy Robots przegrywali ze wszystkimi.
+- **Cardinal: szybkość 25, zasięg 300**, na prośbę autora o obniżenie jego 30 i 340. Wartość Cardinala w drużynie spadła z 27 do 22, czyli do poziomu Ivy.
+
+**Cardinal jest wyjątkiem od reguły „żadna forma nie wygrywa wszystkich pojedynków swojego stopnia”**, drugim po Orbie. Małej poprawki nie ma, co pokazał pomiar:
+
+- przy liczbach ze szkicu (szybkość 10, zasięg 240) Cardinal przegrywał z Trunkiem i Holo-botem tylko dlatego, że nie nadążał wracać po odrzucie; z 42 sprawdzonych par szybkości (10–30) i zasięgu (240–340) obie przegrane zostają tylko przy parze ze szkicu;
+- słabszy atak (39 i mniej) albo wolniejszy strzał sprawia, że Cardinal przegrywa z Reaperem, ale wtedy wszystkie pojedynki wygrywa Reaper, bo jego jedyną przegraną był Cardinal;
+- Reaper nie ma w swoim stopniu innego pogromcy nawet po przyspieszeniu Guardiana of hell do 1,2 ataku na sekundę.
+
+Test reguł (`scripts/lib/hero-balance.test.ts`) wymienia Cardinala z nazwy i sprawdza, że wyjątek jest prawdziwy: gdy Cardinal przestanie wygrywać wszystko, test każe go z listy zdjąć.
+
+Testy liczb ze szkiców (`src/content/tribes.test.ts`, `beasts.test.ts`) przypinają odtąd liczby po zmianach autora. Kto zmienia liczby bohaterów w danych, musi zmienić je także tam, przestroić poziomy (`pnpm balance`, ADR 0025) i uruchomić `pnpm format`: zapis JSON z innego formatera nie przechodzi lintu.

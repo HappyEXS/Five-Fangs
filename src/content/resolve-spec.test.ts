@@ -98,7 +98,8 @@ describe('resolveUnitSpec', () => {
       tree.base.summon,
     );
     const spec = resolveUnitSpec(tree, 4, [attackRune, hpRune], progression);
-    expect(spec.maxHp).toBe(14_000 + 200);
+    // Cztery ulepszenia to +40% życia formy; samo życie Mother-tree należy do balansu.
+    expect(spec.maxHp).toBe(Math.floor((tree.base.maxHp * 140) / 100) + 200);
     expect(spec.attack).toBe(0 + 25);
     // Krzak: 100 życia i 20 ataku, po czterech ulepszeniach o 40% więcej.
     expect(spec.summon).toMatchObject({ maxHp: 140, attack: 28 });
