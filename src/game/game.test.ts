@@ -202,7 +202,7 @@ describe('wynik walki', () => {
       name: 'result',
       level: 'w1_l1',
       battle: WIN,
-      rewards: { firstClear: true, gold: FIRST, rune: null },
+      rewards: { firstClear: true, gold: FIRST, runeToken: false },
     });
     const stored = decodeSave(items.get(SAVE_KEY) ?? '');
     expect(stored.kind === 'ok' && stored.save.levels.w1_l1).toEqual({
@@ -240,7 +240,9 @@ describe('akcje gracza', () => {
     const before = game.save.value;
     expect(game.upgrade(SWORD)).toBe(false);
     expect(game.evolve(SWORD, 'swordsman_b')).toBe(false);
-    expect(game.equipRune(SWORD, 0, 'rune_hp_200')).toBe(false);
+    expect(game.equipRune(SWORD, 0, 'hp_2')).toBe(false);
+    // Bez żetonu run drzewko nie daje runy.
+    expect(game.unlockRune('hp_1')).toBe(false);
     expect(game.placeInSquad(99, 0)).toBe(false);
     expect(game.buyHero('beasts')).toBe(false);
     expect(game.save.value).toBe(before);
@@ -250,11 +252,24 @@ describe('akcje gracza', () => {
     const game = start();
     game.finishBattle('w1_l1', WIN);
     game.finishBattle('w1_l2', WIN);
-    game.finishBattle('w1_l3', WIN);
     expect(game.upgrade(SWORD)).toBe(true);
-    expect(game.save.value.gold).toBe(FIRST + SECOND + goldOf('w1_l3') - 50);
-    // Trzeci poziom daje pierwszą runę gry.
-    expect(game.equipRune(SWORD, 0, 'rune_hp_100')).toBe(true);
+    expect(game.save.value.gold).toBe(FIRST + SECOND - 50);
+  });
+
+  it('żeton run z drugiego poziomu odblokowuje runę drzewka, którą da się włożyć bohaterowi', () => {
+    const { storage, items } = memory();
+    const game = start(storage);
+    game.finishBattle('w1_l1', WIN);
+    game.finishBattle('w1_l2', WIN);
+    expect(game.scene.value).toMatchObject({ name: 'result', rewards: { runeToken: true } });
+    // Runę trzeba najpierw odblokować; druga w kierunku czeka na następny żeton.
+    expect(game.equipRune(SWORD, 0, 'hp_1')).toBe(false);
+    expect(game.unlockRune('hp_2')).toBe(false);
+    expect(game.unlockRune('hp_1')).toBe(true);
+    expect(game.unlockRune('attack_1')).toBe(false);
+    const stored = decodeSave(items.get(SAVE_KEY) ?? '');
+    expect(stored.kind === 'ok' && stored.save.runes).toEqual(['hp_1']);
+    expect(game.equipRune(SWORD, 0, 'hp_1')).toBe(true);
   });
 
   it('zakup w sklepie dodaje bohatera, zdejmuje złoto i zapisuje grę', () => {

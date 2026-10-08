@@ -28,6 +28,11 @@ export const referenceSchema = z.strictObject({
     )
     .min(1)
     .max(5),
+  /**
+   * Kierunki drzewka run, w które gracz wydaje żetony: po kolei i w kółko, za każdym razem
+   * następna runa kierunku (reference-runes.ts).
+   */
+  runes: z.array(id).min(1),
 });
 
 export type Reference = z.infer<typeof referenceSchema>;
@@ -67,6 +72,11 @@ export function validateReference(content: GameContent, reference: Reference): C
   });
   if (reference.squad.length < starters.length) {
     issues.push({ source, message: 'skład musi zawierać wszystkie linie startowe' });
+  }
+  for (const branch of reference.runes) {
+    if (!content.runeTree.some((entry) => entry.id === branch)) {
+      issues.push({ source, message: `nieznany kierunek drzewka run "${branch}"` });
+    }
   }
   return issues;
 }

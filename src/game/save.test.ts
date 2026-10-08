@@ -15,16 +15,16 @@ import { SAVE_VERSION, type Save } from './save-schema.ts';
 
 // Przykładowe pliki zapisów z kolejnych wersji gry sprawdza tests/saves/fixtures.test.ts.
 const sample: Save = {
-  saveVersion: 4,
+  saveVersion: 5,
   gameVersion: '0.1.0',
   gold: 135,
   heroes: [
-    { id: 1, line: 'swordsman', form: 'swordsman_a', upgrades: 3, runes: ['rune_hp_200', null] },
+    { id: 1, line: 'swordsman', form: 'swordsman_a', upgrades: 3, runes: ['hp_2', null] },
     { id: 2, line: 'archer', form: 'archer_b', upgrades: 1, runes: [null, null] },
     { id: 3, line: 'swordsman', form: 'pavise_guard', upgrades: 0, runes: [null, null] },
   ],
   nextHeroId: 4,
-  runes: ['rune_hp_200', 'rune_attack_25'],
+  runes: ['hp_2', 'attack_2'],
   levels: { w1_l1: { cleared: true, bestTicks: 412 } },
   squad: [1, 2, null, 3, null],
   settings: { lang: 'pl', battleSpeed: 2 },
@@ -70,6 +70,11 @@ describe('decodeSave', () => {
     // Migracja nie zakłada niczego o danych; braki wyłapuje schemat po migracji.
     ['pusty zapis w wersji 1', '{ "saveVersion": 1 }'],
     ['zapis w wersji 1 ze śmieciami w liniach', '{ "saveVersion": 1, "lines": [1, "x"] }'],
+    ['pusty zapis w wersji 4', '{ "saveVersion": 4 }'],
+    [
+      'zapis w wersji 4 ze śmieciami w bohaterach',
+      '{ "saveVersion": 4, "heroes": [1, { "runes": "x" }, null] }',
+    ],
   ])('uznaje za uszkodzony: %s', (_label, text) => {
     expect(decodeSave(text).kind).toBe('corrupt');
   });

@@ -52,10 +52,29 @@ export const lineSchema = z.strictObject({
   starter: z.boolean().default(false),
 });
 
-export const runeSchema = z.strictObject({
+/**
+ * Statystyki, które wzmacniają runy: zamknięty zestaw. Nowa statystyka = wpis tutaj, jej
+ * przeliczenie w load-runes.ts i dodanie w resolveUnitSpec.
+ */
+export const RUNE_STATS = ['maxHp', 'attack', 'knockback', 'moveSpeed'] as const;
+export type RuneStat = (typeof RUNE_STATS)[number];
+
+/**
+ * Kierunek drzewka run (ADR 0026): kolejne runy jednej statystyki, każda mocniejsza od
+ * poprzedniej. Runa nie ma własnego id w danych: dostaje je z kierunku i miejsca w nim.
+ */
+export const runeBranchSchema = z.strictObject({
   id,
-  stat: z.enum(['attack', 'maxHp']),
-  value: z.number().int().positive(),
+  stat: z.enum(RUNE_STATS),
+  /**
+   * Premie kolejnych run kierunku, od pierwszej. Wartości płaskie: życie i atak w punktach,
+   * odrzut w jednostkach świata, szybkość w jednostkach świata na sekundę.
+   */
+  values: z.array(z.number().int().positive()).min(1),
+});
+
+export const runeTreeSchema = z.strictObject({
+  branches: z.array(runeBranchSchema).min(1),
 });
 
 /**
@@ -87,13 +106,12 @@ export const levelSchema = z.strictObject({
     .max(5),
   rewards: z.strictObject({
     gold: z.number().int().nonnegative(),
-    /** Runa za pierwsze przejście. */
-    rune: id.optional(),
+    /** Żeton run za pierwsze przejście: odblokowuje jedną runę drzewka (ADR 0026). */
+    runeToken: z.boolean().default(false),
   }),
 });
 
 export const linesSchema = z.array(lineSchema);
-export const runesSchema = z.array(runeSchema);
 export const worldsSchema = z.array(worldSchema);
 export const levelsSchema = z.array(levelSchema);
 
@@ -101,6 +119,7 @@ export type Progression = z.infer<typeof progressionSchema>;
 export type TierCosts = z.infer<typeof tierSchema>;
 export type RawLine = z.infer<typeof lineSchema>;
 export type RawForm = z.infer<typeof formSchema>;
-export type Rune = z.infer<typeof runeSchema>;
+export type RawRuneBranch = z.infer<typeof runeBranchSchema>;
+export type RawRuneTree = z.infer<typeof runeTreeSchema>;
 export type RawWorld = z.infer<typeof worldSchema>;
 export type RawLevel = z.infer<typeof levelSchema>;

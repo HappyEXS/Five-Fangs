@@ -116,13 +116,15 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   // Każde ulepszenie formy kosztuje tyle samo: drugie jest za tę samą kwotę co pierwsze.
   await expect(field.getByRole('button', { name: 'Kup ulepszenie za 50 złota' })).toBeVisible();
 
-  // Runa: gniazdo nad bohaterem otwiera wybór, wybrany żeton trafia do gniazda.
+  // Runa: zapis sprzed drzewka run miał runę z nagrody za poziom. Po migracji jej nie ma, więc
+  // wybór w gnieździe jest pusty i odsyła do sklepu (drzewko run sprawdza runes.spec.ts).
   await field.locator('[data-socket="0"]').click();
-  await page.locator('.rune-picker [data-rune="rune_hp_100"]').click();
-  await expect(page.locator('.rune-picker')).toHaveCount(0);
-  await expect(field.locator('[data-socket="0"] .rune-token')).toHaveText('+100');
-  const runes = ((await readSave(page)).heroes as { runes: unknown }[])[0]?.runes;
-  expect(runes).toEqual(['rune_hp_100', null]);
+  const picker = page.locator('.rune-picker');
+  await expect(picker).toContainText('Nie masz wolnych run. Odblokujesz je w sklepie');
+  await expect(picker.locator('[data-rune]')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(picker).toHaveCount(0);
+  expect((await readSave(page)).runes).toEqual([]);
 
   // Ze składu wychodzi się tylko na mapę: nie ma skrótu do sklepu.
   await expect(page.getByRole('button', { name: 'Sklep' })).toHaveCount(0);

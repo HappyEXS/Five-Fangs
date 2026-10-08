@@ -23,7 +23,7 @@ const level: CompiledLevel = {
     { slot: 3, unit: 'archer_a', level: 2 },
   ],
   gold: 0,
-  rune: null,
+  runeToken: false,
 };
 const squad = [member('guard_a'), null, member('archer_a'), null, null];
 

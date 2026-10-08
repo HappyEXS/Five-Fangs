@@ -5,5 +5,6 @@
     { "slot": 3, "line": "robots" },
     { "slot": 4, "line": "beasts", "via": ["reaper", "tuskovator"] },
     { "slot": 1, "line": "immortals" }
-  ]
+  ],
+  "runes": ["hp", "attack"]
 }

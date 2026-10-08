@@ -3,9 +3,11 @@
 // z poprzednim commitem (git diff reports/).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import pl from '../src/content/i18n/pl.json' with { type: 'json' };
 import { requireContent } from '../src/content/load.ts';
 import { formatBalanceReport, goldBefore, runBalance } from './lib/balance.ts';
 import { loadReference } from './lib/reference-squads.ts';
+import { runePaths, runPaths } from './lib/rune-paths.ts';
 
 const content = requireContent();
 const { reference, issues } = loadReference(content);
@@ -17,11 +19,29 @@ if (reference === null || issues.length > 0) {
 
 const started = performance.now();
 const reports = runBalance(content, reference);
+const pathRows = runPaths(content, reference, reports);
 const elapsedMs = performance.now() - started;
+
+// Nazwy kierunków drzewka to nazwy statystyk ze słownika gry.
+const text = pl as Record<string, string>;
+const branchName = (id: string): string => {
+  const stat = content.runeTree.find((branch) => branch.id === id)?.stat;
+  return (stat === undefined ? undefined : text[`stat.${stat}`]) ?? id;
+};
+const columns = runePaths(content, reference).map((path) => {
+  if (path.id === 'reference') {
+    return `Plan odniesienia (${reference.runes.map(branchName).join(', ').toLowerCase()} na zmianę)`;
+  }
+  if (path.id === 'all') return 'Wszystkie kierunki po równo';
+  return `Najpierw ${branchName(path.id).toLowerCase()}`;
+});
 
 const dir = join(process.cwd(), 'reports');
 mkdirSync(dir, { recursive: true });
-writeFileSync(join(dir, 'balance.md'), formatBalanceReport(content, reports));
+writeFileSync(
+  join(dir, 'balance.md'),
+  formatBalanceReport(content, reports, { columns, rows: pathRows }),
+);
 
 for (const report of reports) {
   const mark = (win: boolean): string => (win ? 'W' : 'P');

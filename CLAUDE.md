@@ -23,7 +23,7 @@ pnpm test:coverage     # testy z pomiarem pokrycia; próg > 90% linii dla src/si
 pnpm bench             # walki/s, czas ticka i alokacje symulacji; --check kończy błędem poniżej budżetu
 pnpm battle a,b vs c   # walka w konsoli z logiem zdarzeń (jednostki z treści albo golden:<nazwa>)
 pnpm validate-content  # walidacja wszystkich JSON-ów treści
-pnpm balance           # balans poziomów: skład odniesienia za zdobyte złoto przeciw każdemu poziomowi, raport do reports/balance.md (ADR 0025)
+pnpm balance           # balans poziomów: skład odniesienia za zdobyte złoto i żetony run przeciw każdemu poziomowi, raport do reports/balance.md (ADR 0025, 0026)
 pnpm balance:heroes    # pojedynki form i walki drużyn szczepów, raport do reports/heroes.md (ADR 0024)
 pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated (--check: tylko sprawdza aktualność)
 pnpm atlas:placeholder # grafiki placeholder jako źródła atlasu w assets/src/units
@@ -96,11 +96,13 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 - Walidator sprawdza spójność odwołań, unikalność id i zgodność znacznika `hit` w klipie animacji z `hitFraction` ataku.
 - Balans zmieniaj w danych, nie w kodzie. Po zmianie balansu uruchom `pnpm balance` i `pnpm balance:heroes` i porównaj raporty.
 - Reguły poziomów i nagród (ADR 0025) pilnuje test `scripts/lib/level-rules.test.ts`: ok. 60 000 złota w grze, 3–5 wrogów na poziom (dwóch na dwóch pierwszych), Akronix w kolejności pocztu, Axiny jako bossowie światów 3–5, a każdy poziom „zgodny”: zwykły bez zapasu dla składu odniesienia, boss wymaga run. Zmiana kosztów, liczb bohaterów albo nagród przesuwa skład odniesienia, więc po niej dostrój poziomy, które przestały być zgodne.
+- Runy bierze się z drzewka run (ADR 0026): cztery kierunki po sześć run w `runes.json`, żeton run za drugi i piąty poziom każdego świata. Bossowie i Cytadela są strojeni do planu run składu odniesienia (życie i atak na zmianę), więc zmiana wartości run życia albo ataku też wymaga ich dostrojenia. Runa szybkości ma wartość będącą wielokrotnością 15 i nie działa na jednostkę o szybkości 0.
 - Reguły balansu bohaterów (ADR 0024) pilnuje test `scripts/lib/hero-balance.test.ts`: ludzie słabsi od szczepów ze szkiców, szczepy ze szkiców wyrównane między sobą, postacie walczące wręcz w skali szybkości 40–130. Liczby ze szkiców autora zmieniaj tylko, gdy wyraźnie odstają, i wypisz każdą zmianę.
 
 ## Zapis gry
 
 - Jeden obiekt z `saveVersion`, walidowany Zod przy wczytaniu.
+- Żetony run nie mają pola w zapisie: wynikają z przeszłych poziomów i posiadanych run (`game/runes.ts`, ADR 0026).
 - Zmiana kształtu zapisu = podniesienie wersji + migracja `vN → vN+1` + test migracji z zapisanego przykładowego pliku w `tests/fixtures/saves/`.
 - Nigdy nie usuwaj starych migracji. Uszkodzony zapis → kopia zapasowa, gra nie może się wywrócić.
 

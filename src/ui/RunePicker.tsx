@@ -36,24 +36,19 @@ export function RunePicker(props: { game: Game; pick: RunePick; onClose: () => v
         <p class="note">{t('runes.none')}</p>
       ) : (
         <ul class="rune-options">
-          {stock.map(({ rune, count }) => (
+          {stock.map((rune) => (
             <li key={rune.id}>
-              {/* Paleta żetonów: kolor mówi, co runa wzmacnia, napis o ile; licznik, ile takich jest. */}
+              {/* Paleta żetonów: kolor mówi, co runa wzmacnia, napis o ile. */}
               <button
                 type="button"
                 class="rune-option"
                 data-rune={rune.id}
                 title={runeLabel(rune)}
-                aria-label={
-                  count > 1 ? `${runeLabel(rune)} ${t('runes.count', { count })}` : runeLabel(rune)
-                }
+                aria-label={runeLabel(rune)}
                 onClick={() => equip(rune.id)}
               >
                 <RuneToken rune={rune} />
-                <span class="rune-option-stat">
-                  {t(rune.stat === 'maxHp' ? 'stat.maxHp' : 'stat.attack')}
-                </span>
-                {count > 1 && <span class="rune-option-count">{t('runes.count', { count })}</span>}
+                <span class="rune-option-stat">{t(`stat.${rune.stat}`)}</span>
               </button>
             </li>
           ))}

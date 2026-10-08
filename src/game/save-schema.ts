@@ -1,6 +1,9 @@
 // Kształt zapisu gry (docs/ARCHITECTURE.md §6.2, ADR 0005). Zmiana kształtu wymaga podniesienia
 // SAVE_VERSION, migracji w save-migrations.ts i fixture w tests/fixtures/saves/.
 //
+// Wersja 5: ten sam kształt co w wersji 4, ale runy to węzły drzewka run (ADR 0026): gracz
+// odblokowuje je żetonami za przejście poziomów. Dawne runy z nagród za poziomy znikają
+// w migracji; żetonów zapis nie trzyma, bo wynikają z przeszłych poziomów (runes.ts).
 // Wersja 4: ten sam kształt co w wersji 3, ale inne linie: cztery dawne linie ludzi to teraz
 // dwa szczepy po siedem form (M5j), więc bohaterowie linii, które znikły, i form-kopii z drzew
 // testowych dostają w migracji nową linię i formę.
@@ -9,7 +12,7 @@
 // każdy z własnymi ulepszeniami i runami). W wersji 1 stan był trzymany per linia.
 import { z } from 'zod';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 /** Liczba slotów składu; równa TEAM_SIZE symulacji. */
 export const SQUAD_SLOTS = 5;
@@ -42,7 +45,7 @@ export const saveSchema = z.strictObject({
   heroes: z.array(heroSchema),
   /** Id, które dostanie następny zdobyty bohater. */
   nextHeroId: z.number().int().positive(),
-  /** Id posiadanych run, także tych włożonych; ta sama runa może wystąpić kilka razy. */
+  /** Id odblokowanych run drzewka, także tych włożonych; każda runa istnieje raz. */
   runes: z.array(z.string()),
   levels: z.record(z.string(), levelStateSchema),
   /** Id bohatera w każdym slocie składu albo null. */

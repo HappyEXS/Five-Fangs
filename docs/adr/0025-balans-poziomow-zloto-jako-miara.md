@@ -83,3 +83,7 @@ Runy: życia na trzecim poziomie każdego świata (przed bossem), ataku za bossa
 - **Skład odniesienia z dwóch bohaterów albo rosnący powoli:** gracz, który kupuje bohaterów od razu, miałby wtedy wszystkie poziomy za łatwe.
 - **Strojenie zwykłych poziomów z runami:** bossowie nie mieliby czym się wyróżniać poza powtarzaniem poziomów; autor wybrał runy jako to, czego boss wymaga.
 - **Osłabieni wrogowie na początek** (ujemny poziom siły) albo trzeci bohater na start: autor wolał wyjątek dla dwóch pierwszych poziomów.
+
+## Uzupełnienie z 2026-10-07: runy z drzewka
+
+Runy nie są już nagrodami za trzeci poziom i za bossa. Gracz dostaje żeton run za drugi i piąty poziom każdego świata i sam wybiera runy w drzewku (ADR 0026). Reguły trudności zostają, zmienia się to, skąd skład odniesienia ma runy: wydaje żetony na zmianę na runę życia i runę ataku, więc przed bossem świata N ma ich po N. Bossowie i poziomy Cytadeli dostali nowe poziomy siły wrogów z tego samego wyszukiwania; zwykłe poziomy, nagrody w złocie i składy wrogów zostały. Raport `pnpm balance` pokazuje dodatkowo, jak ten sam skład radzi sobie na poziomach wymagających run przy innych wyborach w drzewku.

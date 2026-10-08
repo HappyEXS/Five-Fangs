@@ -2,7 +2,7 @@
 // ewolucja) i wolne runy do włożenia. Czyste funkcje nad regułami z progress.ts; UI pokazuje
 // ich wynik w polu bohatera.
 import type { GameContent } from '../content/load.ts';
-import type { Rune } from '../content/schema-progression.ts';
+import type { Rune } from '../content/load-progression.ts';
 import type { UnitSpec } from '../sim/types.ts';
 import { evolveOptions, previewEvolve } from './evolution.ts';
 import { findHero, freeRunes, previewUpgrade, upgradeCost } from './progress.ts';
@@ -48,24 +48,11 @@ export function nextPurchase(content: GameContent, save: Save, heroId: number): 
   return first === undefined ? null : { kind: 'evolve', options: [first, ...rest] };
 }
 
-export interface RuneStock {
-  readonly rune: Rune;
-  /** Ile takich run gracz ma wolnych (niewłożonych). */
-  readonly count: number;
-}
-
 /**
- * Wolne runy pogrupowane po id: najpierw życie, potem atak, w obu rosnąco po wartości.
- * Runy, których nie ma w treści gry, są pomijane.
+ * Wolne runy w kolejności drzewka: kierunek po kierunku, w każdym od najsłabszej. Runy, których
+ * nie ma w treści gry, są pomijane.
  */
-export function runeStock(content: GameContent, save: Save): RuneStock[] {
-  const counts = new Map<string, number>();
-  for (const id of freeRunes(save)) counts.set(id, (counts.get(id) ?? 0) + 1);
-  const stock: RuneStock[] = [];
-  for (const [id, count] of counts) {
-    const rune = content.runes.get(id);
-    if (rune !== undefined) stock.push({ rune, count });
-  }
-  const statOrder = (rune: Rune): number => (rune.stat === 'maxHp' ? 0 : 1);
-  return stock.sort((a, b) => statOrder(a.rune) - statOrder(b.rune) || a.rune.value - b.rune.value);
+export function runeStock(content: GameContent, save: Save): Rune[] {
+  const free = new Set(freeRunes(save));
+  return content.runeTree.flatMap((branch) => branch.runes.filter((rune) => free.has(rune.id)));
 }

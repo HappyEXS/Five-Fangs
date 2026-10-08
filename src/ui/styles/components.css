@@ -193,7 +193,8 @@
   white-space: nowrap;
 }
 
-/* Kolor runy mówi, co wzmacnia: zielony życie, czerwony atak (żetony i etykiety). */
+/* Kolor runy mówi, co wzmacnia: zielony życie, czerwony atak, granatowy odrzut, błękitny
+   szybkość. */
 .rune-hp {
   background: var(--moss);
   color: var(--ink);
@@ -202,6 +203,16 @@
 .rune-attack {
   background: var(--madder);
   color: var(--paper);
+}
+
+.rune-knockback {
+  background: var(--dusk);
+  color: var(--paper);
+}
+
+.rune-speed {
+  background: var(--gale);
+  color: var(--ink);
 }
 
 .rune-tag {

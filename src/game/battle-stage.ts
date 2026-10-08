@@ -41,7 +41,7 @@ const NO_ENEMIES: CompiledLevel = {
   index: 0,
   enemies: [],
   gold: 0,
-  rune: null,
+  runeToken: false,
 };
 
 /** Czas po rozstrzygnięciu walki, zanim pojawi się wynik: animacje śmierci i ostatnie liczby. */

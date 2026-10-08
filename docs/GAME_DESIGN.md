@@ -8,10 +8,10 @@ Gra otwiera się **ekranem startowym** z przyciskiem „Graj”. Ekranem główn
 
 1. Na **mapie** gracz wybiera poziom (6 światów po 6 poziomów, odblokowywane kolejno; strzałki po bokach mapy przełączają świat), widzi jego przeciwników i nagrody i zaczyna walkę bieżącym składem. Mapa nie pozwala zmieniać składu.
 2. Na ekranie **składu** ustawia do 5 bohaterów na 5 slotach, ulepsza ich, ewoluuje i wkłada im runy (do 2 na bohatera).
-3. W **sklepie** kupuje za złoto nowych bohaterów; sklep służy tylko do kupowania.
+3. W **sklepie** kupuje za złoto nowych bohaterów, a za żetony run odblokowuje runy w drzewku run; sklep służy tylko do tego.
 4. W **informacjach o bohaterach** ogląda obie formy każdej linii, ich statystyki i cechy oraz drogę ulepszeń i ewolucji z kosztami.
 5. Walka toczy się automatycznie. Gracz nie ma wpływu na jej przebieg; może ją tylko wstrzymać, zmienić prędkość odtwarzania (x1/x2/x4) albo wyjść.
-6. Wygrana daje złoto, czasem runę, i odblokowuje następny poziom. Po walce gra pokazuje wynik i nagrody; jedyny przycisk wraca na mapę.
+6. Wygrana daje złoto, czasem żeton run, i odblokowuje następny poziom. Po walce gra pokazuje wynik i nagrody; jedyny przycisk wraca na mapę.
 
 W walce **nie ma losowości**: ten sam skład na tym samym poziomie zawsze daje ten sam wynik. Gra jest więc bliższa łamigłówce: przegrana oznacza, że trzeba zmienić skład, ustawienie, runy albo ulepszyć bohaterów.
 
@@ -244,7 +244,7 @@ Znane nierówności, zostawione świadomie:
 
 - **Orb** wygrywa pojedynek z każdą inną formą bazową (350 życia i strzał wobec 200 życia form walczących wręcz); to liczby ze szkicu i tylko pierwszy stopień gry.
 - **Ignitix, Ultimus i Enigmatix** wygrywają po 21 z 23 pojedynków form końcowych, **Toxic Ivy** nie wygrywa żadnego (jej pocisk bije wszystkich po trochu, więc liczy się w drużynie), **Mother-tree** żadnego nie przegrywa. Szczepy jako całość są wyrównane, więc tych liczb ze szkiców nie ruszałem.
-- **Runy mają wartości płaskie** (życie +100, +200, +400; atak +10, +25, +50) i przy niskich liczbach ludzi ważą dużo więcej niż przedtem. Do osobnej decyzji.
+- **Runy mają wartości płaskie** (§5.3), więc ta sama runa waży więcej u bohatera o niskich liczbach, czyli u ludzi. Od wprowadzenia drzewka run pierwsze runy są mniejsze niż dawniej (życie +60 zamiast +100).
 - Przeciwnicy i nagrody wszystkich światów są zbalansowane osobno, do pięcioosobowego składu odniesienia (§7, „Balans poziomów i nagród”).
 
 ### Szczep Akronix (wrogowie)
@@ -422,14 +422,32 @@ A0 → A1 → … → A4 ─────┤
 
 Reguły, których pilnuje walidator treści: ceny rosną ze stopniem, a ewolucja kosztuje więcej niż ulepszenie formy przed nią i po niej. W tych liczbach każdy stopień jest cztery razy droższy od poprzedniego, a ewolucja to dwa ulepszenia nowej formy. Bohater od zakupu (200) do końca drogi kosztuje 6400 złota. Dawne koszty rosły z każdym ulepszeniem (`50, 80, 120, 180`, ewolucja `250`, `300–750`, ewolucja `1200`, `1000–2200`).
 
-### 5.3 Runy
+### 5.3 Runy i drzewko run
 
-- Runa to żeton z płaską premią do jednej statystyki. Runy dotyczą tylko `attack` i `maxHp` i mają trzy wielkości: atak +10, +25, +50; życie +100, +200, +400 (decyzja autora z 2026-10-02).
-- Każda linia ma **2 sloty na runy**; sloty zostają po ewolucji.
-- Runy są nagrodą za **pierwsze przejście** wybranych poziomów. Nie da się ich kupić. Wyjściowo runę daje co drugi poziom, czyli ok. 15 run w całej grze.
-- Runy można dowolnie wkładać, wyjmować i przekładać między bohaterami, bez kosztu.
+System od autora gry (2026-10-07, ADR 0026); liczba run w kierunku i ich wartości to propozycja wykonawcy z pomiarów.
+
+- Runa to żeton z płaską premią do jednej statystyki. Każdy bohater ma **2 gniazda na runy**; gniazda zostają po ewolucji. Runy można dowolnie wkładać, wyjmować i przekładać między bohaterami, bez kosztu.
+- Runy bierze się z **drzewka run** w sklepie. Drzewko ma cztery kierunki, po jednym na statystykę, a w każdym sześć run, coraz mocniejszych:
+
+| Kierunek | Runy od pierwszej do szóstej |
+|---|---|
+| Życie | +60, +100, +160, +240, +340, +460 |
+| Atak | +6, +10, +16, +24, +34, +46 |
+| Odrzut | +20, +40, +60, +90, +120, +160 |
+| Szybkość | +15, +30, +45, +60, +75, +90 |
+
+- Runę odblokowuje **żeton run**. Żeton jest nagrodą za **pierwsze przejście** drugiego i piątego poziomu każdego świata, czyli jest ich 12 w całej grze, a run w drzewku 24. Gracz weźmie więc połowę drzewka: dwa kierunki do końca, każdy do połowy albo coś pomiędzy.
+- Żeton odblokowuje **następną runę wybranego kierunku**; kierunku nie da się przeskoczyć. Każda odblokowana runa to osobny przedmiot, więc słabsze runy kierunku zostają graczowi i też trafiają do gniazd. Wyboru nie da się cofnąć; sklep pyta o potwierdzenie.
 - Premia z runy dodaje się po przeliczeniu ulepszeń. Runy nie mają poziomów i się nie zużywają.
-- Run nie widać na postaci; nie ma przedmiotów ani ich grafik.
+- **Odrzut** jest w walce zarazem siłą odrzutu i oporem przed nim (§4.6), więc runa daje jedno i drugie.
+- **Szybkość** to szybkość ruchu. Runa nie działa na bohatera, który stoi w miejscu (szybkość 0). Jej wartość musi być wielokrotnością 15, żeby karta bohatera pokazywała równe liczby.
+- Run nie widać na postaci; nie ma przedmiotów ani ich grafik. Kolor żetonu mówi, co runa wzmacnia: zielony życie, czerwony atak, granatowy odrzut, błękitny szybkość.
+
+Co pokazał pomiar (ADR 0026):
+
+- **Życie i atak pomagają zawsze.** Do nich są strojeni bossowie (§7).
+- **Odrzut i szybkość zmieniają przebieg walki**, więc w jednych walkach pomagają, a w innych szkodzą. Odrzut trzyma walczących wręcz z dala od strzelców gracza (Mechanus town, Cytadela), ale stojących strzelców odpycha poza zasięg własnych bohaterów (Living swamps) i potrafi przegrać walkę wygraną bez run. Szybkość pomaga walczącym wręcz, którzy startują z tyłu szyku; włożona frontowi wysyła go do wroga samego.
+- Runy przekłada się za darmo, więc gracz dobiera je do poziomu: to, komu je dać, jest częścią łamigłówki.
 
 ### 5.4 Złoto
 
@@ -440,6 +458,7 @@ Reguły, których pilnuje walidator treści: ceny rosną ze stopniem, a ewolucja
 ### 5.5 Sklep
 
 - Sklep sprzedaje bohaterów za złoto. Wszystkie linie są dostępne od początku gry; ogranicza tylko cena.
+- W sklepie jest też **drzewko run** (§5.3): tu wydaje się żetony run. Żetonów nie da się kupić za złoto.
 - Zakup daje nowy egzemplarz w formie bazowej, bez ulepszeń i run. Jeśli w składzie jest wolny slot, bohater od razu go zajmuje (pierwszy wolny od frontu); inaczej trafia poza skład.
 - Tę samą linię można kupić wiele razy; każdy egzemplarz kosztuje tyle samo. Liczba posiadanych bohaterów nie ma limitu.
 - Bohaterów nie da się sprzedać.
@@ -497,18 +516,18 @@ Zestaw cech jest **zamknięty**: każda cecha to wariant w schemacie danych plus
 
 ```json
 {
-  "id": "w2_l3",
+  "id": "w2_l2",
   "enemies": [
-    { "slot": 0, "unit": "egzo_bot", "level": 5 },
-    { "slot": 1, "unit": "egzo_bot", "level": 2 },
-    { "slot": 2, "unit": "bot", "level": 2 },
-    { "slot": 3, "unit": "bot", "level": 5 }
+    { "slot": 0, "unit": "egzo_bot", "level": 2 },
+    { "slot": 1, "unit": "bot", "level": 4 },
+    { "slot": 2, "unit": "bot", "level": 1 },
+    { "slot": 3, "unit": "bowix", "level": 3 }
   ],
-  "rewards": { "gold": 600, "rune": "rune_hp_100" }
+  "rewards": { "gold": 500, "runeToken": true }
 }
 ```
 
-Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania; świat wskazuje swoje tło w `worlds.json` (`backdrop`, zamknięty zestaw sześciu teł). Nazwa poziomu to tekst `level.<id>.name` w słownikach, nazwa świata `world.<id>.name`.
+`runeToken` to żeton run za pierwsze przejście (§5.3); poziom bez żetonu nie ma tego pola. Poziomy jednego świata leżą w jednym pliku, w kolejności odblokowywania; świat wskazuje swoje tło w `worlds.json` (`backdrop`, zamknięty zestaw sześciu teł). Nazwa poziomu to tekst `level.<id>.name` w słownikach, nazwa świata `world.<id>.name`.
 
 `level` wroga skaluje `maxHp` i `attack` tak samo jak ulepszenia bohatera: +10% wartości bazowej na poziom (wyjściowo, `upgradePercent` w `progression.json`), z zaokrągleniem w dół. Mapa pokazuje go tak samo jak ulepszenia bohatera, jako „+N” przy nazwie; wróg na poziomie 0 nie ma oznaczenia.
 
@@ -525,11 +544,11 @@ Jak to jest policzone:
 
 - **Skład odniesienia** to pięciu bohaterów: Miecznik i Łucznik ze startu oraz kupieni po kolei Bot (Robots), Monstrosity (Beasts, drogą Reaper → Tuskovator) i Orb (Immortals). Wydaje całe zdobyte złoto: najpierw kupuje brakujących bohaterów, potem rozwija wszystkich równo.
 - **Zwykły poziom:** skład odniesienia bez run wygrywa, a skład sprzed poprzedniej nagrody już nie. Poziom wymaga więc złota ze wszystkich wcześniejszych poziomów i ani trochę więcej; runy dają margines.
-- **Boss** (szósty poziom świata): skład odniesienia bez run przegrywa, z runami zdobytymi wcześniej wygrywa.
+- **Boss** (szósty poziom świata): skład odniesienia bez run przegrywa, z runami wygrywa. Runy składu odniesienia to te, które odblokował za żetony zdobyte wcześniej, biorąc na zmianę runę życia i runę ataku (ADR 0026); przed bossem świata N ma ich po N. Runy życia nosi front, runy ataku tył.
 - **Cytadela:** skład odniesienia kończy rozwój w piątym świecie, więc każdy poziom szóstego świata jest strojony jak boss, a jego złoto służy budowie drugiego składu.
 - Rangi w tabelach idą od frontu: litera to stopień formy (A bazowa, B po pierwszej ewolucji, C po drugiej), cyfra to liczba ulepszeń. „5 × B2” to pięciu bohaterów na tej samej randze.
 
-Nagrody: trzy pierwsze poziomy dają po 200 złota, czyli po jednym bohaterze, więc gracz ma pełną piątkę przed czwartym poziomem gry. Dalej każda nagroda kupuje składowi odniesienia co najmniej jeden krok rozwoju. Runa życia czeka na trzecim poziomie każdego świata, runa ataku u bossa.
+Nagrody: trzy pierwsze poziomy dają po 200 złota, czyli po jednym bohaterze, więc gracz ma pełną piątkę przed czwartym poziomem gry. Dalej każda nagroda kupuje składowi odniesienia co najmniej jeden krok rozwoju. Żeton run czeka na drugim i piątym poziomie każdego świata (§5.3).
 
 | Świat | Złoto | Razem od początku |
 |---|---|---|
@@ -540,81 +559,85 @@ Nagrody: trzy pierwsze poziomy dają po 200 złota, czyli po jednym bohaterze, w
 | 5 Tower of time | 13 800 | 37 100 |
 | 6 Cytadela Akronix | 22 900 | 60 000 |
 
-Poziom siły przy wrogu („+N”) to +10% życia i ataku na punkt. Liczby dobrał skrypt: dla każdego poziomu najtrudniejsze ustawienie, które skład odniesienia jeszcze przechodzi. Raport `pnpm balance` (`reports/balance.md`) pokazuje wynik każdego poziomu, a test reguł pilnuje, żeby wszystkie zostały „zgodne”.
+Poziom siły przy wrogu („+N”) to +10% życia i ataku na punkt. Liczby dobrał skrypt: dla każdego poziomu najtrudniejsze ustawienie, które skład odniesienia jeszcze przechodzi. Raport `pnpm balance` (`reports/balance.md`) pokazuje wynik każdego poziomu, a test reguł pilnuje, żeby wszystkie zostały „zgodne”. Po wprowadzeniu drzewka run (ADR 0026) bossowie i poziomy Cytadeli dostali nowe poziomy siły wrogów, dobrane do run z drzewka; zwykłe poziomy nie zależą od run i zostały bez zmian.
+
+Raport ma też tabelę „Inne drogi przez drzewko run”: ten sam skład na poziomach wymagających run, gdy żetony pójdą inaczej. Na 11 takich poziomach plan odniesienia wygrywa wszystkie, „najpierw życie” 10, „najpierw odrzut” 7, „najpierw atak” 6, „najpierw szybkość” 4, a wszystkie kierunki po równo 2.
 
 ### Świat 1: Zamek (1600 złota)
 
-| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
 | Podgrodzie | Łucznik, Łucznik +1 | 200 |  | 2 × A0 |
-| Most zwodzony | Miecznik +4, Łucznik +5 | 200 |  | 3 × A0 |
-| Brama | Miecznik +3, Łucznik +3, Łucznik | 200 | życie +100 | 4 × A0 |
+| Most zwodzony | Miecznik +4, Łucznik +5 | 200 | tak | 3 × A0 |
+| Brama | Miecznik +3, Łucznik +3, Łucznik | 200 |  | 4 × A0 |
 | Dziedziniec | Miecznik +1, Miecznik +1, Łucznik, Bowix +2 | 250 |  | 5 × A0 |
-| Zbrojownia | Tarczownik +3, Miecznik +3, Łucznik +4, Łucznik +5 | 300 |  | 5 × A1 |
-| Sala tronowa (boss) | Zbrojny +1, Tarczownik +1, Łucznik, Assasinix | 450 | atak +10 | A3 A2 A2 A2 A2, runy: 1 |
+| Zbrojownia | Tarczownik +3, Miecznik +3, Łucznik +4, Łucznik +5 | 300 | tak | 5 × A1 |
+| Sala tronowa (boss) | Zbrojny, Tarczownik, Łucznik +1, Assasinix | 450 |  | A3 A2 A2 A2 A2, runy: 2 |
 
 ### Świat 2: Mechanus town (4000 złota)
 
-| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
 | Złomowisko | Egzo-bot +2, Bot +4, Bot +5 | 450 |  | 5 × A4 |
-| Rogatki | Egzo-bot +2, Bot +4, Bot +1, Bowix +3 | 500 |  | B0 A4 A4 A4 A4 |
-| Hala montażowa | Egzo-bot +5, Egzo-bot +2, Bot +2, Bot +5 | 600 | życie +100 | B0 A4 B0 A4 A4 |
+| Rogatki | Egzo-bot +2, Bot +4, Bot +1, Bowix +3 | 500 | tak | B0 A4 A4 A4 A4 |
+| Hala montażowa | Egzo-bot +5, Egzo-bot +2, Bot +2, Bot +5 | 600 |  | B0 A4 B0 A4 A4 |
 | Odlewnia | Katanix +2, Egzo-bot +3, Bot +2, Bot +4 | 700 |  | B0 A4 B0 B0 A4 |
-| Elektrownia | Egzo-bot, Bot +3, Bot +2, Holo-bot +1, Bowix +1 | 800 |  | B1 B0 B0 B0 B0 |
-| Rdzeń (boss) | Titan-bot, Defenix +1, Bot +1, Bot +1, Holo-bot +1 | 950 | atak +10 | 5 × B1, runy: 3 |
+| Elektrownia | Egzo-bot, Bot +3, Bot +2, Holo-bot +1, Bowix +1 | 800 | tak | B1 B0 B0 B0 B0 |
+| Rdzeń (boss) | Titan-bot +1, Defenix +1, Bot, Bot +1, Holo-bot | 950 |  | 5 × B1, runy: 4 |
 
 ### Świat 3: Living swamps (6800 złota)
 
-| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
 | Skraj bagien | Trunk +3, Bush +3, Bush +1, Ivy +3, Bush +3 | 700 |  | 5 × B2 |
-| Zgniła kładka | Trunk, Bush +3, Poisonix +1, Bush +2, Bush +3 | 750 |  | B3 B2 B3 B3 B2 |
-| Cierniowy gąszcz | Trunk +2, Bush +2, Trunk +1, Ivy +1, Ivy | 850 | życie +200 | B4 B3 B4 B3 B3 |
+| Zgniła kładka | Trunk, Bush +3, Poisonix +1, Bush +2, Bush +3 | 750 | tak | B3 B2 B3 B3 B2 |
+| Cierniowy gąszcz | Trunk +2, Bush +2, Trunk +1, Ivy +1, Ivy | 850 |  | B4 B3 B4 B3 B3 |
 | Mglista topiel | Hornix +5, Bush +4, Bush +5, Bush +4, Bowix +6 | 1300 |  | 5 × B4 |
-| Trujący gaj | Kaisarix +1, Trunk +1, Bush +1, Ivy, Bush +2 | 1600 |  | C0 B4 B4 B4 B4 |
-| Serce bagien (boss) | Axin 1 +4, Oak warrior +3, Trunk +4, Ivy +3, Bush +4 | 1600 | atak +25 | C0 B4 C0 B4 B4, runy: 5 |
+| Trujący gaj | Kaisarix +1, Trunk +1, Bush +1, Ivy, Bush +2 | 1600 | tak | C0 B4 B4 B4 B4 |
+| Serce bagien (boss) | Axin 1 +4, Oak warrior +3, Trunk +3, Ivy +4, Bush +4 | 1600 |  | C0 B4 C0 B4 B4, runy: 6 |
 
 ### Świat 4: Jungle of doom (10900 złota)
 
-| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
 | Ścieżka łowców | Tuskovator +9, Ironbeak +9, Reaper +8, Batfang +9, Batfang +9 | 1600 |  | C0 B4 C0 C0 B4 |
-| Wodopój | Ironbeak +7, Tuskovator +7, Defenix +8, Batfang +8, Assasinix +8 | 1600 |  | C0 B4 C0 C0 C0 |
-| Legowisko | Tuskovator +2, Ironbeak +3, Reaper +3, Ignitix +3, Batfang +3 | 1700 | życie +200 | 5 × C0 |
+| Wodopój | Ironbeak +7, Tuskovator +7, Defenix +8, Batfang +8, Assasinix +8 | 1600 | tak | C0 B4 C0 C0 C0 |
+| Legowisko | Tuskovator +2, Ironbeak +3, Reaper +3, Ignitix +3, Batfang +3 | 1700 |  | 5 × C0 |
 | Żebra olbrzyma | Hornix +6, Tuskovator +7, Ironbeak +7, Batfang +7, Poisonix +6 | 1800 |  | C1 C0 C1 C0 C0 |
-| Wąwóz kłów | Tuskovator +1, Ironbeak +2, Kaisarix, Spiker +1, Ignitix | 1900 |  | C1 C0 C1 C1 C1 |
-| Paszcza wulkanu (boss) | Axin 2 +1, Tuskovator, Reaper +2, Ignitix +2, Batfang +2 | 2300 | atak +25 | C2 C1 C1 C1 C1, runy: 7 |
+| Wąwóz kłów | Tuskovator +1, Ironbeak +2, Kaisarix, Spiker +1, Ignitix | 1900 | tak | C1 C0 C1 C1 C1 |
+| Paszcza wulkanu (boss) | Axin 2 +2, Tuskovator +3, Reaper +2, Ignitix, Batfang +3 | 2300 |  | C2 C1 C1 C1 C1, runy: 8 |
 
 ### Świat 5: Tower of time (13800 złota)
 
-| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
 | Podnóże wieży | Xartix +5, Xartix +5, Cardinal +6, Cardinal +6, Polaris +6 | 2000 |  | C2 C1 C2 C2 C2 |
-| Schody bez końca | Enigmatix +3, Xartix +3, Cardinal +4, Poisonix +4, Polaris +3 | 2100 |  | C3 C2 C3 C2 C2 |
-| Sala zegarów | Enigmatix +5, Xartix +2, Cardinal +5, Ultimus +4, Polaris +3 | 2200 | życie +400 | C3 C2 C3 C3 C3 |
+| Schody bez końca | Enigmatix +3, Xartix +3, Cardinal +4, Poisonix +4, Polaris +3 | 2100 | tak | C3 C2 C3 C2 C2 |
+| Sala zegarów | Enigmatix +5, Xartix +2, Cardinal +5, Ultimus +4, Polaris +3 | 2200 |  | C3 C2 C3 C3 C3 |
 | Wahadło | Kaisarix +2, Enigmatix +5, Hornix +2, Ultimus +4, Polaris +4 | 2300 |  | C4 C3 C4 C3 C3 |
-| Komnata gwiazd | Enigmatix +3, Enigmatix +4, Xartix +1, Ultimus +3, Ultimus +1 | 2400 |  | 5 × C4 |
-| Szczyt wieży (boss) | Axin 3 +2, Enigmatix +3, Xartix +4, Ultimus +2, Polaris +3 | 2800 | atak +50 | 5 × C4, runy: 9 |
+| Komnata gwiazd | Enigmatix +3, Enigmatix +4, Xartix +1, Ultimus +3, Ultimus +1 | 2400 | tak | 5 × C4 |
+| Szczyt wieży (boss) | Axin 3 +1, Enigmatix +4, Xartix +4, Ultimus +4, Polaris +3 | 2800 |  | 5 × C4, runy: 10 |
 
 ### Świat 6: Cytadela Akronix (22900 złota)
 
-| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Runa | Skład odniesienia przed poziomem |
+| Poziom | Przeciwnicy od frontu (jednostka i poziom siły) | Złoto | Żeton run | Skład odniesienia przed poziomem |
 |---|---|---|---|---|
-| Czaty zwiadowców | Katanix +23, Defenix +22, Bowix +23, Assasinix +22, Assasinix +22 | 3000 |  | 5 × C4, runy: 10 |
-| Koszary | Defenix +16, Defenix +17, Katanix +17, Katanix +16, Poisonix +16 | 3400 |  | 5 × C4, runy: 10 |
-| Pracownia trucizn | Kaisarix +11, Hornix +11, Defenix +10, Poisonix +11, Poisonix +11 | 3700 | życie +400 | 5 × C4, runy: 10 |
-| Stajnie bestii | Kaisarix +6, Kaisarix +8, Hornix +7, Hornix +6, Poisonix +7 | 4000 |  | 5 × C4, runy: 11 |
-| Sala wojenna | Axin 1 +5, Axin 2 +4, Kaisarix +5, Hornix +5, Poisonix +5 | 4300 |  | 5 × C4, runy: 11 |
-| Tron Axinów (boss) | Axin 3, Axin 2 +1, Axin 1 +1, Kaisarix, Poisonix +1 | 4500 | atak +50 | 5 × C4, runy: 11 |
+| Czaty zwiadowców | Katanix +21, Defenix +22, Bowix +22, Assasinix +21, Assasinix +22 | 3000 |  | 5 × C4, runy: 10 |
+| Koszary | Defenix +15, Defenix +17, Katanix +16, Katanix +16, Poisonix +16 | 3400 | tak | 5 × C4, runy: 10 |
+| Pracownia trucizn | Kaisarix +14, Hornix +12, Defenix +13, Poisonix +12, Poisonix +14 | 3700 |  | 5 × C4, runy: 11 |
+| Stajnie bestii | Kaisarix +9, Kaisarix +10, Hornix +10, Hornix +10, Poisonix +10 | 4000 |  | 5 × C4, runy: 11 |
+| Sala wojenna | Axin 1 +5, Axin 2 +4, Kaisarix +4, Hornix +5, Poisonix +5 | 4300 | tak | 5 × C4, runy: 11 |
+| Tron Axinów (boss) | Axin 3 +1, Axin 2, Axin 1 +1, Kaisarix, Poisonix | 4500 |  | 5 × C4, runy: 12 |
 
 Co warto wiedzieć:
 
 - **Pierwsza nagroda jest na trzeciego bohatera.** Kto wyda ją na ulepszenia, na drugim poziomie przegra i będzie musiał powtarzać pierwszy; gra tego dziś nie podpowiada.
 - **Drugi Łucznik zamiast bohatera innego szczepu** też nie wystarcza na drugi poziom, a drugi Miecznik wystarcza ledwo: ludzie są najsłabszym wyborem (§3).
-- **Poziomy siły w Cytadeli są wysokie** (do +23), bo niskie stopnie Akronixów mają liczby dużo niższe niż rozwinięty skład gracza. Liczba maleje z poziomu na poziom, choć poziomy są coraz trudniejsze, bo stają na nich mocniejsze postacie.
+- **Poziomy siły w Cytadeli są wysokie** (do +22), bo niskie stopnie Akronixów mają liczby dużo niższe niż rozwinięty skład gracza. Liczba maleje z poziomu na poziom, choć poziomy są coraz trudniejsze, bo stają na nich mocniejsze postacie.
 - **Mother-tree nie stoi na żadnym poziomie:** z 10 000 życia jako przeciwnik kończy walkę limitem czasu.
 - **Bossem Zamku jest Zbrojny**, nie Rycerz: forma końcowa jest za mocna na skład z form bazowych.
+- **W Cytadeli odrzut jest mocniejszy niż plan odniesienia.** Poziom siły wroga skaluje życie i atak, ale nie odrzut, więc mocni wrogowie dają się odpychać jak słabi. Droga „najpierw odrzut” wygrywa pięć z sześciu poziomów Cytadeli z zapasem 12–41% życia (plan odniesienia: 8–9%) i przegrywa tylko finał.
+- **Drzewko po równo jest słabe:** dalsze runy są mocniejsze, więc opłaca się iść w głąb kierunku.
 
 ## 8. Prezentacja
 
@@ -636,7 +659,9 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 | Kwestia | Stan |
 |---|---|
 | Roster: sześć szczepów po siedem form | W grze. Liczby po balansie z 2026-10-07 (§3, „Balans bohaterów”, ADR 0024) do oceny autora: ludzie ok. 70% siły innych szczepów, ściśnięta skala szybkości, jedna zmiana liczby ze szkicu (leczenie Ice Ivy). Nazwy sześciu nowych form ludzi to nadal propozycja wykonawcy |
-| Siła run | Wartości płaskie (życie +100 do +400, atak +10 do +50) ważą dużo, zwłaszcza u ludzi. Bossowie są strojeni tak, żeby run wymagać, a na zwykłych poziomach runy dają duży margines (skład odniesienia kończy wtedy zwykle z kilkunastoma albo kilkudziesięcioma procentami życia zamiast z ok. 8%). Do decyzji, czy mają zostać tak mocne |
+| Drzewko run | System i cztery kierunki od autora (2026-10-07, §5.3, ADR 0026). Do jego oceny: sześć run w kierunku przy dwunastu żetonach, wartości run, to, że wyboru nie da się cofnąć, i wygląd drzewka w sklepie. „Szybkość” jest odczytana jako szybkość ruchu, nie tempo ataków |
+| Odrzut i szybkość jako kierunki | W obecnych regułach walki nie są zwykłą siłą: pomagają w jednych walkach, szkodzą w innych (§5.3). Odrzut jest przy tym bardzo mocny w Cytadeli (§7). Do decyzji, czy tak ma zostać, czy runy tych kierunków mają działać inaczej (np. sam opór przed odrzutem) |
+| Siła run | Wartości płaskie ważą dużo, zwłaszcza u ludzi. Bossowie są strojeni tak, żeby run wymagać, a na zwykłych poziomach runy życia i ataku dają duży margines (skład odniesienia kończy wtedy zwykle z 20–35% życia zamiast z ok. 8%). Do decyzji, czy mają zostać tak mocne |
 | Finałowy boss gry | Autor zaprojektuje go później; do tego czasu w „Tronie Axinów” stoją trzej Axiny z Kaisarixem i Poisonixem |
 | Podpowiedź na początek gry | Pierwsza nagroda jest pomyślana na trzeciego bohatera; kto wyda ją na ulepszenia, utknie na drugim poziomie. Do rozwiązania przy wprowadzeniu do gry (M6) |
 | Koszty ulepszeń i ewolucji | Reguły od autora (2026-10-07): stała cena ulepszenia, ewolucja droższa, ceny rosną ze stopniem. Liczby (50 / 200 / 800 i 400 / 1600) to propozycja wykonawcy, do oceny autora i do balansu (§5.2, ADR 0023) |
@@ -648,5 +673,5 @@ Do rozstrzygnięcia z autorem gry; do tego czasu nie zgadujemy.
 Rozstrzygnięte 2026-10-02:
 
 - Nowe cechy pasywne: `splash`, `lifesteal`, `enrage` (sekcja 6).
-- Runy obejmują tylko `attack` i `maxHp`, w trzech wielkościach każdej statystyki.
+- Runy obejmują tylko `attack` i `maxHp`, w trzech wielkościach każdej statystyki. (Zmienione 2026-10-07: cztery kierunki drzewka run po sześć run, §5.3.)
 - Wrogami na poziomach mogą być zwykłe postacie z gry (formy bohaterów) oraz jednostki specjalne, których gracz nie może zdobyć ani ewoluować.

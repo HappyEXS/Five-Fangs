@@ -19,7 +19,7 @@
       { "slot": 3, "unit": "batfang", "level": 8 },
       { "slot": 4, "unit": "assasinix", "level": 8 }
     ],
-    "rewards": { "gold": 1600 }
+    "rewards": { "gold": 1600, "runeToken": true }
   },
   {
     "id": "w4_l3",
@@ -30,7 +30,7 @@
       { "slot": 3, "unit": "ignitix", "level": 3 },
       { "slot": 4, "unit": "batfang", "level": 3 }
     ],
-    "rewards": { "gold": 1700, "rune": "rune_hp_200" }
+    "rewards": { "gold": 1700 }
   },
   {
     "id": "w4_l4",
@@ -52,17 +52,17 @@
       { "slot": 3, "unit": "spiker", "level": 1 },
       { "slot": 4, "unit": "ignitix", "level": 0 }
     ],
-    "rewards": { "gold": 1900 }
+    "rewards": { "gold": 1900, "runeToken": true }
   },
   {
     "id": "w4_l6",
     "enemies": [
-      { "slot": 0, "unit": "axin_2", "level": 1 },
-      { "slot": 1, "unit": "tuskovator", "level": 0 },
+      { "slot": 0, "unit": "axin_2", "level": 2 },
+      { "slot": 1, "unit": "tuskovator", "level": 3 },
       { "slot": 2, "unit": "reaper", "level": 2 },
-      { "slot": 3, "unit": "ignitix", "level": 2 },
-      { "slot": 4, "unit": "batfang", "level": 2 }
+      { "slot": 3, "unit": "ignitix", "level": 0 },
+      { "slot": 4, "unit": "batfang", "level": 3 }
     ],
-    "rewards": { "gold": 2300, "rune": "rune_attack_25" }
+    "rewards": { "gold": 2300 }
   }
 ]

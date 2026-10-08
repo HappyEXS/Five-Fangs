@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { requireContent } from './load.ts';
-import type { CompiledLevel } from './load-progression.ts';
+import type { CompiledLevel, Rune } from './load-progression.ts';
 import { levelSetup, levelVisuals, resolveUnitSpec } from './resolve-spec.ts';
-import type { Rune } from './schema-progression.ts';
 
 const content = requireContent();
 const { progression } = content;
@@ -24,11 +23,23 @@ const LEVEL: CompiledLevel = {
     { slot: 3, unit: 'archer_a', level: 2 },
   ],
   gold: 0,
-  rune: null,
+  runeToken: false,
 };
 
-const attackRune: Rune = { id: 'rune_attack_25', stat: 'attack', value: 25 };
-const hpRune: Rune = { id: 'rune_hp_200', stat: 'maxHp', value: 200 };
+/** Runa testowa, niezależna od drzewka gry; `bonus` to premia w jednostkach symulacji. */
+const rune = (stat: Rune['stat'], value: number, bonus = value): Rune => ({
+  id: `${stat}_${value}`,
+  branch: stat,
+  depth: 0,
+  stat,
+  value,
+  bonus,
+});
+const attackRune = rune('attack', 25);
+const hpRune = rune('maxHp', 200);
+// 20 jednostek świata odrzutu to 5120 podjednostek; 15 jednostek na sekundę to 128 na tick.
+const pushRune = rune('knockback', 20, 5120);
+const speedRune = rune('moveSpeed', 15, 128);
 
 describe('resolveUnitSpec', () => {
   const swordsman = hero('swordsman_a');
@@ -60,9 +71,32 @@ describe('resolveUnitSpec', () => {
     expect(spec.attack).toBe(28 + 25);
   });
 
+  it('runa odrzutu i runa szybkości dodają premie w jednostkach symulacji', () => {
+    // Miecznik: szybkość 60 (512 podjednostek na tick) i odrzut 15 (3840 podjednostek).
+    expect(swordsman.base).toMatchObject({ moveStep: 512, knockback: 3840 });
+    const spec = resolveUnitSpec(swordsman, 4, [pushRune, speedRune], progression);
+    expect(spec.knockback).toBe(3840 + 5120);
+    expect(spec.moveStep).toBe(512 + 128);
+    // Ulepszenia tych statystyk nie skalują, a życie i atak zostają bez premii.
+    expect(spec).toMatchObject({ maxHp: 224, attack: 28 });
+    expect(resolveUnitSpec(swordsman, 0, [speedRune, speedRune], progression).moveStep).toBe(768);
+  });
+
+  it('runa szybkości nie rusza jednostki, która stoi w miejscu', () => {
+    const bush = hero('bush');
+    expect(bush.base.moveStep).toBe(0);
+    const spec = resolveUnitSpec(bush, 0, [speedRune, pushRune], progression);
+    expect(spec.moveStep).toBe(0);
+    // Pozostałe runy działają na nią jak na każdą inną.
+    expect(spec.knockback).toBe(bush.base.knockback + 5120);
+  });
+
   it('przyzywany rośnie z ulepszeniami przyzywacza, ale nie z jego run', () => {
     const tree = hero('mother_tree');
     expect(resolveUnitSpec(tree, 0, [], progression)).toEqual(tree.base);
+    expect(resolveUnitSpec(tree, 0, [pushRune, speedRune], progression).summon).toEqual(
+      tree.base.summon,
+    );
     const spec = resolveUnitSpec(tree, 4, [attackRune, hpRune], progression);
     expect(spec.maxHp).toBe(14_000 + 200);
     expect(spec.attack).toBe(0 + 25);
@@ -71,7 +105,7 @@ describe('resolveUnitSpec', () => {
     expect(spec.summon?.moveStep).toBe(tree.base.summon?.moveStep);
   });
 
-  it('dwie takie same runy się sumują', () => {
+  it('dwie runy tej samej statystyki się sumują', () => {
     expect(resolveUnitSpec(swordsman, 0, [attackRune, attackRune], progression).attack).toBe(70);
   });
 

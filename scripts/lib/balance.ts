@@ -1,15 +1,17 @@
 // Skrypt balansu poziomów (ADR 0025). Miarą jest złoto: przed każdym poziomem gracz zdobył
 // określoną sumę nagród, a skład odniesienia (reference-plan.ts) pokazuje, co za nią ma. Poziom
 // jest dobrze ustawiony, gdy ten skład wygrywa, a skład sprzed poprzedniej nagrody już nie.
-// Bossowie i poziomy po zamknięciu rozwoju składu wymagają dodatkowo run zdobytych wcześniej.
+// Bossowie i poziomy po zamknięciu rozwoju składu wymagają dodatkowo run: tych, które skład
+// odniesienia odblokował w drzewku za żetony zdobyte wcześniej (reference-runes.ts, ADR 0026).
 // Walka nie ma losowości (ADR 0002), więc jedna walka daje pełną odpowiedź.
 import type { GameContent } from '../../src/content/load.ts';
-import type { CompiledLevel } from '../../src/content/load-progression.ts';
+import type { CompiledLevel, Rune } from '../../src/content/load-progression.ts';
 import { levelSetup, type SquadMember } from '../../src/content/resolve-spec.ts';
-import type { Rune } from '../../src/content/schema-progression.ts';
+import type { RuneStat } from '../../src/content/schema-progression.ts';
 import { TICKS_PER_SECOND } from '../../src/core/units.ts';
 import { type BattleSetup, createBattle, runBattleToEnd, TEAM_SIZE } from '../../src/sim/index.ts';
 import { type PlannedSquad, type Reference, squadForGold, squadLabel } from './reference-plan.ts';
+import { assignRunes, type Holders, runesForTokens, tokensBefore } from './reference-runes.ts';
 
 export interface FightResult {
   readonly win: boolean;
@@ -29,13 +31,13 @@ export interface LevelReport {
   readonly goldBefore: number;
   /** Skład odniesienia przed tym poziomem, np. „5 × B2”. */
   readonly squad: string;
-  /** Liczba run zdobytych przed tym poziomem. */
+  /** Liczba run odblokowanych przed tym poziomem: tyle, ile żetonów gracz zdobył wcześniej. */
   readonly runes: number;
   /** Poziom wymaga run: boss albo poziom po tym, jak skład kupił już wszystko. */
   readonly needsRunes: boolean;
   /** Skład odniesienia bez run. */
   readonly plain: FightResult;
-  /** Skład odniesienia z runami zdobytymi wcześniej. */
+  /** Skład odniesienia z runami odblokowanymi wcześniej według jego planu. */
   readonly runed: FightResult;
   /** Skład sprzed poprzedniej nagrody, bez run; null na pierwszym poziomie gry. */
   readonly previous: FightResult | null;
@@ -63,63 +65,22 @@ export function goldBefore(content: GameContent): number[] {
   return sums;
 }
 
-/** Runy zdobyte przed poziomem o indeksie `index` w kolejności gry. */
-export function earnedRunes(content: GameContent, index: number): Rune[] {
-  const runes: Rune[] = [];
-  for (const level of levelOrder(content).slice(0, index)) {
-    const rune = level.rune === null ? undefined : content.runes.get(level.rune);
-    if (rune !== undefined) runes.push(rune);
-  }
-  return runes;
-}
-
-/**
- * Rozdaje runy składowi odniesienia: runy życia od najmocniejszej idą po kolei od frontu, runy
- * ataku od tyłu; pełny bohater jest pomijany, a nadmiarowe runy zostają niewłożone. Zwraca runy
- * per bohater, w kolejności `squad.members`.
- */
-export function assignRunes(
-  squad: PlannedSquad,
-  runes: readonly Rune[],
-  runeSlots: number,
-): Rune[][] {
-  const given: Rune[][] = squad.members.map(() => []);
-  const bySlot = squad.members.map((member, index) => ({ index, slot: member.slot }));
-  const frontFirst = [...bySlot].sort((a, b) => a.slot - b.slot).map((entry) => entry.index);
-  const deal = (stat: Rune['stat'], order: readonly number[]): void => {
-    const sorted = runes.filter((rune) => rune.stat === stat).sort((a, b) => b.value - a.value);
-    let cursor = 0;
-    for (const rune of sorted) {
-      let tries = 0;
-      while (
-        tries < order.length &&
-        (given[order[cursor % order.length] ?? 0]?.length ?? 0) >= runeSlots
-      ) {
-        cursor++;
-        tries++;
-      }
-      if (tries === order.length) return;
-      given[order[cursor % order.length] ?? 0]?.push(rune);
-      cursor++;
-    }
-  };
-  deal('maxHp', frontFirst);
-  deal('attack', [...frontFirst].reverse());
-  return given;
-}
-
 function totalHp(team: BattleSetup['player']): number {
   return team.reduce((sum, spec) => sum + (spec?.maxHp ?? 0), 0);
 }
 
-/** Walka składu odniesienia z poziomem; `runes` to runy do rozdania składowi. */
+/**
+ * Walka składu odniesienia z poziomem; `runes` to runy do rozdania składowi, `holders` zmienia,
+ * komu idą runy danej statystyki (domyślnie rozdanie składu odniesienia).
+ */
 export function fightLevel(
   content: GameContent,
   level: CompiledLevel,
   squad: PlannedSquad,
   runes: readonly Rune[],
+  holders: Partial<Record<RuneStat, Holders>> = {},
 ): FightResult {
-  const given = assignRunes(squad, runes, content.progression.runeSlots);
+  const given = assignRunes(content, squad, runes, holders);
   const members: (SquadMember | null)[] = Array.from({ length: TEAM_SIZE }, () => null);
   squad.members.forEach((member, index) => {
     const unit = content.heroes.get(member.form);
@@ -169,7 +130,7 @@ export function runBalance(content: GameContent, reference: Reference): LevelRep
       level.index === (content.worlds.find((w) => w.id === level.world)?.levels.length ?? 0) - 1;
     const earlier = index === 0 ? undefined : squads[index - 1];
     const needsRunes = boss || earlier?.maxed === true;
-    const runes = earnedRunes(content, index);
+    const runes = runesForTokens(content, [reference.runes], tokensBefore(levels, index));
     const plain = fightLevel(content, level, squad, []);
     const runed = fightLevel(content, level, squad, runes);
     const previous = earlier === undefined ? null : fightLevel(content, level, earlier, []);
@@ -190,14 +151,38 @@ export function runBalance(content: GameContent, reference: Reference): LevelRep
   });
 }
 
-function resultText(result: FightResult | null): string {
+export function resultText(result: FightResult | null): string {
   if (result === null) return '';
   const mark = result.win ? 'wygrana' : result.reason === 'timeout' ? 'limit czasu' : 'przegrana';
   return `${mark} ${(result.ticks / TICKS_PER_SECOND).toFixed(0)} s, ${result.remainingHpPercent}%`;
 }
 
-/** Raport w Markdown. Bez daty i wersji, żeby różnice między commitami pokazywały tylko zmiany balansu. */
-export function formatBalanceReport(content: GameContent, reports: readonly LevelReport[]): string {
+/** Tabela innych dróg przez drzewko run: nagłówki kolumn i wiersz na poziom wymagający run. */
+export interface PathTable {
+  readonly columns: readonly string[];
+  readonly rows: readonly {
+    readonly level: string;
+    readonly tokens: number;
+    readonly results: readonly (FightResult & { readonly holders: Holders | null })[];
+  }[];
+}
+
+const HOLDER_NAMES: Readonly<Record<Holders, string>> = {
+  front: 'od frontu',
+  back: 'od tyłu',
+  melee: 'walczącym wręcz',
+  ranged: 'strzelcom',
+};
+
+/**
+ * Raport w Markdown. Bez daty i wersji, żeby różnice między commitami pokazywały tylko zmiany
+ * balansu. `paths` dopisuje porównanie dróg przez drzewko run (rune-paths.ts).
+ */
+export function formatBalanceReport(
+  content: GameContent,
+  reports: readonly LevelReport[],
+  paths?: PathTable,
+): string {
   const total = goldBefore(content).at(-1) ?? 0;
   const lines: string[] = [
     '# Raport balansu poziomów',
@@ -208,7 +193,7 @@ export function formatBalanceReport(content: GameContent, reports: readonly Leve
     '',
     'Skład odniesienia wydaje całe złoto zdobyte przed poziomem: najpierw kupuje brakujących bohaterów, potem rozwija wszystkich równo. Rangi w kolumnie „Skład” idą od frontu: litera to stopień formy na głównej drodze ewolucji (A forma bazowa, B pierwsza ewolucja, C druga), cyfra to liczba ulepszeń. Procent przy wyniku to życie, które zostało zwycięskiej stronie.',
     '',
-    'Ocena zwykłego poziomu: skład odniesienia bez run wygrywa, a skład sprzed poprzedniej nagrody przegrywa. Ocena bossa i poziomów po zamknięciu rozwoju składu: bez run przegrana, z runami zdobytymi wcześniej wygrana.',
+    'Ocena zwykłego poziomu: skład odniesienia bez run wygrywa, a skład sprzed poprzedniej nagrody przegrywa. Ocena bossa i poziomów po zamknięciu rozwoju składu: bez run przegrana, z runami wygrana. Runy składu odniesienia to te, które odblokował w drzewku za żetony zdobyte wcześniej (ADR 0026); kolumna „Runy” podaje ich liczbę.',
     '',
     '| Poziom | Złoto przed | Skład | Runy | Bez run | Z runami | Skład sprzed nagrody | Bez run wystarcza złoto od | Ocena |',
     '|---|---|---|---|---|---|---|---|---|',
@@ -217,6 +202,28 @@ export function formatBalanceReport(content: GameContent, reports: readonly Leve
     lines.push(
       `| ${report.level}${report.boss ? ' (boss)' : ''} | ${report.goldBefore} | ${report.squad} | ${report.runes}${report.needsRunes ? ' (wymagane)' : ''} | ${resultText(report.plain)} | ${resultText(report.runed)} | ${resultText(report.previous)} | ${report.enoughFrom ?? 'nigdy'} | ${report.verdict} |`,
     );
+  }
+  if (paths !== undefined) {
+    lines.push(
+      '',
+      '## Inne drogi przez drzewko run',
+      '',
+      'Ten sam skład na poziomach, które wymagają run, gdy żetony wyda inaczej niż plan odniesienia. „Najpierw” znaczy: cały kierunek do końca, potem plan odniesienia. Poziomy są strojone tylko do planu odniesienia; pozostałe kolumny pokazują, ile warte są inne wybory. Runy odrzutu i szybkości jednym bohaterom pomagają, innym szkodzą, a przekłada się je za darmo, więc te kolumny podają najlepsze z czterech rozdań i w nawiasie, komu runy poszły.',
+      '',
+      `| Poziom | Żetony | ${paths.columns.join(' | ')} |`,
+      `|---|---|${paths.columns.map(() => '---').join('|')}|`,
+    );
+    for (const row of paths.rows) {
+      lines.push(
+        `| ${row.level} | ${row.tokens} | ${row.results
+          .map((result) =>
+            result.holders === null
+              ? resultText(result)
+              : `${resultText(result)} (${HOLDER_NAMES[result.holders]})`,
+          )
+          .join(' | ')} |`,
+      );
+    }
   }
   return `${lines.join('\n')}\n`;
 }

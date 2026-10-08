@@ -1,15 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { requireContent } from '../../src/content/load.ts';
-import type { Rune } from '../../src/content/schema-progression.ts';
-import {
-  assignRunes,
-  earnedRunes,
-  fightLevel,
-  formatBalanceReport,
-  goldBefore,
-  levelOrder,
-  runBalance,
-} from './balance.ts';
+import { fightLevel, formatBalanceReport, goldBefore, levelOrder, runBalance } from './balance.ts';
 import {
   purchaseOrder,
   type Reference,
@@ -18,14 +9,19 @@ import {
   squadLabel,
   validateReference,
 } from './reference-plan.ts';
+import { runesForTokens, tokensBefore } from './reference-runes.ts';
 import { loadReference } from './reference-squads.ts';
+import { runePaths, runPaths } from './rune-paths.ts';
 
 const content = requireContent();
 const loaded = loadReference(content);
-const reference: Reference = loaded.reference ?? { squad: [] };
+const reference: Reference = loaded.reference ?? { squad: [], runes: ['hp'] };
 
-const messages = (candidate: Reference) =>
-  validateReference(content, candidate).map((issue) => issue.message);
+/** Problemy składu; plan run, o ile test go nie podaje, jest taki jak w grze. */
+const messages = (candidate: Pick<Reference, 'squad'> & Partial<Reference>) =>
+  validateReference(content, { runes: ['hp', 'attack'], ...candidate }).map(
+    (issue) => issue.message,
+  );
 
 describe('skład odniesienia gry', () => {
   it('jest poprawny: bohaterowie startowi, potem trzej kupieni, każdy na swoim slocie', () => {
@@ -38,6 +34,8 @@ describe('skład odniesienia gry', () => {
       'immortals',
     ]);
     expect(new Set(reference.squad.map((member) => member.slot)).size).toBe(5);
+    // Żetony run idą na zmianę w życie i atak.
+    expect(reference.runes).toEqual(['hp', 'attack']);
   });
 
   it('błąd schematu zwraca problem zamiast składu', () => {
@@ -84,6 +82,15 @@ describe('skład odniesienia gry', () => {
         ],
       }),
     ).toEqual(['beasts: forma "tuskovator" nie powstaje z "monstrosity"']);
+  });
+
+  it('odrzuca plan run z kierunkiem, którego nie ma w drzewku', () => {
+    const squad = reference.squad;
+    expect(messages({ squad, runes: ['hp', 'magia'] })).toEqual([
+      'nieznany kierunek drzewka run "magia"',
+    ]);
+    // Skład bez planu run nie przechodzi schematu.
+    expect(loadReference(content, { squad }).reference).toBeNull();
   });
 });
 
@@ -144,48 +151,6 @@ describe('plan zakupów', () => {
   });
 });
 
-describe('runy składu odniesienia', () => {
-  const rune = (id: string): Rune => {
-    const found = content.runes.get(id);
-    if (found === undefined) throw new Error(id);
-    return found;
-  };
-
-  it('zdobyte runy to nagrody wcześniejszych poziomów, w kolejności gry', () => {
-    expect(earnedRunes(content, 0)).toEqual([]);
-    expect(earnedRunes(content, 2)).toEqual([]);
-    // Pierwsza runa jest nagrodą trzeciego poziomu.
-    expect(earnedRunes(content, 3).map((entry) => entry.id)).toEqual(['rune_hp_100']);
-    expect(earnedRunes(content, 36)).toHaveLength(12);
-  });
-
-  it('życie idzie od frontu, atak od tyłu, najmocniejsze pierwsze; nadmiar zostaje', () => {
-    const squad = squadForGold(content, reference, 600);
-    const bySlot = (given: Rune[][]) =>
-      Object.fromEntries(
-        squad.members.map((member, index) => [member.slot, given[index]?.map((r) => r.id)]),
-      );
-    const some = [rune('rune_hp_100'), rune('rune_attack_10'), rune('rune_hp_200')];
-    expect(bySlot(assignRunes(squad, some, 2))).toEqual({
-      0: ['rune_hp_200'],
-      1: ['rune_hp_100'],
-      2: [],
-      3: [],
-      4: ['rune_attack_10'],
-    });
-    // Jedenaście run na dziesięć gniazd: każdy bohater ma dwie, najsłabsza zostaje.
-    const many = [
-      ...Array.from({ length: 6 }, () => rune('rune_hp_100')),
-      ...Array.from({ length: 5 }, () => rune('rune_attack_10')),
-    ];
-    const given = assignRunes(squad, many, 2);
-    expect(given.every((list) => list.length === 2)).toBe(true);
-    // Dwóch bohaterów nie dostaje więcej, niż mają gniazd.
-    const duo = squadForGold(content, reference, 0);
-    expect(assignRunes(duo, many, 2).map((list) => list.length)).toEqual([2, 2]);
-  });
-});
-
 describe('runBalance', () => {
   const reports = runBalance(content, reference);
   const levels = levelOrder(content);
@@ -216,7 +181,11 @@ describe('runBalance', () => {
     if (level === undefined || report === undefined) throw new Error('no level');
     const squad = squadForGold(content, reference, report.goldBefore);
     expect(fightLevel(content, level, squad, [])).toEqual(report.plain);
-    expect(fightLevel(content, level, squad, earnedRunes(content, 5))).toEqual(report.runed);
+    // Przed bossem pierwszego świata gracz ma dwa żetony: runę życia i runę ataku.
+    const runes = runesForTokens(content, [reference.runes], tokensBefore(levels, 5));
+    expect(runes.map((rune) => rune.id)).toEqual(['hp_1', 'attack_1']);
+    expect(report.runes).toBe(2);
+    expect(fightLevel(content, level, squad, runes)).toEqual(report.runed);
   });
 
   it('jest deterministyczny', () => {
@@ -230,5 +199,20 @@ describe('runBalance', () => {
     expect(text).toContain('w6_l6 (boss)');
     expect(text.split('\n').filter((line) => line.startsWith('| w')).length).toBe(36);
     expect(text).not.toMatch(/20\d\d-\d\d-\d\d/);
+    expect(text).not.toContain('Inne drogi');
+  });
+
+  it('raport z tabelą dróg dopisuje wiersz na każdy poziom wymagający run', () => {
+    const rows = runPaths(content, reference, reports);
+    const columns = runePaths(content, reference).map((path) => path.id);
+    const text = formatBalanceReport(content, reports, { columns, rows });
+    expect(text).toContain('## Inne drogi przez drzewko run');
+    expect(text).toContain(
+      '| Poziom | Żetony | reference | hp | attack | knockback | speed | all |',
+    );
+    const table = text.slice(text.indexOf('## Inne drogi'));
+    expect(table.split('\n').filter((line) => line.startsWith('| w')).length).toBe(rows.length);
+    // Droga w odrzut albo szybkość podaje, komu runy poszły.
+    expect(table).toMatch(/\((od frontu|od tyłu|walczącym wręcz|strzelcom)\) \|/);
   });
 });

@@ -1,10 +1,11 @@
-// Reguły rozmieszczenia przeciwników i nagród z decyzji autora gry (ADR 0025), sprawdzane na
-// treści gry. Test nie przypina liczb poziomów: pilnuje zasad, które mają przetrwać strojenie.
+// Reguły rozmieszczenia przeciwników, nagród i drzewka run z decyzji autora gry (ADR 0025
+// i 0026), sprawdzane na treści gry. Test nie przypina liczb poziomów: pilnuje zasad, które mają przetrwać strojenie.
 import { describe, expect, it } from 'vitest';
 import { requireContent } from '../../src/content/load.ts';
 import { goldBefore, levelOrder, runBalance } from './balance.ts';
 import { squadForGold, squadLabel } from './reference-plan.ts';
 import { loadReference } from './reference-squads.ts';
+import { runePaths, runPaths } from './rune-paths.ts';
 
 const content = requireContent();
 const { reference } = loadReference(content);
@@ -60,13 +61,48 @@ describe('nagrody', () => {
     expect(worldGold[5]).toBeGreaterThan(20_000);
   });
 
-  it('runa życia czeka na trzecim poziomie każdego świata, runa ataku u bossa', () => {
+  it('żeton run czeka na drugim i piątym poziomie każdego świata: dwanaście w całej grze', () => {
     for (const world of worlds) {
-      const runes = world.map((level) =>
-        level.rune === null ? null : content.runes.get(level.rune)?.stat,
-      );
-      expect(runes, world[0]?.world).toEqual([null, null, 'maxHp', null, null, 'attack']);
+      expect(
+        world.map((level) => level.runeToken),
+        world[0]?.world,
+      ).toEqual([false, true, false, false, true, false]);
     }
+    expect(levels.filter((level) => level.runeToken)).toHaveLength(12);
+  });
+});
+
+describe('drzewko run', () => {
+  it('ma cztery kierunki po sześć run: żetonów starcza na połowę drzewka', () => {
+    expect(content.runeTree.map((branch) => branch.stat)).toEqual([
+      'maxHp',
+      'attack',
+      'knockback',
+      'moveSpeed',
+    ]);
+    for (const branch of content.runeTree) expect(branch.runes, branch.id).toHaveLength(6);
+    expect(content.runes.size).toBe(2 * levels.filter((level) => level.runeToken).length);
+  });
+
+  it('gracz może przejść do końca dwa kierunki albo każdy do połowy', () => {
+    const tokens = levels.filter((level) => level.runeToken).length;
+    const depth = content.runeTree[0]?.runes.length ?? 0;
+    expect(tokens).toBe(2 * depth);
+    expect(tokens).toBe(content.runeTree.length * (depth / 2));
+  });
+
+  it('najszybszy bohater z dwiema najmocniejszymi runami szybkości nie mija wroga', () => {
+    // Ten sam warunek sprawdza walidator treści (content-sim-checks.ts).
+    const speed = content.runeTree.find((branch) => branch.stat === 'moveSpeed');
+    const best = [...(speed?.runes ?? [])]
+      .sort((a, b) => b.bonus - a.bonus)
+      .slice(0, content.progression.runeSlots)
+      .reduce((sum, rune) => sum + rune.bonus, 0);
+    const fastest = Math.max(...[...content.heroes.values()].map((unit) => unit.base.moveStep));
+    const shortest = Math.min(
+      ...[...content.heroes.values(), ...content.enemies.values()].map((unit) => unit.base.range),
+    );
+    expect(fastest + best).toBeLessThanOrEqual(shortest);
   });
 });
 
@@ -170,7 +206,7 @@ describe('trudność', () => {
     }
   });
 
-  it('boss i poziomy Cytadeli: bez run przegrana, z runami zdobytymi wcześniej wygrana', () => {
+  it('boss i poziomy Cytadeli: bez run przegrana, z runami z drzewka wygrana', () => {
     const hard = reports.filter((entry) => entry.needsRunes);
     expect(hard.map((report) => report.level)).toEqual([
       'w1_l6',
@@ -190,6 +226,21 @@ describe('trudność', () => {
       expect(report.runed.win, report.level).toBe(true);
       expect(report.runes, report.level).toBeGreaterThan(0);
     }
+    // Przed bossem świata gracz ma oba żetony tego świata.
+    expect(hard.slice(0, 6).map((report) => report.runes)).toEqual([2, 4, 6, 8, 10, 10]);
+  });
+
+  it('żaden kierunek drzewka nie jest bezużyteczny: każdy, brany najpierw, wygrywa kilka poziomów wymagających run', () => {
+    const paths = runePaths(content, reference);
+    const rows = runPaths(content, reference, reports);
+    const wins = (index: number): number => rows.filter((row) => row.results[index]?.win).length;
+    expect(paths[0]?.id).toBe('reference');
+    // Poziomy są strojone do planu odniesienia, więc on wygrywa wszystkie.
+    expect(wins(0)).toBe(rows.length);
+    content.runeTree.forEach((branch, index) => {
+      expect(paths[index + 1]?.id).toBe(branch.id);
+      expect(wins(index + 1), branch.id).toBeGreaterThanOrEqual(3);
+    });
   });
 
   it('wygrana nie wisi na limicie czasu', () => {

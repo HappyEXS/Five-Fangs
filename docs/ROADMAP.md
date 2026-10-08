@@ -282,6 +282,19 @@ Autor gry: nagrody są zbyt wysokie, pierwsze poziomy nowych światów zbyt łat
 
 Poza zakresem: finałowy boss gry (autor zaprojektuje), podpowiedź o zakupie trzeciego bohatera, siła run, ułamek złota za powtórki.
 
+## M5r – Karta formy bez porównań; drzewko run (2026-10-07)
+
+Autor gry: karta formy w Bohaterach ma pokazywać same statystyki tej formy, bo strzałki i zielone liczby myliły. Do tego system runowy: żeton run za drugi i piąty poziom świata, a w sklepie drzewko run, w którym gracz wybiera runy; im dalej w kierunku, tym mocniejsze. Jego decyzje: kierunki to życie, atak, odrzut i szybkość, wartości płaskie, żeton odblokowuje następną runę wybranego kierunku, runy wkłada się jak dotąd w dwa gniazda bohatera (ADR 0026).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5r-1 | Karta formy w Bohaterach bez porównania z poprzednią formą | 0,25 | Test e2e: karta bez strzałek i bez przycisku „i”, same liczby formy | gotowe |
+| M5r-2 | Drzewko run w treści i regułach gry: cztery kierunki po sześć run w `runes.json`, żeton run w nagrodach poziomów, żetony liczone z postępu, runy odrzutu i szybkości w statystykach, zapis v5 z migracją dawnych run | 1,5 | Testy kompilacji drzewka, reguł żetonów i odblokowywania, statystyk z runami; plik `v5.json` i test migracji z v4; walidator sprawdza drzewko i krok najszybszego bohatera z runami | gotowe |
+| M5r-3 | Balans z drzewkiem: plan run składu odniesienia, wartości run z pomiaru, bossowie i Cytadela przestrojeni, raport z tabelą innych dróg przez drzewko | 1 | `pnpm balance`: 36 poziomów „zgodnych”; test reguł: 12 żetonów, 24 runy, każdy kierunek wygrywa kilka poziomów wymagających run | gotowe (wartości do oceny autora) |
+| M5r-4 | Drzewko run w sklepie z potwierdzeniem wzięcia runy; żeton na zakładce sklepu, tabliczce poziomu i ekranie wyniku; cztery kolory run | 1 | Testy e2e `runes.spec.ts`: żeton, wybór runy, runa w gnieździe, małe okno i język angielski | gotowe (wygląd do oceny autora) |
+
+Poza zakresem: cofanie wyboru w drzewku, inne działanie run odrzutu i szybkości (w obecnych regułach walki pomagają tylko w części walk), finałowy boss gry.
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |

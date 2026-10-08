@@ -31,6 +31,7 @@
 }
 
 .rail-btn {
+  position: relative;
   justify-content: flex-start;
   width: 7.4em;
   padding-left: 0.55em;

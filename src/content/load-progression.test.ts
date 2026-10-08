@@ -116,13 +116,9 @@ describe('dane progresji gry', () => {
     // Wrogami są tu zwykłe postacie gry: formy bohaterów.
     expect(second?.enemies.map((enemy) => enemy.unit)).toEqual(['swordsman_a', 'archer_a']);
     expect(second?.gold).toBeGreaterThan(0);
-    expect(content?.levels.get('w1_l1')?.rune).toBeNull();
-    expect(content?.levels.get('w1_l3')?.rune).toBe('rune_hp_100');
-    expect(content?.runes.get('rune_attack_25')).toEqual({
-      id: 'rune_attack_25',
-      stat: 'attack',
-      value: 25,
-    });
+    // Żeton run jest flagą nagrody; które poziomy go dają, pilnuje test reguł balansu.
+    expect(second?.runeToken).toBe(true);
+    expect(content?.levels.get('w1_l1')?.runeToken).toBe(false);
   });
 });
 
@@ -333,10 +329,19 @@ describe('walidacja światów i poziomów', () => {
     expect(withLevels(sixLevels({ enemies: hero }))).toEqual([]);
   });
 
-  it('sprawdza runę w nagrodzie', () => {
-    expect(withLevels(sixLevels({ rewards: { gold: 5, rune: 'rune_of_nothing' } }))).toEqual([
-      'levels/world_1.json: t1: nieznana runa "rune_of_nothing"',
-    ]);
+  it('nagrodą może być żeton run, ale nie konkretna runa', () => {
+    const load = (rewards: Record<string, unknown>) =>
+      loadContent({
+        ...rawContent,
+        'worlds.json': ONE_WORLD,
+        levels: { world_1: sixLevels({ rewards }) },
+      });
+    const withToken = load({ gold: 5, runeToken: true });
+    expect(withToken.issues).toEqual([]);
+    expect(withToken.content?.levels.get('t1')?.runeToken).toBe(true);
+    expect(withToken.content?.levels.get('t2')?.runeToken).toBe(false);
+    // Runy odblokowuje się w drzewku (ADR 0026); dawne pole nagrody jest błędem danych.
+    expect(load({ gold: 5, rune: 'hp_1' }).issues).not.toEqual([]);
   });
 
   it('odrzuca poziom bez wrogów, slot spoza zakresu i ujemne złoto', () => {
@@ -351,11 +356,7 @@ describe('walidacja światów i poziomów', () => {
     expect(load({ rewards: { gold: -1 } }).issues).not.toEqual([]);
   });
 
-  it('odrzuca powtórzone id runy i świata', () => {
-    const rune = { id: 'rune_attack_25', stat: 'attack', value: 25 };
-    expect(messages({ 'runes.json': [rune, rune] })).toContain(
-      'runes.json: powtórzone id "rune_attack_25"',
-    );
+  it('odrzuca powtórzone id świata', () => {
     expect(
       messages({
         'worlds.json': [...ONE_WORLD, ...ONE_WORLD],

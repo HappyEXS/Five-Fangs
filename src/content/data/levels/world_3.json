@@ -19,7 +19,7 @@
       { "slot": 3, "unit": "bush", "level": 2 },
       { "slot": 4, "unit": "bush", "level": 3 }
     ],
-    "rewards": { "gold": 750 }
+    "rewards": { "gold": 750, "runeToken": true }
   },
   {
     "id": "w3_l3",
@@ -30,7 +30,7 @@
       { "slot": 3, "unit": "ivy", "level": 1 },
       { "slot": 4, "unit": "ivy", "level": 0 }
     ],
-    "rewards": { "gold": 850, "rune": "rune_hp_200" }
+    "rewards": { "gold": 850 }
   },
   {
     "id": "w3_l4",
@@ -52,17 +52,17 @@
       { "slot": 3, "unit": "ivy", "level": 0 },
       { "slot": 4, "unit": "bush", "level": 2 }
     ],
-    "rewards": { "gold": 1600 }
+    "rewards": { "gold": 1600, "runeToken": true }
   },
   {
     "id": "w3_l6",
     "enemies": [
       { "slot": 0, "unit": "axin_1", "level": 4 },
       { "slot": 1, "unit": "oak_warrior", "level": 3 },
-      { "slot": 2, "unit": "trunk", "level": 4 },
-      { "slot": 3, "unit": "ivy", "level": 3 },
+      { "slot": 2, "unit": "trunk", "level": 3 },
+      { "slot": 3, "unit": "ivy", "level": 4 },
       { "slot": 4, "unit": "bush", "level": 4 }
     ],
-    "rewards": { "gold": 1600, "rune": "rune_attack_25" }
+    "rewards": { "gold": 1600 }
   }
 ]

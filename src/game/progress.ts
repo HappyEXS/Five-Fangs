@@ -3,9 +3,8 @@
 // zapis albo null, gdy akcja jest niedozwolona. UI tylko je wywołuje.
 import type { Language } from '../content/i18n/index.ts';
 import type { GameContent } from '../content/load.ts';
-import type { CompiledLine } from '../content/load-progression.ts';
+import type { CompiledLine, Rune } from '../content/load-progression.ts';
 import { resolveUnitSpec, type SquadMember } from '../content/resolve-spec.ts';
-import type { Rune } from '../content/schema-progression.ts';
 import { mulDivFloor } from '../core/int.ts';
 import type { UnitSpec } from '../sim/types.ts';
 import { type HeroState, SAVE_VERSION, type Save, SQUAD_SLOTS } from './save-schema.ts';
@@ -57,7 +56,8 @@ export function reconcileSave(content: GameContent, save: Save): Save {
   for (const [id, state] of Object.entries(save.levels)) {
     if (content.levels.has(id)) levels[id] = state;
   }
-  const owned = save.runes.filter((id) => content.runes.has(id));
+  // Każda runa drzewka istnieje raz: powtórzenie w zapisie nie daje drugiego egzemplarza.
+  const owned = [...new Set(save.runes)].filter((id) => content.runes.has(id));
   const available = new Map<string, number>();
   for (const id of owned) available.set(id, (available.get(id) ?? 0) + 1);
 
@@ -170,8 +170,8 @@ export function worldEntryLevel(content: GameContent, save: Save, worldId: strin
 export interface Rewards {
   readonly firstClear: boolean;
   readonly gold: number;
-  /** Runa za pierwsze przejście albo null. */
-  readonly rune: string | null;
+  /** Żeton run za pierwsze przejście (wydaje się go w drzewku run, runes.ts). */
+  readonly runeToken: boolean;
 }
 
 /** Nagrody, które da wygrana na poziomie przy bieżącym zapisie. */
@@ -180,12 +180,15 @@ export function victoryRewards(content: GameContent, save: Save, levelId: string
   if (level === undefined) return null;
   if (isLevelCleared(save, levelId)) {
     const gold = mulDivFloor(level.gold, content.progression.replayGoldPercent, 100);
-    return { firstClear: false, gold, rune: null };
+    return { firstClear: false, gold, runeToken: false };
   }
-  return { firstClear: true, gold: level.gold, rune: level.rune };
+  return { firstClear: true, gold: level.gold, runeToken: level.runeToken };
 }
 
-/** Zapis po wygranej w `ticks` tickach. Null, gdy poziom nie istnieje albo jest zablokowany. */
+/**
+ * Zapis po wygranej w `ticks` tickach. Null, gdy poziom nie istnieje albo jest zablokowany.
+ * Żetonu run zapis nie przechowuje: wynika z przeszłych poziomów (runes.ts).
+ */
 export function applyVictory(
   content: GameContent,
   save: Save,
@@ -200,7 +203,6 @@ export function applyVictory(
     save: {
       ...save,
       gold: save.gold + rewards.gold,
-      runes: rewards.rune === null ? save.runes : [...save.runes, rewards.rune],
       levels: {
         ...save.levels,
         [levelId]: { cleared: true, bestTicks: best === null ? ticks : Math.min(best, ticks) },

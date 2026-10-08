@@ -1,13 +1,19 @@
-// Okienko nad polem bohatera na ekranie składu: wybór runy albo drogi ewolucji. Zamyka się
+// Okienko przy tym, czego dotyczy wybór: nad polem bohatera na ekranie składu (wybór runy albo
+// drogi ewolucji) albo pod runą drzewka w sklepie (potwierdzenie wydania żetonu). Zamyka się
 // po wyborze, Escape albo kliknięciu poza okienkiem; fokus wraca do przycisku, który je otworzył.
-// Stoi nad swoim polem, ale nigdy nie wychodzi poza scenę (keep-inside.ts).
+// Nigdy nie wychodzi poza scenę (keep-inside.ts).
 import type { ComponentChildren } from 'preact';
 import { useLayoutEffect, useRef } from 'preact/hooks';
 import { useKeepInside } from './keep-inside.ts';
 
 export interface FieldAnchor {
-  /** Środek pola bohatera jako ułamek szerokości sceny. */
+  /** Środek kotwicy (pola bohatera, runy drzewka) jako ułamek szerokości sceny. */
   readonly at: number;
+  /**
+   * Dolna krawędź kotwicy jako ułamek wysokości sceny: okienko wisi pod nią. Bez tego pola stoi
+   * nad polem bohatera, na wysokości z CSS.
+   */
+  readonly below?: number;
   /** Przycisk, który otworzył okienko; do niego wraca fokus. */
   readonly opener: HTMLElement;
 }
@@ -54,7 +60,13 @@ export function FieldPopup(props: {
   }, [anchor, onClose]);
 
   return (
-    <div ref={box} class={`sheet field-popup ${props.kind}`} role="dialog" aria-label={props.label}>
+    <div
+      ref={box}
+      class={`sheet field-popup ${props.kind}`}
+      role="dialog"
+      aria-label={props.label}
+      style={anchor.below === undefined ? undefined : { '--popup-below': `${anchor.below * 100}%` }}
+    >
       {props.children}
     </div>
   );

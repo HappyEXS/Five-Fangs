@@ -89,27 +89,22 @@ describe('nextPurchase', () => {
 });
 
 describe('runeStock', () => {
-  it('grupuje wolne runy po id: życie przed atakiem, rosnąco po wartości', () => {
-    const save = rich(['rune_attack_25', 'rune_hp_200', 'rune_attack_10', 'rune_hp_200']);
-    expect(runeStock(content, save).map(({ rune, count }) => [rune.id, count])).toEqual([
-      ['rune_hp_200', 2],
-      ['rune_attack_10', 1],
-      ['rune_attack_25', 1],
+  it('podaje wolne runy w kolejności drzewka: kierunek po kierunku, od najsłabszej', () => {
+    const save = rich(['speed_1', 'attack_2', 'hp_2', 'attack_1', 'knockback_1', 'hp_1']);
+    expect(runeStock(content, save).map((rune) => rune.id)).toEqual([
+      'hp_1',
+      'hp_2',
+      'attack_1',
+      'attack_2',
+      'knockback_1',
+      'speed_1',
     ]);
   });
 
   it('pomija runy włożone bohaterom i nieznane treści gry', () => {
-    const save = equipRune(
-      content,
-      rich(['rune_hp_100', 'rune_hp_100', 'gone']),
-      SWORD,
-      0,
-      'rune_hp_100',
-    );
+    const save = equipRune(content, rich(['hp_1', 'hp_2', 'gone']), SWORD, 0, 'hp_1');
     if (save === null) throw new Error('equip refused');
-    expect(runeStock(content, save).map(({ rune, count }) => [rune.id, count])).toEqual([
-      ['rune_hp_100', 1],
-    ]);
+    expect(runeStock(content, save).map((rune) => rune.id)).toEqual(['hp_2']);
   });
 
   it('bez wolnych run daje pustą listę', () => {

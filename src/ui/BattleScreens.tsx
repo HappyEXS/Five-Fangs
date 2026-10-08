@@ -9,9 +9,9 @@ import { t, tName } from '../game/i18n.ts';
 import type { Rewards } from '../game/progress.ts';
 import type { BattleSpeed } from '../game/save-schema.ts';
 import { formatBattleTime } from '../game/stats.ts';
-import { formatNumber, runeColor, runeLabel, unitName } from './common.tsx';
+import { formatNumber, unitName } from './common.tsx';
 import type { Gate } from './gate.ts';
-import { Coin, FangMark } from './icons.tsx';
+import { Coin, FangMark, RuneMark } from './icons.tsx';
 import { Portrait } from './Portrait.tsx';
 
 const SPEEDS: readonly BattleSpeed[] = [1, 2, 4];
@@ -92,7 +92,6 @@ export function BattleHud(props: { game: Game; gate: Gate; stage: StageControls;
 
 function RewardList(props: { game: Game; rewards: Rewards }) {
   const { game, rewards } = props;
-  const rune = rewards.rune === null ? undefined : game.content.runes.get(rewards.rune);
   return (
     <>
       <ul class="rewards">
@@ -100,10 +99,10 @@ function RewardList(props: { game: Game; rewards: Rewards }) {
           <Coin />
           {t('result.reward.gold', { gold: formatNumber(rewards.gold) })}
         </li>
-        {rune !== undefined && (
-          <li class="reward">
-            <span>{t('result.reward.rune')}</span>
-            <span class={`rune-tag ${runeColor(rune)}`}>{runeLabel(rune)}</span>
+        {rewards.runeToken && (
+          <li class="reward" data-reward="rune-token">
+            <RuneMark />
+            {t('reward.runeToken')}
           </li>
         )}
       </ul>

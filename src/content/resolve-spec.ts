@@ -4,8 +4,8 @@ import { mulDivFloor } from '../core/int.ts';
 import type { BattleSetup, UnitSpec } from '../sim/types.ts';
 import type { CompiledUnit, UnitVisual } from './compile.ts';
 import type { GameContent } from './load.ts';
-import type { CompiledLevel } from './load-progression.ts';
-import type { Progression, Rune } from './schema-progression.ts';
+import type { CompiledLevel, Rune } from './load-progression.ts';
+import type { Progression } from './schema-progression.ts';
 
 /** Liczba slotów drużyny; musi zgadzać się z TEAM_SIZE symulacji (pilnuje tego validateSetup). */
 const TEAM_SLOTS = 5;
@@ -13,7 +13,9 @@ const TEAM_SLOTS = 5;
 /**
  * Specyfikacja jednostki po ulepszeniach i runach. `rank` to liczba ulepszeń formy bohatera
  * albo poziom wroga: każdy punkt dodaje `upgradePercent` procent bazowego maxHp i attack
- * (zaokrąglenie w dół). Runy dodają wartości płaskie po przeliczeniu ulepszeń.
+ * (zaokrąglenie w dół). Runy dodają wartości płaskie po przeliczeniu ulepszeń: do życia, ataku,
+ * odrzutu (który jest zarazem oporem przed odrzutem) i szybkości ruchu. Runa szybkości nie rusza
+ * jednostki, która z założenia stoi w miejscu.
  * Jednostka przyzywana przez przyzywacza rośnie z jego ulepszeniami tak samo; runy przyzywacza
  * jej nie dotyczą.
  */
@@ -26,15 +28,32 @@ export function resolveUnitSpec(
   const scale = 100 + rank * progression.upgradePercent;
   let maxHp = mulDivFloor(unit.base.maxHp, scale, 100);
   let attack = mulDivFloor(unit.base.attack, scale, 100);
+  let { knockback, moveStep } = unit.base;
   for (const rune of runes) {
-    if (rune.stat === 'maxHp') maxHp += rune.value;
-    else attack += rune.value;
+    switch (rune.stat) {
+      case 'maxHp':
+        maxHp += rune.bonus;
+        break;
+      case 'attack':
+        attack += rune.bonus;
+        break;
+      case 'knockback':
+        knockback += rune.bonus;
+        break;
+      case 'moveSpeed':
+        // Krok 0 to decyzja projektu postaci (rośliny, wieżyczki): ma zasięg na całe pole
+        // i szyk liczy na to, że zostanie w miejscu.
+        if (unit.base.moveStep > 0) moveStep += rune.bonus;
+        break;
+    }
   }
   const { summon } = unit.base;
   return {
     ...unit.base,
     maxHp,
     attack,
+    knockback,
+    moveStep,
     summon:
       summon === null
         ? null

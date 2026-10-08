@@ -22,6 +22,7 @@ import {
   removeFromSquad,
   worldEntryLevel,
 } from './progress.ts';
+import { unlockRune } from './runes.ts';
 import { decodeSave, loadSave, type SaveStorage, storeSave } from './save.ts';
 import type { BattleSpeed, Save } from './save-schema.ts';
 
@@ -108,6 +109,8 @@ export interface Game {
   /** Ewolucja w formę `target`, jedną z dróg wychodzących z bieżącej formy bohatera. */
   evolve(hero: number, target: string): boolean;
   equipRune(hero: number, slot: number, rune: string | null): boolean;
+  /** Wydaje żeton run na runę drzewka. False, gdy brak żetonu albo runa nie jest następna. */
+  unlockRune(rune: string): boolean;
   placeInSquad(hero: number, slot: number): boolean;
   removeFromSquad(slot: number): void;
   setLanguage(lang: Language): void;
@@ -218,6 +221,7 @@ export function createGame(options: GameOptions): Game {
     upgrade: (hero) => attempt(applyUpgrade(content, save.value, hero)),
     evolve: (hero, target) => attempt(applyEvolve(content, save.value, hero, target)),
     equipRune: (hero, slot, rune) => attempt(equipRune(content, save.value, hero, slot, rune)),
+    unlockRune: (rune) => attempt(unlockRune(content, save.value, rune)),
     placeInSquad: (hero, slot) => attempt(placeInSquad(save.value, hero, slot)),
     removeFromSquad(slot) {
       commit(removeFromSquad(save.value, slot));

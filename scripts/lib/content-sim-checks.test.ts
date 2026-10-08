@@ -44,6 +44,19 @@ describe('contentSimIssues', () => {
     expect(issues[0]).toContain('"archer"');
   });
 
+  it('odrzuca runy szybkości, z którymi najszybszy bohater mógłby minąć wroga', () => {
+    const tree = (values: number[]) => ({
+      'runes.json': { branches: [{ id: 'speed', stat: 'moveSpeed', values }] },
+    });
+    // Najszybszy bohater gry ma 130 jednostek na sekundę; wręcz sięga się na 30 jednostek, czyli
+    // krok nie może przekroczyć 900 jednostek na sekundę. Liczą się dwie najmocniejsze runy.
+    expect(issuesFor(tree([15, 375, 390]))).toEqual([]);
+    const issues = issuesFor(tree([15, 390, 405]));
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toContain('runes.json: krok ruchu "whirl_bot" z runami szybkości');
+    expect(issues[0]).toContain('mogłyby się minąć');
+  });
+
   it('odrzuca skład, który przepełniłby pulę pocisków', () => {
     const slowArrow = {
       id: 'shoot',

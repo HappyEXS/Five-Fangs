@@ -13,12 +13,13 @@ import {
   previousLevel,
   victoryRewards,
 } from '../game/progress.ts';
+import { runeTokens } from '../game/runes.ts';
 import { SQUAD_SLOTS } from '../game/save-schema.ts';
 import { stageFraction } from '../game/stage-geometry.ts';
 import { formatBattleTime } from '../game/stats.ts';
-import { Gold, Purse, runeColor, runeLabel, unitName } from './common.tsx';
+import { Gold, Purse, unitName } from './common.tsx';
 import type { Gate } from './gate.ts';
-import { BookIcon, FangMark, Gear, SquadIcon, TagIcon } from './icons.tsx';
+import { BookIcon, FangMark, Gear, RuneMark, SquadIcon, TagIcon } from './icons.tsx';
 import { Trail } from './MapTrail.tsx';
 import { Settings } from './Settings.tsx';
 import { WorldArrow, WorldHead } from './WorldNav.tsx';
@@ -32,7 +33,6 @@ function Plaque(props: { game: Game; level: string }) {
   const save = game.save.value;
   const rewards = victoryRewards(content, save, level);
   if (rewards === null) return null;
-  const rune = rewards.rune === null ? undefined : content.runes.get(rewards.rune);
   const best = save.levels[level]?.bestTicks ?? null;
   return (
     <section class="plaque" data-details={level}>
@@ -41,7 +41,12 @@ function Plaque(props: { game: Game; level: string }) {
       <p class="plaque-reward">
         <span>{t(rewards.firstClear ? 'map.reward' : 'map.reward.replay')}</span>
         <Gold amount={rewards.gold} />
-        {rune !== undefined && <span class={`rune-tag ${runeColor(rune)}`}>{runeLabel(rune)}</span>}
+        {rewards.runeToken && (
+          <span class="token-reward">
+            <RuneMark />
+            {t('reward.runeToken')}
+          </span>
+        )}
         {best !== null && (
           <span class="plaque-best">{t('map.best', { time: formatBattleTime(best) })}</span>
         )}
@@ -62,6 +67,8 @@ export function MapScreen(props: { game: Game; gate: Gate; selected: string | nu
     content.worlds.findIndex((world) => world.id === level?.world),
   );
   const empty = isSquadEmpty(save);
+  // Żeton do wydania widać na zakładce sklepu: tam jest drzewko run.
+  const tokens = runeTokens(content, save);
   // Zablokowany poziom można obejrzeć (przeciwnicy, nagroda), ale nie da się na nim walczyć.
   const locked = selected !== null && !isLevelUnlocked(content, save, selected);
   const unlocksAfter = locked && selected !== null ? previousLevel(content, selected) : null;
@@ -100,10 +107,19 @@ export function MapScreen(props: { game: Game; gate: Gate; selected: string | nu
           type="button"
           class="btn rail-btn"
           data-nav="shop"
+          aria-label={
+            tokens > 0 ? `${t('nav.shop')}: ${t('runes.tokens', { count: tokens })}` : undefined
+          }
           onClick={() => game.go({ name: 'shop' })}
         >
           <TagIcon />
           {t('nav.shop')}
+          {tokens > 0 && (
+            <span class="rail-badge" data-tokens={tokens}>
+              <RuneMark />
+              {tokens}
+            </span>
+          )}
         </button>
         <button
           type="button"

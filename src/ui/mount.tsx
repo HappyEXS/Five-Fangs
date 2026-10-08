@@ -7,6 +7,7 @@ import './styles/base.css';
 import './styles/components.css';
 import './styles/map.css';
 import './styles/squad.css';
+import './styles/runes.css';
 import './styles/screens.css';
 import './styles/dialogs.css';
 import './styles/gate.css';

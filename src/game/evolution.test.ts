@@ -85,22 +85,22 @@ describe('evolveOptions i applyEvolve', () => {
   });
 
   it('ewolucja wymaga złota i zachowuje runy', () => {
-    let save: Save = { ...rich(200), runes: ['rune_hp_200'] };
-    save = equipRune(content, save, SWORD, 1, 'rune_hp_200') ?? save;
+    let save: Save = { ...rich(200), runes: ['hp_2'] };
+    save = equipRune(content, save, SWORD, 1, 'hp_2') ?? save;
     save = upgraded(save);
     expect(save.gold).toBe(0);
     expect(applyEvolve(content, save, SWORD, 'swordsman_b')).toBeNull();
     expect(applyEvolve(content, { ...save, gold: 399 }, SWORD, 'swordsman_b')).toBeNull();
     const evolved = applyEvolve(content, { ...save, gold: 400 }, SWORD, 'swordsman_b');
-    expect(evolved?.heroes[0]?.runes).toEqual([null, 'rune_hp_200']);
+    expect(evolved?.heroes[0]?.runes).toEqual([null, 'hp_2']);
   });
 
   it('podgląd ewolucji liczy formę docelową bez ulepszeń, z runami bohatera', () => {
-    let save: Save = { ...rich(1000), runes: ['rune_hp_200'] };
-    save = equipRune(content, save, SWORD, 0, 'rune_hp_200') ?? save;
+    let save: Save = { ...rich(1000), runes: ['hp_2'] };
+    save = equipRune(content, save, SWORD, 0, 'hp_2') ?? save;
     const knight = content.heroes.get('swordsman_b');
     expect(previewEvolve(content, save, SWORD, 'swordsman_b')?.maxHp).toBe(
-      (knight?.base.maxHp ?? 0) + 200,
+      (knight?.base.maxHp ?? 0) + (content.runes.get('hp_2')?.value ?? 0),
     );
     expect(previewEvolve(content, save, SWORD, 'archer_b')).toBeNull();
   });
