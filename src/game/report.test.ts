@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { compileUnit } from '../content/compile.ts';
 import { requireContent } from '../content/load.ts';
 import { levelSetup } from '../content/resolve-spec.ts';
 import { newSave, squadMembers } from './progress.ts';
@@ -68,13 +69,13 @@ describe('statystyki dla gracza', () => {
     const archer = content.heroes.get('archer_a');
     if (archer === undefined) throw new Error('missing unit');
     const stats = displayStats(archer.base);
-    expect(stats.maxHp).toBe(350);
-    expect(stats.attack).toBe(30);
+    expect(stats.maxHp).toBe(120);
+    expect(stats.attack).toBe(14);
     expect(stats.range).toBe(220);
     expect(stats.knockback).toBe(0);
     // 0,8 ataku na sekundę to odstęp 38 ticków, czyli efektywnie 30/38.
     expect(stats.attackRate).toBeCloseTo(30 / 38, 6);
-    expect(stats.damagePerSecond).toBeCloseTo((30 * 30) / 38, 6);
+    expect(stats.damagePerSecond).toBeCloseTo((14 * 30) / 38, 6);
     expect(stats.moveSpeed).toBeCloseTo(50, 0);
   });
 
@@ -110,6 +111,54 @@ describe('statystyki dla gracza', () => {
     expect(traitsOf(boss.base)).toEqual([
       { key: 'trait.splash', params: { radius: 40 } },
       { key: 'trait.enrage', params: { hp: 50, bonus: 60 } },
+    ]);
+  });
+
+  it('opisuje krwawienie, truciznę i szarżę', () => {
+    const sword = content.heroes.get('swordsman_a');
+    if (sword === undefined) throw new Error('missing unit');
+    const attack = {
+      id: 'slash',
+      swingDuration: 0.4,
+      hitFraction: 0.5,
+      clip: 'slash',
+      stance: 'sword',
+    };
+    const raw = {
+      id: 'x',
+      kind: 'melee' as const,
+      maxHp: 100,
+      attack: 10,
+      moveSpeed: 60,
+      attackSpeed: 1,
+      range: 30,
+      knockback: 0,
+      attackType: 'slash',
+      rig: 'humanoid',
+      skin: 'x',
+      scale: 1,
+    };
+    // Rodzaj efektu przechodzi przez kompilację treści do opisu: krwawienie zostaje krwawieniem.
+    const bleeding = compileUnit(
+      { ...raw, traits: [{ type: 'bleed', damage: 30, interval: 1, duration: 10 }] },
+      attack,
+    );
+    expect(traitsOf(bleeding.base)).toEqual([
+      { key: 'trait.bleed', params: { damage: 30, every: 1, seconds: 10 } },
+    ]);
+    const poisoning = compileUnit(
+      { ...raw, traits: [{ type: 'poison', damage: 15, interval: 0.5, duration: 4 }] },
+      attack,
+    );
+    expect(traitsOf(poisoning.base)).toEqual([
+      { key: 'trait.poison', params: { damage: 15, every: 0.5, seconds: 4 } },
+    ]);
+    // Równa krotność premii szarży jest opisana krotnością, pozostałe procentem.
+    expect(traitsOf({ ...sword.base, chargePercent: 200 })).toEqual([
+      { key: 'trait.charge.times', params: { times: 3 } },
+    ]);
+    expect(traitsOf({ ...sword.base, chargePercent: 50 })).toEqual([
+      { key: 'trait.charge', params: { bonus: 50 } },
     ]);
   });
 

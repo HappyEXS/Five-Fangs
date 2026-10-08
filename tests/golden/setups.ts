@@ -4,7 +4,7 @@
 //
 // Setupy celowo nie korzystają z danych treści gry: zmiana balansu nie może ruszać goldenów.
 import { CLOSE_SLOTS, melee, ranged, setupOf, u } from '../../src/sim/fixtures.ts';
-import type { BattleSetup } from '../../src/sim/types.ts';
+import { type BattleSetup, DOT_BLEED, DOT_POISON } from '../../src/sim/types.ts';
 
 const brute = () =>
   melee({ maxHp: 800, attack: 35, moveStep: 384, attackInterval: 43, knockback: u(25) });
@@ -141,6 +141,54 @@ export const GOLDEN_SETUPS: Readonly<Record<string, BattleSetup>> = {
       melee({ maxHp: 300 }),
       archer(),
       ranged({ targetLast: true, range: u(1000), knockback: u(20) }),
+    ],
+  ),
+
+  // Obrażenia w czasie i szarża (ADR 0021): krwawienie i trucizna po obu stronach, z ciosów,
+  // z pocisków przebijających i od przyzwanych; tarcza, która zmniejsza efekty; szarża wręcz
+  // i z pocisku.
+  afflictions: setupOf(
+    [
+      melee({ chargePercent: 200, knockback: u(60), moveStep: u(6) }),
+      melee({
+        attackInterval: 20,
+        dotDamage: 12,
+        dotInterval: 30,
+        dotTicks: 6,
+        dotKind: DOT_BLEED,
+      }),
+      ranged({ pierce: true, dotDamage: 6, dotInterval: 15, dotTicks: 8, dotKind: DOT_POISON }),
+    ],
+    [
+      brute(),
+      melee({
+        shieldPercent: 40,
+        dotDamage: 20,
+        dotInterval: 30,
+        dotTicks: 10,
+        dotKind: DOT_BLEED,
+      }),
+      ranged({
+        chargePercent: 100,
+        dotDamage: 9,
+        dotInterval: 20,
+        dotTicks: 5,
+        dotKind: DOT_POISON,
+      }),
+      melee({
+        maxHp: 900,
+        attack: 0,
+        range: u(300),
+        attackInterval: 45,
+        summon: melee({
+          maxHp: 80,
+          attack: 10,
+          dotDamage: 5,
+          dotInterval: 10,
+          dotTicks: 9,
+          dotKind: DOT_BLEED,
+        }),
+      }),
     ],
   ),
 };

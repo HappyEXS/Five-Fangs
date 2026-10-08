@@ -38,8 +38,8 @@ function stickLook(bodyAngle: number): UnitLook {
     scale: 2,
     strideLength: 20,
     bones: [
-      { id: 'body', parent: 'root', at: [0, 0], sprite: 'torso', back: false },
-      { id: 'head', parent: 'body', at: [0, -10], sprite: 'head', back: false },
+      { id: 'body', parent: 'root', at: [0, 0], sprite: 'torso', back: false, optional: false },
+      { id: 'head', parent: 'body', at: [0, -10], sprite: 'head', back: false, optional: false },
     ],
     drawOrder: ['body', 'head'],
     portrait: { bone: 'head', center: [1, -3], size: 10 },

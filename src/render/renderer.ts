@@ -1,6 +1,7 @@
 // Interfejs renderera walki (ADR 0001). Reszta gry zna tylko ten interfejs; implementacja
 // na Canvas 2D jest w canvas-renderer.ts. Renderer czyta stan symulacji, nigdy go nie zmienia.
 import type { UnitVisual } from '../content/compile.ts';
+import type { BackdropId } from '../content/schema-progression.ts';
 import type { Battle, EventBuffer } from '../sim/index.ts';
 import type { Viewport } from './viewport.ts';
 
@@ -29,6 +30,11 @@ export interface Renderer {
    * `beginBattle` zeruje to ustawienie.
    */
   setShowcase(on: boolean): void;
+  /**
+   * Wybiera tło sceny: każdy świat ma własne (ADR 0022). Ustawienie zostaje do następnej zmiany,
+   * także między walkami.
+   */
+  setBackdrop(backdrop: BackdropId): void;
   /** Zwalnia odwołanie do walki. */
   endBattle(): void;
 }

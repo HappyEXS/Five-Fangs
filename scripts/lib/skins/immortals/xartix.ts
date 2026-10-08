@@ -112,7 +112,7 @@ export function xartixParts(): Record<string, PartCanvas> {
     shin: fleshShin(p, 'paw', 0.72),
     torso: torso(p),
     upper: fleshUpper(p, 0.72),
-    fore: fleshFore(p, 'paw', 0.72),
+    fore: fleshFore(p, 0.72),
     head: head(p),
     weapon: claws(p, 12.5, 1.3, 1.5),
   };

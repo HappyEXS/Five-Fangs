@@ -1,11 +1,11 @@
 // Elementy wspólne ekranów: nagłówek ekranu, sakiewka, tabela statystyk, nazwy z treści gry.
 import { lineNameKey, unitNameKey } from '../content/i18n/keys.ts';
-import type { Rune } from '../content/schema-progression.ts';
+import type { Rune } from '../content/load-progression.ts';
 import type { Game } from '../game/game.ts';
 import { t, tName } from '../game/i18n.ts';
 import { displayStats, traitsOf, type UnitSpec } from '../game/stats.ts';
 import { InfoButton } from './InfoButton.tsx';
-import { Coin } from './icons.tsx';
+import { Coin, RuneMark } from './icons.tsx';
 
 export function unitName(unitId: string): string {
   return tName(unitNameKey(unitId));
@@ -16,8 +16,9 @@ export function lineName(lineId: string): string {
   return tName(lineNameKey(lineId));
 }
 
+/** Nazwa runy: statystyka i premia, np. „Życie +160”. */
 export function runeLabel(rune: Rune): string {
-  return t(rune.stat === 'attack' ? 'rune.attack' : 'rune.maxHp', { value: rune.value });
+  return t(`rune.${rune.stat}`, { value: rune.value });
 }
 
 /** Nazwa stopnia formy w drzewie ewolucji: forma bazowa albo ewolucja kolejnego stopnia. */
@@ -25,9 +26,19 @@ export function tierLabel(tier: number): string {
   return tier === 0 ? t('heroes.tier.base') : t('heroes.tier', { tier });
 }
 
-/** Klasa koloru runy: zielony dla życia, czerwony dla ataku. */
+/**
+ * Klasa koloru statystyki run: zielony życie, czerwony atak, ciemnopomarańczowy odrzut, błękitny
+ * szybkość.
+ */
+export const RUNE_COLORS = {
+  maxHp: 'rune-hp',
+  attack: 'rune-attack',
+  knockback: 'rune-knockback',
+  moveSpeed: 'rune-speed',
+} as const satisfies Record<Rune['stat'], string>;
+
 export function runeColor(rune: Rune): string {
-  return rune.stat === 'maxHp' ? 'rune-hp' : 'rune-attack';
+  return RUNE_COLORS[rune.stat];
 }
 
 /** Liczba z odstępem co trzy cyfry: „12 500” czyta się szybciej niż „12500”. */
@@ -42,6 +53,20 @@ export function Purse(props: { game: Game }) {
     <span class="purse" title={t('common.gold', { gold })} data-gold={gold}>
       <Coin />
       <span class="purse-amount">{formatNumber(gold)}</span>
+    </span>
+  );
+}
+
+/** Liczba żetonów run: kamień i liczba. Tak samo wygląda zapas gracza i cena runy. */
+export function RuneTokens(props: { count: number }) {
+  return (
+    <span
+      class="rune-tokens"
+      title={t('runes.tokens', { count: props.count })}
+      data-tokens={props.count}
+    >
+      <RuneMark />
+      {props.count}
     </span>
   );
 }

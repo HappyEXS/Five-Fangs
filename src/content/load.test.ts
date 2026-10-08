@@ -21,6 +21,7 @@ function withHeroes(heroes: unknown): RawContent {
     ...rawContent,
     'units/heroes.json': heroes,
     'units/enemies.json': [],
+    'enemy-tribes.json': [],
     'lines.json': [],
     'worlds.json': [],
     levels: {},
@@ -34,7 +35,7 @@ describe('loadContent', () => {
   it('wczytuje treść gry bez problemów', () => {
     const { content, issues } = loadContent();
     expect(issues).toEqual([]);
-    expect(content?.heroes.get('swordsman_a')?.base.maxHp).toBe(600);
+    expect(content?.heroes.get('swordsman_a')?.base.maxHp).toBe(160);
     expect(content?.heroes.get('archer_a')?.base.projectileStep).toBeGreaterThan(0);
     expect(content?.heroes.get('archer_b')?.base.pierce).toBe(true);
     expect(content?.enemies.has('brute')).toBe(true);
@@ -220,6 +221,89 @@ describe('requireContent', () => {
   });
 });
 
+describe('szczepy wrogów', () => {
+  const withTribes = (tribes: unknown): RawContent => ({
+    ...rawContent,
+    'enemy-tribes.json': tribes,
+  });
+  const tribe = (ranks: unknown) => [{ id: 'akronix', ranks }];
+
+  it('wczytuje poczet Akronixów spłaszczony w kolejności siły', () => {
+    const akronix = requireContent().enemyTribes.get('akronix');
+    expect(akronix?.members).toHaveLength(10);
+    expect(akronix?.members[0]).toEqual({ unit: 'bowix', rank: 'scout' });
+    expect(akronix?.members[9]).toEqual({ unit: 'axin_3', rank: 'boss' });
+  });
+
+  it('odrzuca jednostkę spoza units/enemies.json, także formę bohatera', () => {
+    expect(
+      messages(withTribes(tribe([{ rank: 'scout', units: ['dragon', 'swordsman_a'] }]))),
+    ).toEqual([
+      'enemy-tribes.json: akronix: "dragon" nie jest jednostką z units/enemies.json',
+      'enemy-tribes.json: akronix: "swordsman_a" nie jest jednostką z units/enemies.json',
+    ]);
+  });
+
+  it('odrzuca jednostkę wpisaną dwa razy, powtórzony stopień i powtórzony szczep', () => {
+    expect(
+      messages(
+        withTribes(
+          tribe([
+            { rank: 'scout', units: ['bowix', 'bowix'] },
+            { rank: 'scout', units: ['katanix'] },
+          ]),
+        ),
+      ),
+    ).toEqual([
+      'enemy-tribes.json: akronix: jednostka "bowix" należy już do szczepu',
+      'enemy-tribes.json: akronix: powtórzony stopień "scout"',
+    ]);
+    const twice = [
+      { id: 'akronix', ranks: [{ rank: 'scout', units: ['bowix'] }] },
+      { id: 'akronix', ranks: [{ rank: 'boss', units: ['axin_1'] }] },
+    ];
+    expect(messages(withTribes(twice))).toEqual(['enemy-tribes.json: powtórzone id "akronix"']);
+  });
+
+  it('odrzuca szczep wrogów o id zajętym przez linię bohaterów', () => {
+    const clash = [{ id: 'beasts', ranks: [{ rank: 'scout', units: ['bowix'] }] }];
+    expect(messages(withTribes(clash))).toEqual([
+      'enemy-tribes.json: beasts: id szczepu wrogów jest zajęte przez linię bohaterów',
+    ]);
+  });
+
+  it('odrzuca szczep bez stopni i stopień bez jednostek', () => {
+    expect(loadContent(withTribes(tribe([]))).content).toBeNull();
+    expect(loadContent(withTribes(tribe([{ rank: 'scout', units: [] }]))).content).toBeNull();
+  });
+
+  it('wymaga nazwy szczepu i każdego stopnia w słowniku', () => {
+    const issues = validateContent(
+      withTribes([{ id: 'ghosts', ranks: [{ rank: 'wraith', units: ['bowix'] }] }]),
+    );
+    expect(issues).toEqual([
+      {
+        source: 'enemy-tribes.json',
+        message: 'ghosts: brak tekstu "tribe.ghosts.name" w słowniku',
+      },
+      { source: 'enemy-tribes.json', message: 'ghosts: brak tekstu "rank.wraith" w słowniku' },
+    ]);
+  });
+
+  it('krwawienie i trucizna wykluczają się u jednej jednostki', () => {
+    const both = {
+      ...unit,
+      traits: [
+        { type: 'bleed', damage: 30, duration: 10 },
+        { type: 'poison', damage: 10, duration: 4 },
+      ],
+    };
+    expect(messages(withHeroes([both]))).toEqual([
+      'units/heroes.json: swordsman: cechy "bleed" i "poison" wykluczają się',
+    ]);
+  });
+});
+
 describe('validateContent', () => {
   it('treść gry jest poprawna', () => {
     expect(validateContent()).toEqual([]);
@@ -231,7 +315,7 @@ describe('validateContent', () => {
         id: 'nameless',
         price: 100,
         starter: true,
-        forms: [{ unit: 'swordsman', upgradeCosts: [1, 2, 3, 4] }],
+        forms: [{ unit: 'swordsman' }],
       },
     ];
     const issues = validateContent({ ...withHeroes([unit]), 'lines.json': nameless });

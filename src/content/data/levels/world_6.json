@@ -1,0 +1,68 @@
+[
+  {
+    "id": "w6_l1",
+    "enemies": [
+      { "slot": 0, "unit": "katanix", "level": 25 },
+      { "slot": 1, "unit": "defenix", "level": 24 },
+      { "slot": 2, "unit": "bowix", "level": 23 },
+      { "slot": 3, "unit": "assasinix", "level": 25 },
+      { "slot": 4, "unit": "assasinix", "level": 25 }
+    ],
+    "rewards": { "gold": 3000 }
+  },
+  {
+    "id": "w6_l2",
+    "enemies": [
+      { "slot": 0, "unit": "defenix", "level": 18 },
+      { "slot": 1, "unit": "defenix", "level": 19 },
+      { "slot": 2, "unit": "katanix", "level": 18 },
+      { "slot": 3, "unit": "katanix", "level": 19 },
+      { "slot": 4, "unit": "poisonix", "level": 19 }
+    ],
+    "rewards": { "gold": 3400, "runeToken": true }
+  },
+  {
+    "id": "w6_l3",
+    "enemies": [
+      { "slot": 0, "unit": "kaisarix", "level": 10 },
+      { "slot": 1, "unit": "hornix", "level": 11 },
+      { "slot": 2, "unit": "defenix", "level": 12 },
+      { "slot": 3, "unit": "poisonix", "level": 12 },
+      { "slot": 4, "unit": "poisonix", "level": 12 }
+    ],
+    "rewards": { "gold": 3700 }
+  },
+  {
+    "id": "w6_l4",
+    "enemies": [
+      { "slot": 0, "unit": "kaisarix", "level": 10 },
+      { "slot": 1, "unit": "kaisarix", "level": 12 },
+      { "slot": 2, "unit": "hornix", "level": 11 },
+      { "slot": 3, "unit": "hornix", "level": 11 },
+      { "slot": 4, "unit": "poisonix", "level": 10 }
+    ],
+    "rewards": { "gold": 4000 }
+  },
+  {
+    "id": "w6_l5",
+    "enemies": [
+      { "slot": 0, "unit": "axin_1", "level": 5 },
+      { "slot": 1, "unit": "axin_2", "level": 4 },
+      { "slot": 2, "unit": "kaisarix", "level": 6 },
+      { "slot": 3, "unit": "hornix", "level": 4 },
+      { "slot": 4, "unit": "poisonix", "level": 6 }
+    ],
+    "rewards": { "gold": 4300, "runeToken": true }
+  },
+  {
+    "id": "w6_l6",
+    "enemies": [
+      { "slot": 0, "unit": "axin_3", "level": 1 },
+      { "slot": 1, "unit": "axin_2", "level": 3 },
+      { "slot": 2, "unit": "axin_1", "level": 1 },
+      { "slot": 3, "unit": "kaisarix", "level": 1 },
+      { "slot": 4, "unit": "poisonix", "level": 3 }
+    ],
+    "rewards": { "gold": 4500 }
+  }
+]

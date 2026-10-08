@@ -56,7 +56,7 @@ describe('buildBattle', () => {
   it('buduje poprawny setup i wygląd jednostek pod ich unitId', () => {
     const { setup, visuals } = buildBattle(content, DEFAULT_CONFIG);
     expect(validateSetup(setup)).toEqual([]);
-    expect(setup.player[0]?.maxHp).toBe(840);
+    expect(setup.player[0]?.maxHp).toBe(224);
     expect(setup.player[4]).toBeNull();
     expect(setup.enemy[0]?.maxHp).toBe(1040);
     expect(visuals).toHaveLength(10);
@@ -128,6 +128,17 @@ describe('buildBattle', () => {
       'raider',
       'shaman',
       'chieftain',
+      // Szczep wrogów Akronix w kolejności siły.
+      'bowix',
+      'assasinix',
+      'katanix',
+      'defenix',
+      'poisonix',
+      'hornix',
+      'kaisarix',
+      'axin_1',
+      'axin_2',
+      'axin_3',
     ]);
   });
 });

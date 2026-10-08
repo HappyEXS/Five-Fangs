@@ -8,6 +8,12 @@ import {
   unitsToSubunits,
 } from '../core/units.ts';
 import type { ArenaSpec, UnitSpec } from '../sim/types.ts';
+
+// Rodzaje obrażeń w czasie; te same liczby co DOT_BLEED i DOT_POISON w symulacji, skąd treść
+// może brać tylko typy (pilnuje tego test kompilacji).
+const KIND_BLEED = 0;
+const KIND_POISON = 1;
+
 import type { RawArena, RawAttackType, RawUnit } from './schema.ts';
 
 /** Wygląd jednostki: wszystko, czego renderer potrzebuje poza stanem symulacji. */
@@ -89,6 +95,11 @@ export function compileUnit(
   let doubleDamagePercent = 0;
   let dodgePercent = 0;
   let shieldPercent = 0;
+  let dotDamage = 0;
+  let dotInterval = 0;
+  let dotTicks = 0;
+  let dotKind = 0;
+  let chargePercent = 0;
   for (const trait of raw.traits) {
     switch (trait.type) {
       case 'pierce':
@@ -121,6 +132,17 @@ export function compileUnit(
       case 'shield':
         shieldPercent = trait.percent;
         break;
+      case 'bleed':
+      case 'poison':
+        dotDamage = trait.damage;
+        dotInterval = Math.max(1, secondsToTicks(trait.interval));
+        // Liczba tyknięć z czasu trwania: 10 s co 1 s to dziesięć tyknięć.
+        dotTicks = Math.max(1, Math.round(trait.duration / trait.interval));
+        dotKind = trait.type === 'bleed' ? KIND_BLEED : KIND_POISON;
+        break;
+      case 'charge':
+        chargePercent = trait.bonus;
+        break;
     }
   }
 
@@ -152,6 +174,11 @@ export function compileUnit(
       doubleDamagePercent,
       dodgePercent,
       shieldPercent,
+      dotDamage,
+      dotInterval,
+      dotTicks,
+      dotKind,
+      chargePercent,
       summon: summon === null ? null : summon.base,
     },
     visual: {

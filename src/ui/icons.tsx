@@ -32,6 +32,16 @@ export function Coin() {
   );
 }
 
+/** Żeton run: kamień z wyrytym znakiem drzewka; wydaje się go w drzewku run w sklepie. */
+export function RuneMark() {
+  return (
+    <svg class="icon icon-rune" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2.2l8.3 4.8v10L12 21.8 3.7 17V7z" />
+      <path class="icon-rune-sign" d="M10.4 7.4v9.4M10.4 12.6l4.2-3.2M10.4 16.2l4.2-3.2" />
+    </svg>
+  );
+}
+
 /** Litera „i” przycisku informacji: sama kropka i trzonek, kółkiem jest przycisk. */
 export function InfoMark() {
   return (

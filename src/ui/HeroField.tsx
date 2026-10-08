@@ -1,13 +1,13 @@
 // Pole bohatera na ekranie składu: nad postacią gniazda run, pod nią pasek ulepszeń i zakup.
 // Tylko ekran składu pokazuje te elementy; mapa i walka widzą samą postać.
-import type { Rune } from '../content/schema-progression.ts';
+import type { Rune } from '../content/load-progression.ts';
 import type { Game } from '../game/game.ts';
 import { nextPurchase } from '../game/hero-options.ts';
 import { t } from '../game/i18n.ts';
 import type { HeroView } from '../game/progress.ts';
 import { Gold, runeColor, runeLabel, unitName } from './common.tsx';
 
-/** Runa jako okrągły żeton: zielony dla życia, czerwony dla ataku, z premią do statystyki. */
+/** Runa jako okrągły żeton: kolor mówi, którą statystykę wzmacnia, napis o ile. */
 export function RuneToken(props: { rune: Rune }) {
   return <span class={`rune-token ${runeColor(props.rune)}`}>+{props.rune.value}</span>;
 }

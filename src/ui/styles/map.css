@@ -31,6 +31,7 @@
 }
 
 .rail-btn {
+  position: relative;
   justify-content: flex-start;
   width: 7.4em;
   padding-left: 0.55em;
@@ -41,17 +42,135 @@
 
 .world-head {
   position: absolute;
-  top: 1.8%;
+  top: 1.6%;
   left: 56%;
-  display: flex;
-  align-items: center;
-  gap: 0.7em;
+  display: grid;
+  gap: 0.3em;
   translate: -50% 0;
+  justify-items: center;
 }
 
 .world-name {
   font: 400 1.7em / 1 var(--display);
   letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* Rząd kłów pod nazwą: po jednym na świat. Odbity świat ma kieł z kości, bieżący nagietkowy,
+   zablokowany przygaszony; świat pokazywany na mapie jest większy. */
+.world-pips {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35em;
+}
+
+.world-pip {
+  width: 0.95em;
+  height: 1.24em;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: scale 90ms ease-out;
+}
+
+.world-pip svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: var(--sheet-shade);
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.world-pip-cleared svg {
+  fill: var(--paper);
+}
+
+.world-pip-open svg {
+  fill: var(--marigold);
+}
+
+.world-pip[aria-pressed="true"] {
+  scale: 1.45;
+}
+
+/* Duże strzałki przy krawędziach sceny przełączają mapę na sąsiedni świat. Ten sam papier
+   i twardy cień co kafle poziomów. */
+.world-arrow {
+  position: absolute;
+  top: 44%;
+  width: 5.2em;
+  height: 5.2em;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: translate 90ms ease-out;
+}
+
+.world-arrow-previous {
+  left: 1.6%;
+}
+
+.world-arrow-next {
+  right: 1.6%;
+}
+
+.world-arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.arrow-face,
+.arrow-shadow {
+  stroke: var(--ink);
+  stroke-linejoin: round;
+  stroke-width: 0.15em;
+  vector-effect: non-scaling-stroke;
+}
+
+.arrow-face {
+  fill: url(#ff-paper) var(--sheet);
+}
+
+.arrow-shadow {
+  fill: var(--ink);
+  transform: translate(3.5px, 4.5px);
+}
+
+.world-arrow-next:hover:not(:disabled) {
+  translate: 0.2em 0;
+}
+
+.world-arrow-previous:hover:not(:disabled) {
+  translate: -0.2em 0;
+}
+
+/* Na pierwszym i ostatnim świecie strzałka zostaje na miejscu, ale leży płasko i nie działa. */
+.world-arrow:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.world-arrow:disabled .arrow-face {
+  fill: var(--sheet-shade);
+}
+
+.world-arrow:disabled .arrow-shadow {
+  display: none;
+}
+
+.world-arrow:hover:not(:disabled) .arrow-face {
+  fill: var(--marigold);
+}
+
+.world-arrow:active:not(:disabled) .arrow-shadow {
+  display: none;
 }
 
 .trail {
@@ -185,10 +304,10 @@
   scale: 1.1;
 }
 
-/* Zablokowany kafel leży płasko: bez cienia, na przygaszonym papierze. */
+/* Zablokowany kafel leży płasko: bez cienia, na przygaszonym papierze. Da się go wybrać,
+   żeby zobaczyć, kto na nim czeka; walkę blokuje przycisk „Walcz”. */
 .tile-locked {
   color: var(--ink-soft);
-  cursor: default;
 }
 
 .tile-locked .tile-face {
@@ -303,7 +422,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile {
+  .tile,
+  .world-pip,
+  .world-arrow {
     transition: none;
   }
 }

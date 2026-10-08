@@ -390,7 +390,6 @@
 }
 
 .rune-option {
-  position: relative;
   display: grid;
   gap: 0.25em;
   padding: 0.35em 0.4em 0.3em;
@@ -410,19 +409,6 @@
 
 .rune-option-stat {
   font-size: 0.8em;
-  font-weight: 700;
-}
-
-/* Licznik takich samych run: plakietka w rogu żetonu. */
-.rune-option-count {
-  position: absolute;
-  top: 0.1em;
-  right: 0.05em;
-  padding: 0 0.35em;
-  border-radius: 1em;
-  background: var(--ink);
-  color: var(--paper);
-  font-size: 0.72em;
   font-weight: 700;
 }
 

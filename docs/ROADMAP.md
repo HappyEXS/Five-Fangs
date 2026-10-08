@@ -83,7 +83,7 @@ Cel: grywalna całość na treści testowej, od menu do nagrody, z zapisem.
 | M4-1 | Sceny i stan aplikacji w sygnałach | 1 | Przejście menu → mapa → skład → walka → wynik → mapa | gotowe |
 | M4-2 | Zapis v1: schemat, wczytanie z walidacją, kopia zapasowa, szkielet migracji, eksport i import pliku | 1,5 | Testy: uszkodzony zapis nie wywraca gry; fixture v1 w `tests/fixtures/saves/` | gotowe |
 | M4-3 | Menu główne i ustawienia: język, wersja, „Zgłoś problem” | 1 | Raport w schowku zawiera wersję, błędy i setup ostatniej walki | gotowe |
-| M4-4 | Mapa poziomów: 5 światów po 6, odblokowywanie kolejno | 1,5 | Zablokowany poziom nie daje się uruchomić | gotowe (na razie jeden świat testowy w treści; mapa rysuje tyle światów, ile jest w danych) |
+| M4-4 | Mapa poziomów: 5 światów po 6, odblokowywanie kolejno | 1,5 | Zablokowany poziom nie daje się uruchomić | gotowe (wtedy jeden świat testowy w treści; sześć światów i przełączanie mapy doszły w M5m) |
 | M4-5 | Budowanie składu: wybór bohaterów, przeciąganie na sloty, podgląd statystyk efektywnych | 2 | Działa myszą i dotykiem; skład zapisuje się automatycznie | gotowe (mysz sprawdzona w przeglądarce; dotyk tym samym kodem Pointer Events, bez testu na urządzeniu) |
 | M4-6 | Scena walki i HUD: pauza, prędkość, wyjście; leniwe ładowanie atlasu świata z obsługą błędu | 1,5 | Wyjście z walki zwalnia sim i renderer (brak wycieku w profilerze) | gotowe; sterta po 5/35/65 walkach: 9157/9261/9310 KB |
 | M4-7 | Wynik i nagrody: złoto, runa, odblokowanie linii; 25% złota za powtórkę | 1 | Testy logiki nagród w `game` | gotowe |
@@ -220,12 +220,89 @@ Uwaga autora gry: na ekranach jest za dużo informacji dodatkowych i wskazówek,
 |---|---|---|---|---|
 | M5k-1 | Przycisk „i” z okienkiem (`InfoButton.tsx`): zasady Składu, Bohaterów i Sklepu przy tytule ekranu, wyjaśnienie strzałek w nagłówku karty bohatera i karty formy; cena formy bazowej przeniesiona na jej kartę; teksty podpowiedzi usunięte ze sceny | 0,5 | Test end-to-end: treść okienek w czterech miejscach, okienko w granicach sceny (także okno 700×620 i język angielski), zamykanie przyciskiem, Escape i kliknięciem obok, jedno okienko naraz, okienko znika ze zmianą bohatera i ekranu; zrzuty ekranu w trzech rozmiarach okna | gotowe |
 
+## M5l – Akronix: szczep wrogów (2026-10-07)
+
+Autor gry dodał szkic szczepu Akronix: dziesięć postaci, które są wyłącznie wrogami. Nie mają ewolucji (każda to jedna forma) i nie da się ich kupić, ale mają być opisane w zakładce Bohaterowie. Siedem postaci w czterech stopniach (zwiadowcy Bowix i Assasinix, żołnierze Katanix i Defenix, wojownicy Poisonix i Hornix, generał Kaisarix) nie ma statystyk na szkicu; trzy Axiny mają. Ustalenia z autorem: nazwy odczytane poprawnie; Axiny to bossowie na szczycie drabinki siły; „+30” przy Axinie 2 to krwawienie (trafiony traci 30 życia co sekundę przez 10 s), a Poisonix ma truciznę o tej samej mechanice; Hornix dostaje szarżę (pierwszy cios potrójny). Statystyki siódemki i tempo ataków Axinów są robocze, rosnące w kolejności postaci. Poziomów z Akronixem na razie nie ma: balans i poziomy autor zaplanuje później.
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5l-1 | Obrażenia w czasie (krwawienie, trucizna) i szarża w symulacji (ADR 0021): cechy `bleed`, `poison`, `charge` w schemacie i kompilacji, stan efektów, zdarzenie `Afflicted`, opisy cech dla gracza | 1 | Testy symulacji (rytm, odnawianie, kilka źródeł, tarcza, unik, śmierć, pociski, przyzwani, szarża); walka golden `afflictions`, 16 starszych bez zmiany hashy; pomiar A/B: zwykła walka nie wolniejsza ponad rozrzut pomiaru | gotowe |
+| M5l-2 | Dziesięć skórek Akronix w stylu „mroczna baśń” na szkielecie `humanoid`; opcjonalna kość `offhand` (tarcza, druga broń) z postawami `shield` i `dual`; pociski (strzała, strzałka, kolba) i znaczki krwawienia i trucizny | 1,5 | Atlas 704 KB, pierwsze uruchomienie 893 KB z 2 MB; testy generatora skórek, atlasu i rigu; arkusze podglądu każdej postaci w czterech pozach | gotowe |
+| M5l-3 | Dziesięć jednostek Akronix w treści: statystyki, sześć typów ataku, cechy, nazwy; plik `enemy-tribes.json` z pocztem i stopniami; znaczki krwawienia i trucizny przy pasku życia | 1 | Walidator treści; testy: poczet, statystyki Axinów ze szkicu, zdolności, każda postać wygrywa pojedynek z poprzednią z obu stron pola; walki próbne w piaskownicy ze zrzutami | gotowe |
+| M5l-4 | Zakładka „Akronix” w Bohaterach: poczet dziesięciu postaci w kolumnach stopni zamiast drzewa, stopień wybranej postaci na scenie po stronie przeciwnika, karta bez cen i kosztów, okienko „i” o wrogach | 0,5 | Testy sceny i stanowisk; dwa testy end-to-end (poczet, karty ze zdolnościami, brak w sklepie; małe okno po angielsku); zrzuty ekranu; pomiar renderera bez zmian | gotowe |
+
+## M5m – Sześć światów na mapie (2026-10-07)
+
+Autor gry ustalił docelowy kształt gry: sześć map po sześć etapów. Pierwsza to zamek Mieczników i Łuczników, potem po jednej na szczep bohaterów, na końcu siedziba Akronixów jako najtrudniejszy etap. Motyw: Akronix zaatakowali wszystkie światy, gracz odbija je po kolei. Na mapie duże strzałki z lewej i prawej przełączają świat, a z nim tło i nazwy poziomów. Zamówienie obejmuje widoki map, nazwy poziomów i po 2–3 przeciwników ze szczepu świata na poziom; balans przeciwników zostaje na później (ADR 0022).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5m-1 | Treść sześciu światów: `worlds.json` z tłem per świat, 36 poziomów w `levels/world_1..6.json` (świat „Las” zastąpiony Zamkiem), nazwy światów i poziomów po polsku i angielsku, wpisy wszystkich poziomów w składach referencyjnych | 1 | Walidator treści; Zamek do przejścia składem startowym na tych samych rangach co dawny Las (raport balansu zgodny); światy 2–6 ze wzoru, z pomiarem w raporcie (9 poziomów poza zasięgiem składu startowego, do balansu) | gotowe |
+| M5m-2 | Sześć teł rysowanych kodem (`render/backdrops/`): warstwy płaskich sylwetek, ścieżki budowane raz na tło; `Renderer.setBackdrop`; tło idzie za światem sceny (`game/scene-world.ts`); parametr `backdrop` w narzędziach dev | 1,5 | Testy geometrii i czytelności (kontrast napisów z niebem i ziemią, duże warstwy blisko nieba); czas JS klatki i alokacje bez zmian, 0 zgubionych klatek; bez nowych plików w transferze | gotowe |
+| M5m-3 | Mapa z przełączaniem światów: duże strzałki po bokach, rząd sześciu kłów ze stanem świata, własny kształt szlaku na świat, podgląd zablokowanych poziomów z informacją, co je odblokowuje; `openWorld`, `worldEntryLevel`, `isWorldCleared` | 1 | Testy reguł, sceny i układu szlaku; trzy testy end-to-end (strzałki, kły, tło i nazwy każdego świata, podgląd zablokowanych; boss otwiera następny świat; małe okno po angielsku) | gotowe |
+
+Poza zakresem, do decyzji autora albo do balansu: liczby przeciwników i nagród światów 2–6, składy referencyjne na dalsze światy, ocena nazw i teł, ewentualni Akronix w światach szczepów.
+
+## M5n – Bestie narysowane od nowa (2026-10-07)
+
+Autor gry ocenił modele szczepu Beasts jako „zbyt przyjazne, delikatne i dziecinne” przy Immortals, Plants i Robots i zamówił nowe, w stylu tamtych szczepów (uzupełnienie ADR 0019).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5n-1 | Siedem nowych skórek bestii według szkiców autora: pysk jako ciemność ze światłami oczu i zębami, kość jako drugi materiał szczepu, cięższe kończyny (`limbs-beasts.ts`), wspólne motywy w `beasts/palette.ts`; nowe kadry miniaturek | 1,5 | Arkusze podglądu każdej postaci w czterech pozach, zrzuty z walki obok pozostałych szczepów i z zakładki Bohaterowie; atlas 734 KB, pierwsze uruchomienie 931 KB z 2 MB; testy generatora skórek, atlasu i kadrów miniaturek; mechanika i liczby bez zmian | gotowe (wygląd do oceny autora) |
+
+## M5o – Prostsze zakupy: koszty według stopnia formy (2026-10-07)
+
+Autor gry chce, żeby każde ulepszenie kosztowało tyle samo, ewolucje były droższe niż ulepszenia, a ceny rosły ze stopniem postaci; liczby miał zaproponować wykonawca, bez balansu (ADR 0023).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5o-1 | Tabela kosztów według stopnia w `progression.json` (ulepszenie 50 / 200 / 800, ewolucja 400 / 1600) zamiast kosztów przy każdej formie; walidator reguł autora; karta formy pokazuje „4 × cena”, okienko „i” opisuje zasadę | 0,5 | Walidator treści i testy reguł (ceny rosną ze stopniem, ewolucja droższa od ulepszeń po obu stronach, każdy stopień ma koszty); testy zakupów; testy end-to-end z nowymi kwotami; nagrody Zamku nadal wystarczają na rangi kolejnych poziomów | gotowe (liczby do oceny autora) |
+
+## M5p – Balans bohaterów (2026-10-07)
+
+Autor gry zauważył, że Miecznicy i Łucznicy mają statystyki wyższe od pozostałych szczepów, i chce odwrotnie: ludzie słabsi i mniej opłacalni. Część postaci jest też nieproporcjonalnie wolna. Jego decyzje: ludzie wyraźnie słabsi (ok. 70% siły), liczby ze szkiców zmieniać tylko tam, gdzie odstają, skalę szybkości ścisnąć dla postaci walczących wręcz (ADR 0024).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5p-1 | Miernik balansu bohaterów: `pnpm balance:heroes` z raportem `reports/heroes.md` (pojedynki form tego samego stopnia, wartość w drużynie, walki drużyn szczepów) i test reguł autora | 1 | Test reguł przechodzi na treści gry; raport bez daty | gotowe |
+| M5p-2 | Nowe liczby: życie, atak i leczenie 14 form ludzi; szybkość ośmiu postaci walczących wręcz; tempo ataków wręcz i zasięg strzelców (wartości robocze) u 16 form ze szkiców; leczenie Ice Ivy 50 → 25 | 1 | Każda forma ludzi przegrywa więcej pojedynków, niż wygrywa; drużyny ludzi przegrywają z każdym szczepem ze szkiców; żaden szczep ze szkiców nie dominuje ani nie odstaje | gotowe (liczby do oceny autora) |
+| M5p-3 | Zamek dostrojony do nowych liczb ludzi (poziomy siły wrogów na trzech poziomach, boss to Zbrojny +5); rangi światów 2–6 w składach referencyjnych zmierzone od nowa | 0,5 | Raport `pnpm balance`: sześć poziomów Zamku zgodnych z rangami oczekiwanymi | gotowe |
+
+Poza zakresem: runy (wartości płaskie ważą więcej przy niskich liczbach ludzi), przeciwnicy i nagrody światów 2–6, nierówności form bazowych i końcowych ze szkiców opisane w GAME_DESIGN §3.
+
+## M5q – Balans poziomów i nagród (2026-10-07)
+
+Autor gry: nagrody są zbyt wysokie, pierwsze poziomy nowych światów zbyt łatwe, na poziomie ma stać 3–5 wrogów (od świata 3 zwykle 5), a Akronix mają się pojawiać w każdym świecie w kolejności pocztu, z Axinami jako bossami wcześniejszych światów. Jego decyzje: 60 000 złota w całej grze, dwóch wrogów na dwóch pierwszych poziomach, Axiny od świata 3, trudność wymagająca (ADR 0025).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5q-1 | Raport balansu poziomów oparty na złocie: skład odniesienia z planem zakupów, runy, trzy walki na poziom, ocena według reguł trudności | 1 | Testy planu zakupów, rozdawania run i raportu; raport bez daty | gotowe |
+| M5q-2 | 36 poziomów: nagrody (60 000 łącznie, rosnące światami), runy, składy wrogów ze szczepu świata i Akronixów, poziomy siły dobrane wyszukiwaniem | 1,5 | Raport `pnpm balance`: 36 poziomów „zgodnych”; test reguł autora (suma złota, liczba wrogów, kolejność Akronixów, Axiny jako bossowie) | gotowe (rozkład i składy do oceny autora) |
+
+Poza zakresem: finałowy boss gry (autor zaprojektuje), podpowiedź o zakupie trzeciego bohatera, siła run, ułamek złota za powtórki.
+
+## M5r – Karta formy bez porównań; drzewko run (2026-10-07)
+
+Autor gry: karta formy w Bohaterach ma pokazywać same statystyki tej formy, bo strzałki i zielone liczby myliły. Do tego system runowy: żeton run za drugi i piąty poziom świata, a w sklepie drzewko run, w którym gracz wybiera runy; im dalej w kierunku, tym mocniejsze. Jego decyzje: kierunki to życie, atak, odrzut i szybkość, wartości płaskie, żeton odblokowuje następną runę wybranego kierunku, runy wkłada się jak dotąd w dwa gniazda bohatera (ADR 0026).
+
+| Id | Zadanie | Dni | Kryterium ukończenia | Status |
+|---|---|---|---|---|
+| M5r-1 | Karta formy w Bohaterach bez porównania z poprzednią formą | 0,25 | Test e2e: karta bez strzałek i bez przycisku „i”, same liczby formy | gotowe |
+| M5r-2 | Drzewko run w treści i regułach gry: cztery kierunki po sześć run w `runes.json`, żeton run w nagrodach poziomów, żetony liczone z postępu, runy odrzutu i szybkości w statystykach, zapis v5 z migracją dawnych run | 1,5 | Testy kompilacji drzewka, reguł żetonów i odblokowywania, statystyk z runami; plik `v5.json` i test migracji z v4; walidator sprawdza drzewko i krok najszybszego bohatera z runami | gotowe |
+| M5r-3 | Balans z drzewkiem: plan run składu odniesienia, wartości run z pomiaru, bossowie i Cytadela przestrojeni, raport z tabelą innych dróg przez drzewko | 1 | `pnpm balance`: 36 poziomów „zgodnych”; test reguł: 12 żetonów, 24 runy, każdy kierunek wygrywa kilka poziomów wymagających run | gotowe (wartości do oceny autora) |
+| M5r-4 | Drzewko run w sklepie z potwierdzeniem wzięcia runy; żeton na zakładce sklepu, tabliczce poziomu i ekranie wyniku; cztery kolory run | 1 | Testy e2e `runes.spec.ts`: żeton, wybór runy, runa w gnieździe, małe okno i język angielski | gotowe (wygląd do oceny autora) |
+| M5r-5 | Poprawki autora po obejrzeniu sklepu (2026-10-08): arkusz drzewka o jedną trzecią mniejszy w każdym wymiarze, runa odrzutu ciemnopomarańczowa zamiast granatowej | 0,25 | Test e2e: arkusz zajmuje najwyżej 36% szerokości i 32% wysokości sceny; zrzuty sklepu i składu | gotowe |
+| M5r-6 | Liczby autora z 2026-10-08 (jedenaście form, wartości run) doprowadzone do zielonego CI: zapis JSON w układzie Biome, testy liczb, dwie korekty do reguł balansu (Polaris co 3 s, Cardinal 25 / 300 i wyjątek w teście), 36 poziomów przestrojonych wyszukiwaniem, dłuższy limit czasu ciężkich testów pod pomiarem pokrycia | 0,5 | Wszystkie kroki CI przechodzą lokalnie: lint, `pnpm test:coverage`, golden, walidacja, build, budżety, e2e | gotowe |
+
+Poza zakresem: cofanie wyboru w drzewku, inne działanie run odrzutu i szybkości (w obecnych regułach walki pomagają tylko w części walk), finałowy boss gry.
+
 ## M6 – Szlif (zakres do doprecyzowania po M5)
 
 | Id | Zadanie | Dni | Kryterium ukończenia | Status |
 |---|---|---|---|---|
 | M6-1 | Docelowe grafiki bohaterów i wrogów (praca graficzna poza tym szacunkiem; tu tylko integracja) | 0,5 na zestaw | Zestaw przechodzi `pnpm atlas` i budżet rozmiaru | — |
-| M6-2 | Tła światów, podział atlasów, leniwe ładowanie | 1,5 | Pierwsze uruchomienie < 2 MB, atlas świata < 1 MB | — |
+| M6-2 | Podział atlasów na światy i leniwe ładowanie (tła światów są od M5m rysowane kodem, bez plików) | 1,5 | Pierwsze uruchomienie < 2 MB, atlas świata < 1 MB | — |
 | M6-3 | Dźwięk: efekty walki i UI, format zgodny z Safari | 1,5 | Dźwięki z puli, wyciszenie w ustawieniach | — |
 | M6-4 | Onboarding pierwszej walki | 1 | Nowy gracz przechodzi poziom 1 bez instrukcji z zewnątrz | — |
 | M6-5 | Testy w przeglądarkach desktopowych i na telefonie | 1 | Lista znalezionych problemów zamknięta lub świadomie odłożona | — |

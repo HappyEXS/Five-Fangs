@@ -1,0 +1,68 @@
+[
+  {
+    "id": "w5_l1",
+    "enemies": [
+      { "slot": 0, "unit": "xartix", "level": 6 },
+      { "slot": 1, "unit": "xartix", "level": 4 },
+      { "slot": 2, "unit": "cardinal", "level": 5 },
+      { "slot": 3, "unit": "cardinal", "level": 6 },
+      { "slot": 4, "unit": "polaris", "level": 4 }
+    ],
+    "rewards": { "gold": 2000 }
+  },
+  {
+    "id": "w5_l2",
+    "enemies": [
+      { "slot": 0, "unit": "enigmatix", "level": 3 },
+      { "slot": 1, "unit": "xartix", "level": 2 },
+      { "slot": 2, "unit": "cardinal", "level": 3 },
+      { "slot": 3, "unit": "poisonix", "level": 3 },
+      { "slot": 4, "unit": "polaris", "level": 3 }
+    ],
+    "rewards": { "gold": 2100, "runeToken": true }
+  },
+  {
+    "id": "w5_l3",
+    "enemies": [
+      { "slot": 0, "unit": "enigmatix", "level": 1 },
+      { "slot": 1, "unit": "xartix", "level": 2 },
+      { "slot": 2, "unit": "cardinal", "level": 3 },
+      { "slot": 3, "unit": "ultimus", "level": 1 },
+      { "slot": 4, "unit": "polaris", "level": 2 }
+    ],
+    "rewards": { "gold": 2200 }
+  },
+  {
+    "id": "w5_l4",
+    "enemies": [
+      { "slot": 0, "unit": "kaisarix", "level": 2 },
+      { "slot": 1, "unit": "enigmatix", "level": 3 },
+      { "slot": 2, "unit": "hornix", "level": 3 },
+      { "slot": 3, "unit": "ultimus", "level": 0 },
+      { "slot": 4, "unit": "polaris", "level": 2 }
+    ],
+    "rewards": { "gold": 2300 }
+  },
+  {
+    "id": "w5_l5",
+    "enemies": [
+      { "slot": 0, "unit": "enigmatix", "level": 3 },
+      { "slot": 1, "unit": "enigmatix", "level": 1 },
+      { "slot": 2, "unit": "xartix", "level": 1 },
+      { "slot": 3, "unit": "ultimus", "level": 0 },
+      { "slot": 4, "unit": "ultimus", "level": 1 }
+    ],
+    "rewards": { "gold": 2400, "runeToken": true }
+  },
+  {
+    "id": "w5_l6",
+    "enemies": [
+      { "slot": 0, "unit": "axin_3", "level": 0 },
+      { "slot": 1, "unit": "enigmatix", "level": 2 },
+      { "slot": 2, "unit": "xartix", "level": 2 },
+      { "slot": 3, "unit": "ultimus", "level": 0 },
+      { "slot": 4, "unit": "polaris", "level": 2 }
+    ],
+    "rewards": { "gold": 2800 }
+  }
+]

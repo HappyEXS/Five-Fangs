@@ -1,10 +1,12 @@
 // Wspólny stan renderera walki i rozmieszczenie jednostek na scenie. Wszystkie bufory
 // powstają raz, przy tworzeniu renderera; rysowanie tylko je wypełnia i czyta.
+import type { BackdropId } from '../content/schema-progression.ts';
 import type { Pool } from '../core/pool.ts';
 import { createRng, type Rng } from '../core/rng.ts';
 import { type Battle, isPlayerUnit, MAX_UNITS, SQUAD_UNITS } from '../sim/index.ts';
 import { type Animator, createAnimator, type UnitLook } from './animation.ts';
 import type { Atlas, Sprite } from './atlas.ts';
+import { DEFAULT_BACKDROP } from './backdrops/index.ts';
 import { type Camera, createCamera, GROUND_Y } from './camera.ts';
 import { debugStats } from './debug.ts';
 import { createFloatTexts, type FloatText } from './float-text.ts';
@@ -45,10 +47,14 @@ export interface Scene {
   readonly plusSprite: Sprite | null;
   /** Znak uniku unoszący się nad postacią, która uniknęła trafienia. */
   readonly dodgeSprite: Sprite | null;
+  /** Znaczki efektów obrażeń w czasie przy pasku życia; indeks to rodzaj efektu (ADR 0021). */
+  readonly statusSprites: (Sprite | null)[];
   /** Jednostka rysowana na wierzchu pozostałych albo -1. */
   topUnit: number;
   /** Scena pokazowa: paski życia obu stron w kolorze gracza. */
   showcase: boolean;
+  /** Tło świata, w którym toczy się walka albo który pokazuje mapa. */
+  backdrop: BackdropId;
   /** Zasięg postaci per unitId (reach.ts): za plecami, przed sobą i w górę, w jednostkach sceny. */
   readonly reachBack: Float32Array;
   readonly reachFront: Float32Array;
@@ -95,8 +101,11 @@ export function createScene(
     digitSprites,
     plusSprite: atlas.sprites.get('fx/heal_plus') ?? null,
     dodgeSprite: atlas.sprites.get('fx/dodge') ?? null,
+    // W kolejności DOT_BLEED, DOT_POISON.
+    statusSprites: [atlas.sprites.get('fx/bleed') ?? null, atlas.sprites.get('fx/poison') ?? null],
     topUnit: -1,
     showcase: false,
+    backdrop: DEFAULT_BACKDROP,
     reachBack: new Float32Array(LOOK_ROWS),
     reachFront: new Float32Array(LOOK_ROWS),
     reachHeight: new Float32Array(LOOK_ROWS),

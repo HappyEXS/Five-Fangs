@@ -39,6 +39,19 @@ export const attackTypeSchema = z.strictObject({
     .optional(),
 });
 
+/**
+ * Obrażenia w czasie (ADR 0021): każde trafienie jednostki nakłada na trafionego efekt, który
+ * przez `duration` sekund co `interval` sekund zabiera mu `damage` życia. Kolejne trafienie
+ * odnawia czas, nie sumuje efektu.
+ */
+const overTime = {
+  damage: z.number().int().positive(),
+  /** Odstęp tyknięć w sekundach. */
+  interval: z.number().positive().default(1),
+  /** Czas trwania w sekundach od ostatniego trafienia; co najmniej jeden odstęp. */
+  duration: z.number().positive(),
+};
+
 /** Cechy pasywne: zamknięty zestaw, każda ma kod w symulacji (ADR 0009). */
 export const traitSchema = z.discriminatedUnion('type', [
   z.strictObject({
@@ -83,6 +96,12 @@ export const traitSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('dodge'), percent: z.number().int().min(1).max(99) }),
   /** Tarcza: otrzymywane obrażenia są mniejsze o `percent` procent. */
   z.strictObject({ type: z.literal('shield'), percent: z.number().int().min(1).max(99) }),
+  /** Krwawienie: obrażenia w czasie. Jednostka może mieć albo `bleed`, albo `poison`. */
+  z.strictObject({ type: z.literal('bleed'), ...overTime }),
+  /** Trucizna: obrażenia w czasie, osobny efekt obok krwawienia. */
+  z.strictObject({ type: z.literal('poison'), ...overTime }),
+  /** Szarża: pierwszy atak jednostki w walce zadaje o `bonus` procent więcej (200 to cios potrójny). */
+  z.strictObject({ type: z.literal('charge'), bonus: z.number().int().positive() }),
 ]);
 
 export const unitSchema = z

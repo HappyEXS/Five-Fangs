@@ -38,7 +38,8 @@ describe('nextPurchase', () => {
     });
     expect(nextPurchase(content, buy(save, 3), SWORD)).toMatchObject({
       kind: 'upgrade',
-      options: [{ cost: 180 }],
+      // Czwarte ulepszenie kosztuje tyle samo co pierwsze (ADR 0023).
+      options: [{ cost: 50 }],
     });
   });
 
@@ -48,12 +49,12 @@ describe('nextPurchase', () => {
       kind: 'evolve',
       options: [
         {
-          cost: 250,
+          cost: 400,
           unitId: 'swordsman_b',
           spec: previewEvolve(content, save, SWORD, 'swordsman_b'),
         },
         {
-          cost: 250,
+          cost: 400,
           unitId: 'guard_a',
           spec: previewEvolve(content, save, SWORD, 'guard_a'),
         },
@@ -65,13 +66,13 @@ describe('nextPurchase', () => {
     const evolved = buy(rich(), 5);
     expect(nextPurchase(content, evolved, SWORD)).toMatchObject({
       kind: 'upgrade',
-      options: [{ cost: 300, unitId: 'swordsman_b' }],
+      options: [{ cost: 200, unitId: 'swordsman_b' }],
     });
     expect(nextPurchase(content, buy(evolved, 4), SWORD)).toMatchObject({
       kind: 'evolve',
       options: [
-        { cost: 1200, unitId: 'swordsman_b2' },
-        { cost: 1200, unitId: 'berserker' },
+        { cost: 1600, unitId: 'swordsman_b2' },
+        { cost: 1600, unitId: 'berserker' },
       ],
     });
     expect(nextPurchase(content, buy(evolved, 9), SWORD)).toBeNull();
@@ -88,27 +89,22 @@ describe('nextPurchase', () => {
 });
 
 describe('runeStock', () => {
-  it('grupuje wolne runy po id: życie przed atakiem, rosnąco po wartości', () => {
-    const save = rich(['rune_attack_25', 'rune_hp_200', 'rune_attack_10', 'rune_hp_200']);
-    expect(runeStock(content, save).map(({ rune, count }) => [rune.id, count])).toEqual([
-      ['rune_hp_200', 2],
-      ['rune_attack_10', 1],
-      ['rune_attack_25', 1],
+  it('podaje wolne runy w kolejności drzewka: kierunek po kierunku, od najsłabszej', () => {
+    const save = rich(['speed_1', 'attack_2', 'hp_2', 'attack_1', 'knockback_1', 'hp_1']);
+    expect(runeStock(content, save).map((rune) => rune.id)).toEqual([
+      'hp_1',
+      'hp_2',
+      'attack_1',
+      'attack_2',
+      'knockback_1',
+      'speed_1',
     ]);
   });
 
   it('pomija runy włożone bohaterom i nieznane treści gry', () => {
-    const save = equipRune(
-      content,
-      rich(['rune_hp_100', 'rune_hp_100', 'gone']),
-      SWORD,
-      0,
-      'rune_hp_100',
-    );
+    const save = equipRune(content, rich(['hp_1', 'hp_2', 'gone']), SWORD, 0, 'hp_1');
     if (save === null) throw new Error('equip refused');
-    expect(runeStock(content, save).map(({ rune, count }) => [rune.id, count])).toEqual([
-      ['rune_hp_100', 1],
-    ]);
+    expect(runeStock(content, save).map((rune) => rune.id)).toEqual(['hp_2']);
   });
 
   it('bez wolnych run daje pustą listę', () => {

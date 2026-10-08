@@ -116,9 +116,20 @@ describe('atlas placeholder', () => {
         expect(names).toContain(`${skin}/${slot}`);
       }
     }
-    // Cztery szczepy po siedem form i krzak przyzywany przez Mother-tree.
-    expect(tribes).toHaveLength(4 * 7 + 1);
-    for (const projectile of ['arrow', 'fang', 'spike', 'fireball', 'gaze', 'thorn', 'glitch']) {
+    // Cztery szczepy po siedem form, krzak przyzywany przez Mother-tree i dziesięciu Akronixów.
+    expect(tribes).toHaveLength(4 * 7 + 1 + 10);
+    for (const projectile of [
+      'arrow',
+      'fang',
+      'spike',
+      'fireball',
+      'gaze',
+      'thorn',
+      'glitch',
+      'barb',
+      'dart',
+      'flask',
+    ]) {
       expect(names).toContain(`fx/${projectile}`);
     }
     expect(names).toContain('fx/dmg_0');
@@ -127,9 +138,15 @@ describe('atlas placeholder', () => {
     // Liczba życia nad paskiem nie ma znaku plus.
     expect(names).not.toContain('fx/hp_plus');
     expect(names).toContain('fx/dodge');
-    // Części skórek, trzynaście pocisków, znak uniku, dwa zestawy po jedenaście znaków i dziesięć
-    // cyfr życia.
-    expect(names).toHaveLength(skins.length * 7 + 13 + 1 + 22 + 10);
+    // Znaczki efektów nad paskiem życia (ADR 0021).
+    expect(names).toContain('fx/bleed');
+    expect(names).toContain('fx/poison');
+    // Druga ręka: tarcza Defenixa i druga broń trzech Axinów.
+    const offhand = names.filter((name) => name.endsWith('/offhand'));
+    expect(offhand).toHaveLength(4);
+    // Części skórek, szesnaście pocisków, znak uniku, dwa znaczki efektów, dwa zestawy po
+    // jedenaście znaków i dziesięć cyfr życia.
+    expect(names).toHaveLength(skins.length * 7 + offhand.length + 16 + 1 + 2 + 22 + 10);
   });
 
   it('każdy sprite ma rozmiar części w pikselach atlasu i nie jest pusty', () => {

@@ -109,8 +109,25 @@ function mergeHumanLines(save: Record<string, unknown>): Record<string, unknown>
   return { ...save, saveVersion: 4, heroes };
 }
 
+/**
+ * v4 → v5: runy przestają być nagrodami za poziomy i stają się węzłami drzewka run, które gracz
+ * odblokowuje żetonami (ADR 0026). Dawnych run nie ma już w treści gry, więc znikają z zapasu
+ * i z gniazd bohaterów. Gracz nic nie traci: żetony wynikają z przeszłych poziomów (runes.ts),
+ * więc po wczytaniu ma do wydania po jednym za każdy poziom, który dziś daje żeton.
+ */
+function dropRewardRunes(save: Record<string, unknown>): Record<string, unknown> {
+  const heroes = Array.isArray(save.heroes)
+    ? save.heroes.map((hero: unknown) => {
+        if (!isRecord(hero) || !Array.isArray(hero.runes)) return hero;
+        return { ...hero, runes: hero.runes.map(() => null) };
+      })
+    : save.heroes;
+  return { ...save, saveVersion: 5, heroes, runes: [] };
+}
+
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: linesToHeroes,
   2: formIndexToUnit,
   3: mergeHumanLines,
+  4: dropRewardRunes,
 };

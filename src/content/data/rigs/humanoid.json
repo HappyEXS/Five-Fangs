@@ -31,6 +31,13 @@
       "back": true
     },
     {
+      "id": "offhand",
+      "parent": "foreB",
+      "at": [0, 9],
+      "sprite": "offhand",
+      "optional": true
+    },
+    {
       "id": "thighB",
       "parent": "root",
       "at": [-1, -1],
@@ -84,6 +91,7 @@
     "thighF",
     "shinF",
     "head",
+    "offhand",
     "armF",
     "weapon",
     "foreF"
@@ -105,6 +113,14 @@
     },
     "beast": {
       "weapon": -40
+    },
+    "shield": {
+      "weapon": -75,
+      "offhand": 25
+    },
+    "dual": {
+      "weapon": -75,
+      "offhand": -45
     }
   },
   "strings": {

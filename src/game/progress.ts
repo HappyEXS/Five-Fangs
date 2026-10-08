@@ -3,9 +3,8 @@
 // zapis albo null, gdy akcja jest niedozwolona. UI tylko je wywołuje.
 import type { Language } from '../content/i18n/index.ts';
 import type { GameContent } from '../content/load.ts';
-import type { CompiledLine } from '../content/load-progression.ts';
+import type { CompiledLine, Rune } from '../content/load-progression.ts';
 import { resolveUnitSpec, type SquadMember } from '../content/resolve-spec.ts';
-import type { Rune } from '../content/schema-progression.ts';
 import { mulDivFloor } from '../core/int.ts';
 import type { UnitSpec } from '../sim/types.ts';
 import { type HeroState, SAVE_VERSION, type Save, SQUAD_SLOTS } from './save-schema.ts';
@@ -57,7 +56,8 @@ export function reconcileSave(content: GameContent, save: Save): Save {
   for (const [id, state] of Object.entries(save.levels)) {
     if (content.levels.has(id)) levels[id] = state;
   }
-  const owned = save.runes.filter((id) => content.runes.has(id));
+  // Każda runa drzewka istnieje raz: powtórzenie w zapisie nie daje drugiego egzemplarza.
+  const owned = [...new Set(save.runes)].filter((id) => content.runes.has(id));
   const available = new Map<string, number>();
   for (const id of owned) available.set(id, (available.get(id) ?? 0) + 1);
 
@@ -133,17 +133,45 @@ export function nextLevel(content: GameContent, levelId: string): string | null 
   return index < 0 ? null : (order[index + 1] ?? null);
 }
 
+/** Poprzedni poziom w kolejności odblokowywania (ten, który odblokowuje wskazany) albo null. */
+export function previousLevel(content: GameContent, levelId: string): string | null {
+  const order = levelOrder(content);
+  const index = order.indexOf(levelId);
+  return index <= 0 ? null : (order[index - 1] ?? null);
+}
+
 /** Pierwszy poziom, którego gracz jeszcze nie przeszedł; po przejściu wszystkich ostatni. */
 export function currentLevel(content: GameContent, save: Save): string | null {
   const order = levelOrder(content);
   return order.find((id) => !isLevelCleared(save, id)) ?? order[order.length - 1] ?? null;
 }
 
+/** Świat odbity z rąk najeźdźców: wszystkie jego poziomy są przeszłe. */
+export function isWorldCleared(content: GameContent, save: Save, worldId: string): boolean {
+  const world = content.worlds.find((entry) => entry.id === worldId);
+  return world?.levels.every((id) => isLevelCleared(save, id)) ?? false;
+}
+
+/**
+ * Poziom, na którym mapa otwiera wskazany świat: pierwszy jeszcze nieprzeszły, a w świecie
+ * odbitym ostatni (boss). W świecie, do którego gracz jeszcze nie doszedł, jest to jego pierwszy
+ * poziom: mapa pokazuje go jako zablokowany. Null dla nieznanego świata.
+ */
+export function worldEntryLevel(content: GameContent, save: Save, worldId: string): string | null {
+  const world = content.worlds.find((entry) => entry.id === worldId);
+  if (world === undefined) return null;
+  return (
+    world.levels.find((id) => !isLevelCleared(save, id)) ??
+    world.levels[world.levels.length - 1] ??
+    null
+  );
+}
+
 export interface Rewards {
   readonly firstClear: boolean;
   readonly gold: number;
-  /** Runa za pierwsze przejście albo null. */
-  readonly rune: string | null;
+  /** Żeton run za pierwsze przejście (wydaje się go w drzewku run, runes.ts). */
+  readonly runeToken: boolean;
 }
 
 /** Nagrody, które da wygrana na poziomie przy bieżącym zapisie. */
@@ -152,12 +180,15 @@ export function victoryRewards(content: GameContent, save: Save, levelId: string
   if (level === undefined) return null;
   if (isLevelCleared(save, levelId)) {
     const gold = mulDivFloor(level.gold, content.progression.replayGoldPercent, 100);
-    return { firstClear: false, gold, rune: null };
+    return { firstClear: false, gold, runeToken: false };
   }
-  return { firstClear: true, gold: level.gold, rune: level.rune };
+  return { firstClear: true, gold: level.gold, runeToken: level.runeToken };
 }
 
-/** Zapis po wygranej w `ticks` tickach. Null, gdy poziom nie istnieje albo jest zablokowany. */
+/**
+ * Zapis po wygranej w `ticks` tickach. Null, gdy poziom nie istnieje albo jest zablokowany.
+ * Żetonu run zapis nie przechowuje: wynika z przeszłych poziomów (runes.ts).
+ */
 export function applyVictory(
   content: GameContent,
   save: Save,
@@ -172,7 +203,6 @@ export function applyVictory(
     save: {
       ...save,
       gold: save.gold + rewards.gold,
-      runes: rewards.rune === null ? save.runes : [...save.runes, rewards.rune],
       levels: {
         ...save.levels,
         [levelId]: { cleared: true, bestTicks: best === null ? ticks : Math.min(best, ticks) },
@@ -195,11 +225,14 @@ export function withHero(save: Save, next: HeroState): Save {
   return { ...save, heroes: save.heroes.map((hero) => (hero.id === next.id ? next : hero)) };
 }
 
-/** Koszt następnego ulepszenia albo null, gdy forma ma już komplet (albo bohatera nie ma). */
+/**
+ * Koszt następnego ulepszenia albo null, gdy forma ma już komplet (albo bohatera nie ma). Każde
+ * ulepszenie formy kosztuje tyle samo; cena zależy od stopnia formy (ADR 0023).
+ */
 export function upgradeCost(content: GameContent, save: Save, heroId: number): number | null {
   const found = heroAndLine(content, save, heroId);
   if (found === null || found.hero.upgrades >= content.progression.maxUpgrades) return null;
-  return found.line.forms.get(found.hero.form)?.upgradeCosts[found.hero.upgrades] ?? null;
+  return found.line.forms.get(found.hero.form)?.upgradeCost ?? null;
 }
 
 /** Kupuje ulepszenie. Null, gdy brakuje złota albo forma ma komplet. */

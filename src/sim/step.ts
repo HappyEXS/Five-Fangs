@@ -9,6 +9,7 @@ import { hashInt32 } from '../core/hash.ts';
 import { progressAttack } from './attack.ts';
 import type { Battle } from './battle.ts';
 import { backUnit, decideUnit, frontUnit, isAlive } from './decide.ts';
+import { tickDots } from './dot.ts';
 import { clearEvents } from './events.ts';
 import { hashEvents } from './hash.ts';
 import { moveUnit } from './move.ts';
@@ -57,8 +58,9 @@ export function stepBattle(battle: Battle): void {
   // Faza 4: pociski, także te wystrzelone przed chwilą.
   moveProjectiles(battle);
 
-  // Faza 5: cechy okresowe.
+  // Faza 5: cechy okresowe i obrażenia w czasie.
   if (battle.healers.length > 0) applyPeriodicHeals(battle);
+  if (battle.hasDot) tickDots(battle);
 
   // Fazy 6–7: jednoczesne rozstrzygnięcie, śmierci i warunek końca.
   resolveAndFinish(battle);

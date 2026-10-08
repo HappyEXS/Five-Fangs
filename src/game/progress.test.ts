@@ -12,16 +12,19 @@ import {
   heroView,
   isLevelUnlocked,
   isSquadEmpty,
+  isWorldCleared,
   levelOrder,
   newSave,
   nextLevel,
   ownedCount,
   placeInSquad,
+  previousLevel,
   reconcileSave,
   removeFromSquad,
   squadMembers,
   upgradeCost,
   victoryRewards,
+  worldEntryLevel,
 } from './progress.ts';
 import type { Save } from './save-schema.ts';
 
@@ -30,6 +33,8 @@ const fresh = (): Save => newSave(content, '0.0.0', 'pl');
 // W nowej grze miecznik ma id 1, łucznik id 2.
 const SWORD = 1;
 const ARCHER = 2;
+
+const goldOf = (level: string): number => content.levels.get(level)?.gold ?? 0;
 
 /** Zapis po wygraniu podanych poziomów po kolei. */
 function cleared(levels: readonly string[], from: Save = fresh()): Save {
@@ -83,12 +88,41 @@ describe('odblokowywanie poziomów', () => {
     ]);
     expect(currentLevel(content, save)).toBe('w1_l3');
     expect(nextLevel(content, 'w1_l2')).toBe('w1_l3');
-    expect(nextLevel(content, 'w1_l6')).toBeNull();
+    // Boss świata odblokowuje pierwszy poziom następnego; po ostatnim poziomie gry nie ma nic.
+    expect(nextLevel(content, 'w1_l6')).toBe('w2_l1');
+    expect(nextLevel(content, 'w6_l6')).toBeNull();
+    expect(previousLevel(content, 'w2_l1')).toBe('w1_l6');
+    expect(previousLevel(content, 'w1_l1')).toBeNull();
+    expect(previousLevel(content, 'nie_ma')).toBeNull();
   });
 
   it('po przejściu wszystkich poziomów bieżącym zostaje ostatni', () => {
     const save = cleared(levelOrder(content));
-    expect(currentLevel(content, save)).toBe('w1_l6');
+    expect(currentLevel(content, save)).toBe('w6_l6');
+  });
+
+  it('świat jest odbity, gdy przeszłe są wszystkie jego poziomy', () => {
+    const world1 = levelOrder(content).slice(0, 6);
+    expect(isWorldCleared(content, fresh(), 'world_1')).toBe(false);
+    expect(isWorldCleared(content, cleared(world1.slice(0, 5)), 'world_1')).toBe(false);
+    const freed = cleared(world1);
+    expect(isWorldCleared(content, freed, 'world_1')).toBe(true);
+    expect(isWorldCleared(content, freed, 'world_2')).toBe(false);
+    expect(isWorldCleared(content, freed, 'nie_ma')).toBe(false);
+    // Przejście z bossa pierwszego świata prowadzi do drugiego.
+    expect(currentLevel(content, freed)).toBe('w2_l1');
+    expect(isLevelUnlocked(content, freed, 'w2_l1')).toBe(true);
+    expect(isLevelUnlocked(content, freed, 'w2_l2')).toBe(false);
+  });
+
+  it('mapa otwiera świat na pierwszym nieprzeszłym poziomie, a odbity na bossie', () => {
+    const save = cleared(levelOrder(content).slice(0, 8));
+    expect(worldEntryLevel(content, save, 'world_1')).toBe('w1_l6');
+    expect(worldEntryLevel(content, save, 'world_2')).toBe('w2_l3');
+    // Świat, do którego gracz jeszcze nie doszedł: jego pierwszy poziom, choć zablokowany.
+    expect(worldEntryLevel(content, save, 'world_5')).toBe('w5_l1');
+    expect(isLevelUnlocked(content, save, 'w5_l1')).toBe(false);
+    expect(worldEntryLevel(content, save, 'nie_ma')).toBeNull();
   });
 
   it('zablokowanego poziomu nie da się zaliczyć', () => {
@@ -98,29 +132,40 @@ describe('odblokowywanie poziomów', () => {
 });
 
 describe('nagrody', () => {
-  it('pierwsze przejście daje pełne złoto i runę poziomu', () => {
+  it('pierwsze przejście daje pełne złoto i żeton run, jeśli poziom go daje', () => {
+    // Drugi poziom gry daje pierwszy żeton; kwoty czytamy z treści, bo należą do balansu.
+    expect(victoryRewards(content, fresh(), 'w1_l1')).toEqual({
+      firstClear: true,
+      gold: goldOf('w1_l1'),
+      runeToken: false,
+    });
     const before = cleared(['w1_l1']);
     expect(victoryRewards(content, before, 'w1_l2')).toEqual({
       firstClear: true,
-      gold: 400,
-      rune: 'rune_hp_100',
+      gold: goldOf('w1_l2'),
+      runeToken: true,
     });
     const after = cleared(['w1_l2'], before);
-    expect(after.gold).toBe(100 + 400);
-    expect(after.runes).toEqual(['rune_hp_100']);
+    expect(after.gold).toBe(goldOf('w1_l1') + goldOf('w1_l2'));
+    // Żeton nie jest polem zapisu: wynika z przeszłego poziomu (runes.ts), a runę gracz
+    // wybiera sam w drzewku.
+    expect(after.runes).toEqual([]);
     expect(after.levels.w1_l2).toEqual({ cleared: true, bestTicks: 500 });
   });
 
   it('powtórka daje 25% złota zaokrąglone w dół i nic poza tym', () => {
+    // Powtarzany poziom dał za pierwszym razem żeton run; powtórka drugiego nie daje.
     const save = cleared(['w1_l1', 'w1_l2']);
+    const replay = Math.floor((goldOf('w1_l2') * content.progression.replayGoldPercent) / 100);
+    expect(content.progression.replayGoldPercent).toBe(25);
     expect(victoryRewards(content, save, 'w1_l2')).toEqual({
       firstClear: false,
-      gold: 100,
-      rune: null,
+      gold: replay,
+      runeToken: false,
     });
     const again = applyVictory(content, save, 'w1_l2', 450);
-    expect(again?.save.gold).toBe(500 + 100);
-    expect(again?.save.runes).toEqual(['rune_hp_100']);
+    expect(again?.save.gold).toBe(save.gold + replay);
+    expect(again?.save.runes).toEqual([]);
   });
 
   it('zapamiętuje najkrótszą wygraną', () => {
@@ -180,7 +225,7 @@ describe('sklep', () => {
 describe('ulepszenia i ewolucja', () => {
   const rich = (gold: number): Save => ({ ...fresh(), gold });
 
-  it('ulepszenie kosztuje kolejne kwoty z danych linii', () => {
+  it('każde ulepszenie formy kosztuje tyle samo', () => {
     let save = rich(1000);
     const paid: number[] = [];
     for (let i = 0; i < 4; i++) {
@@ -190,8 +235,8 @@ describe('ulepszenia i ewolucja', () => {
       paid.push(cost);
       save = next;
     }
-    expect(paid).toEqual([50, 80, 120, 180]);
-    expect(save.gold).toBe(1000 - 430);
+    expect(paid).toEqual([50, 50, 50, 50]);
+    expect(save.gold).toBe(1000 - 200);
     expect(save.heroes[0]?.upgrades).toBe(4);
     expect(upgradeCost(content, save, SWORD)).toBeNull();
     expect(applyUpgrade(content, save, SWORD)).toBeNull();
@@ -205,66 +250,55 @@ describe('ulepszenia i ewolucja', () => {
 });
 
 describe('runy', () => {
-  const withRunes = (): Save => ({ ...fresh(), runes: ['rune_attack_25', 'rune_hp_200'] });
+  const withRunes = (): Save => ({ ...fresh(), runes: ['attack_2', 'hp_2'] });
 
   it('wkłada wolną runę do slotu i zdejmuje ją z listy wolnych', () => {
-    const save = equipRune(content, withRunes(), ARCHER, 0, 'rune_attack_25');
-    expect(save?.heroes[1]?.runes).toEqual(['rune_attack_25', null]);
-    expect(save && freeRunes(save)).toEqual(['rune_hp_200']);
+    const save = equipRune(content, withRunes(), ARCHER, 0, 'attack_2');
+    expect(save?.heroes[1]?.runes).toEqual(['attack_2', null]);
+    expect(save && freeRunes(save)).toEqual(['hp_2']);
   });
 
   it('runy włożonej jednemu bohaterowi nie da się włożyć drugiemu bez wyjęcia', () => {
-    const save = equipRune(content, withRunes(), ARCHER, 0, 'rune_attack_25');
+    const save = equipRune(content, withRunes(), ARCHER, 0, 'attack_2');
     if (save === null) throw new Error('equip refused');
-    expect(equipRune(content, save, SWORD, 0, 'rune_attack_25')).toBeNull();
+    expect(equipRune(content, save, SWORD, 0, 'attack_2')).toBeNull();
     const emptied = equipRune(content, save, ARCHER, 0, null);
-    expect(emptied && freeRunes(emptied)).toEqual(['rune_attack_25', 'rune_hp_200']);
-    expect(emptied && equipRune(content, emptied, SWORD, 0, 'rune_attack_25')).not.toBeNull();
-  });
-
-  it('dwie takie same runy da się włożyć dwóm bohaterom', () => {
-    let save: Save = { ...fresh(), runes: ['rune_attack_25', 'rune_attack_25'] };
-    save = equipRune(content, save, ARCHER, 0, 'rune_attack_25') ?? save;
-    save = equipRune(content, save, SWORD, 1, 'rune_attack_25') ?? save;
-    expect(freeRunes(save)).toEqual([]);
-    expect(equipRune(content, save, SWORD, 0, 'rune_attack_25')).toBeNull();
+    expect(emptied && freeRunes(emptied)).toEqual(['attack_2', 'hp_2']);
+    expect(emptied && equipRune(content, emptied, SWORD, 0, 'attack_2')).not.toBeNull();
   });
 
   it('zamiana runy w slocie zwraca poprzednią do wolnych', () => {
-    let save = equipRune(content, withRunes(), ARCHER, 0, 'rune_attack_25');
-    save = save && equipRune(content, save, ARCHER, 0, 'rune_hp_200');
-    expect(save?.heroes[1]?.runes).toEqual(['rune_hp_200', null]);
-    expect(save && freeRunes(save)).toEqual(['rune_attack_25']);
+    let save = equipRune(content, withRunes(), ARCHER, 0, 'attack_2');
+    save = save && equipRune(content, save, ARCHER, 0, 'hp_2');
+    expect(save?.heroes[1]?.runes).toEqual(['hp_2', null]);
+    expect(save && freeRunes(save)).toEqual(['attack_2']);
   });
 
   it('odrzuca slot spoza zakresu, nieznanego bohatera i runę, której gracz nie ma', () => {
-    expect(equipRune(content, withRunes(), ARCHER, 2, 'rune_hp_200')).toBeNull();
-    expect(equipRune(content, withRunes(), ARCHER, -1, 'rune_hp_200')).toBeNull();
-    expect(equipRune(content, withRunes(), 99, 0, 'rune_hp_200')).toBeNull();
-    expect(equipRune(content, fresh(), ARCHER, 0, 'rune_hp_200')).toBeNull();
+    expect(equipRune(content, withRunes(), ARCHER, 2, 'hp_2')).toBeNull();
+    expect(equipRune(content, withRunes(), ARCHER, -1, 'hp_2')).toBeNull();
+    expect(equipRune(content, withRunes(), 99, 0, 'hp_2')).toBeNull();
+    expect(equipRune(content, fresh(), ARCHER, 0, 'hp_2')).toBeNull();
   });
 
   it('podgląd statystyk równa się temu, co liczy resolveUnitSpec', () => {
     let save: Save = { ...withRunes(), gold: 1000 };
     save = applyUpgrade(content, save, ARCHER) ?? save;
     save = applyUpgrade(content, save, ARCHER) ?? save;
-    save = equipRune(content, save, ARCHER, 0, 'rune_attack_25') ?? save;
-    save = equipRune(content, save, ARCHER, 1, 'rune_hp_200') ?? save;
+    save = equipRune(content, save, ARCHER, 0, 'attack_2') ?? save;
+    save = equipRune(content, save, ARCHER, 1, 'hp_2') ?? save;
 
     const view = heroView(content, save, ARCHER);
     const unit = content.heroes.get('archer_a');
-    const runes = [content.runes.get('rune_attack_25'), content.runes.get('rune_hp_200')];
-    if (view === null || unit === undefined || runes.includes(undefined)) throw new Error('setup');
-    const expected = resolveUnitSpec(
-      unit,
-      2,
-      runes.filter((rune) => rune !== undefined),
-      content.progression,
-    );
-    expect(view.spec).toEqual(expected);
-    // 350 HP i 30 ataku + 20% + runy.
-    expect(view.spec.maxHp).toBe(420 + 200);
-    expect(view.spec.attack).toBe(36 + 25);
+    const attack = content.runes.get('attack_2');
+    const hp = content.runes.get('hp_2');
+    if (view === null || unit === undefined || attack === undefined || hp === undefined) {
+      throw new Error('setup');
+    }
+    expect(view.spec).toEqual(resolveUnitSpec(unit, 2, [attack, hp], content.progression));
+    // 120 życia i 14 ataku + 20% (atak 16,8 → 16) + runy; ich wartości należą do balansu.
+    expect(view.spec.maxHp).toBe(144 + hp.value);
+    expect(view.spec.attack).toBe(16 + attack.value);
     expect(squadMembers(content, save)[1]).toEqual({ unit, rank: 2, runes: view.runes });
   });
 });
@@ -324,22 +358,23 @@ describe('reconcileSave', () => {
           line: 'swordsman',
           form: 'swordsman_b',
           upgrades: 9,
-          runes: ['rune_dawna', 'rune_hp_200', 'rune_hp_200'],
+          runes: ['rune_dawna', 'hp_2', 'hp_2'],
         },
         // Powtórzone id: zostaje pierwszy bohater.
         { id: 2, line: 'archer', form: 'archer_a', upgrades: 0, runes: [null, null] },
       ],
       nextHeroId: 2,
-      runes: ['rune_dawna', 'rune_hp_200'],
+      // Runa drzewka istnieje raz: powtórzenie w zapisie nie daje drugiej sztuki.
+      runes: ['rune_dawna', 'hp_2', 'hp_2'],
       levels: { w1_l1: { cleared: true, bestTicks: 300 }, dawny: { cleared: true, bestTicks: 1 } },
       squad: [1, 2, 2, 7, null],
     };
     const fixed = reconcileSave(content, save);
-    expect(fixed.runes).toEqual(['rune_hp_200']);
+    expect(fixed.runes).toEqual(['hp_2']);
     expect(Object.keys(fixed.levels)).toEqual(['w1_l1']);
     // Ulepszenia przycięte do maksimum, runy do liczby slotów i do posiadanych sztuk.
     expect(fixed.heroes).toEqual([
-      { id: 2, line: 'swordsman', form: 'swordsman_b', upgrades: 4, runes: [null, 'rune_hp_200'] },
+      { id: 2, line: 'swordsman', form: 'swordsman_b', upgrades: 4, runes: [null, 'hp_2'] },
     ]);
     // Następne id nie może powtórzyć istniejącego.
     expect(fixed.nextHeroId).toBe(3);
@@ -349,21 +384,21 @@ describe('reconcileSave', () => {
   it('forma spoza drzewa linii wraca do formy bazowej bez ulepszeń, runy zostają', () => {
     const save: Save = {
       ...fresh(),
-      runes: ['rune_hp_200'],
+      runes: ['hp_2'],
       heroes: [
         {
           id: 1,
           line: 'swordsman',
           form: 'dawna_forma',
           upgrades: 3,
-          runes: ['rune_hp_200', null],
+          runes: ['hp_2', null],
         },
         { id: 2, line: 'archer', form: 'swordsman_b', upgrades: 2, runes: [null, null] },
       ],
     };
     const fixed = reconcileSave(content, save);
     expect(fixed.heroes.map((hero) => [hero.form, hero.upgrades, hero.runes[0]])).toEqual([
-      ['swordsman_a', 0, 'rune_hp_200'],
+      ['swordsman_a', 0, 'hp_2'],
       // Forma z innej linii też nie należy do drzewa łucznika.
       ['archer_a', 0, null],
     ]);
@@ -373,11 +408,11 @@ describe('reconcileSave', () => {
     const base = fresh();
     const save: Save = {
       ...base,
-      runes: ['rune_attack_25'],
-      heroes: base.heroes.map((hero) => ({ ...hero, runes: ['rune_attack_25', null] })),
+      runes: ['attack_2'],
+      heroes: base.heroes.map((hero) => ({ ...hero, runes: ['attack_2', null] })),
     };
     const fixed = reconcileSave(content, save);
-    expect(fixed.heroes[0]?.runes).toEqual(['rune_attack_25', null]);
+    expect(fixed.heroes[0]?.runes).toEqual(['attack_2', null]);
     expect(fixed.heroes[1]?.runes).toEqual([null, null]);
   });
 

@@ -110,7 +110,7 @@ export function createCanvasRenderer(
 
     draw(viewport: Viewport, alpha: number, frameMs: number): void {
       if (import.meta.env.DEV) debugStats.drawCalls = 0;
-      drawBackground(ctx, viewport);
+      drawBackground(ctx, viewport, scene.backdrop);
       const { battle } = scene;
       if (battle === null) return;
       updateFloatTexts(scene.floatTexts, frameMs);
@@ -137,6 +137,9 @@ export function createCanvasRenderer(
 
     setShowcase(on: boolean): void {
       scene.showcase = on;
+    },
+    setBackdrop(backdrop): void {
+      scene.backdrop = backdrop;
     },
     setTopUnit(unit: number): void {
       scene.topUnit = Number.isInteger(unit) && unit >= 0 && unit < MAX_UNITS ? unit : -1;

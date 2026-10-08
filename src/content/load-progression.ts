@@ -1,19 +1,23 @@
-// Wczytanie danych progresji: linie bohaterów, runy, światy i poziomy, ze sprawdzeniem odwołań.
+// Wczytanie danych progresji: linie bohaterów, drzewko run, światy i poziomy, ze sprawdzeniem
+// odwołań.
 import type { CompiledUnit } from './compile.ts';
 import type { ContentIssue } from './issues.ts';
-import { type CompiledLine, compileLine } from './load-lines.ts';
+import { type CompiledLine, checkTierCosts, compileLine } from './load-lines.ts';
+import { compileRuneTree, type Rune, type RuneBranch } from './load-runes.ts';
 import { indexById, parse } from './parse.ts';
 import {
+  type BackdropId,
   levelsSchema,
   linesSchema,
   type Progression,
   progressionSchema,
-  type Rune,
-  runesSchema,
+  type RawWorld,
+  runeTreeSchema,
   worldsSchema,
 } from './schema-progression.ts';
 
 export type { CompiledForm, CompiledLine } from './load-lines.ts';
+export type { Rune, RuneBranch } from './load-runes.ts';
 
 export interface LevelEnemy {
   readonly slot: number;
@@ -28,12 +32,14 @@ export interface CompiledLevel {
   readonly index: number;
   readonly enemies: readonly LevelEnemy[];
   readonly gold: number;
-  /** Runa za pierwsze przejście albo null. */
-  readonly rune: string | null;
+  /** Pierwsze przejście daje żeton run. */
+  readonly runeToken: boolean;
 }
 
 export interface CompiledWorld {
   readonly id: string;
+  /** Tło sceny tego świata. */
+  readonly backdrop: BackdropId;
   /** Id poziomów w kolejności odblokowywania. */
   readonly levels: readonly string[];
 }
@@ -41,6 +47,9 @@ export interface CompiledWorld {
 export interface ProgressionContent {
   readonly progression: Progression;
   readonly lines: ReadonlyMap<string, CompiledLine>;
+  /** Kierunki drzewka run w kolejności z treści. */
+  readonly runeTree: readonly RuneBranch[];
+  /** Wszystkie runy drzewka po id. */
   readonly runes: ReadonlyMap<string, Rune>;
   readonly worlds: readonly CompiledWorld[];
   readonly levels: ReadonlyMap<string, CompiledLevel>;
@@ -57,16 +66,16 @@ export interface RawProgression {
 
 function loadLevels(
   raw: RawProgression,
-  worldIds: readonly string[],
+  worldList: ReadonlyMap<string, RawWorld>,
   progression: Progression,
   heroes: ReadonlyMap<string, CompiledUnit>,
   enemies: ReadonlyMap<string, CompiledUnit>,
-  runes: ReadonlyMap<string, Rune>,
   issues: ContentIssue[],
 ): { worlds: CompiledWorld[]; levels: Map<string, CompiledLevel> } {
   const worlds: CompiledWorld[] = [];
   const levels = new Map<string, CompiledLevel>();
 
+  const worldIds = [...worldList.keys()];
   for (const file of Object.keys(raw.levels)) {
     if (!worldIds.includes(file)) {
       issues.push({ source: `levels/${file}.json`, message: 'plik poziomów nieznanego świata' });
@@ -106,10 +115,6 @@ function loadLevels(
           issues.push({ source, message: `${level.id}: nieznana jednostka "${enemy.unit}"` });
         }
       }
-      const rune = level.rewards.rune ?? null;
-      if (rune !== null && !runes.has(rune)) {
-        issues.push({ source, message: `${level.id}: nieznana runa "${rune}"` });
-      }
       order.push(level.id);
       levels.set(level.id, {
         id: level.id,
@@ -117,10 +122,10 @@ function loadLevels(
         index,
         enemies: level.enemies,
         gold: level.rewards.gold,
-        rune,
+        runeToken: level.rewards.runeToken,
       });
     });
-    worlds.push({ id: world, levels: order });
+    worlds.push({ id: world, backdrop: worldList.get(world)?.backdrop ?? 'castle', levels: order });
   }
   return { worlds, levels };
 }
@@ -134,15 +139,16 @@ export function loadProgression(
 ): ProgressionContent | null {
   const progression = parse('progression.json', progressionSchema, raw['progression.json'], issues);
   const lineList = parse('lines.json', linesSchema, raw['lines.json'], issues);
-  const runeList = parse('runes.json', runesSchema, raw['runes.json'], issues);
+  const rawRunes = parse('runes.json', runeTreeSchema, raw['runes.json'], issues);
   const worldList = parse('worlds.json', worldsSchema, raw['worlds.json'], issues);
-  if (progression === null || lineList === null || runeList === null || worldList === null) {
+  if (progression === null || lineList === null || rawRunes === null || worldList === null) {
     return null;
   }
 
-  const runes = indexById('runes.json', runeList, new Set(), issues);
-  const worldIds = [...indexById('worlds.json', worldList, new Set(), issues).keys()];
-  const { worlds, levels } = loadLevels(raw, worldIds, progression, heroes, enemies, runes, issues);
+  checkTierCosts(progression, issues);
+  const runeTree = compileRuneTree(rawRunes, issues);
+  const worldsById = indexById('worlds.json', worldList, new Set(), issues);
+  const { worlds, levels } = loadLevels(raw, worldsById, progression, heroes, enemies, issues);
 
   const lines = new Map<string, CompiledLine>();
   const usedForms = new Set<string>();
@@ -151,5 +157,12 @@ export function loadProgression(
     if (compiled !== null) lines.set(line.id, compiled);
   }
 
-  return { progression, lines, runes, worlds, levels };
+  return {
+    progression,
+    lines,
+    runeTree: runeTree.branches,
+    runes: runeTree.runes,
+    worlds,
+    levels,
+  };
 }

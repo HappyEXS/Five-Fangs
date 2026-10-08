@@ -22,6 +22,7 @@ function recordingRenderer() {
     beginBattle: () => {
       calls.begin++;
     },
+    setBackdrop: () => {},
     consume: (events) => {
       calls.consumed++;
       calls.events += events.count;

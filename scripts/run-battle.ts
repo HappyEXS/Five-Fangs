@@ -12,7 +12,9 @@ import {
   battleResult,
   createBattle,
   createEventBuffer,
+  DOT_BLEED,
   drainEvents,
+  EVENT_AFFLICTED,
   EVENT_ATTACK_HIT,
   EVENT_ATTACK_STARTED,
   EVENT_BATTLE_ENDED,
@@ -127,6 +129,8 @@ function describe(type: number, a: number, b: number, c: number): string {
       return `${unit(a)} unika ataku ${unit(b)}`;
     case EVENT_SUMMONED:
       return `${unit(b)} przyzywa jednostkę w miejscu #${a} na x=${pos(c)}`;
+    case EVENT_AFFLICTED:
+      return `${unit(a)} ${b === DOT_BLEED ? 'krwawi' : 'jest zatruty'} (od ${unit(c)})`;
     case EVENT_BATTLE_ENDED:
       return 'koniec walki';
     default:

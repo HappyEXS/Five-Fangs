@@ -25,6 +25,11 @@ function start(storage: SaveStorage | null = memory().storage): Game {
   return createGame({ content, storage, gameVersion: '9.9.9', preferredLanguage: 'en' });
 }
 
+/** Nagrody czytamy z treści: te testy sprawdzają reguły gry, nie liczby balansu. */
+const goldOf = (level: string): number => content.levels.get(level)?.gold ?? 0;
+const FIRST = goldOf('w1_l1');
+const SECOND = goldOf('w1_l2');
+
 const WIN = { outcome: 'win', reason: 'eliminated', ticks: 400 } as const;
 const LOSS = { outcome: 'loss', reason: 'timeout', ticks: 2700 } as const;
 
@@ -48,7 +53,7 @@ describe('start gry', () => {
     game.finishBattle('w1_l1', WIN);
 
     const again = start(first.storage);
-    expect(again.save.value.gold).toBe(100);
+    expect(again.save.value.gold).toBe(FIRST);
     expect(again.save.value.gameVersion).toBe('9.9.9');
     expect(language.value).toBe('pl');
   });
@@ -102,7 +107,7 @@ describe('start gry', () => {
     const game = start(null);
     expect(game.storage.value).toBe('memory');
     game.finishBattle('w1_l1', WIN);
-    expect(game.save.value.gold).toBe(100);
+    expect(game.save.value.gold).toBe(FIRST);
     expect(game.storage.value).toBe('memory');
   });
 });
@@ -144,12 +149,40 @@ describe('sceny', () => {
     expect(game.scene.value).toEqual({ name: 'heroes', line: 'swordsman', form: 'swordsman_a' });
   });
 
-  it('zablokowanego poziomu nie da się wybrać na mapie ani uruchomić', () => {
+  it('informacje o bohaterach otwierają też szczep wrogów na wskazanej albo pierwszej postaci', () => {
+    const game = start();
+    game.openHeroes('akronix');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'akronix', form: 'bowix' });
+    game.openHeroes('akronix', 'axin_2');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'akronix', form: 'axin_2' });
+    // Postać spoza szczepu (także bohater): pierwsza postać szczepu.
+    game.openHeroes('akronix', 'swordsman_a');
+    expect(game.scene.value).toEqual({ name: 'heroes', line: 'akronix', form: 'bowix' });
+  });
+
+  it('zablokowany poziom można obejrzeć na mapie, ale nie da się go uruchomić', () => {
     const game = start();
     game.openMap('w1_l2');
-    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l2' });
     expect(game.startBattle('w1_l2')).toBe(false);
     expect(game.scene.value.name).toBe('map');
+    // Nieznany poziom: mapa wraca do pierwszego nieprzeszłego.
+    game.openMap('nie_ma');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
+  });
+
+  it('przełączanie świata wybiera w nim poziom do pokazania', () => {
+    const game = start();
+    game.openMap();
+    // Świat, do którego gracz nie doszedł: jego pierwszy poziom, do obejrzenia.
+    game.openWorld('world_3');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w3_l1' });
+    expect(game.startBattle('w3_l1')).toBe(false);
+    game.openWorld('world_1');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
+    // Nieznany świat niczego nie zmienia.
+    game.openWorld('world_9');
+    expect(game.scene.value).toEqual({ name: 'map', selected: 'w1_l1' });
   });
 
   it('walka nie zaczyna się z pustym składem', () => {
@@ -169,7 +202,7 @@ describe('wynik walki', () => {
       name: 'result',
       level: 'w1_l1',
       battle: WIN,
-      rewards: { firstClear: true, gold: 100, rune: null },
+      rewards: { firstClear: true, gold: FIRST, runeToken: false },
     });
     const stored = decodeSave(items.get(SAVE_KEY) ?? '');
     expect(stored.kind === 'ok' && stored.save.levels.w1_l1).toEqual({
@@ -207,7 +240,9 @@ describe('akcje gracza', () => {
     const before = game.save.value;
     expect(game.upgrade(SWORD)).toBe(false);
     expect(game.evolve(SWORD, 'swordsman_b')).toBe(false);
-    expect(game.equipRune(SWORD, 0, 'rune_hp_200')).toBe(false);
+    expect(game.equipRune(SWORD, 0, 'hp_2')).toBe(false);
+    // Bez żetonu run drzewko nie daje runy.
+    expect(game.unlockRune('hp_1')).toBe(false);
     expect(game.placeInSquad(99, 0)).toBe(false);
     expect(game.buyHero('beasts')).toBe(false);
     expect(game.save.value).toBe(before);
@@ -218,8 +253,23 @@ describe('akcje gracza', () => {
     game.finishBattle('w1_l1', WIN);
     game.finishBattle('w1_l2', WIN);
     expect(game.upgrade(SWORD)).toBe(true);
-    expect(game.save.value.gold).toBe(500 - 50);
-    expect(game.equipRune(SWORD, 0, 'rune_hp_100')).toBe(true);
+    expect(game.save.value.gold).toBe(FIRST + SECOND - 50);
+  });
+
+  it('żeton run z drugiego poziomu odblokowuje runę drzewka, którą da się włożyć bohaterowi', () => {
+    const { storage, items } = memory();
+    const game = start(storage);
+    game.finishBattle('w1_l1', WIN);
+    game.finishBattle('w1_l2', WIN);
+    expect(game.scene.value).toMatchObject({ name: 'result', rewards: { runeToken: true } });
+    // Runę trzeba najpierw odblokować; druga w kierunku czeka na następny żeton.
+    expect(game.equipRune(SWORD, 0, 'hp_1')).toBe(false);
+    expect(game.unlockRune('hp_2')).toBe(false);
+    expect(game.unlockRune('hp_1')).toBe(true);
+    expect(game.unlockRune('attack_1')).toBe(false);
+    const stored = decodeSave(items.get(SAVE_KEY) ?? '');
+    expect(stored.kind === 'ok' && stored.save.runes).toEqual(['hp_1']);
+    expect(game.equipRune(SWORD, 0, 'hp_1')).toBe(true);
   });
 
   it('zakup w sklepie dodaje bohatera, zdejmuje złoto i zapisuje grę', () => {
@@ -228,7 +278,7 @@ describe('akcje gracza', () => {
     game.finishBattle('w1_l1', WIN);
     game.finishBattle('w1_l2', WIN);
     expect(game.buyHero('beasts')).toBe(true);
-    expect(game.save.value.gold).toBe(500 - 200);
+    expect(game.save.value.gold).toBe(FIRST + SECOND - 200);
     expect(game.buyHero('swordsman')).toBe(true);
     expect(game.save.value.heroes.map((hero) => hero.line)).toEqual([
       'swordsman',
@@ -252,7 +302,7 @@ describe('eksport, import i reset', () => {
     const target = start();
     target.go({ name: 'shop' });
     expect(target.importSave(text)).toBe('ok');
-    expect(target.save.value.gold).toBe(100);
+    expect(target.save.value.gold).toBe(FIRST);
     // Po imporcie gra wraca na mapę z poziomem wynikającym z wczytanego postępu.
     expect(target.scene.value).toEqual({ name: 'map', selected: 'w1_l2' });
   });

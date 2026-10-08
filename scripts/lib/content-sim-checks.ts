@@ -78,6 +78,29 @@ export function contentSimIssues(content: GameContent): ContentIssue[] {
     });
   }
 
+  // Bohater może nosić runy szybkości (ADR 0026): reguła musi trzymać także dla najszybszego
+  // bohatera z najmocniejszymi runami we wszystkich gniazdach.
+  const speedRunes = [...content.runes.values()]
+    .filter((rune) => rune.stat === 'moveSpeed')
+    .map((rune) => rune.bonus)
+    .sort((a, b) => b - a)
+    .slice(0, content.progression.runeSlots)
+    .reduce((sum, bonus) => sum + bonus, 0);
+  const heroes = [...content.heroes.values()];
+  const fastestHero = heroes.reduce(
+    (a, b) => (b.base.moveStep > a.base.moveStep ? b : a),
+    heroes[0] ?? fastest,
+  );
+  if (
+    fastest.base.moveStep <= shortest.base.range &&
+    fastestHero.base.moveStep + speedRunes > shortest.base.range
+  ) {
+    issues.push({
+      source: 'runes.json',
+      message: `krok ruchu "${fastestHero.id}" z runami szybkości (${fastestHero.base.moveStep + speedRunes} podjednostek na tick) przekracza zasięg "${shortest.id}" (${shortest.base.range}); jednostki mogłyby się minąć`,
+    });
+  }
+
   const bound =
     worstTeamBound(content.heroes.values(), content.arena.width) +
     worstTeamBound(content.enemies.values(), content.arena.width);

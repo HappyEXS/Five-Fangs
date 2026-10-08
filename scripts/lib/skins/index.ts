@@ -1,7 +1,19 @@
-// Skórki czterech szczepów na szkielecie humanoid, według szkiców autora gry. Każda ma komplet
-// części rigu (udo, goleń, tułów, ramię, przedramię, głowa, broń) we własnych rozmiarach
-// i z własnymi pivotami. Id skórki równa się id jednostki.
+// Skórki szczepów na szkielecie humanoid, według szkiców autora gry. Każda ma komplet części
+// rigu (udo, goleń, tułów, ramię, przedramię, głowa, broń) we własnych rozmiarach i z własnymi
+// pivotami; niektóre mają też część „offhand”: to, co postać trzyma w drugiej ręce. Id skórki
+// równa się id jednostki.
 import type { PlaceholderSprite } from '../part-spec.ts';
+import { axin1Parts, axin2Parts, axin3Parts } from './akronix/axins.ts';
+import { akronixFx } from './akronix/fx.ts';
+import { hornixParts } from './akronix/hornix.ts';
+import { kaisarixParts } from './akronix/kaisarix.ts';
+import {
+  assasinixParts,
+  bowixParts,
+  defenixParts,
+  katanixParts,
+  poisonixParts,
+} from './akronix/ranks.ts';
 import { batfangParts } from './beasts/batfang.ts';
 import { ignitixParts } from './beasts/ignitix.ts';
 import { ironbeakParts } from './beasts/ironbeak.ts';
@@ -35,7 +47,10 @@ import { whirlBotParts } from './robots/whirl-bot.ts';
 
 type Parts = () => Record<string, PartCanvas>;
 
-/** Skórki szczepów w kolejności drzew ewolucji. */
+/**
+ * Skórki szczepów w kolejności drzew ewolucji. Akronix to szczep wrogów bez ewolucji: jego
+ * postacie stoją w kolejności siły, od zwiadowcy do trzeciego Axina.
+ */
 const TRIBES: Readonly<Record<string, readonly (readonly [string, Parts])[]>> = {
   beasts: [
     ['monstrosity', monstrosityParts],
@@ -74,6 +89,18 @@ const TRIBES: Readonly<Record<string, readonly (readonly [string, Parts])[]>> = 
     ['whirl_bot', whirlBotParts],
     ['titan_bot', titanBotParts],
   ],
+  akronix: [
+    ['bowix', bowixParts],
+    ['assasinix', assasinixParts],
+    ['katanix', katanixParts],
+    ['defenix', defenixParts],
+    ['poisonix', poisonixParts],
+    ['hornix', hornixParts],
+    ['kaisarix', kaisarixParts],
+    ['axin_1', axin1Parts],
+    ['axin_2', axin2Parts],
+    ['axin_3', axin3Parts],
+  ],
 };
 
 /** Id skórek per szczep, w kolejności drzewa ewolucji. */
@@ -90,7 +117,7 @@ export function tribeSprites(): PlaceholderSprite[] {
       }
     }
   }
-  for (const [name, canvas] of Object.entries(skinFx())) {
+  for (const [name, canvas] of Object.entries({ ...skinFx(), ...akronixFx() })) {
     sprites.push({ name: `fx/${name}`, part: canvas.part, image: canvas.image });
   }
   return sprites;

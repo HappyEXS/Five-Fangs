@@ -20,7 +20,9 @@ import {
   type Rewards,
   reconcileSave,
   removeFromSquad,
+  worldEntryLevel,
 } from './progress.ts';
+import { unlockRune } from './runes.ts';
 import { decodeSave, loadSave, type SaveStorage, storeSave } from './save.ts';
 import type { BattleSpeed, Save } from './save-schema.ts';
 
@@ -38,13 +40,18 @@ export interface BattleOutcome {
  */
 export type Scene =
   | { readonly name: 'title' }
-  /** `selected` to poziom, którego przeciwników i nagrody pokazuje mapa; null, gdy gra nie ma poziomów. */
+  /**
+   * `selected` to poziom, którego przeciwników i nagrody pokazuje mapa; null, gdy gra nie ma
+   * poziomów. Może być zablokowany: mapa pokazuje wtedy, co czeka gracza, ale walki nie zacznie.
+   * Świat wybranego poziomu to świat, którego szlak i tło widać na mapie.
+   */
   | { readonly name: 'map'; readonly selected: string | null }
   | { readonly name: 'squad' }
   /**
    * `line` to linia bohatera, której drzewo ewolucji pokazuje ekran (null, gdy gra nie ma
    * linii), a `form` wybrana w nim forma.
    */
+  // `line` to id linii bohaterów albo szczepu wrogów, `form` wybrana forma albo postać.
   | { readonly name: 'heroes'; readonly line: string | null; readonly form: string | null }
   | { readonly name: 'shop' }
   | { readonly name: 'battle'; readonly level: string }
@@ -76,13 +83,19 @@ export interface Game {
 
   go(scene: Scene): void;
   /**
-   * Otwiera mapę z wybranym poziomem. Bez argumentu albo dla poziomu zablokowanego wybiera
-   * pierwszy poziom, którego gracz jeszcze nie przeszedł.
+   * Otwiera mapę z wybranym poziomem, także zablokowanym (do obejrzenia). Bez argumentu albo
+   * dla nieznanego poziomu wybiera pierwszy poziom, którego gracz jeszcze nie przeszedł.
    */
   openMap(selected?: string): void;
   /**
+   * Przełącza mapę na wskazany świat: wybiera w nim pierwszy nieprzeszły poziom, a w świecie
+   * odbitym ostatni. Nieznany świat nic nie zmienia.
+   */
+  openWorld(world: string): void;
+  /**
    * Otwiera informacje o bohaterach na wskazanej linii i formie. Bez linii albo dla nieznanej
-   * linii: pierwsza linia; bez formy albo dla formy spoza linii: jej forma bazowa.
+   * linii: pierwsza linia; bez formy albo dla formy spoza linii: jej forma bazowa. Zamiast linii
+   * można podać szczep wrogów (np. Akronix) i jedną z jego postaci; bez postaci: pierwsza z nich.
    */
   openHeroes(line?: string, form?: string): void;
   /** Zaczyna walkę bieżącym składem. False, gdy skład jest pusty albo poziom zablokowany. */
@@ -96,6 +109,8 @@ export interface Game {
   /** Ewolucja w formę `target`, jedną z dróg wychodzących z bieżącej formy bohatera. */
   evolve(hero: number, target: string): boolean;
   equipRune(hero: number, slot: number, rune: string | null): boolean;
+  /** Wydaje żeton run na runę drzewka. False, gdy brak żetonu albo runa nie jest następna. */
+  unlockRune(rune: string): boolean;
   placeInSquad(hero: number, slot: number): boolean;
   removeFromSquad(slot: number): void;
   setLanguage(lang: Language): void;
@@ -146,10 +161,10 @@ export function createGame(options: GameOptions): Game {
   };
 
   const openMap = (selected?: string): void => {
-    const valid = selected !== undefined && isLevelUnlocked(content, save.value, selected);
+    const known = selected !== undefined && content.levels.has(selected);
     scene.value = {
       name: 'map',
-      selected: valid ? selected : currentLevel(content, save.value),
+      selected: known ? selected : currentLevel(content, save.value),
     };
   };
 
@@ -165,7 +180,17 @@ export function createGame(options: GameOptions): Game {
       scene.value = next;
     },
     openMap,
+    openWorld(world) {
+      const entry = worldEntryLevel(content, save.value, world);
+      if (entry !== null) scene.value = { name: 'map', selected: entry };
+    },
     openHeroes(line, form) {
+      const tribe = line === undefined ? undefined : content.enemyTribes.get(line);
+      if (tribe !== undefined) {
+        const member = tribe.members.find((entry) => entry.unit === form) ?? tribe.members[0];
+        scene.value = { name: 'heroes', line: tribe.id, form: member?.unit ?? null };
+        return;
+      }
       const [first] = content.lines.values();
       const shown = (line === undefined ? undefined : content.lines.get(line)) ?? first;
       if (shown === undefined) {
@@ -196,6 +221,7 @@ export function createGame(options: GameOptions): Game {
     upgrade: (hero) => attempt(applyUpgrade(content, save.value, hero)),
     evolve: (hero, target) => attempt(applyEvolve(content, save.value, hero, target)),
     equipRune: (hero, slot, rune) => attempt(equipRune(content, save.value, hero, slot, rune)),
+    unlockRune: (rune) => attempt(unlockRune(content, save.value, rune)),
     placeInSquad: (hero, slot) => attempt(placeInSquad(save.value, hero, slot)),
     removeFromSquad(slot) {
       commit(removeFromSquad(save.value, slot));

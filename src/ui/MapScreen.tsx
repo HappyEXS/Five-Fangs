@@ -1,129 +1,30 @@
 // Ekran główny: mapa poziomów nad sceną, na której skład gracza stoi naprzeciw przeciwników
 // wybranego poziomu. Mapa nie zmienia składu; do składu i sklepu prowadzą zakładki z boku.
+// Gra ma kilka światów: mapa pokazuje świat wybranego poziomu (jego szlak, tło i nazwy),
+// a duże strzałki po bokach przełączają ją na sąsiedni (WorldNav.tsx).
 import { useSignal } from '@preact/signals';
-import { levelNameKey, worldNameKey } from '../content/i18n/keys.ts';
+import { levelNameKey } from '../content/i18n/keys.ts';
 import type { Game } from '../game/game.ts';
 import { t, tName } from '../game/i18n.ts';
 import {
   heroView,
-  isLevelCleared,
   isLevelUnlocked,
   isSquadEmpty,
+  previousLevel,
   victoryRewards,
 } from '../game/progress.ts';
+import { runeTokens } from '../game/runes.ts';
 import { SQUAD_SLOTS } from '../game/save-schema.ts';
 import { stageFraction } from '../game/stage-geometry.ts';
 import { formatBattleTime } from '../game/stats.ts';
-import { Gold, Purse, runeColor, runeLabel, unitName } from './common.tsx';
+import { Gold, Purse, unitName } from './common.tsx';
 import type { Gate } from './gate.ts';
-import { BookIcon, FangMark, FangStamp, Gear, Lock, SquadIcon, TagIcon } from './icons.tsx';
+import { BookIcon, FangMark, Gear, RuneMark, SquadIcon, TagIcon } from './icons.tsx';
+import { Trail } from './MapTrail.tsx';
 import { Settings } from './Settings.tsx';
+import { WorldArrow, WorldHead } from './WorldNav.tsx';
 
 const SLOTS = Array.from({ length: SQUAD_SLOTS }, (_, slot) => slot);
-
-/**
- * Kształty kafli w polu 100×80: nieregularne wielokąty, jakby wycięte nożyczkami. Ostatni
- * poziom świata (boss) ma własny kształt z zębatą górą.
- */
-const TILE_SHAPES = [
-  '6,10 92,4 97,66 60,76 8,71 2,40',
-  '4,6 58,2 96,11 93,70 40,77 6,65',
-  '8,4 93,9 98,44 89,73 11,76 3,30',
-  '3,13 50,4 95,7 96,69 53,77 5,71',
-];
-const BOSS_SHAPE = '4,22 19,6 33,20 50,3 67,20 81,6 96,22 95,70 50,78 5,70';
-
-interface TileSpot {
-  /** Środek kafla w procentach pola mapy. */
-  readonly x: number;
-  readonly y: number;
-  /** Obrót w stopniach. */
-  readonly tilt: number;
-  readonly shape: string;
-}
-
-/**
- * Miejsca kafli jednego świata: szlak idzie zygzakiem od lewej do prawej, a każdy kafel jest
- * trochę przesunięty i obrócony. Rozrzut wynika z numeru poziomu i świata, więc mapa wygląda
- * tak samo przy każdym otwarciu.
- */
-function tileSpots(count: number, world: number): TileSpot[] {
-  return Array.from({ length: count }, (_, i) => {
-    const wobble = ((i * 37 + world * 17 + 5) % 11) - 5;
-    return {
-      x: count === 1 ? 50 : 8 + (84 * i) / (count - 1),
-      y: (i % 2 === 0 ? 66 : 30) + wobble * 1.6,
-      tilt: ((i * 53 + world * 29 + 3) % 9) - 4,
-      shape: i === count - 1 ? BOSS_SHAPE : (TILE_SHAPES[(i + world) % TILE_SHAPES.length] ?? ''),
-    };
-  });
-}
-
-function Trail(props: { game: Game; worldIndex: number; selected: string | null }) {
-  const { game, selected } = props;
-  const { content } = game;
-  const save = game.save.value;
-  const world = content.worlds[props.worldIndex];
-  if (world === undefined) return null;
-  const spots = tileSpots(world.levels.length, props.worldIndex);
-  return (
-    <div class="trail">
-      {/* Szlak łączy kafle w kolejności odblokowywania. */}
-      <svg class="trail-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <polyline points={spots.map((spot) => `${spot.x},${spot.y}`).join(' ')} />
-      </svg>
-      <ol class="trail-tiles">
-        {world.levels.map((id, index) => {
-          const spot = spots[index];
-          if (spot === undefined) return null;
-          const unlocked = isLevelUnlocked(content, save, id);
-          const cleared = isLevelCleared(save, id);
-          const boss = index === world.levels.length - 1;
-          const state = !unlocked ? 'locked' : cleared ? 'cleared' : 'open';
-          return (
-            <li
-              key={id}
-              class="tile-spot"
-              style={{ left: `${spot.x}%`, top: `${spot.y}%`, rotate: `${spot.tilt}deg` }}
-            >
-              <button
-                type="button"
-                class={`tile tile-${state}${boss ? ' tile-boss' : ''}`}
-                data-level={id}
-                aria-pressed={selected === id}
-                disabled={!unlocked}
-                onClick={() => game.openMap(id)}
-              >
-                <svg
-                  class="tile-shape"
-                  viewBox="0 0 100 80"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
-                >
-                  <polygon class="tile-shadow" points={spot.shape} />
-                  <polygon class="tile-face" points={spot.shape} />
-                </svg>
-                <span class="tile-number">{index + 1}</span>
-                <span class="tile-name">{tName(levelNameKey(id))}</span>
-                {cleared && <FangStamp />}
-                {!unlocked && <Lock />}
-                <span class="visually-hidden">
-                  {t(
-                    !unlocked
-                      ? 'map.level.locked'
-                      : cleared
-                        ? 'map.level.cleared'
-                        : 'map.level.open',
-                  )}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
-  );
-}
 
 /** Tabliczka wybranego poziomu: nazwa i to, co da wygrana. */
 function Plaque(props: { game: Game; level: string }) {
@@ -132,7 +33,6 @@ function Plaque(props: { game: Game; level: string }) {
   const save = game.save.value;
   const rewards = victoryRewards(content, save, level);
   if (rewards === null) return null;
-  const rune = rewards.rune === null ? undefined : content.runes.get(rewards.rune);
   const best = save.levels[level]?.bestTicks ?? null;
   return (
     <section class="plaque" data-details={level}>
@@ -141,7 +41,12 @@ function Plaque(props: { game: Game; level: string }) {
       <p class="plaque-reward">
         <span>{t(rewards.firstClear ? 'map.reward' : 'map.reward.replay')}</span>
         <Gold amount={rewards.gold} />
-        {rune !== undefined && <span class={`rune-tag ${runeColor(rune)}`}>{runeLabel(rune)}</span>}
+        {rewards.runeToken && (
+          <span class="token-reward">
+            <RuneMark />
+            {t('reward.runeToken')}
+          </span>
+        )}
         {best !== null && (
           <span class="plaque-best">{t('map.best', { time: formatBattleTime(best) })}</span>
         )}
@@ -156,15 +61,17 @@ export function MapScreen(props: { game: Game; gate: Gate; selected: string | nu
   const save = game.save.value;
   const settings = useSignal(false);
   const level = selected === null ? undefined : content.levels.get(selected);
-  // Mapa pokazuje świat wybranego poziomu; strzałki pozwalają obejrzeć pozostałe.
-  const homeWorld = Math.max(
+  // Mapa pokazuje świat wybranego poziomu; strzałki wybierają poziom w sąsiednim świecie.
+  const worldIndex = Math.max(
     0,
     content.worlds.findIndex((world) => world.id === level?.world),
   );
-  const shownWorld = useSignal(homeWorld);
-  const worldIndex = Math.min(shownWorld.value, content.worlds.length - 1);
-  const world = content.worlds[worldIndex];
   const empty = isSquadEmpty(save);
+  // Żeton do wydania widać na zakładce sklepu: tam jest drzewko run.
+  const tokens = runeTokens(content, save);
+  // Zablokowany poziom można obejrzeć (przeciwnicy, nagroda), ale nie da się na nim walczyć.
+  const locked = selected !== null && !isLevelUnlocked(content, save, selected);
+  const unlocksAfter = locked && selected !== null ? previousLevel(content, selected) : null;
   const { arena } = content;
 
   return (
@@ -200,10 +107,19 @@ export function MapScreen(props: { game: Game; gate: Gate; selected: string | nu
           type="button"
           class="btn rail-btn"
           data-nav="shop"
+          aria-label={
+            tokens > 0 ? `${t('nav.shop')}: ${t('runes.tokens', { count: tokens })}` : undefined
+          }
           onClick={() => game.go({ name: 'shop' })}
         >
           <TagIcon />
           {t('nav.shop')}
+          {tokens > 0 && (
+            <span class="rail-badge" data-tokens={tokens}>
+              <RuneMark />
+              {tokens}
+            </span>
+          )}
         </button>
         <button
           type="button"
@@ -218,36 +134,12 @@ export function MapScreen(props: { game: Game; gate: Gate; selected: string | nu
         </button>
       </nav>
 
-      {world !== undefined && (
-        <div class="world-head">
-          {content.worlds.length > 1 && (
-            <button
-              type="button"
-              class="btn btn-small"
-              disabled={worldIndex === 0}
-              aria-label={t('map.world.previous')}
-              onClick={() => {
-                shownWorld.value = worldIndex - 1;
-              }}
-            >
-              ‹
-            </button>
-          )}
-          <h2 class="world-name">{tName(worldNameKey(world.id))}</h2>
-          {content.worlds.length > 1 && (
-            <button
-              type="button"
-              class="btn btn-small"
-              disabled={worldIndex === content.worlds.length - 1}
-              aria-label={t('map.world.next')}
-              onClick={() => {
-                shownWorld.value = worldIndex + 1;
-              }}
-            >
-              ›
-            </button>
-          )}
-        </div>
+      <WorldHead game={game} worldIndex={worldIndex} />
+      {content.worlds.length > 1 && (
+        <>
+          <WorldArrow game={game} worldIndex={worldIndex} step={-1} />
+          <WorldArrow game={game} worldIndex={worldIndex} step={1} />
+        </>
       )}
       <Trail game={game} worldIndex={worldIndex} selected={selected} />
 
@@ -291,13 +183,18 @@ export function MapScreen(props: { game: Game; gate: Gate; selected: string | nu
             type="button"
             class="btn btn-primary btn-big"
             data-action="fight"
-            disabled={empty}
+            disabled={empty || locked}
             onClick={() => void gate.pass(() => game.startBattle(selected))}
           >
             {t('map.fight')}
           </button>
         )}
         {empty && <p class="fight-note">{t('map.squad.empty')}</p>}
+        {unlocksAfter !== null && (
+          <p class="fight-note" data-locked={selected}>
+            {t('map.locked', { level: tName(levelNameKey(unlocksAfter)) })}
+          </p>
+        )}
       </div>
 
       {settings.value && (

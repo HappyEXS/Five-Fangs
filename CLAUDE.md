@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Przeglądarkowy auto-battler 2D (widok z boku), single player, bez backendu. Gracz układa skład do 5 bohaterów (melee/ranged), walki toczą się automatycznie i bez losowości, 30 poziomów w 5 światach. Postacie animowane techniką cutout (części ciała obracane w stawach według klatek kluczowych).
+Przeglądarkowy auto-battler 2D (widok z boku), single player, bez backendu. Gracz układa skład do 5 bohaterów (melee/ranged), walki toczą się automatycznie i bez losowości, 36 poziomów w 6 światach. Postacie animowane techniką cutout (części ciała obracane w stawach według klatek kluczowych).
 
 Projekt rozwijany przez wiele miesięcy. Priorytety: **determinizm i poprawność symulacji → wydajność → czytelna architektura → tempo dostarczania**.
 
@@ -23,7 +23,8 @@ pnpm test:coverage     # testy z pomiarem pokrycia; próg > 90% linii dla src/si
 pnpm bench             # walki/s, czas ticka i alokacje symulacji; --check kończy błędem poniżej budżetu
 pnpm battle a,b vs c   # walka w konsoli z logiem zdarzeń (jednostki z treści albo golden:<nazwa>)
 pnpm validate-content  # walidacja wszystkich JSON-ów treści
-pnpm balance           # walki headless wszystkich poziomów, raport do reports/balance.md
+pnpm balance           # balans poziomów: skład odniesienia za zdobyte złoto i żetony run przeciw każdemu poziomowi, raport do reports/balance.md (ADR 0025, 0026)
+pnpm balance:heroes    # pojedynki form i walki drużyn szczepów, raport do reports/heroes.md (ADR 0024)
 pnpm atlas             # pakowanie atlasów z assets/src do src/assets/generated (--check: tylko sprawdza aktualność)
 pnpm atlas:placeholder # grafiki placeholder jako źródła atlasu w assets/src/units
 pnpm deps:check        # granice modułów, dozwolone pakiety, zakazane API w sim (ADR 0012)
@@ -51,7 +52,7 @@ Jeśli zadanie dotyka assetów, zależności lub konfiguracji builda: dodatkowo 
 src/core     narzędzia czyste: matematyka całkowita, hash, pętla stałego kroku, pule, i18n, RNG (tylko efekty w render)
 src/sim      symulacja walki – czysta logika
 src/content  dane JSON + schematy Zod + kompilacja do struktur runtime
-src/render   Canvas 2D, rig, animacje, atlas, efekty, miniaturki postaci, debug overlay
+src/render   Canvas 2D, rig, animacje, atlas, efekty, miniaturki postaci, tła światów, debug overlay
 src/game     sceny, progresja, zapis
 src/ui       Preact (ekran startowy, mapa jako ekran główny, skład, bohaterowie, sklep, HUD, wynik)
 src/tools    narzędzia dev (edytor animacji, piaskownica walki) – osobne wejście tools.html, nie trafiają do builda prod
@@ -69,7 +70,8 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 - Stan wyłącznie w liczbach całkowitych w tablicach typowanych: pozycje i zasięgi w podjednostkach (1 jednostka świata = 256), HP i obrażenia jako inty.
 - Zakaz funkcji przestępnych (`Math.sin/cos/tan/exp/log/pow`, `**` z niecałkowitym wykładnikiem). Dozwolone: `+ - * /` z jawnym zaokrągleniem, `abs`, `min`, `max`, `floor`, `ceil`, `round`, `trunc`, `Math.imul`.
 - Iteracja w stałej kolejności (po `unitId`). Remisy rozstrzygane jawnie (niższe id).
-- Fazy ticka: decyzje → ruch → ataki → pociski → cechy okresowe → **jednoczesne** nałożenie obrażeń, leczenia i odrzutu → śmierci → pojawienie się przyzwanych.
+- Fazy ticka: decyzje → ruch → ataki → pociski → cechy okresowe i obrażenia w czasie → **jednoczesne** nałożenie obrażeń, leczenia i odrzutu → śmierci → pojawienie się przyzwanych.
+- Stan rzadkich cech (obrażenia w czasie, szarża; ADR 0021) istnieje tylko w walce, w której ktoś je ma: nowa rzadka cecha dostaje flagę walki, puste tablice bez niej i warunkowy udział w hashu, żeby starsze walki golden nie zmieniały hashy.
 - Jednostki składów mają `unitId` 0–4 (gracz) i 5–9 (przeciwnik); przyzwani 10–14 i 15–19 (ADR 0020). Pętla po drużynie obejmuje oba zakresy, a walka bez przyzywaczy nie może płacić za drugi.
 - Cechy pasywne to zamknięty zestaw (ADR 0009): nowa cecha = wariant schematu + pola `UnitSpec` + kod w sim + testy.
 - Symulacja nie wywołuje renderera. Komunikuje się przez bufor zdarzeń.
@@ -92,11 +94,15 @@ Granice są sprawdzane w CI (`pnpm deps:check`). Nie omijaj ich; jeśli są niew
 - Każdy plik JSON ma schemat Zod. Nowy typ danych = nowy schemat + walidacja w `validate-content`.
 - Dane surowe są czytelne dla człowieka (sekundy, stopnie, stringowe id). Kompilacja zamienia je na struktury runtime (ticki, indeksy, tablice typowane).
 - Walidator sprawdza spójność odwołań, unikalność id i zgodność znacznika `hit` w klipie animacji z `hitFraction` ataku.
-- Balans zmieniaj w danych, nie w kodzie. Po zmianie balansu uruchom `pnpm balance` i porównaj raport.
+- Balans zmieniaj w danych, nie w kodzie. Po zmianie balansu uruchom `pnpm balance` i `pnpm balance:heroes` i porównaj raporty.
+- Reguły poziomów i nagród (ADR 0025) pilnuje test `scripts/lib/level-rules.test.ts`: ok. 60 000 złota w grze, 3–5 wrogów na poziom (dwóch na dwóch pierwszych), Akronix w kolejności pocztu, Axiny jako bossowie światów 3–5, a każdy poziom „zgodny”: zwykły bez zapasu dla składu odniesienia, boss wymaga run. Zmiana kosztów, liczb bohaterów albo nagród przesuwa skład odniesienia, więc po niej dostrój poziomy, które przestały być zgodne.
+- Runy bierze się z drzewka run (ADR 0026): cztery kierunki po sześć run w `runes.json`, żeton run za drugi i piąty poziom każdego świata. Bossowie i Cytadela są strojeni do planu run składu odniesienia (życie i atak na zmianę), więc zmiana wartości run życia albo ataku też wymaga ich dostrojenia. Runa szybkości ma wartość będącą wielokrotnością 15 i nie działa na jednostkę o szybkości 0.
+- Reguły balansu bohaterów (ADR 0024) pilnuje test `scripts/lib/hero-balance.test.ts`: ludzie słabsi od szczepów ze szkiców, szczepy ze szkiców wyrównane między sobą, postacie walczące wręcz w skali szybkości 40–130. Liczby ze szkiców autora zmieniaj tylko, gdy wyraźnie odstają, i wypisz każdą zmianę.
 
 ## Zapis gry
 
 - Jeden obiekt z `saveVersion`, walidowany Zod przy wczytaniu.
+- Żetony run nie mają pola w zapisie: wynikają z przeszłych poziomów i posiadanych run (`game/runes.ts`, ADR 0026).
 - Zmiana kształtu zapisu = podniesienie wersji + migracja `vN → vN+1` + test migracji z zapisanego przykładowego pliku w `tests/fixtures/saves/`.
 - Nigdy nie usuwaj starych migracji. Uszkodzony zapis → kopia zapasowa, gra nie może się wywrócić.
 

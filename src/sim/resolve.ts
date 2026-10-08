@@ -3,6 +3,7 @@
 // fazach nie daje przewagi.
 import type { Battle } from './battle.ts';
 import { isAlive } from './decide.ts';
+import { clearDots } from './dot.ts';
 import {
   EVENT_BATTLE_ENDED,
   EVENT_DIED,
@@ -84,6 +85,7 @@ export function resolveAndFinish(battle: Battle): void {
     if (applyPending(battle, i) <= 0) {
       status[i] = STATUS_DEAD;
       swingTick[i] = -1;
+      if (battle.hasDot) clearDots(state, i);
       pushEvent(battle.events, EVENT_DIED, i, 0, 0);
       continue;
     }

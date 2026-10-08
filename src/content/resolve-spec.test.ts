@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { requireContent } from './load.ts';
+import type { CompiledLevel, Rune } from './load-progression.ts';
 import { levelSetup, levelVisuals, resolveUnitSpec } from './resolve-spec.ts';
-import type { Rune } from './schema-progression.ts';
 
 const content = requireContent();
 const { progression } = content;
@@ -12,14 +12,34 @@ function hero(id: string) {
   return unit;
 }
 
-function levelOf(id: string) {
-  const level = content.levels.get(id);
-  if (level === undefined) throw new Error(`no level ${id}`);
-  return level;
-}
+/** Poziom testowy, niezależny od balansu gry: Tarczownik z przodu, dwóch Łuczników +2 z tyłu. */
+const LEVEL: CompiledLevel = {
+  id: 'test',
+  world: 'world_1',
+  index: 0,
+  enemies: [
+    { slot: 0, unit: 'guard_a', level: 0 },
+    { slot: 2, unit: 'archer_a', level: 2 },
+    { slot: 3, unit: 'archer_a', level: 2 },
+  ],
+  gold: 0,
+  runeToken: false,
+};
 
-const attackRune: Rune = { id: 'rune_attack_25', stat: 'attack', value: 25 };
-const hpRune: Rune = { id: 'rune_hp_200', stat: 'maxHp', value: 200 };
+/** Runa testowa, niezależna od drzewka gry; `bonus` to premia w jednostkach symulacji. */
+const rune = (stat: Rune['stat'], value: number, bonus = value): Rune => ({
+  id: `${stat}_${value}`,
+  branch: stat,
+  depth: 0,
+  stat,
+  value,
+  bonus,
+});
+const attackRune = rune('attack', 25);
+const hpRune = rune('maxHp', 200);
+// 20 jednostek świata odrzutu to 5120 podjednostek; 15 jednostek na sekundę to 128 na tick.
+const pushRune = rune('knockback', 20, 5120);
+const speedRune = rune('moveSpeed', 15, 128);
 
 describe('resolveUnitSpec', () => {
   const swordsman = hero('swordsman_a');
@@ -30,14 +50,15 @@ describe('resolveUnitSpec', () => {
 
   it('każde ulepszenie dodaje 10% bazowego maxHp i attack', () => {
     const spec = resolveUnitSpec(swordsman, 3, [], progression);
-    expect(spec.maxHp).toBe(780);
-    expect(spec.attack).toBe(52);
+    // Miecznik: 160 życia i 20 ataku.
+    expect(spec.maxHp).toBe(208);
+    expect(spec.attack).toBe(26);
   });
 
   it('zaokrągla w dół', () => {
-    // Łucznik: 350 HP i 30 ataku; 350 × 1,1 = 385, 30 × 1,1 = 33; przy randze 7: 595 i 51.
+    // Łucznik: 120 życia i 14 ataku; 120 × 1,1 = 132, 14 × 1,1 = 15,4 → 15.
     const archer = hero('archer_a');
-    expect(resolveUnitSpec(archer, 1, [], progression)).toMatchObject({ maxHp: 385, attack: 33 });
+    expect(resolveUnitSpec(archer, 1, [], progression)).toMatchObject({ maxHp: 132, attack: 15 });
     const brute = content.enemies.get('brute');
     if (brute === undefined) throw new Error('no brute');
     // Osiłek: 35 ataku × 1,3 = 45,5 → 45.
@@ -46,23 +67,47 @@ describe('resolveUnitSpec', () => {
 
   it('runy dodają wartości płaskie po przeliczeniu ulepszeń', () => {
     const spec = resolveUnitSpec(swordsman, 4, [attackRune, hpRune], progression);
-    expect(spec.maxHp).toBe(840 + 200);
-    expect(spec.attack).toBe(56 + 25);
+    expect(spec.maxHp).toBe(224 + 200);
+    expect(spec.attack).toBe(28 + 25);
+  });
+
+  it('runa odrzutu i runa szybkości dodają premie w jednostkach symulacji', () => {
+    // Miecznik: szybkość 60 (512 podjednostek na tick) i odrzut 15 (3840 podjednostek).
+    expect(swordsman.base).toMatchObject({ moveStep: 512, knockback: 3840 });
+    const spec = resolveUnitSpec(swordsman, 4, [pushRune, speedRune], progression);
+    expect(spec.knockback).toBe(3840 + 5120);
+    expect(spec.moveStep).toBe(512 + 128);
+    // Ulepszenia tych statystyk nie skalują, a życie i atak zostają bez premii.
+    expect(spec).toMatchObject({ maxHp: 224, attack: 28 });
+    expect(resolveUnitSpec(swordsman, 0, [speedRune, speedRune], progression).moveStep).toBe(768);
+  });
+
+  it('runa szybkości nie rusza jednostki, która stoi w miejscu', () => {
+    const bush = hero('bush');
+    expect(bush.base.moveStep).toBe(0);
+    const spec = resolveUnitSpec(bush, 0, [speedRune, pushRune], progression);
+    expect(spec.moveStep).toBe(0);
+    // Pozostałe runy działają na nią jak na każdą inną.
+    expect(spec.knockback).toBe(bush.base.knockback + 5120);
   });
 
   it('przyzywany rośnie z ulepszeniami przyzywacza, ale nie z jego run', () => {
     const tree = hero('mother_tree');
     expect(resolveUnitSpec(tree, 0, [], progression)).toEqual(tree.base);
+    expect(resolveUnitSpec(tree, 0, [pushRune, speedRune], progression).summon).toEqual(
+      tree.base.summon,
+    );
     const spec = resolveUnitSpec(tree, 4, [attackRune, hpRune], progression);
-    expect(spec.maxHp).toBe(14_000 + 200);
+    // Cztery ulepszenia to +40% życia formy; samo życie Mother-tree należy do balansu.
+    expect(spec.maxHp).toBe(Math.floor((tree.base.maxHp * 140) / 100) + 200);
     expect(spec.attack).toBe(0 + 25);
     // Krzak: 100 życia i 20 ataku, po czterech ulepszeniach o 40% więcej.
     expect(spec.summon).toMatchObject({ maxHp: 140, attack: 28 });
     expect(spec.summon?.moveStep).toBe(tree.base.summon?.moveStep);
   });
 
-  it('dwie takie same runy się sumują', () => {
-    expect(resolveUnitSpec(swordsman, 0, [attackRune, attackRune], progression).attack).toBe(90);
+  it('dwie runy tej samej statystyki się sumują', () => {
+    expect(resolveUnitSpec(swordsman, 0, [attackRune, attackRune], progression).attack).toBe(70);
   });
 
   it('nie zmienia pozostałych statystyk ani cech', () => {
@@ -79,22 +124,23 @@ describe('resolveUnitSpec', () => {
 
 describe('levelSetup', () => {
   it('stawia skład gracza na slotach i wrogów z poziomu z ich poziomem siły', () => {
-    const setup = levelSetup(content, levelOf('w1_l3'), [
+    const setup = levelSetup(content, LEVEL, [
       { unit: hero('swordsman_a'), rank: 2, runes: [hpRune] },
       null,
       { unit: hero('archer_a'), rank: 0, runes: [] },
     ]);
     expect(setup.arena).toBe(content.arena);
     expect(setup.player).toHaveLength(5);
-    expect(setup.player[0]?.maxHp).toBe(720 + 200);
+    expect(setup.player[0]?.maxHp).toBe(192 + 200);
     expect(setup.player[1]).toBeNull();
-    expect(setup.player[2]?.maxHp).toBe(350);
+    expect(setup.player[2]?.maxHp).toBe(120);
     expect(setup.player[4]).toBeNull();
 
-    // Poziom w1_l3: osiłek poziomu 4 w slocie 0 i szaman poziomu 4 w slocie 2.
-    expect(setup.enemy[0]?.maxHp).toBe(1120);
+    // Tarczownik poziomu 0 w slocie 0 i Łucznicy poziomu 2 w slotach 2 i 3.
+    expect(setup.enemy[0]?.maxHp).toBe(520);
     expect(setup.enemy[1]).toBeNull();
-    expect(setup.enemy[2]?.maxHp).toBe(420);
+    expect(setup.enemy[2]?.maxHp).toBe(144);
+    expect(setup.enemy[3]?.attack).toBe(16);
   });
 });
 
@@ -105,7 +151,7 @@ describe('levelVisuals', () => {
       null,
       { unit: hero('archer_b'), rank: 0, runes: [] },
     ];
-    const visuals = levelVisuals(content, levelOf('w1_l3'), squad);
+    const visuals = levelVisuals(content, LEVEL, squad);
     expect(visuals).toHaveLength(10);
     expect(visuals[0]).toEqual({
       rig: 'humanoid',
@@ -122,9 +168,9 @@ describe('levelVisuals', () => {
     expect(visuals[2]?.skin).toBe('archer_b');
     expect(visuals[2]?.projectileSprite).toBe('arrow');
     expect(visuals[3]).toBeNull();
-    // Poziom w1_l3 ma osiłka w slocie 0 i szamana w slocie 2.
-    expect(visuals[5]?.skin).toBe('brute');
+    // Tarczownik w slocie 0 i Łucznicy w slotach 2 i 3.
+    expect(visuals[5]?.skin).toBe('guard_a');
     expect(visuals[6]).toBeNull();
-    expect(visuals[7]?.skin).toBe('shaman');
+    expect(visuals[7]?.skin).toBe('archer_a');
   });
 });

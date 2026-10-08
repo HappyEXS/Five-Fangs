@@ -1,5 +1,5 @@
-// Sklep: samo kupowanie. Bohaterowie na sprzedaż stoją na scenie, a pod każdym wisi metka
-// z ceną. Każdy zakup to nowy egzemplarz bohatera w formie bazowej; tę samą linię można kupić
+// Sklep: samo kupowanie. U góry drzewko run, w którym wydaje się żetony run (RuneTree.tsx).
+// Bohaterowie na sprzedaż stoją na scenie, a pod każdym wisi metka z ceną. Każdy zakup to nowy egzemplarz bohatera w formie bazowej; tę samą linię można kupić
 // wiele razy; mówi o tym okienko pod przyciskiem „i” przy tytule. Statystyki i ewolucję opisuje
 // ekran informacji o bohaterach.
 import { useMemo } from 'preact/hooks';
@@ -8,6 +8,7 @@ import { t } from '../game/i18n.ts';
 import { ownedCount } from '../game/progress.ts';
 import { type ShopStand, shopStands } from '../game/stage-stands.ts';
 import { Gold, ScreenHead, unitName } from './common.tsx';
+import { RuneTree } from './RuneTree.tsx';
 
 /** Najszersza metka w procentach szerokości sceny. */
 const MAX_TAG_WIDTH = 14;
@@ -39,6 +40,8 @@ export function ShopScreen(props: { game: Game }) {
         title={t('nav.shop')}
         info={[t('shop.info.copy'), t('shop.info.again')]}
       />
+
+      <RuneTree game={game} />
 
       {stands.map((stand) => {
         const line = content.lines.get(stand.line);

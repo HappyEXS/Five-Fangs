@@ -3,7 +3,13 @@ import type { ArenaSpec } from '../sim/types.ts';
 import { type CompiledUnit, compileArena, compileUnit } from './compile.ts';
 import arenaJson from './data/arena.json' with { type: 'json' };
 import attacksJson from './data/attacks.json' with { type: 'json' };
+import enemyTribesJson from './data/enemy-tribes.json' with { type: 'json' };
 import world1LevelsJson from './data/levels/world_1.json' with { type: 'json' };
+import world2LevelsJson from './data/levels/world_2.json' with { type: 'json' };
+import world3LevelsJson from './data/levels/world_3.json' with { type: 'json' };
+import world4LevelsJson from './data/levels/world_4.json' with { type: 'json' };
+import world5LevelsJson from './data/levels/world_5.json' with { type: 'json' };
+import world6LevelsJson from './data/levels/world_6.json' with { type: 'json' };
 import linesJson from './data/lines.json' with { type: 'json' };
 import progressionJson from './data/progression.json' with { type: 'json' };
 import humanoidRigJson from './data/rigs/humanoid.json' with { type: 'json' };
@@ -19,6 +25,7 @@ import {
   type RawProgression,
 } from './load-progression.ts';
 import { loadRigs } from './load-rigs.ts';
+import { type CompiledEnemyTribe, loadEnemyTribes } from './load-tribes.ts';
 import { indexById, parse } from './parse.ts';
 import {
   arenaSchema,
@@ -37,6 +44,8 @@ export interface RawContent extends RawProgression {
   readonly 'units/enemies.json': unknown;
   /** Jednostki, które pojawiają się w walce tylko przez przyzwanie (ADR 0020). */
   readonly 'units/summons.json': unknown;
+  /** Szczepy wrogów: kto do nich należy i w jakim stopniu. */
+  readonly 'enemy-tribes.json': unknown;
   /** Zawartość plików rigs/<id>.json. */
   readonly rigs: Readonly<Record<string, unknown>>;
 }
@@ -47,12 +56,20 @@ export const rawContent: RawContent = {
   'units/heroes.json': heroesJson,
   'units/enemies.json': enemiesJson,
   'units/summons.json': summonsJson,
+  'enemy-tribes.json': enemyTribesJson,
   rigs: { humanoid: humanoidRigJson },
   'progression.json': progressionJson,
   'lines.json': linesJson,
   'runes.json': runesJson,
   'worlds.json': worldsJson,
-  levels: { world_1: world1LevelsJson },
+  levels: {
+    world_1: world1LevelsJson,
+    world_2: world2LevelsJson,
+    world_3: world3LevelsJson,
+    world_4: world4LevelsJson,
+    world_5: world5LevelsJson,
+    world_6: world6LevelsJson,
+  },
 };
 
 export interface GameContent extends ProgressionContent {
@@ -62,6 +79,11 @@ export interface GameContent extends ProgressionContent {
   readonly enemies: ReadonlyMap<string, CompiledUnit>;
   /** Jednostki przyzywane; gracz ich nie kupuje, a poziomy nie wystawiają ich wprost. */
   readonly summons: ReadonlyMap<string, CompiledUnit>;
+  /**
+   * Szczepy wrogów (np. Akronix): jednostki specjalne zebrane w poczet ze stopniami. Gracz ich
+   * nie kupuje i nie rozwija; służą opisowi w zakładce Bohaterowie.
+   */
+  readonly enemyTribes: ReadonlyMap<string, CompiledEnemyTribe>;
   /** Rigi z klipami w postaci surowej; do tablic typowanych kompiluje je renderer. */
   readonly rigs: ReadonlyMap<string, RawRig>;
 }
@@ -142,6 +164,11 @@ function compileUnits(
     }
     if (traitTypes.includes('targetLast') && !hasProjectile) {
       issues.push({ source, message: `${unit.id}: cecha "targetLast" wymaga ataku z pociskiem` });
+      continue;
+    }
+    if (traitTypes.includes('bleed') && traitTypes.includes('poison')) {
+      // Trafienie nakłada jeden efekt obrażeń w czasie (ADR 0021).
+      issues.push({ source, message: `${unit.id}: cechy "bleed" i "poison" wykluczają się` });
       continue;
     }
     if (traitTypes.includes('targetLast') && traitTypes.includes('pierce')) {
@@ -230,7 +257,17 @@ export function loadContent(raw: RawContent = rawContent): ContentResult {
   );
 
   const progression = loadProgression(raw, heroes, enemies, issues);
-  if (progression === null) return { content: null, issues };
+  const enemyTribes = loadEnemyTribes(raw['enemy-tribes.json'], enemies, issues);
+  if (progression === null || enemyTribes === null) return { content: null, issues };
+  // Zakładki ekranu Bohaterowie rozróżniają linie i szczepy wrogów po samym id.
+  for (const id of enemyTribes.keys()) {
+    if (progression.lines.has(id)) {
+      issues.push({
+        source: 'enemy-tribes.json',
+        message: `${id}: id szczepu wrogów jest zajęte przez linię bohaterów`,
+      });
+    }
+  }
 
   return {
     content: {
@@ -239,6 +276,7 @@ export function loadContent(raw: RawContent = rawContent): ContentResult {
       heroes,
       enemies,
       summons,
+      enemyTribes,
       rigs,
       ...progression,
     },

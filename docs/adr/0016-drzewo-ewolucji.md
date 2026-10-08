@@ -9,7 +9,7 @@ Do tej pory linia bohatera miała dokładnie dwie formy: bazową i jedną po ewo
 
 ## Decyzja
 
-**Linia to drzewo form.** W `lines.json` linia ma listę form; każda forma poza bazową wskazuje formę, z której powstaje (`from`), i koszt ewolucji w nią (`evolveCost`). Każda forma ma własne koszty ulepszeń.
+**Linia to drzewo form.** W `lines.json` linia ma listę form; każda forma poza bazową wskazuje formę, z której powstaje (`from`), i koszt ewolucji w nią (`evolveCost`). Każda forma ma własne koszty ulepszeń. (Od 2026-10-07 koszty nie stoją przy formie: wynikają z jej stopnia, ADR 0023.)
 
 ```json
 { "id": "swordsman", "price": 200, "starter": true, "forms": [
@@ -36,3 +36,16 @@ Do tej pory linia bohatera miała dokładnie dwie formy: bazową i jedną po ewo
 - Dłuższe drogi mieszczą się w danych i w UI: siatka drzewa ma tyle kolumn, ile stopni, a scena zakładki pokazuje do pięciu form jednej drogi.
 - Wybór drogi jest nieodwracalny. Gracz, który chce drugiej drogi, kupuje kolejny egzemplarz tej samej linii w sklepie (egzemplarze są niezależne od M5b).
 - Raport balansu ma kolumny C0–C4. Świat „Las” kończy się na B4, więc jego oczekiwane rangi się nie zmieniły.
+
+## Uzupełnienie z 2026-10-07: szczepy wrogów w zakładce Bohaterowie
+
+Autor gry dodał szczep Akronix, który jest wyłącznie przeciwnikiem, i poprosił, żeby informacja o nim była w zakładce Bohaterowie. Szczep wrogów nie ma drzewa ewolucji, cen ani ulepszeń, więc dostał osobny widok w tej samej zakładce.
+
+- **Treść:** plik `enemy-tribes.json` wymienia stopnie szczepu i jednostki z `units/enemies.json` w kolejności siły. Id szczepu wrogów nie może pokrywać się z id linii bohaterów, bo zakładki rozróżniają je po samym id; scena `heroes` niesie to id w polu `line`, a wybraną postać w polu `form`.
+- **Zakładka** stoi za szczepami bohaterów, odsunięta i ciemniejsza; wybrana jest czerwona (kolor przeciwnika z pasków życia), nie nagietkowa.
+- **Poczet zamiast drzewa:** kolumna to stopień (zwiadowca, żołnierz, wojownik, generał, boss), pod jego nazwą postacie od najsłabszej. Te same przyciski z miniaturką co w drzewie, bez kosztów.
+- **Scena** pokazuje cały stopień wybranej postaci (jedną do trzech), po stronie przeciwnika: patrzą w lewo i mają czerwone paski życia, tak jak gracz zobaczy je w walce. Trzej Axiny obok siebie pokazują różnicę wielkości.
+- **Karta:** miniaturka, nazwa, szczep i stopień, statystyki bez wzmocnień i cechy. Bez ceny, kosztów ulepszeń, strzałek i przycisku „i” (nie ma czego porównywać).
+- **Okienko „i” przy tytule** zmienia treść na: to szczep wrogów, nie da się go kupić ani rozwijać; na poziomach wróg bywa wzmocniony („+N”).
+- Dotychczasowe jednostki specjalne świata „Las” (Osiłek, Łupieżca, Szaman, Herszt) nie należą do żadnego szczepu i nie mają zakładki; mogą ją dostać, gdy autor nazwie ich szczep.
+- Akronix nie stoi na razie na żadnym poziomie. Gdy poziomy powstaną, poczet można odsłaniać stopniowo (postać pojawia się po pierwszym spotkaniu); dziś pokazuje wszystkich od razu.

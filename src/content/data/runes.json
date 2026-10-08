@@ -1,8 +1,8 @@
-[
-  { "id": "rune_attack_10", "stat": "attack", "value": 10 },
-  { "id": "rune_attack_25", "stat": "attack", "value": 25 },
-  { "id": "rune_attack_50", "stat": "attack", "value": 50 },
-  { "id": "rune_hp_100", "stat": "maxHp", "value": 100 },
-  { "id": "rune_hp_200", "stat": "maxHp", "value": 200 },
-  { "id": "rune_hp_400", "stat": "maxHp", "value": 400 }
-]
+{
+  "branches": [
+    { "id": "hp", "stat": "maxHp", "values": [50, 100, 150, 200, 250, 300] },
+    { "id": "attack", "stat": "attack", "values": [5, 10, 15, 20, 25, 30] },
+    { "id": "knockback", "stat": "knockback", "values": [20, 40, 60, 80, 100, 120] },
+    { "id": "speed", "stat": "moveSpeed", "values": [15, 30, 45, 60, 75, 90] }
+  ]
+}

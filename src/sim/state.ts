@@ -4,7 +4,29 @@
 // `number | undefined`; `?? 0` odpowiada temu, co tablica typowana i tak zapisałaby
 // dla `undefined`, i nie kosztuje nic w zoptymalizowanym kodzie.
 import { int32Arrays } from '../core/int-arrays.ts';
-import { MAX_PROJECTILES, OUTCOME_IN_PROGRESS, REASON_NONE, SQUAD_UNITS } from './types.ts';
+import {
+  DOT_KINDS,
+  MAX_PROJECTILES,
+  OUTCOME_IN_PROGRESS,
+  REASON_NONE,
+  SQUAD_UNITS,
+} from './types.ts';
+
+/**
+ * Wspólna pusta tablica dla stanu cech, których w danej walce nikt nie ma: walka bez nich nie
+ * tworzy ani nie haszuje ich tablic. Ma długość 0, więc nikt nie może w niej nic zapisać.
+ */
+const NONE = new Int32Array(0);
+
+/** Które rzadkie cechy występują w walce; od tego zależy, jakie tablice stanu powstają. */
+export interface StateFeatures {
+  /** Ktoś nakłada obrażenia w czasie (ADR 0021). */
+  readonly dot: boolean;
+  /** Ktoś ma szarżę. */
+  readonly charge: boolean;
+}
+
+const NO_FEATURES: StateFeatures = { dot: false, charge: false };
 
 export interface BattleState {
   /**
@@ -37,6 +59,24 @@ export interface BattleState {
    */
   readonly doubleCharge: Int32Array;
   readonly dodgeCharge: Int32Array;
+  /**
+   * Szarża: premia procentowa, która czeka na pierwszy atak jednostki; po nim 0. Tablica jest
+   * pusta w walce bez szarżujących.
+   */
+  readonly chargeBonus: Int32Array;
+  /**
+   * Obrażenia w czasie (ADR 0021): jednostka ma najwyżej jeden efekt każdego rodzaju, pod
+   * indeksem `rodzaj * unitSpan + unitId`. Tablice są puste w walce, w której nikt ich nie nakłada.
+   * `dotLeft` to liczba pozostałych tyknięć efektu; 0 oznacza brak efektu.
+   */
+  readonly dotLeft: Int32Array;
+  /** Numer ticka, w którym efekt zada następne obrażenia. */
+  readonly dotNext: Int32Array;
+  /** Obrażenia jednego tyknięcia, już po tarczy trafionego. */
+  readonly dotDamage: Int32Array;
+  readonly dotInterval: Int32Array;
+  /** `unitId` jednostki, która nałożyła efekt: jej liczą się obrażenia tyknięć. */
+  readonly dotSource: Int32Array;
   /** `unitId` przyzywacza jednostki stojącej w miejscu przyzwanych; -1 dla pozostałych miejsc. */
   readonly summonedBy: Int32Array;
   /**
@@ -71,10 +111,14 @@ export interface BattleState {
   readonly healingDone: Int32Array;
 }
 
-export function createState(unitSpan: number = SQUAD_UNITS): BattleState {
+export function createState(
+  unitSpan: number = SQUAD_UNITS,
+  features: StateFeatures = NO_FEATURES,
+): BattleState {
   // Liczby tablic poniżej muszą pokrywać pola stanu; za mała rzuca błąd przy tworzeniu walki.
   const units = int32Arrays(unitSpan, 14);
   const projectiles = int32Arrays(MAX_PROJECTILES, 10);
+  const dots = features.dot ? int32Arrays(unitSpan * DOT_KINDS, 5) : null;
   return {
     unitSpan,
     tick: 0,
@@ -90,6 +134,12 @@ export function createState(unitSpan: number = SQUAD_UNITS): BattleState {
     traitTimer: units(),
     doubleCharge: units(),
     dodgeCharge: units(),
+    chargeBonus: features.charge ? new Int32Array(unitSpan) : NONE,
+    dotLeft: dots === null ? NONE : dots(),
+    dotNext: dots === null ? NONE : dots(),
+    dotDamage: dots === null ? NONE : dots(),
+    dotInterval: dots === null ? NONE : dots(),
+    dotSource: dots === null ? NONE : dots(),
     summonedBy: units().fill(-1),
     summonCursor: new Int32Array(2),
     projCount: 0,
@@ -143,10 +193,16 @@ export interface UnitSpecs {
   readonly shieldPercent: Int32Array;
   /** 1, gdy jednostka przyzywa zamiast atakować. */
   readonly summoner: Int32Array;
+  /** Obrażenia w czasie nakładane trafieniami jednostki; tablice puste w walce bez tej cechy. */
+  readonly dotDamage: Int32Array;
+  readonly dotInterval: Int32Array;
+  readonly dotTicks: Int32Array;
+  readonly dotKind: Int32Array;
 }
 
-export function createSpecs(unitSpan: number = SQUAD_UNITS): UnitSpecs {
+export function createSpecs(unitSpan: number = SQUAD_UNITS, dot = false): UnitSpecs {
   const units = int32Arrays(unitSpan, 22);
+  const dots = dot ? int32Arrays(unitSpan, 4) : null;
   return {
     maxHp: units(),
     attack: units(),
@@ -170,6 +226,10 @@ export function createSpecs(unitSpan: number = SQUAD_UNITS): UnitSpecs {
     dodgePercent: units(),
     shieldPercent: units(),
     summoner: units(),
+    dotDamage: dots === null ? NONE : dots(),
+    dotInterval: dots === null ? NONE : dots(),
+    dotTicks: dots === null ? NONE : dots(),
+    dotKind: dots === null ? NONE : dots(),
   };
 }
 

@@ -1,0 +1,63 @@
+[
+  {
+    "id": "w2_l1",
+    "enemies": [
+      { "slot": 0, "unit": "egzo_bot", "level": 2 },
+      { "slot": 1, "unit": "bot", "level": 4 },
+      { "slot": 2, "unit": "bot", "level": 5 }
+    ],
+    "rewards": { "gold": 450 }
+  },
+  {
+    "id": "w2_l2",
+    "enemies": [
+      { "slot": 0, "unit": "egzo_bot", "level": 0 },
+      { "slot": 1, "unit": "bot", "level": 1 },
+      { "slot": 2, "unit": "holo_bot", "level": 1 },
+      { "slot": 3, "unit": "bowix", "level": 0 }
+    ],
+    "rewards": { "gold": 500, "runeToken": true }
+  },
+  {
+    "id": "w2_l3",
+    "enemies": [
+      { "slot": 0, "unit": "egzo_bot", "level": 2 },
+      { "slot": 1, "unit": "bot", "level": 4 },
+      { "slot": 2, "unit": "bot", "level": 4 },
+      { "slot": 3, "unit": "holo_bot", "level": 1 }
+    ],
+    "rewards": { "gold": 600 }
+  },
+  {
+    "id": "w2_l4",
+    "enemies": [
+      { "slot": 0, "unit": "katanix", "level": 2 },
+      { "slot": 1, "unit": "bot", "level": 3 },
+      { "slot": 2, "unit": "bot", "level": 3 },
+      { "slot": 3, "unit": "holo_bot", "level": 1 }
+    ],
+    "rewards": { "gold": 700 }
+  },
+  {
+    "id": "w2_l5",
+    "enemies": [
+      { "slot": 0, "unit": "egzo_bot", "level": 3 },
+      { "slot": 1, "unit": "egzo_bot", "level": 3 },
+      { "slot": 2, "unit": "bot", "level": 4 },
+      { "slot": 3, "unit": "bot", "level": 4 },
+      { "slot": 4, "unit": "holo_bot", "level": 1 }
+    ],
+    "rewards": { "gold": 800, "runeToken": true }
+  },
+  {
+    "id": "w2_l6",
+    "enemies": [
+      { "slot": 0, "unit": "titan_bot", "level": 0 },
+      { "slot": 1, "unit": "defenix", "level": 0 },
+      { "slot": 2, "unit": "bot", "level": 3 },
+      { "slot": 3, "unit": "bot", "level": 3 },
+      { "slot": 4, "unit": "holo_bot", "level": 2 }
+    ],
+    "rewards": { "gold": 950 }
+  }
+]

@@ -1,0 +1,88 @@
+{
+  "saveVersion": 5,
+  "gameVersion": "0.2.0",
+  "gold": 870,
+  "heroes": [
+    {
+      "id": 1,
+      "line": "swordsman",
+      "form": "guard_a",
+      "upgrades": 2,
+      "runes": ["hp_1", "knockback_1"]
+    },
+    {
+      "id": 2,
+      "line": "archer",
+      "form": "archer_b",
+      "upgrades": 1,
+      "runes": [null, "attack_1"]
+    },
+    {
+      "id": 3,
+      "line": "robots",
+      "form": "bot",
+      "upgrades": 4,
+      "runes": [null, null]
+    },
+    {
+      "id": 4,
+      "line": "beasts",
+      "form": "reaper",
+      "upgrades": 0,
+      "runes": [null, null]
+    }
+  ],
+  "nextHeroId": 5,
+  "runes": ["hp_1", "attack_1", "knockback_1"],
+  "levels": {
+    "w1_l1": {
+      "cleared": true,
+      "bestTicks": 412
+    },
+    "w1_l2": {
+      "cleared": true,
+      "bestTicks": 655
+    },
+    "w1_l3": {
+      "cleared": true,
+      "bestTicks": 731
+    },
+    "w1_l4": {
+      "cleared": true,
+      "bestTicks": 702
+    },
+    "w1_l5": {
+      "cleared": true,
+      "bestTicks": 866
+    },
+    "w1_l6": {
+      "cleared": true,
+      "bestTicks": 790
+    },
+    "w2_l1": {
+      "cleared": true,
+      "bestTicks": 540
+    },
+    "w2_l2": {
+      "cleared": true,
+      "bestTicks": 698
+    },
+    "w2_l3": {
+      "cleared": true,
+      "bestTicks": 512
+    },
+    "w2_l4": {
+      "cleared": true,
+      "bestTicks": 480
+    },
+    "w2_l5": {
+      "cleared": true,
+      "bestTicks": 733
+    }
+  },
+  "squad": [1, 3, 2, null, 4],
+  "settings": {
+    "lang": "pl",
+    "battleSpeed": 2
+  }
+}

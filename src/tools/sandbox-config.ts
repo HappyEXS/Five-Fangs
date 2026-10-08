@@ -140,6 +140,11 @@ const plainSpecSchema = z.strictObject({
   doubleDamagePercent: z.number().default(0),
   dodgePercent: z.number().default(0),
   shieldPercent: z.number().default(0),
+  dotDamage: z.number().default(0),
+  dotInterval: z.number().default(0),
+  dotTicks: z.number().default(0),
+  dotKind: z.number().default(0),
+  chargePercent: z.number().default(0),
   summon: z.null().default(null),
 });
 

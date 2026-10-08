@@ -230,5 +230,50 @@
     "hitFraction": 0.5,
     "clip": "summon",
     "stance": "beast"
+  },
+  {
+    "id": "barb_shot",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "shoot",
+    "stance": "bow",
+    "projectile": { "speed": 420, "sprite": "barb" }
+  },
+  {
+    "id": "dart_shot",
+    "swingDuration": 0.5,
+    "hitFraction": 0.5,
+    "clip": "cast",
+    "stance": "beast",
+    "projectile": { "speed": 620, "sprite": "dart", "height": 40 }
+  },
+  {
+    "id": "shield_chop",
+    "swingDuration": 0.5,
+    "hitFraction": 0.5,
+    "clip": "slash",
+    "stance": "shield"
+  },
+  {
+    "id": "flask_throw",
+    "swingDuration": 0.6,
+    "hitFraction": 0.5,
+    "clip": "cast",
+    "stance": "beast",
+    "projectile": { "speed": 340, "sprite": "flask", "height": 44 }
+  },
+  {
+    "id": "horn_charge",
+    "swingDuration": 0.8,
+    "hitFraction": 0.6,
+    "clip": "gore",
+    "stance": "sword"
+  },
+  {
+    "id": "dual_cleave",
+    "swingDuration": 0.7,
+    "hitFraction": 0.6,
+    "clip": "cleave",
+    "stance": "dual"
   }
 ]

@@ -44,6 +44,11 @@ export const PROJECTILE_PIERCE = 1;
 /** Trafia tylko jednostkę, w którą celował strzelec (cecha targetLast). */
 export const PROJECTILE_AIMED = 2;
 
+/** Rodzaje obrażeń w czasie (ADR 0021). Jednostka może mieć naraz po jednym efekcie każdego. */
+export const DOT_BLEED = 0;
+export const DOT_POISON = 1;
+export const DOT_KINDS = 2;
+
 export const OUTCOME_IN_PROGRESS = 0;
 export const OUTCOME_WIN = 1;
 export const OUTCOME_LOSS = 2;
@@ -107,8 +112,28 @@ export interface UnitSpec {
    * i odrzutu). 0 oznacza brak cechy.
    */
   readonly dodgePercent: number;
-  /** Tarcza: o tyle procent mniejsze są obrażenia każdego trafienia. 0 oznacza brak cechy. */
+  /**
+   * Tarcza: o tyle procent mniejsze są obrażenia każdego trafienia i każdego efektu obrażeń
+   * w czasie nałożonego na jednostkę. 0 oznacza brak cechy.
+   */
   readonly shieldPercent: number;
+  /**
+   * Obrażenia w czasie (krwawienie, trucizna; ADR 0021): każde trafienie tej jednostki nakłada
+   * na trafionego efekt, który co `dotInterval` ticków zabiera `dotDamage` życia. Wartość
+   * jednego tyknięcia; 0 oznacza brak cechy.
+   */
+  readonly dotDamage: number;
+  /** Obrażenia w czasie: odstęp tyknięć w tickach. */
+  readonly dotInterval: number;
+  /** Obrażenia w czasie: ile razy efekt tyka po ostatnim trafieniu. */
+  readonly dotTicks: number;
+  /** Obrażenia w czasie: rodzaj efektu, `DOT_BLEED` albo `DOT_POISON`. */
+  readonly dotKind: number;
+  /**
+   * Szarża: o tyle procent większe są obrażenia pierwszego ataku jednostki w walce (200 to cios
+   * potrójny). 0 oznacza brak cechy.
+   */
+  readonly chargePercent: number;
   /**
    * Przyzywacz: zamiast atakować, w ticku trafienia każdego zamachu stawia w swoim miejscu
    * jednostkę o tej specyfikacji, o ile jego strona ma wolne miejsce (najwyżej TEAM_SIZE żywych

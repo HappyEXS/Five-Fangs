@@ -21,11 +21,15 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await expect(page.getByRole('button')).toHaveCount(1);
   await page.getByRole('button', { name: 'Graj' }).click();
 
-  // Ekranem głównym jest mapa z wybranym pierwszym poziomem; składu nie da się tu zmienić.
-  await expect(page.locator('[data-level="w1_l1"]')).toBeEnabled();
-  await expect(page.locator('[data-level="w1_l2"]')).toBeDisabled();
-  await expect(page.locator('.plaque')).toContainText('Skraj lasu');
-  await expect(page.locator('.unit-tag-enemy')).toContainText('Osiłek');
+  // Ekranem głównym jest mapa pierwszego świata z wybranym pierwszym poziomem; składu nie da
+  // się tu zmienić. Kolejne poziomy są zablokowane.
+  await expect(page.locator('.world-name')).toHaveText('Zamek');
+  await expect(page.locator('[data-level="w1_l1"]')).toHaveAttribute('data-state', 'open');
+  await expect(page.locator('[data-level="w1_l2"]')).toHaveAttribute('data-state', 'locked');
+  await expect(page.locator('.plaque')).toContainText('Podgrodzie');
+  // Pierwszy poziom gry: dwóch Łuczników, drugi o poziom siły mocniejszy.
+  await expect(page.locator('.unit-tag-enemy .unit-name')).toHaveText(['Łucznik', 'Łucznik']);
+  await expect(page.locator('.unit-tag-enemy .unit-level')).toHaveText(['+1']);
   // Pod bohaterami gracza podpisy jak pod przeciwnikami, bez oznaczenia przy zerze ulepszeń.
   await expect(page.locator('.unit-tag-hero')).toHaveCount(2);
   await expect(page.locator('.unit-tag-hero', { hasText: 'Miecznik' })).toHaveCount(1);
@@ -33,45 +37,46 @@ test('nowa gra: walka dochodzi do końca, nagroda trafia do zapisu, konsola bez 
   await expect(page.locator('.hero-chip')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Walcz' }).click();
-  // W dolnych rogach miniaturki żywych postaci: dwóch bohaterów z lewej, przeciwnik z prawej.
+  // W dolnych rogach miniaturki żywych postaci: dwóch bohaterów z lewej, przeciwnicy z prawej.
   const allies = page.locator('.hud-faces-player .hud-face');
   const foes = page.locator('.hud-faces-enemy .hud-face');
   await expect(allies).toHaveCount(2);
-  await expect(foes).toHaveCount(1);
-  await expect(foes).toHaveAttribute('data-unit', 'brute');
-  await expect(page.locator('.hud-face[data-alive="true"]')).toHaveCount(3);
-  await expect.poll(() => paintedPortraits(page, '.hud-face .portrait-face')).toBe(3);
+  await expect(foes).toHaveCount(2);
+  await expect(foes.first()).toHaveAttribute('data-unit', 'archer_a');
+  await expect(page.locator('.hud-face[data-alive="true"]')).toHaveCount(4);
+  await expect.poll(() => paintedPortraits(page, '.hud-face .portrait-face')).toBe(4);
   await page.getByRole('button', { name: 'x4' }).click();
-  // Pokonany przeciwnik traci miniaturkę, zanim brama zamknie pole walki.
+  // Pokonani przeciwnicy tracą miniaturki, zanim brama zamknie pole walki.
   await expect
     .poll(() => page.locator('.hud-faces-enemy .hud-face[data-alive="false"]').count(), {
       intervals: [100],
       timeout: 90_000,
     })
-    .toBe(1);
+    .toBe(2);
   const result = page.locator('.result-sheet');
   await expect(result).toHaveAttribute('data-outcome', 'win', { timeout: 90_000 });
   await expect(result).toContainText('Zwycięstwo');
-  await expect(result.locator('.rewards')).toContainText('+100 złota');
+  await expect(result.locator('.rewards')).toContainText('+200 złota');
   // Po walce jest tylko informacja o nagrodach i jeden przycisk.
   await expect(result.getByRole('button')).toHaveCount(1);
 
   const save = await readSave(page);
-  expect(save.gold).toBe(100);
+  expect(save.gold).toBe(200);
   expect(save.levels).toMatchObject({ w1_l1: { cleared: true } });
 
   // OK wraca na mapę, która wybiera następny poziom.
   await result.getByRole('button', { name: 'OK' }).click();
-  await expect(page.locator('.plaque')).toContainText('Zasadzka');
-  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
+  await expect(page.locator('.plaque')).toContainText('Most zwodzony');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '200');
 
   // Po przeładowaniu strony postęp zostaje.
   await page.reload();
   await page.getByRole('button', { name: 'Graj' }).click();
-  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '100');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '200');
   await expect(page.locator('[data-level="w1_l1"]')).toHaveClass(/tile-cleared/);
-  await expect(page.locator('[data-level="w1_l2"]')).toBeEnabled();
-  await expect(page.locator('.plaque')).toContainText('Zasadzka');
+  await expect(page.locator('[data-level="w1_l2"]')).toHaveAttribute('data-state', 'open');
+  await expect(page.locator('[data-level="w1_l3"]')).toHaveAttribute('data-state', 'locked');
+  await expect(page.locator('.plaque')).toContainText('Most zwodzony');
 
   expect(errors).toEqual([]);
 });
@@ -108,14 +113,18 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   await expect(field.locator('.upgrade-bar')).toHaveAttribute('data-upgrades', '1');
   await expect(sheet).toContainText('Ulepszenia 1 z 4');
   await expect(page.locator('.purse')).toHaveAttribute('data-gold', '550');
+  // Każde ulepszenie formy kosztuje tyle samo: drugie jest za tę samą kwotę co pierwsze.
+  await expect(field.getByRole('button', { name: 'Kup ulepszenie za 50 złota' })).toBeVisible();
 
-  // Runa: gniazdo nad bohaterem otwiera wybór, wybrany żeton trafia do gniazda.
+  // Runa: zapis sprzed drzewka run miał runę z nagrody za poziom. Po migracji jej nie ma, więc
+  // wybór w gnieździe jest pusty i odsyła do sklepu (drzewko run sprawdza runes.spec.ts).
   await field.locator('[data-socket="0"]').click();
-  await page.locator('.rune-picker [data-rune="rune_hp_100"]').click();
-  await expect(page.locator('.rune-picker')).toHaveCount(0);
-  await expect(field.locator('[data-socket="0"] .rune-token')).toHaveText('+100');
-  const runes = ((await readSave(page)).heroes as { runes: unknown }[])[0]?.runes;
-  expect(runes).toEqual(['rune_hp_100', null]);
+  const picker = page.locator('.rune-picker');
+  await expect(picker).toContainText('Nie masz wolnych run. Odblokujesz je w sklepie');
+  await expect(picker.locator('[data-rune]')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(picker).toHaveCount(0);
+  expect((await readSave(page)).runes).toEqual([]);
 
   // Ze składu wychodzi się tylko na mapę: nie ma skrótu do sklepu.
   await expect(page.getByRole('button', { name: 'Sklep' })).toHaveCount(0);
@@ -126,7 +135,7 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
   const info = page.locator('.heroes');
   await expect(info).toContainText('Miecznik');
   await expect(info).toContainText('Rycerz');
-  await expect(info.locator('.tree-cost').first()).toContainText('250');
+  await expect(info.locator('.tree-cost').first()).toContainText('400');
   await expect(info.locator('.line-tabs button')).toHaveText([
     'Miecznicy',
     'Łucznicy',
@@ -134,6 +143,8 @@ test('skład, sklep i bohaterowie: ulepszenie, runa, zakup, przeciąganie postac
     'Immortals',
     'Plants',
     'Robots',
+    // Szczep wrogów: zakładka informacyjna, bez kupowania (akronix.spec.ts).
+    'Akronix',
   ]);
   // Tarczownik i Strażnik to dziś ewolucje Miecznika, Akolita i Kapłan ewolucje Łucznika.
   await expect(info).toContainText('Tarczownik');
@@ -204,7 +215,7 @@ test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async
   await expect(picker).toContainText('Zbrojny');
   await expect(picker).toContainText('Tarczownik');
   await picker
-    .getByRole('button', { name: 'Kup ewolucję w formę Tarczownik za 250 złota' })
+    .getByRole('button', { name: 'Kup ewolucję w formę Tarczownik za 400 złota' })
     .click();
   await expect(picker).toHaveCount(0);
   await expect(page.locator('[data-drop="slot:0"] .field-name')).toHaveText('Tarczownik');
@@ -229,6 +240,9 @@ test('ewolucja z wyborem drogi i drzewo ewolucji w zakładce Bohaterowie', async
   await tree.getByRole('button', { name: 'Pawężnik' }).click();
   await expect(page.locator('.form-card')).toContainText('Ewolucja 2. stopnia');
   await expect(page.locator('.form-card')).toContainText('Ostatni stopień tej drogi');
+  // Koszty zależą od stopnia formy: ewolucja na trzeci stopień i cztery równe ulepszenia.
+  await expect(page.locator('.form-card .form-origin')).toContainText('1 600');
+  await expect(page.locator('.form-card .form-upgrades')).toHaveText(/Ulepszenia\s*4 ×\s*800/);
   await expect(page.locator('.form-card')).toContainText('Tarcza: otrzymuje o 35% mniej obrażeń');
   await expect(page.locator('.path-name')).toHaveText(['Miecznik', 'Tarczownik', 'Pawężnik']);
   expect(errors).toEqual([]);
@@ -430,7 +444,7 @@ test('szczepy Immortals, Plants i Robots: sklep sześciu szczepów, drzewa i wal
     'Nie atakuje. Co 2 s przyzywa sojusznika (życie 100, atak 20); najwyżej 5 naraz.',
   );
   await tree.getByRole('button', { name: 'Ice Ivy' }).click();
-  await expect(page.locator('.form-card')).toContainText('Co 1 s leczy całą drużynę o 50');
+  await expect(page.locator('.form-card')).toContainText('Co 1 s leczy całą drużynę o 25');
   await tree.getByRole('button', { name: 'Toxic Ivy' }).click();
   await expect(page.locator('.form-card')).toContainText('Pociski przebijają wszystkich wrogów');
 
@@ -508,7 +522,8 @@ test('zapis w wersji 3 z dawnymi liniami ludzi wczytuje się do dwóch szczepów
   await seedSave(page, {
     saveVersion: 3,
     gameVersion: '0.1.0',
-    gold: 1500,
+    // Złota wystarcza na ewolucję na trzeci stopień (1600).
+    gold: 2000,
     heroes: [
       // Dawna linia Tarczowników, kopia formy z testowego drzewa i dawna linia Akolitów.
       { id: 1, line: 'guard', form: 'guard_b', upgrades: 2, runes: [null, null] },
@@ -523,7 +538,7 @@ test('zapis w wersji 3 z dawnymi liniami ludzi wczytuje się do dwóch szczepów
     settings: { lang: 'pl', battleSpeed: 1 },
   });
   await play(page);
-  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '1500');
+  await expect(page.locator('.purse')).toHaveAttribute('data-gold', '2000');
   await page.getByRole('button', { name: 'Skład' }).click();
   // Nikt nie przepadł i nikt nie stracił ulepszeń.
   await expect(page.locator('.stage-hero')).toHaveCount(4);

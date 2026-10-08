@@ -3,6 +3,7 @@
 import { mulDivFloor } from '../core/int.ts';
 import type { Battle } from './battle.ts';
 import { isAlive } from './decide.ts';
+import { afflict } from './dot.ts';
 import { EVENT_DAMAGED, EVENT_DODGED, pushEvent } from './events.ts';
 import { SQUAD_UNITS } from './types.ts';
 
@@ -10,18 +11,26 @@ import { SQUAD_UNITS } from './types.ts';
 const RHYTHM = 100;
 
 /**
- * Obrażenia kolejnego ataku jednostki: z premią szału, gdy jej HP jest poniżej progu, i podwojone,
- * gdy wypada na to rytm cechy `doubleDamage`. Wołane raz na atak (cios, który doszedł celu,
- * albo wystrzał), bo przesuwa licznik rytmu tej jednostki.
+ * Obrażenia kolejnego ataku jednostki: z premią szału, gdy jej HP jest poniżej progu, z premią
+ * szarży, gdy to jej pierwszy atak w walce, i podwojone, gdy wypada na to rytm cechy
+ * `doubleDamage`. Wołane raz na atak (cios, który doszedł celu, albo wystrzał), bo zużywa
+ * szarżę i przesuwa licznik rytmu tej jednostki.
  * HP zmienia się tylko w rozstrzygnięciu ticka, a licznik należy do samej jednostki, więc wynik
  * nie zależy od kolejności jednostek.
  */
 export function nextAttackDamage(battle: Battle, unitId: number): number {
   const { specs, state } = battle;
-  const damage =
+  let damage =
     (state.hp[unitId] ?? 0) < (specs.enrageHp[unitId] ?? 0)
       ? (specs.enragedAttack[unitId] ?? 0)
       : (specs.attack[unitId] ?? 0);
+  if (battle.hasCharge) {
+    const bonus = state.chargeBonus[unitId] ?? 0;
+    if (bonus !== 0) {
+      state.chargeBonus[unitId] = 0;
+      damage += mulDivFloor(damage, bonus, 100);
+    }
+  }
   if (!battle.hasDoubleDamage) return damage;
   const percent = specs.doubleDamagePercent[unitId] ?? 0;
   if (percent === 0) return damage;
@@ -38,8 +47,8 @@ export function nextAttackDamage(battle: Battle, unitId: number): number {
  * Dopisuje trafienie do kolejki. `knockback` to odrzut źródła (dla pocisku: strzelca z chwili
  * wystrzału); trafiony jest odpychany o różnicę ponad własny odrzut, nigdy przyciągany.
  *
- * Cechy trafionego: unik (stały rytm) znosi trafienie w całości, razem z odrzutem i kradzieżą
- * życia; tarcza zmniejsza obrażenia o swój procent (zaokrąglenie w dół). Trafienia jednego
+ * Cechy trafionego: unik (stały rytm) znosi trafienie w całości, razem z odrzutem, kradzieżą
+ * życia i efektem obrażeń w czasie; tarcza zmniejsza obrażenia o swój procent (zaokrąglenie w dół). Trafienia jednego
  * ticka przychodzą w stałej kolejności (jednostki po `unitId`, pociski po kolei wystrzelenia),
  * więc to, które z nich wypada na unik, jest zawsze takie samo.
  */
@@ -74,6 +83,7 @@ export function queueHit(
   const credited = source < SQUAD_UNITS ? source : (state.summonedBy[source] ?? source);
   state.damageDealt[credited] = (state.damageDealt[credited] ?? 0) + damage;
   pushEvent(battle.events, EVENT_DAMAGED, target, damage, source);
+  if (battle.hasDot) afflict(battle, source, target);
 
   // Kradzież życia: leczenie trafia do tej samej kolejki, więc może uratować źródło przed
   // śmiercią w tym samym ticku. Liczy się od obrażeń ciosu (po tarczy celu), nie od HP, które

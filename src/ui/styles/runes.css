@@ -1,0 +1,230 @@
+/* Żetony run i drzewko run w sklepie (ADR 0026). */
+
+/* Żeton run: jasny kamień z wyrytym znakiem, z konturem także na niebie. */
+.icon-rune {
+  fill: var(--paper);
+  stroke: var(--ink);
+}
+
+.icon-rune-sign {
+  fill: none;
+}
+
+.rune-tokens {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Nagroda poziomu na tabliczce mapy. */
+.token-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22em;
+  white-space: nowrap;
+}
+
+/* Żetony do wydania: plakietka na rogu zakładki sklepu. */
+.rail-badge {
+  position: absolute;
+  top: -0.55em;
+  right: -0.7em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15em;
+  padding: 0.05em 0.45em 0.05em 0.3em;
+  border: var(--line) solid var(--ink);
+  border-radius: 1em;
+  background: var(--marigold);
+  color: var(--ink);
+  font-size: 0.85em;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* Drzewko: z lewej zapas żetonów, z niego pień, z pnia kierunki, w kierunku kolejne runy.
+   Arkusz jest mały (ok. jednej trzeciej szerokości sceny): sklep to przede wszystkim scena
+   z bohaterami, a duże drzewko ją przytłaczało (uwaga autora). Wszystkie wymiary są w em,
+   więc rozmiar całości ustawia jedna wielkość czcionki. */
+
+.rune-tree {
+  position: absolute;
+  top: 10.5%;
+  left: 50%;
+  display: grid;
+  gap: 0.2em 0;
+  padding: 0.4em 0.9em 0.55em 0.75em;
+  font-size: 0.86em;
+  translate: -50% 0;
+  grid-template-columns: auto auto;
+}
+
+.rune-tree-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  grid-column: 1 / -1;
+}
+
+.rune-root {
+  position: relative;
+  display: grid;
+  padding-right: 0.8em;
+  place-items: center;
+}
+
+.rune-root .rune-tokens {
+  flex-direction: column;
+  gap: 0;
+  font: 400 1.35em / 1 var(--display);
+}
+
+.rune-root .icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* Bez żetonów zapas przygasa: nie ma czego wydać. */
+.rune-root .rune-tokens[data-tokens="0"] {
+  opacity: 0.55;
+}
+
+/* Korzeń łączy zapas żetonów z pniem. */
+.rune-root::after {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 0.65em;
+  height: 0.18em;
+  background: var(--ink);
+  content: "";
+  translate: 0 -50%;
+}
+
+.rune-branches {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rune-branch {
+  position: relative;
+  display: grid;
+  align-items: center;
+  padding: 0.09em 0 0.09em 0.7em;
+  grid-template-columns: 4.7em auto;
+}
+
+/* Pień: każdy kierunek rysuje swój odcinek, pierwszy i ostatni tylko do swojej gałęzi. */
+.rune-branch::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0.18em;
+  background: var(--ink);
+  content: "";
+}
+
+.rune-branch:first-child::before {
+  top: calc(50% - 0.09em);
+}
+
+.rune-branch:last-child::before {
+  bottom: calc(50% - 0.09em);
+}
+
+.rune-branch::after {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.7em;
+  height: 0.18em;
+  background: var(--ink);
+  content: "";
+  translate: 0 -50%;
+}
+
+/* Nazwa kierunku nosi kolor jego run: po niej widać, co wzmacniają zamknięte jeszcze runy. */
+.rune-branch-name {
+  padding: 0.04em 0.45em;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.2em;
+  font-size: 0.94em;
+  font-weight: 800;
+  line-height: 1.25;
+  justify-self: stretch;
+}
+
+.rune-nodes {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rune-step {
+  display: flex;
+  align-items: center;
+}
+
+/* Odcinek gałęzi przed runą: pełny, gdy gracz ją ma, przerywany, gdy jeszcze nie. */
+.rune-step::before {
+  width: 0.5em;
+  border-top: 0.18em solid var(--ink);
+  content: "";
+}
+
+.rune-step:not([data-state="owned"])::before {
+  border-top: 0.14em dashed var(--ink-soft);
+}
+
+/* Runa rośnie z każdym krokiem kierunku: dalsza jest mocniejsza. */
+.rune-node {
+  width: 2.55em;
+  height: 2.55em;
+  padding: 0;
+  box-shadow: 0.12em 0.12em 0 var(--ink);
+  font-size: calc(0.8em + var(--depth, 0) * 0.024em);
+  cursor: default;
+}
+
+/* Runa, której jeszcze nie można wziąć: wycinanka bez koloru. */
+.rune-node:disabled:not([data-state="owned"]) {
+  border-style: dashed;
+  border-color: var(--ink-soft);
+  background: var(--sheet-light);
+  box-shadow: none;
+  color: var(--ink-soft);
+}
+
+/* Następna runa kierunku czeka nawet bez żetonu: ciemniejszy kontur mówi, że jest pierwsza. */
+.rune-node[data-state="next"]:disabled {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* Runa do wzięcia teraz: w kolorze, z nagietkową obwódką. */
+.rune-node-open {
+  outline: 0.2em solid var(--marigold);
+  outline-offset: 0.08em;
+  cursor: pointer;
+}
+
+.rune-node-open:hover,
+.rune-node-open[aria-expanded="true"] {
+  outline-color: var(--marigold-light);
+  translate: 0 -0.12em;
+}
+
+/* Potwierdzenie wydania żetonu wisi pod klikniętą runą. */
+.rune-take {
+  top: calc(var(--popup-below) + 0.7em);
+  bottom: auto;
+  min-width: 0;
+  text-align: center;
+  justify-items: center;
+}

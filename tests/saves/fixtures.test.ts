@@ -4,14 +4,16 @@
 import { describe, expect, it } from 'vitest';
 import { requireContent } from '../../src/content/load.ts';
 import { reconcileSave } from '../../src/game/progress.ts';
+import { runeTokens } from '../../src/game/runes.ts';
 import { decodeSave } from '../../src/game/save.ts';
 import { SAVE_VERSION } from '../../src/game/save-schema.ts';
 import v1 from '../fixtures/saves/v1.json' with { type: 'json' };
 import v2 from '../fixtures/saves/v2.json' with { type: 'json' };
 import v3 from '../fixtures/saves/v3.json' with { type: 'json' };
 import v4 from '../fixtures/saves/v4.json' with { type: 'json' };
+import v5 from '../fixtures/saves/v5.json' with { type: 'json' };
 
-const FIXTURES: Readonly<Record<number, unknown>> = { 1: v1, 2: v2, 3: v3, 4: v4 };
+const FIXTURES: Readonly<Record<number, unknown>> = { 1: v1, 2: v2, 3: v3, 4: v4, 5: v5 };
 
 describe('przykładowe pliki zapisów', () => {
   it('istnieje plik dla każdej wersji zapisu', () => {
@@ -29,7 +31,7 @@ describe('przykładowe pliki zapisów', () => {
   });
 
   it('zapis w bieżącej wersji wczytuje się bez zmian', () => {
-    expect(decodeSave(JSON.stringify(v4))).toEqual({ kind: 'ok', save: v4, migratedFrom: null });
+    expect(decodeSave(JSON.stringify(v5))).toEqual({ kind: 'ok', save: v5, migratedFrom: null });
   });
 
   it('migracje od v1 zamieniają stan linii na bohaterów, a indeks formy na jej id', () => {
@@ -38,22 +40,17 @@ describe('przykładowe pliki zapisów', () => {
       kind: 'ok',
       migratedFrom: 1,
       save: {
-        saveVersion: 4,
+        saveVersion: 5,
         gameVersion: '0.1.0',
         gold: 135,
-        // Każda linia z v1 to jeden bohater; id nadane w kolejności linii w zapisie.
+        // Każda linia z v1 to jeden bohater; id nadane w kolejności linii w zapisie. Dawne runy
+        // z nagród za poziomy znikają w v4 → v5.
         heroes: [
-          {
-            id: 1,
-            line: 'swordsman',
-            form: 'swordsman_a',
-            upgrades: 3,
-            runes: ['rune_hp_200', null],
-          },
+          { id: 1, line: 'swordsman', form: 'swordsman_a', upgrades: 3, runes: [null, null] },
           { id: 2, line: 'archer', form: 'archer_b', upgrades: 1, runes: [null, null] },
         ],
         nextHeroId: 3,
-        runes: ['rune_hp_200', 'rune_attack_25'],
+        runes: [],
         levels: {
           w1_l1: { cleared: true, bestTicks: 412 },
           w1_l2: { cleared: true, bestTicks: 655 },
@@ -85,7 +82,7 @@ describe('przykładowe pliki zapisów', () => {
     ]);
     // Reszta zapisu przechodzi bez zmian.
     expect(decoded.save.squad).toEqual(v2.squad);
-    expect(decoded.save.runes).toEqual(v2.runes);
+    expect(decoded.save.levels).toEqual(v2.levels);
   });
 
   it('migracja v2 → v3 nie zgaduje formy spoza 0 i 1: taki zapis jest uszkodzony', () => {
@@ -98,10 +95,11 @@ describe('przykładowe pliki zapisów', () => {
     if (decoded.kind !== 'ok') throw new Error('v3 does not decode');
     expect(decoded.migratedFrom).toBe(3);
     // „Strażnik (kopia)” z linii Mieczników i Strażnik z linii Tarczowników to dziś ta sama forma
-    // szczepu Mieczników; „Strzelec wyborowy II” ma dalej swoje id. Ulepszenia i runy zostają.
+    // szczepu Mieczników; „Strzelec wyborowy II” ma dalej swoje id. Ulepszenia zostają; dawne
+    // runy zabiera dopiero następna migracja.
     expect(decoded.save.heroes).toEqual([
-      { id: 1, line: 'swordsman', form: 'guard_b', upgrades: 4, runes: ['rune_hp_200', null] },
-      { id: 2, line: 'archer', form: 'archer_b2', upgrades: 1, runes: [null, 'rune_attack_10'] },
+      { id: 1, line: 'swordsman', form: 'guard_b', upgrades: 4, runes: [null, null] },
+      { id: 2, line: 'archer', form: 'archer_b2', upgrades: 1, runes: [null, null] },
       { id: 3, line: 'swordsman', form: 'swordsman_a', upgrades: 0, runes: [null, null] },
       { id: 4, line: 'swordsman', form: 'guard_b', upgrades: 2, runes: [null, null] },
     ]);
@@ -151,6 +149,40 @@ describe('przykładowe pliki zapisów', () => {
     expect(reconciled.heroes).toEqual(decoded.save.heroes);
     expect(reconciled.heroes.every((hero) => hero.upgrades === 3)).toBe(true);
     expect(reconciled.squad).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('migracja v4 → v5 zabiera dawne runy z nagród, a żetony wynikają z przeszłych poziomów', () => {
+    const decoded = decodeSave(JSON.stringify(v4));
+    if (decoded.kind !== 'ok') throw new Error('v4 does not decode');
+    expect(decoded.migratedFrom).toBe(4);
+    // Zapis v4 miał trzy runy z nagród, dwie z nich w gniazdach bohaterów.
+    expect(v4.runes).toHaveLength(3);
+    expect(decoded.save.runes).toEqual([]);
+    expect(decoded.save.heroes.map((hero) => hero.runes)).toEqual(
+      v4.heroes.map(() => [null, null]),
+    );
+    // Reszta zapisu przechodzi bez zmian: bohaterowie, złoto, poziomy, skład i ustawienia.
+    expect(decoded.save.heroes.map(({ runes, ...hero }) => hero)).toEqual(
+      v4.heroes.map(({ runes, ...hero }) => hero),
+    );
+    expect(decoded.save).toMatchObject({
+      gold: v4.gold,
+      levels: v4.levels,
+      squad: v4.squad,
+      settings: v4.settings,
+      nextHeroId: v4.nextHeroId,
+    });
+    // Gracz przeszedł trzy pierwsze poziomy; drugi daje dziś żeton run, więc ma go do wydania.
+    expect(runeTokens(requireContent(), decoded.save)).toBe(1);
+  });
+
+  it('zapis v5 ma runy drzewka w zapasie i w gniazdach oraz żeton do wydania', () => {
+    const content = requireContent();
+    const decoded = decodeSave(JSON.stringify(v5));
+    if (decoded.kind !== 'ok') throw new Error('v5 does not decode');
+    for (const rune of decoded.save.runes) expect(content.runes.has(rune), rune).toBe(true);
+    // Cztery żetony za poziomy 2 i 5 dwóch światów, trzy wydane.
+    expect(runeTokens(content, decoded.save)).toBe(1);
   });
 
   it('wczytane zapisy pasują do treści gry: bohaterowie, runy i poziomy zostają', () => {

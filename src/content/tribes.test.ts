@@ -29,7 +29,8 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     const tree = unit('mother_tree');
     expect(tree.kind).toBe('summoner');
     expect(tree.summon).toBe('sprout');
-    expect([tree.base.maxHp, tree.base.attack, tree.base.moveStep]).toEqual([10_000, 0, 0]);
+    // Szkic podaje 10 000 życia; autor obniżył je do 5000 (2026-10-08).
+    expect([tree.base.maxHp, tree.base.attack, tree.base.moveStep]).toEqual([5000, 0, 0]);
     expect(tree.base.attackInterval).toBe(secondsToTicks(2));
     expect(tree.base.projectileStep).toBe(0);
     const sprout = content.summons.get('sprout');
@@ -50,7 +51,13 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     expect(next('robots', 'holo_bot')).toEqual(['whirl_bot', 'titan_bot']);
   });
 
-  it('życie, atak, ruch i odrzut zgadzają się ze szkicami autora', () => {
+  // Szybkość postaci walczących wręcz jest ściśnięta do wspólnej skali (decyzja autora
+  // z 2026-10-07, ADR 0024): Guardian of hell 30 → 45, Xartix 75 → 80, Oak warrior 40 → 45,
+  // Whirl-bot 175 → 130, Titan-bot 40 → 45. Autor zmienił potem sam (2026-10-08): szybkość
+  // Orba 15 → 30, Cardinala 10 → 25 i Ultimusa 30 → 50, atak Polarisa 50 → 80 i Thermobota
+  // 100 → 130, życie Ice Ivy 900 → 600, Toxic Ivy 800 → 500 i Whirl-bota 700 → 400. Reszta liczb
+  // jest ze szkiców.
+  it('życie, atak, szybkość i odrzut to liczby ze szkiców po zmianach autora', () => {
     const stats = (id: string) => {
       const { base } = unit(id);
       // Ruch i odrzut w jednostkach świata na sekundę i jednostkach świata, jak na szkicu.
@@ -87,34 +94,38 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
         ].map((id) => [id, stats(id)]),
       ),
     ).toEqual({
-      orb: [350, 35, 15, 10],
-      cardinal: [450, 45, 10, 20],
-      guardian_of_hell: [400, 60, 30, 10],
-      polaris: [1100, 50, 0, 30],
-      ultimus: [1250, 250, 30, 50],
-      xartix: [850, 90, 75, 75],
+      orb: [350, 35, 30, 10],
+      cardinal: [450, 45, 25, 20],
+      guardian_of_hell: [400, 60, 45, 10],
+      polaris: [1100, 80, 0, 30],
+      ultimus: [1250, 250, 50, 50],
+      xartix: [850, 90, 80, 75],
       enigmatix: [1000, 160, 65, 100],
       bush: [400, 15, 0, 10],
       trunk: [600, 30, 25, 10],
       ivy: [500, 40, 0, 30],
-      oak_warrior: [1250, 150, 40, 300],
-      ice_ivy: [900, 20, 0, 10],
-      toxic_ivy: [800, 10, 0, 30],
+      oak_warrior: [1250, 150, 45, 300],
+      ice_ivy: [600, 20, 0, 10],
+      toxic_ivy: [500, 10, 0, 30],
       bot: [200, 25, 50, 15],
       egzo_bot: [400, 40, 70, 25],
       holo_bot: [300, 30, 0, 30],
-      thermobot: [900, 100, 80, 25],
+      thermobot: [900, 130, 80, 25],
       ax_bot: [750, 75, 80, 40],
-      whirl_bot: [700, 70, 175, 30],
-      titan_bot: [1200, 75, 40, 70],
+      whirl_bot: [400, 70, 130, 30],
+      titan_bot: [1200, 75, 45, 70],
     });
   });
 
+  // Ultimus: szkic podaje 3 s, autor skrócił odstęp do 2,5 s (2026-10-08). Polaris strzela co
+  // 3 s: z atakiem 80 i przebijaniem, które dał mu autor, szybszy strzał dawał Immortals wygraną
+  // z każdym innym szczepem (ADR 0024).
   it('odstęp między atakami strzelców to liczba „Atk:” ze szkicu, w sekundach', () => {
     const seconds: Record<string, number> = {
       orb: 1.5,
       cardinal: 1,
-      ultimus: 3,
+      polaris: 3,
+      ultimus: 2.5,
       bush: 1.5,
       trunk: 1.5,
       ivy: 1.7,
@@ -127,8 +138,8 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
       expect(unit(id).kind, id).toBe('ranged');
       expect(unit(id).base.attackInterval, id).toBe(secondsToTicks(interval));
     }
-    // Ultimus bije najmocniej i najrzadziej: 250 obrażeń co 3 sekundy.
-    expect(unit('ultimus').base.attackInterval).toBe(90);
+    // Ultimus bije najmocniej: 250 obrażeń co 2,5 sekundy.
+    expect(unit('ultimus').base.attackInterval).toBe(75);
     // Zamach zawsze mieści się w odstępie, także u najszybszych.
     for (const hero of content.heroes.values()) {
       expect(hero.base.attackInterval, hero.id).toBeGreaterThanOrEqual(hero.base.swingTicks);
@@ -165,12 +176,22 @@ describe('szczepy Immortals, Plants i Robots w treści gry', () => {
     expect(traits('titan_bot')).toEqual([0, 0, 10]);
   });
 
-  it('Ice Ivy leczy całą drużynę o 50 co sekundę, pocisk Toxic Ivy przebija wszystkich', () => {
+  // Szkic podaje 50 na sekundę; przy balansie leczenie spadło do 25, bo drużyna z Ice Ivy
+  // była nie do przebicia (ADR 0024). To jedyna zmieniona liczba zdolności ze szkiców.
+  it('Ice Ivy leczy całą drużynę o 25 co sekundę, pocisk Toxic Ivy przebija wszystkich', () => {
     const ice = unit('ice_ivy').base;
-    expect([ice.healAmount, ice.healInterval, ice.healTeam]).toEqual([50, 30, true]);
+    expect([ice.healAmount, ice.healInterval, ice.healTeam]).toEqual([25, 30, true]);
     const toxic = unit('toxic_ivy').base;
     expect(toxic.pierce).toBe(true);
     expect(toxic.targetLast).toBe(false);
+  });
+
+  // Cechy dodane przez autora 2026-10-08: trucizna Toxic Ivy i przebijający strzał Polarisa.
+  it('Toxic Ivy truje każdego trafionego, a strzał Polarisa przebija wszystkich', () => {
+    const toxic = unit('toxic_ivy').base;
+    // 20 życia co sekundę przez 5 sekund.
+    expect([toxic.dotDamage, toxic.dotInterval, toxic.dotTicks]).toEqual([20, 30, 5]);
+    expect(unit('polaris').base.pierce).toBe(true);
   });
 
   it('każdy strzelec ma własny pocisk wypuszczany z właściwej wysokości', () => {

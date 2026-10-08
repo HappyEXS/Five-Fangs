@@ -15,6 +15,8 @@ export function contentAssetIssues(
     if (rig === undefined) return;
     const missing = new Set<string>();
     for (const bone of rig.bones) {
+      // Część opcjonalną (druga ręka) skórka może pominąć.
+      if (bone.optional) continue;
       const name = `${visual.skin}/${bone.sprite}`;
       if (!spriteNames.has(name)) missing.add(name);
     }

@@ -1,154 +1,203 @@
 // Ignitix: druga ewolucja Reapera, strzelec celujący w koniec szyku wroga. Zwęglony gad na
-// długiej szyi, z wydłużoną zębatą paszczą, w której tli się ogień; między łuskami świecą
-// szczeliny żaru (szkic autora: łeb z długimi szczękami, oko wysoko z tyłu, zygzak łusek na szyi).
+// długiej szyi: skóra czarna jak wypalone drewno pęka i w szczelinach świeci żar, długa, kanciasta
+// paszcza jest piecem z kratą zębów, a oko wysoko z tyłu łba to biały punkt (szkic autora: łeb
+// z długimi szczękami i zębami, oko wysoko z tyłu, zygzak łusek na szyi).
 import { intersect, type Shape, union } from '../../raster.ts';
 import { BONE, BONE_SHADE, type Palette, type PartCanvas, type Point, partCanvas } from '../kit.ts';
-import { claws, fleshFore, fleshShin, fleshThigh, fleshUpper } from '../limbs.ts';
+import { beastFore, beastShin, beastThigh, beastUpper, hooks } from '../limbs-beasts.ts';
+import { beast, emberEye, INK, teeth, VOID } from './palette.ts';
 
-export const IGNITIX: Palette = {
-  main: '#56281a',
-  shade: '#2a120b',
-  light: '#8c5a2c',
-  dark: '#110604',
-  accent: '#d9541a',
-  glow: '#ffc04a',
-};
+/** Zwęglona skóra: czerń z resztką czerwieni. */
+const CHAR = { main: '#35201a', shade: '#170b08', light: '#5e3a28', dark: '#080403' };
+/** Płyty grzbietu: wypalone do czerni. */
+const CINDER = { main: '#1d1210', shade: '#0b0605', light: '#3a2620', dark: '#060302' };
+const EMBER = '#dd5418';
 
-/** Grzebień: zwęglone, prawie czarne łuski. */
-const RIDGE = { main: '#2a1410', shade: '#150806', dark: '#110604', light: '#56281a' };
+export const IGNITIX: Palette = beast(CHAR, EMBER, '#ffd46e');
 
-/** Szczelina żaru: ciemna rysa z jasnym środkiem. */
+/** Szczelina żaru: pomarańczowa rysa z jasnym środkiem i poświatą. */
 function ember(c: PartCanvas, p: Palette, clip: Shape, points: readonly Point[]): void {
-  c.fill(intersect(clip, c.path(points, 0.55)), p.accent, 0.9);
-  c.fill(intersect(clip, c.path(points, 0.22)), p.glow);
+  c.fill(intersect(clip, c.path(points, 1.3)), p.accent, 0.22);
+  c.fill(intersect(clip, c.path(points, 0.6)), p.accent, 0.95);
+  c.fill(intersect(clip, c.path(points, 0.24)), p.glow);
+}
+
+/** Płyta grzbietu: wypalony, wyszczerbiony trójkąt. */
+function plate(c: PartCanvas, base: Point, tip: Point, width: number): void {
+  const dx = tip[0] - base[0];
+  const dy = tip[1] - base[1];
+  const length = Math.hypot(dx, dy) || 1;
+  const nx = (-dy / length) * width;
+  const ny = (dx / length) * width;
+  c.form(c.poly([[base[0] - nx, base[1] - ny], tip, [base[0] + nx, base[1] + ny]]), CINDER, {
+    rag: 0.4,
+    shadow: 0.5,
+  });
 }
 
 function head(p: Palette): PartCanvas {
-  const c = partCanvas(-16, -48, 35, 7, 1);
-  // Rogi na potylicy; dalszy ułamany.
-  c.ink(c.horn(1, -34, -4.5, -38.5, 1.9, 1.1), BONE_SHADE, p.dark);
-  c.ink(c.horn(3.5, -35.5, -1.5, -46, 2, 0.3), BONE, p.dark);
-  // Grzebień łusek wzdłuż karku.
-  for (const [x, y] of [
-    [-4.2, -6],
-    [-4.6, -12.5],
-    [-3.4, -19],
+  const c = partCanvas(-16, -56, 37, 8, 1);
+  // Rogi na potylicy: osmalona kość, dalszy ułamany.
+  c.ink(c.horn(1.6, -37, -5.6, -43, 2, 1.1), '#4f4733', INK);
+  c.ink(c.arc([4, -38.6], [-1, -46], [-6.6, -52.6], 2.2, 0.3), BONE_SHADE, INK);
+  // Płyty wzdłuż karku.
+  for (const [base, tip] of [
+    [
+      [-3, -5],
+      [-11.6, -9],
+    ],
+    [
+      [-4.4, -12],
+      [-13, -17.6],
+    ],
+    [
+      [-2.6, -19],
+      [-10, -26.6],
+    ],
   ] as const) {
-    c.form(c.horn(x + 2.5, y, x - 4, y - 3.2, 2.1, 0.3), RIDGE, { shadow: 0 });
+    plate(c, base, tip, 2.8);
   }
-  // Szyja wygięta w łuk; z przodu płytki, między nimi żar.
-  const neck = c.arc([0, 0], [-4, -14], [4.5, -25], 4.6, 3.7);
+  // Szyja wygięta w łuk; od gardła w dół biegnie zygzak żaru między łuskami.
+  const neck = c.arc([0, 0], [-5.6, -14], [4.6, -27], 5.2, 3.9);
   const neckInside = c.form(neck, p, { rag: 0.45 });
-  const throat = intersect(neckInside, c.arc([3.4, 1], [-0.2, -13], [7.6, -23], 1.9, 1.6));
-  c.fill(throat, p.light);
-  for (const [x, y] of [
-    [0.6, -5],
-    [0.2, -10.5],
-    [1.4, -16],
-  ] as const) {
-    c.fill(intersect(throat, c.line(x - 2.5, y, x + 3.5, y - 0.8, 0.32)), p.dark, 0.7);
-  }
+  c.patches(neckInside, p.shade, 0.24, 2.4, 0.9);
   ember(c, p, neckInside, [
-    [-2.6, -3],
-    [-1.4, -6.5],
-    [-3, -9.5],
-    [-1.6, -13],
+    [3.6, -23],
+    [0, -19.6],
+    [2.4, -16],
+    [-1.6, -12.6],
+    [1, -9],
+    [-2.6, -5.6],
+    [0.4, -2],
   ]);
-  // Dolna szczęka, żar w paszczy, potem czaszka z długą górną szczęką.
-  c.form(c.box(15, -23.4, 10.4, 2.2, 1.8), p, { rag: 0.4, shadow: 0.5 });
-  c.fill(c.oval(16.5, -26, 9.4, 1.6), p.accent);
-  c.fill(c.oval(18.5, -26, 6.5, 0.85), p.glow);
-  const skull = union(c.oval(5, -29.5, 7, 6.6), c.box(17.5, -30.2, 12, 3.5, 2.6));
-  const skullInside = c.form(union(skull, c.dot(28, -33.4, 1.9)), p, { rag: 0.4 });
-  c.fill(c.dot(28.4, -33.6, 0.75), p.dark);
-  ember(c, p, skullInside, [
-    [11, -32.5],
-    [14.5, -31.4],
-    [17, -32.6],
-    [20.5, -31.6],
+  // Dolna szczęka: kanciasta belka.
+  const lower = c.poly([
+    [2, -26.4],
+    [12, -24.6],
+    [32, -25.4],
+    [33.4, -23],
+    [30, -20.6],
+    [10, -20],
+    [3, -21.6],
   ]);
-  // Zęby obu szczęk: nierówne, osmalone.
-  for (const [x, length] of [
-    [9.5, 3.2],
-    [12.9, 2.2],
-    [16.3, 3.4],
-    [19.7, 2.4],
-    [23.1, 3],
-  ] as const) {
-    c.ink(
-      c.poly([
-        [x, -27],
-        [x + 1.2, -27 + length],
-        [x + 2.4, -27],
-      ]),
-      BONE,
-      p.dark,
-    );
-  }
-  for (const x of [11.2, 14.6, 18, 21.4]) {
-    c.ink(
-      c.poly([
-        [x, -25.4],
-        [x + 1.2, -28],
-        [x + 2.4, -25.4],
-      ]),
-      BONE_SHADE,
-      p.dark,
-    );
-  }
-  // Oko wysoko z tyłu łba, pod łukiem brwiowym.
-  c.eye(4.2, -31.6, 2.5, p, 0.6);
-  c.fill(c.horn(0.4, -35.6, 8.6, -33.8, 1.2, 0.7), p.dark);
+  const lowerInside = c.form(lower, { ...p, main: p.shade, shade: INK }, { rag: 0.4, shadow: 0.5 });
+  c.patches(lowerInside, p.main, 0.2, 2.2, 0.7);
+  // Piec w paszczy.
+  const fire = c.poly([
+    [7, -28.6],
+    [34, -29.6],
+    [33, -24.6],
+    [8, -24],
+  ]);
+  c.fill(fire, p.accent);
+  c.fill(c.line(12, -26.6, 32, -27.2, 1.1), p.glow, 0.9);
+  // Czaszka z długą, kanciastą górną szczęką.
+  const skull = c.poly([
+    [-2.6, -27.6],
+    [-0.6, -36],
+    [8, -39],
+    [14, -36.6],
+    [30.6, -35],
+    [34.6, -32.4],
+    [34.6, -29],
+    [12, -27.6],
+    [4, -26.4],
+  ]);
+  const inside = c.form(skull, p, { rag: 0.4 });
+  c.patches(inside, p.shade, 0.24, 2.4, 0.9);
+  c.patches(inside, p.light, 0.1, 2, 0.6);
+  ember(c, p, inside, [
+    [12, -33.6],
+    [16, -32],
+    [19, -33.6],
+    [23.6, -32],
+    [26.4, -33.2],
+  ]);
+  emberEye(c, 32.6, -32.6, 0.5, p.glow);
+  // Krata zębów na tle żaru.
+  teeth(c, [10, -28], [32, -29], 9, 3, BONE, 1);
+  teeth(c, [11.6, -24.4], [30.6, -25], 8, -2.6, BONE_SHADE, 1);
+  // Oko wysoko z tyłu łba: oczodół i biały punkt.
+  c.fill(c.ragged(c.oval(5, -33, 3.2, 2.7), 0.3, 2), VOID);
+  emberEye(c, 5.6, -32.8, 1, '#fff2c8');
   return c.finish();
 }
 
 function torso(p: Palette): PartCanvas {
-  const c = partCanvas(-33, -31, 14, 18, 2);
-  // Gruby ogon opada za plecami i podwija się przy ziemi.
-  const tail = c.arc([-4, -5], [-27, -9], [-25, 12], 5.2, 1.1);
-  const tailInside = c.form(tail, p, { rag: 0.45 });
+  const c = partCanvas(-40, -38, 15, 22, 2);
+  // Płyty na grzbiecie i ogonie.
+  for (const [base, tip, width] of [
+    [[-6, -21], [-14, -31.6], 3.4],
+    [[-9.6, -14], [-20, -21], 3.4],
+    [[-11, -6], [-20.6, -12.6], 3.2],
+    [[-19, -7], [-25.6, -15.6], 2.8],
+    [[-26, -1], [-34.4, -5.6], 2.6],
+  ] as const) {
+    plate(c, base, tip, width);
+  }
+  // Gruby ogon opada za plecami; jego koniec to rozżarzona maczuga.
+  const tail = c.arc([-4, -5], [-29, -10], [-28, 12], 5.6, 2);
+  const tailInside = c.form(union(tail, c.dot(-28, 13.6, 3.6)), p, { rag: 0.45 });
+  c.patches(tailInside, p.shade, 0.24, 2.4, 0.9);
   ember(c, p, tailInside, [
     [-12, -7],
-    [-16, -5.5],
-    [-19.5, -7.5],
-    [-22, -3],
+    [-16.6, -5],
+    [-20, -7.6],
+    [-23.6, -3],
+    [-26.6, -4],
   ]);
-  // Grzebień na grzbiecie.
-  for (const [x, y] of [
-    [-6.5, -20.5],
-    [-8.4, -14],
-    [-8.4, -7.5],
-  ] as const) {
-    c.form(c.horn(x + 2.5, y, x - 4.6, y - 2.8, 2.2, 0.3), RIDGE, { shadow: 0 });
-  }
-  const body = c.oval(0, -12, 9.4, 14);
+  ember(c, p, tailInside, [
+    [-29.6, 11],
+    [-27.6, 13],
+    [-29, 15.4],
+    [-26.6, 16],
+  ]);
+  // Korpus.
+  const body = c.poly([
+    [-9, -19],
+    [-4, -25],
+    [4, -24],
+    [9, -17],
+    [10, -8],
+    [8, 0],
+    [4, 5.4],
+    [-6, 5.4],
+    [-10, -3],
+    [-11.4, -11],
+  ]);
   const inside = c.form(body, p, { rag: 0.45 });
-  const belly = intersect(inside, c.oval(5, -10, 5.2, 11.5));
-  c.fill(belly, p.light);
-  for (const y of [-19, -14.5, -10, -5.5, -1]) {
-    c.fill(intersect(belly, c.line(0, y, 10, y - 0.6, 0.32)), p.dark, 0.7);
+  c.patches(inside, p.shade, 0.24, 2.6, 0.9);
+  c.patches(inside, p.light, 0.1, 2.2, 0.6);
+  // Brzuch: płyty, a między nimi żar.
+  const belly = intersect(inside, c.oval(6.6, -9, 4.8, 13));
+  c.fill(belly, CINDER.main);
+  for (const y of [-18.6, -13.8, -9, -4.2, 0.6]) {
+    ember(c, p, belly, [
+      [0, y + 0.6],
+      [5.6, y - 0.6],
+      [12, y + 0.4],
+    ]);
   }
-  // Pęknięcia żaru na boku.
+  // Pęknięcie żaru na boku.
   ember(c, p, inside, [
-    [-5.5, -18],
-    [-3, -14.5],
-    [-5, -11],
-    [-2.4, -7.5],
-    [-4.4, -4],
+    [-6, -18],
+    [-3, -14.6],
+    [-5.6, -11],
+    [-2.4, -7.6],
+    [-4.6, -3.6],
   ]);
-  c.patches(inside, p.shade, 0.25, 2.6, 0.9);
   return c.finish();
 }
 
 export function ignitixParts(): Record<string, PartCanvas> {
   const p = IGNITIX;
   return {
-    thigh: fleshThigh(p, 1.15),
-    shin: fleshShin(p, 'paw', 1.1),
+    thigh: beastThigh(p, 1.15),
+    shin: beastShin(p, 'paw', 1.1),
     torso: torso(p),
-    upper: fleshUpper(p, 1.05),
-    fore: fleshFore(p, 'paw', 1.05),
+    upper: beastUpper(p, 1.05),
+    fore: beastFore(p, 'paw', 1.05),
     head: head(p),
-    weapon: claws(p, 6.5),
+    weapon: hooks(p, 6.5),
   };
 }
