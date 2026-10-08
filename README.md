@@ -1,12 +1,16 @@
 # Five Fangs
 
-Przeglądarkowy auto-battler 2D z widokiem z boku, dla jednego gracza, bez backendu. Gracz układa skład do pięciu bohaterów, rozwija ich i wyposaża w runy; walki toczą się same i bez losowości, więc ten sam skład na tym samym poziomie zawsze daje ten sam wynik. Gra ma 36 poziomów w 6 światach.
+Przeglądarkowy auto-battler 2D z widokiem z boku, dla jednego gracza, bez backendu. Gracz układa skład do pięciu bohaterów, rozwija ich i wyposaża w runy. Gra ma 36 poziomów w 6 światach.
 
-Technicznie: TypeScript, Vite, Preact i Canvas 2D; symulacja walki działa także w Node, bez przeglądarki.
+Stack: TypeScript, Vite, Preact i Canvas 2D; symulacja walki działa także w Node, bez przeglądarki.
+
+### [Live demo](https://five-fangs.onrender.com/)
+
+![Demo aplikacji](demo_five_fangs.gif)
 
 ## Uruchomienie
 
-Wszystko działa w kontenerze Docker, zależności nie instaluje się na komputerze:
+Wszystko działa w kontenerze Docker:
 
 ```bash
 docker compose up -d dev                # gra na http://localhost:5173
